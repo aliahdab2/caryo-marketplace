@@ -8,14 +8,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
@@ -32,7 +28,7 @@ import com.autotrader.autotraderbackend.model.CarModel;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty(name = "syriacars.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(name = "syriacars.enabled", havingValue = "true", matchIfMissing = false)
 public class SyrianCarsDataService implements CarDataProvider {
 
     private final CarBrandService carBrandService;
@@ -51,7 +47,6 @@ public class SyrianCarsDataService implements CarDataProvider {
     @Value("${syriacars.scraping.timeout:30000}")
     private int scrapingTimeout;
 
-    private final RestTemplate restTemplate;
 
     /**
      * Validate configuration at startup
@@ -116,11 +111,41 @@ public class SyrianCarsDataService implements CarDataProvider {
     @Override
     public boolean testConnection() {
         try {
+            if (!enabled) {
+                log.debug("SyrianCars service is disabled");
+                return false;
+            }
+
+            if (scrapingEnabled) {
+                // Test scraping connection
+                log.info("Testing SyrianCars.net scraping connection");
+                try {
+                    Document doc = Jsoup.connect(syrianCarsUrl)
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                            .timeout(10000) // Shorter timeout for connection test
+                            .followRedirects(true)
+                            .get();
+                    
+                    log.info("✅ SyrianCars.net scraping connection successful - page title: {}", doc.title());
+                    return true;
+                } catch (IOException e) {
+                    log.warn("❌ SyrianCars.net scraping connection failed: {}", e.getMessage());
+                    // Fall back to local data test
+                }
+            }
+
             // Test if local Syrian market data is available
             log.info("Testing Syrian local market data availability");
-            return enabled && hasSyrianMarketData();
+            boolean hasLocalData = hasSyrianMarketData();
+            if (hasLocalData) {
+                log.info("✅ Syrian local market data available");
+            } else {
+                log.warn("❌ No Syrian market data available");
+            }
+            return hasLocalData;
+            
         } catch (Exception e) {
-            log.error("Syrian local data availability test failed: {}", e.getMessage());
+            log.error("Syrian data availability test failed: {}", e.getMessage());
             return false;
         }
     }
@@ -293,45 +318,106 @@ public class SyrianCarsDataService implements CarDataProvider {
         try {
             log.info("Scraping brands from: {}", syrianCarsUrl);
 
-            // Connect to SyrianCars.net with timeout
+            // Connect to SyrianCars.net with timeout and proper headers
             Document doc = Jsoup.connect(syrianCarsUrl)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+                    .header("Accept-Language", "en-US,en;q=0.5")
+                    .header("Accept-Encoding", "gzip, deflate")
+                    .header("Connection", "keep-alive")
                     .timeout(scrapingTimeout)
                     .followRedirects(true)
                     .get();
 
-            // Try different selectors for brands (you may need to adjust these based on the actual website structure)
-            Elements brandElements = doc.select("select[name=make] option, .brand-list a, .makes-list li");
+            log.debug("Successfully connected to SyrianCars.net, page title: {}", doc.title());
 
-            for (Element element : brandElements) {
-                String brandName = element.text().trim();
-                String brandValue = element.attr("value");
+            // Try multiple selectors for different possible page structures
+            String[] brandSelectors = {
+                "select[name=make] option",           // Dropdown options
+                "select[name=brand] option",          // Alternative dropdown
+                ".brand-list a",                      // Brand list links
+                ".makes-list li",                     // Makes list items
+                ".car-brands a",                      // Car brands links
+                "a[href*='make=']",                   // Links with make parameter
+                "a[href*='brand=']",                  // Links with brand parameter
+                ".brand-item",                        // Brand items
+                "[data-brand]"                        // Elements with brand data attribute
+            };
 
-                if (!brandName.isEmpty() && !brandValue.equals("") && !brandValue.equals("0")) {
-                    // Create brand with English name and generate Arabic translation
-                    String arabicName = arabicTranslationService.translateBrandToArabic(brandName);
-                    String slug = brandValue.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+            for (String selector : brandSelectors) {
+                Elements brandElements = doc.select(selector);
+                log.debug("Trying selector '{}': found {} elements", selector, brandElements.size());
 
-                    brands.add(new SyrianBrand(brandName, arabicName, slug));
-                    log.debug("Scraped brand: {} -> {}", brandName, arabicName);
-                }
-            }
+                for (Element element : brandElements) {
+                    String brandName = element.text().trim();
+                    String brandValue = element.attr("value");
+                    String brandHref = element.attr("href");
+                    String brandData = element.attr("data-brand");
 
-            // If no brands found with selectors, try to find brand links
-            if (brands.isEmpty()) {
-                Elements brandLinks = doc.select("a[href*='make='], a[href*='brand=']");
-                for (Element link : brandLinks) {
-                    String brandName = link.text().trim();
-                    if (!brandName.isEmpty() && brandName.length() > 2) {
+                    // Extract brand name from different sources
+                    if (brandName.isEmpty() && !brandData.isEmpty()) {
+                        brandName = brandData.trim();
+                    }
+
+                    // Extract slug from different sources
+                    String slug = "";
+                    if (!brandValue.isEmpty() && !brandValue.equals("0")) {
+                        slug = brandValue.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                    } else if (!brandHref.isEmpty()) {
+                        // Extract from URL parameters
+                        if (brandHref.contains("make=")) {
+                            slug = brandHref.substring(brandHref.indexOf("make=") + 5);
+                            if (slug.contains("&")) slug = slug.substring(0, slug.indexOf("&"));
+                        } else if (brandHref.contains("brand=")) {
+                            slug = brandHref.substring(brandHref.indexOf("brand=") + 6);
+                            if (slug.contains("&")) slug = slug.substring(0, slug.indexOf("&"));
+                        }
+                        slug = slug.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                    } else {
+                        slug = brandName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                    }
+
+                    // Validate and add brand
+                    if (!brandName.isEmpty() && brandName.length() > 1 && !slug.isEmpty()) {
+                        // Skip common non-brand values
+                        if (brandName.equalsIgnoreCase("select") || brandName.equalsIgnoreCase("choose") || 
+                            brandName.equalsIgnoreCase("all") || brandName.length() < 2) {
+                            continue;
+                        }
+
+                        // Generate Arabic translation
                         String arabicName = arabicTranslationService.translateBrandToArabic(brandName);
-                        String slug = brandName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-
-                        brands.add(new SyrianBrand(brandName, arabicName, slug));
+                        
+                        // Only add if we have a valid Arabic translation
+                        if (arabicName != null && !arabicName.trim().isEmpty() && !arabicName.equalsIgnoreCase(brandName)) {
+                            brands.add(new SyrianBrand(brandName, arabicName, slug));
+                            log.debug("Scraped brand: {} -> {} (slug: {})", brandName, arabicName, slug);
+                        } else {
+                            log.debug("Skipping brand '{}' - no valid Arabic translation", brandName);
+                        }
                     }
                 }
+
+                // If we found brands with this selector, break
+                if (!brands.isEmpty()) {
+                    log.info("Successfully scraped {} brands using selector: {}", brands.size(), selector);
+                    break;
+                }
             }
 
-            log.info("Scraped {} brands from SyrianCars.net", brands.size());
+            // If still no brands found, try to extract from page text
+            if (brands.isEmpty()) {
+                log.warn("No brands found with standard selectors, trying text extraction");
+                String pageText = doc.text();
+                log.debug("Page text sample: {}", pageText.length() > 200 ? pageText.substring(0, 200) + "..." : pageText);
+                
+                // This is a fallback - in a real scenario, you'd analyze the actual page structure
+                // For now, we'll use our fallback data
+                log.info("Scraping failed to find brands, using fallback data");
+                return getFallbackBrands();
+            }
+
+            log.info("Successfully scraped {} brands from SyrianCars.net", brands.size());
 
         } catch (IOException e) {
             log.error("Error scraping SyrianCars.net: {}", e.getMessage());
@@ -383,144 +469,70 @@ public class SyrianCarsDataService implements CarDataProvider {
         List<SyrianModel> models = new ArrayList<>();
 
         // Syrian market specific models
-        models.add(new SyrianModel("Al-Waha", "City Van", "سيارة المدينة"));
-        models.add(new SyrianModel("Cham Wings", "Family", "عائلية"));
-        models.add(new SyrianModel("Tishreen", "Pickup", "بيك أب"));
+        models.add(new SyrianModel("al-waha", "City Van", "سيارة المدينة"));
+        models.add(new SyrianModel("cham-wings", "Family", "عائلية"));
+        models.add(new SyrianModel("tishreen", "Pickup", "بيك أب"));
 
         // Popular models in Syrian market with Arabic translations
         // Hyundai
-        models.add(new SyrianModel("Hyundai", "Accent", "أكسنت"));
-        models.add(new SyrianModel("Hyundai", "Elantra", "إلانترا"));
-        models.add(new SyrianModel("Hyundai", "Tucson", "توكسون"));
-        models.add(new SyrianModel("Hyundai", "Santa Fe", "سانتا في"));
-        models.add(new SyrianModel("Hyundai", "i10", "آي 10"));
-        models.add(new SyrianModel("Hyundai", "i20", "آي 20"));
+        models.add(new SyrianModel("hyundai", "Accent", "أكسنت"));
+        models.add(new SyrianModel("hyundai", "Elantra", "إلانترا"));
+        models.add(new SyrianModel("hyundai", "Tucson", "توكسون"));
+        models.add(new SyrianModel("hyundai", "Santa Fe", "سانتا في"));
+        models.add(new SyrianModel("hyundai", "i10", "آي 10"));
+        models.add(new SyrianModel("hyundai", "i20", "آي 20"));
 
         // Kia
-        models.add(new SyrianModel("Kia", "Rio", "ريو"));
-        models.add(new SyrianModel("Kia", "Cerato", "سيراتو"));
-        models.add(new SyrianModel("Kia", "Sportage", "سبورتاج"));
-        models.add(new SyrianModel("Kia", "Sorento", "سورينتو"));
-        models.add(new SyrianModel("Kia", "Picanto", "بيكانتو"));
+        models.add(new SyrianModel("kia", "Rio", "ريو"));
+        models.add(new SyrianModel("kia", "Cerato", "سيراتو"));
+        models.add(new SyrianModel("kia", "Sportage", "سبورتاج"));
+        models.add(new SyrianModel("kia", "Sorento", "سورينتو"));
+        models.add(new SyrianModel("kia", "Picanto", "بيكانتو"));
 
         // Renault
-        models.add(new SyrianModel("Renault", "Symbol", "سيمان"));
-        models.add(new SyrianModel("Renault", "Logan", "لوغان"));
-        models.add(new SyrianModel("Renault", "Duster", "داستر"));
-        models.add(new SyrianModel("Renault", "Clio", "كليو"));
-        models.add(new SyrianModel("Renault", "Megane", "ميغان"));
+        models.add(new SyrianModel("renault", "Symbol", "سيمان"));
+        models.add(new SyrianModel("renault", "Logan", "لوغان"));
+        models.add(new SyrianModel("renault", "Duster", "داستر"));
+        models.add(new SyrianModel("renault", "Clio", "كليو"));
+        models.add(new SyrianModel("renault", "Megane", "ميغان"));
 
         // Peugeot
-        models.add(new SyrianModel("Peugeot", "206", "206"));
-        models.add(new SyrianModel("Peugeot", "207", "207"));
-        models.add(new SyrianModel("Peugeot", "208", "208"));
-        models.add(new SyrianModel("Peugeot", "301", "301"));
-        models.add(new SyrianModel("Peugeot", "3008", "3008"));
+        models.add(new SyrianModel("peugeot", "206", "206"));
+        models.add(new SyrianModel("peugeot", "207", "207"));
+        models.add(new SyrianModel("peugeot", "208", "208"));
+        models.add(new SyrianModel("peugeot", "301", "301"));
+        models.add(new SyrianModel("peugeot", "3008", "3008"));
 
         // Toyota
-        models.add(new SyrianModel("Toyota", "Corolla", "كورولا"));
-        models.add(new SyrianModel("Toyota", "Camry", "كامري"));
-        models.add(new SyrianModel("Toyota", "Yaris", "يارس"));
-        models.add(new SyrianModel("Toyota", "RAV4", "راف 4"));
-        models.add(new SyrianModel("Toyota", "Land Cruiser", "لاند كروزر"));
+        models.add(new SyrianModel("toyota", "Corolla", "كورولا"));
+        models.add(new SyrianModel("toyota", "Camry", "كامري"));
+        models.add(new SyrianModel("toyota", "Yaris", "يارس"));
+        models.add(new SyrianModel("toyota", "RAV4", "راف 4"));
+        models.add(new SyrianModel("toyota", "Land Cruiser", "لاند كروزر"));
 
         // Nissan
-        models.add(new SyrianModel("Nissan", "Sunny", "ساني"));
-        models.add(new SyrianModel("Nissan", "Qashqai", "قشقاي"));
-        models.add(new SyrianModel("Nissan", "Patrol", "باترول"));
-        models.add(new SyrianModel("Nissan", "Altima", "ألتيما"));
+        models.add(new SyrianModel("nissan", "Sunny", "ساني"));
+        models.add(new SyrianModel("nissan", "Qashqai", "قشقاي"));
+        models.add(new SyrianModel("nissan", "Patrol", "باترول"));
+        models.add(new SyrianModel("nissan", "Altima", "ألتيما"));
 
         // Mercedes-Benz
-        models.add(new SyrianModel("Mercedes-Benz", "C-Class", "سي كلاس"));
-        models.add(new SyrianModel("Mercedes-Benz", "E-Class", "إي كلاس"));
-        models.add(new SyrianModel("Mercedes-Benz", "S-Class", "أس كلاس"));
-        models.add(new SyrianModel("Mercedes-Benz", "ML-Class", "أم أل كلاس"));
+        models.add(new SyrianModel("mercedes-benz", "C-Class", "سي كلاس"));
+        models.add(new SyrianModel("mercedes-benz", "E-Class", "إي كلاس"));
+        models.add(new SyrianModel("mercedes-benz", "S-Class", "أس كلاس"));
+        models.add(new SyrianModel("mercedes-benz", "ML-Class", "أم أل كلاس"));
 
         // BMW
-        models.add(new SyrianModel("BMW", "3 Series", "سلسلة 3"));
-        models.add(new SyrianModel("BMW", "5 Series", "سلسلة 5"));
-        models.add(new SyrianModel("BMW", "7 Series", "سلسلة 7"));
-        models.add(new SyrianModel("BMW", "X3", "إكس 3"));
-        models.add(new SyrianModel("BMW", "X5", "إكس 5"));
+        models.add(new SyrianModel("bmw", "3 Series", "سلسلة 3"));
+        models.add(new SyrianModel("bmw", "5 Series", "سلسلة 5"));
+        models.add(new SyrianModel("bmw", "7 Series", "سلسلة 7"));
+        models.add(new SyrianModel("bmw", "X3", "إكس 3"));
+        models.add(new SyrianModel("bmw", "X5", "إكس 5"));
 
         return models;
     }
 
-    /**
-     * Create or update a Syrian brand
-     */
-    @Transactional
-    private void createOrUpdateSyrianBrand(SyrianBrand syrianBrand) {
-        try {
-            // Check if brand already exists (from CarQuery or manual entry)
-            CarBrand existingBrand = carBrandService.getBrandBySlug(syrianBrand.getSlug());
 
-            // Update existing brand with Syrian market data
-            if (existingBrand.getDisplayNameAr() == null || existingBrand.getDisplayNameAr().isEmpty()) {
-                existingBrand.setDisplayNameAr(syrianBrand.getArabicName());
-                carBrandService.updateBrand(existingBrand.getId(), existingBrand);
-                log.debug("Updated brand {} with Arabic name: {}", existingBrand.getName(), syrianBrand.getArabicName());
-            }
-
-        } catch (Exception e) {
-            // Brand doesn't exist, create new one
-            CarBrand newBrand = new CarBrand();
-            newBrand.setName(syrianBrand.getSlug());
-            newBrand.setSlug(syrianBrand.getSlug());
-            newBrand.setDisplayNameEn(syrianBrand.getName());
-            newBrand.setDisplayNameAr(syrianBrand.getArabicName());
-            newBrand.setIsActive(true);
-
-            carBrandService.createBrand(newBrand);
-            log.info("Created new Syrian market brand: {}", syrianBrand.getName());
-        }
-    }
-
-    /**
-     * Create or update a Syrian model
-     */
-    @Transactional
-    private void createOrUpdateSyrianModel(SyrianModel syrianModel) {
-        try {
-            // Find the brand first
-            CarBrand brand = carBrandService.getBrandBySlug(syrianModel.getBrandSlug());
-
-            // Check if model already exists
-            // Try to find existing model by name and brand
-            List<CarModel> existingModels = carModelService.getModelsByBrandId(brand.getId());
-            CarModel existingModel = existingModels.stream()
-                .filter(model -> model.getName().equals(syrianModel.getName()))
-                .findFirst()
-                .orElse(null);
-
-            // Update existing model with Syrian data
-            if (existingModel.getDisplayNameAr() == null || existingModel.getDisplayNameAr().isEmpty()) {
-                existingModel.setDisplayNameAr(syrianModel.getArabicName());
-                carModelService.updateModel(existingModel.getId(), existingModel);
-                log.debug("Updated model {} with Arabic name: {}", existingModel.getDisplayNameEn(), syrianModel.getArabicName());
-            }
-
-        } catch (Exception e) {
-            // Model doesn't exist, create new one
-            try {
-                CarBrand brand = carBrandService.getBrandBySlug(syrianModel.getBrandSlug());
-
-                CarModel newModel = new CarModel();
-                newModel.setName(syrianModel.getName());
-                newModel.setSlug(syrianModel.getName().toLowerCase().replaceAll("[^a-z0-9-]", "-"));
-                newModel.setDisplayNameEn(syrianModel.getName());
-                newModel.setDisplayNameAr(syrianModel.getArabicName());
-                newModel.setBrand(brand);
-                newModel.setIsActive(true);
-
-                carModelService.createModel(newModel);
-                log.info("Created new Syrian market model: {} for brand {}", syrianModel.getName(), syrianModel.getBrandSlug());
-
-            } catch (Exception brandException) {
-                log.warn("Cannot create model {} - brand {} not found", syrianModel.getName(), syrianModel.getBrandSlug());
-            }
-        }
-    }
 
     /**
      * Check if Syrian market data is available
@@ -556,33 +568,284 @@ public class SyrianCarsDataService implements CarDataProvider {
     }
 
     /**
-     * Basic English to Arabic brand name translation
-     * In production, you might want to use a proper translation service
+     * Create or update a Syrian brand with strict validation (same as CarQuery)
      */
-    @Deprecated
-    private String translateBrandToArabicLegacy(String englishName) {
-        // Simple translation mapping for common brands
-        Map<String, String> translations = new HashMap<>();
-        translations.put("Toyota", "تويوتا");
-        translations.put("Honda", "هوندا");
-        translations.put("Nissan", "نيسان");
-        translations.put("Mazda", "مازدا");
-        translations.put("Subaru", "سوبارو");
-        translations.put("Mitsubishi", "ميتسوبيشي");
-        translations.put("Suzuki", "سوزوكي");
-        translations.put("Hyundai", "هيونداي");
-        translations.put("Kia", "كيا");
-        translations.put("Renault", "رينو");
-        translations.put("Peugeot", "بيجو");
-        translations.put("Mercedes-Benz", "مرسيدس بنز");
-        translations.put("BMW", "بي إم دبليو");
-        translations.put("Audi", "أودي");
-        translations.put("Volkswagen", "فولكس واجن");
-        translations.put("Ford", "فورد");
-        translations.put("Chevrolet", "شفروليه");
-        translations.put("SsangYong", "سانغ يونغ");
+    private void createOrUpdateSyrianBrand(SyrianBrand syrianBrand) {
+        try {
+            String brandSlug = syrianBrand.getSlug();
+            String brandName = syrianBrand.getName();
+            CarBrand existingBrand = null;
 
-        return translations.getOrDefault(englishName, englishName);
+            // Check if brand already exists by slug or name
+            try {
+                existingBrand = carBrandService.getBrandBySlug(brandSlug);
+                log.debug("Syrian brand '{}' already exists (slug: {}), checking for new models", brandName, brandSlug);
+            } catch (Exception e) {
+                // Check by name as well
+                try {
+                    existingBrand = carBrandService.getBrandByName(brandName);
+                    log.debug("Syrian brand '{}' already exists (name: {}), checking for new models", brandName, brandName);
+                } catch (Exception ex) {
+                    // Brand doesn't exist, validate it has models before creating
+                    if (validateSyrianBrandHasModels(syrianBrand.getSlug())) {
+                        createSyrianBrandDirectly(syrianBrand);
+                        return; // Brand created, models will be imported in next phase
+                    } else {
+                        log.info("Skipping Syrian brand '{}' - no models available", brandName);
+                        return;
+                    }
+                }
+            }
+
+            // If brand exists, import any new models
+            if (existingBrand != null) {
+                importSyrianModelsForExistingBrand(existingBrand, syrianBrand.getSlug());
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to create/update Syrian brand '{}': {}", syrianBrand.getName(), e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Create or update a Syrian model with strict validation (same as CarQuery)
+     */
+    private void createOrUpdateSyrianModel(SyrianModel syrianModel) {
+        try {
+            // Find the brand for this model
+            CarBrand brand = carBrandService.getBrandBySlug(syrianModel.getBrandSlug());
+            
+            String modelName = syrianModel.getName();
+
+            // Check if model already exists for this brand by name or slug
+            List<CarModel> existingModels = carModelService.getModelsByBrandId(brand.getId());
+
+            // Generate expected slug for comparison
+            String expectedSlug = (brand.getName() + "-" + modelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
+            
+            boolean modelExists = existingModels.stream()
+                .anyMatch(model -> model.getName().equals(modelName) || model.getSlug().equals(expectedSlug));
+
+            if (modelExists) {
+                log.debug("Syrian model '{}' already exists for brand '{}', skipping",
+                         modelName, brand.getDisplayNameEn());
+                return;
+            }
+
+            // Model doesn't exist, create it directly with validation
+            createSyrianModelDirectly(brand, syrianModel);
+
+        } catch (Exception e) {
+            log.warn("Failed to create/update Syrian model '{}': {}", syrianModel.getName(), e.getMessage());
+        }
+    }
+
+    /**
+     * Validate that a Syrian brand has available models
+     */
+    private boolean validateSyrianBrandHasModels(String brandSlug) {
+        try {
+            log.debug("Validating models availability for Syrian brand: {}", brandSlug);
+
+            List<SyrianModel> availableModels = loadSyrianMarketModels().stream()
+                .filter(model -> model.getBrandSlug().equals(brandSlug))
+                .collect(java.util.stream.Collectors.toList());
+
+            if (availableModels.isEmpty()) {
+                log.warn("❌ SYRIAN BRAND VALIDATION FAILED: '{}' has no models available - will not be imported", brandSlug);
+                return false;
+            }
+
+            int modelCount = availableModels.size();
+            log.debug("✅ SYRIAN BRAND VALIDATION PASSED: '{}' has {} models available", brandSlug, modelCount);
+            return true;
+
+        } catch (Exception e) {
+            log.warn("❌ SYRIAN BRAND VALIDATION ERROR: Cannot validate models for brand '{}': {} - will not be imported to maintain data quality", brandSlug, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Comprehensive data quality validation for Syrian brand creation (same as CarQuery)
+     */
+    private boolean validateSyrianBrandDataQuality(SyrianBrand syrianBrand) {
+        String englishName = syrianBrand.getName();
+
+        // 1. Validate Arabic translation availability
+        String arabicName = syrianBrand.getArabicName();
+        if (arabicName == null || arabicName.trim().isEmpty()) {
+            log.warn("❌ SYRIAN DATA QUALITY CHECK FAILED: '{}' - No Arabic translation available", englishName);
+            return false;
+        }
+
+        // 2. Validate translation is actually different from English
+        if (arabicName.equalsIgnoreCase(englishName.trim())) {
+            log.warn("❌ SYRIAN DATA QUALITY CHECK FAILED: '{}' - Arabic translation is identical to English name", englishName);
+            return false;
+        }
+
+        // 3. Validate slug is present and properly formatted
+        String slug = syrianBrand.getSlug();
+        if (slug == null || slug.trim().isEmpty()) {
+            log.warn("❌ SYRIAN DATA QUALITY CHECK FAILED: '{}' - No slug available", englishName);
+            return false;
+        }
+
+        // 4. Check for existing brand with same slug to prevent duplicates
+        try {
+            carBrandService.getBrandBySlug(slug);
+            log.debug("Syrian brand '{}' already exists with slug '{}', will check for new models", englishName, slug);
+            return true; // Brand exists, but we can still import new models
+        } catch (Exception e) {
+            // Brand doesn't exist, which is fine for new brand creation
+        }
+
+        log.debug("✅ SYRIAN BRAND DATA QUALITY PASSED: '{}' -> '{}' (slug: {})", englishName, arabicName, slug);
+        return true;
+    }
+
+    /**
+     * Create Syrian brand directly with validation (same as CarQuery)
+     */
+    private void createSyrianBrandDirectly(SyrianBrand syrianBrand) {
+        try {
+            // COMPREHENSIVE DATA QUALITY VALIDATION - Only proceed if ALL checks pass
+            if (!validateSyrianBrandDataQuality(syrianBrand)) {
+                log.warn("❌ SYRIAN BRAND CREATION SKIPPED: '{}' failed comprehensive data quality validation", syrianBrand.getName());
+                return;
+            }
+
+            String englishName = syrianBrand.getName();
+            String arabicName = syrianBrand.getArabicName();
+            String brandSlug = syrianBrand.getSlug();
+
+            CarBrand brand = new CarBrand();
+            brand.setName(englishName);
+            brand.setSlug(brandSlug);
+            brand.setDisplayNameEn(englishName);
+            brand.setDisplayNameAr(arabicName);
+            brand.setIsActive(true);
+
+            CarBrand savedBrand = carBrandService.createBrand(brand);
+            log.info("✅ SYRIAN BRAND CREATED: '{}' -> '{}' (ID: {}, slug: {})", 
+                    englishName, arabicName, savedBrand.getId(), brandSlug);
+
+        } catch (Exception e) {
+            log.error("❌ CRITICAL ERROR creating Syrian brand '{}': {}", syrianBrand.getName(), e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Import new models for existing Syrian brand
+     */
+    private void importSyrianModelsForExistingBrand(CarBrand existingBrand, String brandSlug) {
+        try {
+            log.debug("Checking for new Syrian models for existing brand: {}", existingBrand.getName());
+            
+            List<SyrianModel> availableModels = loadSyrianMarketModels().stream()
+                .filter(model -> model.getBrandSlug().equals(brandSlug))
+                .collect(java.util.stream.Collectors.toList());
+            
+            int newModelsCount = 0;
+            for (SyrianModel modelData : availableModels) {
+                try {
+                    // Check if this model already exists
+                    List<CarModel> existingModels = carModelService.getModelsByBrandId(existingBrand.getId());
+                    String expectedSlug = (existingBrand.getName() + "-" + modelData.getName()).toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                    
+                    boolean modelExists = existingModels.stream()
+                        .anyMatch(model -> model.getName().equals(modelData.getName()) || model.getSlug().equals(expectedSlug));
+                    
+                    if (!modelExists) {
+                        createSyrianModelDirectly(existingBrand, modelData);
+                        newModelsCount++;
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to process Syrian model '{}' for brand '{}': {}", 
+                            modelData.getName(), existingBrand.getName(), e.getMessage());
+                }
+            }
+            
+            if (newModelsCount > 0) {
+                log.info("✅ Imported {} new Syrian models for existing brand '{}'", newModelsCount, existingBrand.getName());
+            } else {
+                log.debug("No new Syrian models found for existing brand '{}'", existingBrand.getName());
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to import Syrian models for existing brand '{}': {}", existingBrand.getName(), e.getMessage());
+        }
+    }
+
+    /**
+     * Comprehensive data quality validation for Syrian model creation (same as CarQuery)
+     */
+    private boolean validateSyrianModelDataQuality(CarBrand brand, SyrianModel syrianModel) {
+        String englishModelName = syrianModel.getName();
+
+        // 1. Validate Arabic translation availability
+        String arabicModelName = syrianModel.getArabicName();
+        if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
+            log.warn("❌ SYRIAN MODEL DATA QUALITY CHECK FAILED: '{}' for brand '{}' - No Arabic translation available",
+                    englishModelName, brand.getDisplayNameEn());
+            return false;
+        }
+
+        // 2. Validate translation is actually different from English (unless it's alphanumeric)
+        if (arabicModelName.equalsIgnoreCase(englishModelName.trim()) && !englishModelName.matches(".*\\d.*")) {
+            log.warn("❌ SYRIAN MODEL DATA QUALITY CHECK FAILED: '{}' for brand '{}' - Arabic translation is identical to English name",
+                    englishModelName, brand.getDisplayNameEn());
+            return false;
+        }
+
+        // 3. Validate basic data integrity
+        if (englishModelName == null || englishModelName.trim().isEmpty()) {
+            log.warn("❌ SYRIAN MODEL DATA QUALITY CHECK FAILED: Empty model name for brand '{}'", brand.getDisplayNameEn());
+            return false;
+        }
+
+        log.debug("✅ SYRIAN MODEL DATA QUALITY PASSED: '{}' -> '{}' for brand '{}'", 
+                englishModelName, arabicModelName, brand.getDisplayNameEn());
+        return true;
+    }
+
+    /**
+     * Create Syrian model directly with validation (same as CarQuery)
+     */
+    private void createSyrianModelDirectly(CarBrand brand, SyrianModel syrianModel) {
+        try {
+            // COMPREHENSIVE DATA QUALITY VALIDATION - Only proceed if ALL checks pass
+            if (!validateSyrianModelDataQuality(brand, syrianModel)) {
+                log.warn("❌ SYRIAN MODEL CREATION SKIPPED: '{}' for brand '{}' failed comprehensive data quality validation",
+                        syrianModel.getName(), brand.getDisplayNameEn());
+                return;
+            }
+
+            String englishModelName = syrianModel.getName();
+            String arabicModelName = syrianModel.getArabicName();
+            // Generate slug with brand-model format for proper filtering (same as CarQuery)
+            String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
+
+            CarModel model = new CarModel();
+            model.setName(englishModelName);
+            model.setSlug(modelSlug);
+            model.setDisplayNameEn(englishModelName);
+            model.setDisplayNameAr(arabicModelName);
+            model.setBrand(brand);
+            model.setIsActive(true);
+
+            CarModel savedModel = carModelService.createModel(model);
+            log.info("✅ SYRIAN MODEL CREATED: '{}' -> '{}' for brand '{}' (ID: {}, slug: {})", 
+                    englishModelName, arabicModelName, brand.getDisplayNameEn(), savedModel.getId(), modelSlug);
+
+        } catch (Exception e) {
+            log.error("❌ CRITICAL ERROR creating Syrian model '{}' for brand '{}': {}", 
+                    syrianModel.getName(), brand.getDisplayNameEn(), e.getMessage());
+            throw e;
+        }
     }
 
     /**
