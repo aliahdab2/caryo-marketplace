@@ -27,26 +27,28 @@ export const useDataManagement = () => {
       const headers = await getAuthHeaders();
       
       const [brandsRes, modelsRes, statsRes, syncStatusRes] = await Promise.all([
-        fetch(`${getApiUrl()}/api/reference-data/brands`, { headers }),
-        fetch(`${getApiUrl()}/api/reference-data/models`, { headers }),
+        fetch(`${getApiUrl()}/api/admin/car-brands?size=1000`, { headers }), // Admin endpoint for all brands
+        fetch(`${getApiUrl()}/api/admin/car-models?size=1000&sortBy=name`, { headers }),  // Admin endpoint for all models with valid sort field
         fetch(`${getApiUrl()}/api/admin/data/statistics`, { headers }),
         fetch(`${getApiUrl()}/api/admin/data/sync-status`, { headers })
       ]);
 
       let brandsData: CarBrand[] = [];
       if (brandsRes.ok) {
-        brandsData = await brandsRes.json();
+        const brandsResponse = await brandsRes.json();
+        brandsData = brandsResponse.data?.content || []; // Extract from paginated response
         console.log('Loaded brands:', brandsData);
-        setBrands(brandsData || []);
+        setBrands(brandsData);
       } else {
         console.error('Failed to load brands:', brandsRes.status, brandsRes.statusText);
       }
 
       if (modelsRes.ok) {
-        const modelsData = await modelsRes.json();
+        const modelsResponse = await modelsRes.json();
+        const modelsData = modelsResponse.data?.content || []; // Extract from paginated response
         console.log('Loaded models:', modelsData);
         // Backend now provides full brand information, no need to populate manually
-        setModels(modelsData || []);
+        setModels(modelsData);
       } else {
         console.error('Failed to load models:', modelsRes.status, modelsRes.statusText);
       }

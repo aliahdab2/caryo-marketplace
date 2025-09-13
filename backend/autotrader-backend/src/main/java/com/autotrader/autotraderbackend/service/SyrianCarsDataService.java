@@ -379,15 +379,18 @@ public class SyrianCarsDataService implements CarDataProvider {
                         // Clean the brand name before translation
                         String cleanBrandName = cleanBrandNameForTranslation(brandName);
                         
+                        // Generate slug from cleaned name
+                        String cleanSlug = cleanBrandName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+                        
                         // Generate Arabic translation
                         String arabicName = arabicTranslationService.translateBrandToArabic(cleanBrandName);
                         
                         // Only add if we have a valid Arabic translation
-                        if (arabicName != null && !arabicName.trim().isEmpty() && !arabicName.equalsIgnoreCase(brandName)) {
-                            brands.add(new SyrianBrand(brandName, arabicName, slug));
-                            log.debug("Scraped brand: {} -> {} (slug: {})", brandName, arabicName, slug);
+                        if (arabicName != null && !arabicName.trim().isEmpty() && !arabicName.equalsIgnoreCase(cleanBrandName)) {
+                            brands.add(new SyrianBrand(cleanBrandName, arabicName, cleanSlug)); // Use cleaned name and slug
+                            log.debug("Scraped brand: {} -> {} (slug: {})", cleanBrandName, arabicName, cleanSlug);
                         } else {
-                            log.debug("Skipping brand '{}' - no valid Arabic translation", brandName);
+                            log.debug("Skipping brand '{}' - no valid Arabic translation", cleanBrandName);
                         }
                     }
                 }
@@ -857,6 +860,14 @@ public class SyrianCarsDataService implements CarDataProvider {
 
             String englishModelName = syrianModel.getName();
             String arabicModelName = syrianModel.getArabicName();
+            
+            // Skip model creation if Arabic translation is not available
+            if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
+                log.warn("⚠️ SKIPPING SYRIAN MODEL CREATION: '{}' for brand '{}' - Arabic name not available", 
+                        englishModelName, brand.getDisplayNameEn());
+                return;
+            }
+            
             // Generate slug with brand-model format for proper filtering (same as CarQuery)
             String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 

@@ -687,6 +687,14 @@ public class CarQueryDataService implements CarDataProvider {
             String englishModelName = modelData.getModelName();
             String arabicModelName = arabicTranslationService.translateModelToArabic(
                 brand.getDisplayNameEn(), englishModelName);
+            
+            // Skip model creation if Arabic translation is not available
+            if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
+                log.warn("⚠️ SKIPPING MODEL CREATION: '{}' for brand '{}' - Arabic translation not available", 
+                        englishModelName, brand.getDisplayNameEn());
+                return;
+            }
+            
             // Generate slug with brand-model format for proper filtering
             String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 
