@@ -112,5 +112,6 @@
   "reporting": "Reporting...",
   "deleting": "Deleting...",
   "syncing": "Syncing...",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "showingResults": "Showing {{start}}-{{end}} of {{total}} results"
 }
