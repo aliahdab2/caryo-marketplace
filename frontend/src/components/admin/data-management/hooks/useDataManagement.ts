@@ -21,7 +21,7 @@ export const useDataManagement = () => {
   const getApiUrl = useCallback(() => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080', []);
 
   // Helper for authenticated API requests
-  const makeAuthenticatedRequest = useCallback(async <T>( 
+  const makeAuthenticatedRequest = useCallback(async ( 
     endpoint: string, 
     method: string = 'GET', 
     body?: object | FormData, 
@@ -46,17 +46,60 @@ export const useDataManagement = () => {
     return fetch(url, options);
   }, [getApiUrl]);
 
+  // Function to fetch and update sync status
+  const fetchAndSetSyncStatus = useCallback(async () => {
+    try {
+      const [syrianCarsRes, carQueryRes] = await Promise.all([
+        makeAuthenticatedRequest('/api/admin/data/sync-status/SyrianCars'),
+        makeAuthenticatedRequest('/api/admin/data/sync-status/CarQueryAPI'),
+      ]);
+
+      const newSyncStatus: SyncStatus = {};
+      
+      if (syrianCarsRes.ok) {
+        const data = await syrianCarsRes.json();
+        if (data.success && data.data) {
+          newSyncStatus.syriancars = data.data;
+        } else {
+          console.error('Failed to load SyrianCars sync status:', data.message);
+        }
+      } else {
+        console.error('Failed to fetch SyrianCars sync status:', syrianCarsRes.status, syrianCarsRes.statusText);
+      }
+
+      if (carQueryRes.ok) {
+        const data = await carQueryRes.json();
+        if (data.success && data.data) {
+          newSyncStatus.carquery = data.data;
+        } else {
+          console.error('Failed to load CarQueryAPI sync status:', data.message);
+        }
+      } else {
+        console.error('Failed to fetch CarQueryAPI sync status:', carQueryRes.status, carQueryRes.statusText);
+      }
+      
+      setSyncStatus(newSyncStatus);
+      console.log("Updated sync status:", newSyncStatus);
+      return newSyncStatus;
+    } catch (error) {
+      console.error('Error fetching sync status:', error);
+      return {};
+    }
+  }, [makeAuthenticatedRequest]);
+
   // Load all data
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       
-      const [brandsRes, modelsRes, statsRes, syncStatusRes] = await Promise.all([
+      const [brandsRes, modelsRes, statsRes] = await Promise.all([
         makeAuthenticatedRequest('/api/admin/car-brands?size=1000'), 
         makeAuthenticatedRequest('/api/admin/car-models?size=1000&sortBy=name'),  
         makeAuthenticatedRequest('/api/admin/data/statistics'),
-        makeAuthenticatedRequest('/api/admin/data/sync-status')
       ]);
+
+      // Fetch and set sync status separately
+      await fetchAndSetSyncStatus();
 
       let brandsData: CarBrand[] = [];
       if (brandsRes.ok) {
@@ -102,16 +145,6 @@ export const useDataManagement = () => {
         });
       }
 
-      if (syncStatusRes.ok) {
-        const syncData = await syncStatusRes.json();
-        console.log('Loaded sync status:', syncData);
-        setSyncStatus(syncData.data || syncData);
-      } else {
-        console.error('Failed to load sync status:', syncStatusRes.status, syncStatusRes.statusText);
-        if (syncStatusRes.status === 401 || syncStatusRes.status === 403) {
-          throw new Error('Authentication required. Please log in again.');
-        }
-      }
     } catch (error) {
       console.error('Error loading data:', error);
 
@@ -126,12 +159,91 @@ export const useDataManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [getApiUrl, showError, t, makeAuthenticatedRequest]);
+  }, [showError, t, makeAuthenticatedRequest, fetchAndSetSyncStatus]);
+
+  // Polling for sync status
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    const startPolling = () => {
+      intervalId = setInterval(async () => {
+        const currentSyncStatus = await fetchAndSetSyncStatus();
+        const isSyrianCarsSyncing = currentSyncStatus.syriancars?.status === 'IN_PROGRESS';
+        const isCarQuerySyncing = currentSyncStatus.carquery?.status === 'IN_PROGRESS';
+        
+        const pollingInterval = (isSyrianCarsSyncing || isCarQuerySyncing) ? 5000 : 30000; // 5s if syncing, 30s otherwise
+
+        // If interval needs to change, clear and restart
+        if (intervalId && pollingInterval !== (intervalId as NodeJS.Timeout & { _repeat?: number })._repeat) { // _repeat is internal but works for checking current interval
+          clearInterval(intervalId);
+          startPolling();
+        }
+      }, 30000); // Initial interval, will be adjusted inside
+    };
+
+    startPolling();
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [fetchAndSetSyncStatus]);
+
+  // Sync SyrianCars data
+  const syncSyrianCarsData = useCallback(async () => {
+    try {
+      const response = await makeAuthenticatedRequest('/api/admin/data/load-syriacars', 'POST');
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          showSuccess(result.message || t('datamanagement:syncSyrianCarsSuccess'));
+          await fetchAndSetSyncStatus(); // Refresh status immediately
+          return true;
+        } else {
+          showError(result.message || t('datamanagement:syncSyrianCarsError'));
+          return false;
+        }
+      } else {
+        const errorData = await response.json();
+        showError(errorData.message || t('datamanagement:syncSyrianCarsError'));
+        return false;
+      }
+    } catch (error) {
+      console.error('Error syncing SyrianCars data:', error);
+      showError(t('datamanagement:syncSyrianCarsError'));
+      return false;
+    }
+  }, [makeAuthenticatedRequest, showSuccess, showError, t, fetchAndSetSyncStatus]);
+
+  // Sync CarQuery API data
+  const syncCarQueryData = useCallback(async () => {
+    try {
+      const response = await makeAuthenticatedRequest('/api/admin/data/load-carquery', 'POST');
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          showSuccess(result.message || t('datamanagement:syncCarQuerySuccess'));
+          await fetchAndSetSyncStatus(); // Refresh status immediately
+          return true;
+        } else {
+          showError(result.message || t('datamanagement:syncCarQueryError'));
+          return false;
+        }
+      } else {
+        const errorData = await response.json();
+        showError(errorData.message || t('datamanagement:syncCarQueryError'));
+        return false;
+      }
+    } catch (error) {
+      console.error('Error syncing CarQuery API data:', error);
+      showError(t('datamanagement:syncCarQueryError'));
+      return false;
+    }
+  }, [makeAuthenticatedRequest, showSuccess, showError, t, fetchAndSetSyncStatus]);
 
   // Export functionality
   const exportExcel = useCallback(async () => {
     try {
-      const response = await makeAuthenticatedRequest('/api/admin/data/export', 'GET', undefined, {
+      const response = await makeAuthenticatedRequest('/api/admin/data/export-excel', 'GET', undefined, {
         'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
@@ -144,7 +256,7 @@ export const useDataManagement = () => {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = 'car-data.xlsx';
+      a.download = 'caryo-car-data-export.xlsx';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -165,7 +277,7 @@ export const useDataManagement = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await makeAuthenticatedRequest('/api/admin/data/import', 'POST', formData);
+      const response = await makeAuthenticatedRequest('/api/admin/data/import-excel', 'POST', formData);
 
       const result: ImportResult = await response.json();
       
@@ -303,6 +415,8 @@ export const useDataManagement = () => {
     updateBrand,
     updateModel,
     createBrandWithModel,
-    createModel
+    createModel,
+    syncSyrianCarsData,
+    syncCarQueryData
   };
 };

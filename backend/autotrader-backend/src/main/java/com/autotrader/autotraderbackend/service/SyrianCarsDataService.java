@@ -34,6 +34,7 @@ public class SyrianCarsDataService implements CarDataProvider {
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final ArabicTranslationService arabicTranslationService;
+    private final SyncStatusService syncStatusService;
 
     @Value("${syriacars.enabled:true}")
     private boolean enabled;
@@ -196,6 +197,9 @@ public class SyrianCarsDataService implements CarDataProvider {
         log.info("Loading complete Syrian car dataset from SyrianCars.net");
 
         DataLoadResult result = new DataLoadResult();
+        
+        // Start sync status
+        syncStatusService.startSync(getProviderName());
 
         try {
             if (!isEnabled()) {
@@ -206,16 +210,30 @@ public class SyrianCarsDataService implements CarDataProvider {
                 throw new RuntimeException("Cannot connect to SyrianCars.net API");
             }
 
-            result.addResult("brands", loadSyrianBrands());
-            result.addResult("models", loadSyrianModels());
+            LoadResult brandLoadResult = loadSyrianBrands();
+            LoadResult modelLoadResult = loadSyrianModels();
+
+            result.addResult("brands", brandLoadResult);
+            result.addResult("models", modelLoadResult);
+
+            long totalSynced = brandLoadResult.getProcessed() + modelLoadResult.getProcessed();
+            long totalFailed = brandLoadResult.getFailed() + modelLoadResult.getFailed();
 
             log.info("✅ Syrian car dataset loaded successfully from SyrianCars.net");
             result.setSuccess(true);
+            
+            // Complete sync status
+            syncStatusService.completeSync(getProviderName(), 
+                String.format("Sync completed: %d records synced, %d failed.", totalSynced, totalFailed),
+                totalSynced, totalFailed);
 
         } catch (Exception e) {
             log.error("❌ Error loading Syrian car dataset: {}", e.getMessage(), e);
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
+            
+            // Fail sync status
+            syncStatusService.failSync(getProviderName(), "Sync failed: " + e.getMessage());
         }
 
         return result;

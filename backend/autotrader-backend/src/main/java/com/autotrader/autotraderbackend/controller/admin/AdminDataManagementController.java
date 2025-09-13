@@ -7,19 +7,26 @@ import com.autotrader.autotraderbackend.service.CarDataExcelService;
 import com.autotrader.autotraderbackend.service.CarBrandService;
 import com.autotrader.autotraderbackend.service.CarModelService;
 import com.autotrader.autotraderbackend.service.ApiSyncTrackingService;
+import com.autotrader.autotraderbackend.service.SyncStatusService;
+import com.autotrader.autotraderbackend.model.SyncStatus;
+import com.autotrader.autotraderbackend.model.SyncState;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Simplified admin controller for data import operations
@@ -27,7 +34,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/admin/data")
-@PreAuthorize("hasRole('ADMIN')")
 @Slf4j
 @Tag(name = "Admin Data Management", description = "Admin endpoints for data imports")
 public class AdminDataManagementController {
@@ -39,8 +45,12 @@ public class AdminDataManagementController {
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final ApiSyncTrackingService apiSyncTrackingService;
+    private final SyncStatusService syncStatusService;
 
-    // Constructor to handle optional SyrianCarsDataService
+    @Value("${data.sync.rate-limit.enabled:true}")
+    private boolean rateLimitEnabled;
+
+    @Autowired // Use @Autowired for constructor injection to handle optional dependency correctly
     public AdminDataManagementController(
             CarQueryDataService carQueryDataService,
             @Autowired(required = false) SyrianCarsDataService syrianCarsDataService,
@@ -48,7 +58,8 @@ public class AdminDataManagementController {
             CarDataExcelService carDataExcelService,
             CarBrandService carBrandService,
             CarModelService carModelService,
-            ApiSyncTrackingService apiSyncTrackingService) {
+            ApiSyncTrackingService apiSyncTrackingService,
+            SyncStatusService syncStatusService) {
         this.carQueryDataService = carQueryDataService;
         this.syrianCarsDataService = syrianCarsDataService;
         this.caryoDataService = caryoDataService;
@@ -56,12 +67,14 @@ public class AdminDataManagementController {
         this.carBrandService = carBrandService;
         this.carModelService = carModelService;
         this.apiSyncTrackingService = apiSyncTrackingService;
+        this.syncStatusService = syncStatusService;
     }
 
     /**
      * Import data from CarQuery API directly to database
      */
     @PostMapping("/load-carquery")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Load CarQuery Data",
         description = "Import car brands and models from CarQuery API directly to database"
@@ -104,6 +117,7 @@ public class AdminDataManagementController {
      * Import data from SyrianCars.net directly to database
      */
     @PostMapping("/load-syriacars")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Load SyrianCars Data",
         description = "Import car brands and models from SyrianCars.net directly to database"
@@ -111,22 +125,22 @@ public class AdminDataManagementController {
     public ResponseEntity<ApiResponse<String>> loadSyrianCarsData() {
         log.info("Admin triggered SyrianCars data import");
 
+        if (syrianCarsDataService == null) {
+            log.warn("SyrianCars data service is not available");
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("SyrianCars data service is not enabled"));
+        }
+
+        // Check if sync is allowed (rate limiting protection)
+        ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkSyrianCarsSyncStatus();
+        
+        if (!syncStatus.isAllowed()) {
+            log.warn("SyrianCars sync blocked: {}", syncStatus.getMessage());
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Sync blocked to prevent rate limiting: " + syncStatus.getMessage()));
+        }
+
         try {
-            if (syrianCarsDataService == null) {
-                log.warn("SyrianCars data service is not available");
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("SyrianCars data service is not enabled"));
-            }
-
-            // Check if sync is allowed (rate limiting protection)
-            ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-            
-            if (!syncStatus.isAllowed()) {
-                log.warn("SyrianCars sync blocked: {}", syncStatus.getMessage());
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Sync blocked to prevent rate limiting: " + syncStatus.getMessage()));
-            }
-
             var result = syrianCarsDataService.loadCompleteDataset();
 
             if (result.isSuccess()) {
@@ -149,9 +163,46 @@ public class AdminDataManagementController {
     }
 
     /**
+     * Manually trigger CarQuery API data synchronization (DEPRECATED - use load-carquery for proper status handling)
+     */
+    @PostMapping("/carquery/sync")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Trigger CarQuery Data Sync",
+        description = "Manually trigger car brands and models synchronization from CarQuery API"
+    )
+    public ResponseEntity<ApiResponse> syncCarQueryData() {
+        log.info("Admin triggered CarQuery data sync");
+
+        if (carQueryDataService == null) { // Corrected service name
+            log.warn("CarQuery API service is not available");
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("CarQuery API service is not enabled"));
+        }
+
+        if (rateLimitEnabled) {
+            Optional<SyncStatus> carQueryStatus = syncStatusService.getSyncStatusByProviderName(carQueryDataService.getProviderName()); // Corrected service name
+            if (carQueryStatus.isPresent() && carQueryStatus.get().getStatus() == SyncState.IN_PROGRESS) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(ApiResponse.error("Sync blocked to prevent rate limiting: CarQuery API data sync already in progress"));
+            }
+        }
+
+        try {
+            carQueryDataService.loadCompleteCarDataset(); // Corrected service name
+            return ResponseEntity.ok(ApiResponse.success("CarQuery data sync initiated successfully"));
+        } catch (Exception e) {
+            log.error("Error syncing CarQuery data: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Failed to sync CarQuery data: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Export car brands and models data to Excel
      */
     @GetMapping("/export-excel")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Export Car Data to Excel",
         description = "Export all car brands and models to Excel file with bilingual support"
@@ -182,6 +233,7 @@ public class AdminDataManagementController {
      * Import car brands and models data from Excel
      */
     @PostMapping("/import-excel")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Import Car Data from Excel",
         description = "Import car brands and models from Excel file with data validation"
@@ -226,6 +278,7 @@ public class AdminDataManagementController {
      * Get sync status for all APIs to prevent rate limiting
      */
     @GetMapping("/sync-status")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Get API Sync Status",
         description = "Get current sync status for all external APIs to prevent rate limiting"
@@ -266,9 +319,30 @@ public class AdminDataManagementController {
     }
 
     /**
+     * Get sync status for a specific provider
+     */
+    @GetMapping("/sync-status/{providerName}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> getSyncStatus(@PathVariable String providerName) {
+        Optional<SyncStatus> status = syncStatusService.getSyncStatusByProviderName(providerName);
+        if (status.isPresent()) {
+            return ResponseEntity.ok(ApiResponse.success("Sync status retrieved successfully", status.get()));
+        } else {
+            // Return an IDLE status if not found, implying no sync has run yet or provider is unknown
+            SyncStatus defaultStatus = new SyncStatus();
+            defaultStatus.setProviderName(providerName);
+            defaultStatus.setStatus(SyncState.IDLE);
+            defaultStatus.setLastSyncMessage("No sync run yet or provider not found.");
+            defaultStatus.setLastSyncTime(null);
+            return ResponseEntity.ok(ApiResponse.success("Default sync status for provider", defaultStatus));
+        }
+    }
+
+    /**
      * Get current car data statistics
      */
     @GetMapping("/statistics")
+    @PreAuthorize("hasRole('ADMIN')") // Add explicit authorization
     @Operation(
         summary = "Get Car Data Statistics",
         description = "Get current statistics of car brands and models in the database"
@@ -336,6 +410,10 @@ public class AdminDataManagementController {
 
         public static <T> ApiResponse<T> success(String message, T data) {
             return new ApiResponse<>(true, message, data);
+        }
+
+        public static <T> ApiResponse<T> success(String message) {
+            return new ApiResponse<>(true, message, null);
         }
 
         public static <T> ApiResponse<T> error(String message) {

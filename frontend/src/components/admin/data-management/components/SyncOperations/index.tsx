@@ -37,14 +37,14 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
         <div className={`flex flex-wrap items-center ${isRTL ? 'gap-x-reverse' : ''} gap-3`}>
           <button
             onClick={syncCarQuery}
-            disabled={syncingCarQuery || loading || (syncStatus?.carquery && !syncStatus.carquery.allowed)}
+            disabled={syncingCarQuery || loading || (syncStatus?.carquery?.status === 'IN_PROGRESS')}
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
-              syncStatus?.carquery && !syncStatus.carquery.allowed
+              syncStatus?.carquery?.status === 'IN_PROGRESS'
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={syncStatus?.carquery && !syncStatus.carquery.allowed 
-              ? `Blocked: ${syncStatus.carquery.message}` 
+            title={syncStatus?.carquery?.status === 'IN_PROGRESS'
+              ? `Syncing: ${syncStatus.carquery.lastSyncMessage || 'In progress...'}` 
               : 'Import data from CarQuery API'}
           >
             <MdRefresh className={`w-4 h-4 ${syncingCarQuery ? 'animate-spin' : ''}`} />
@@ -53,14 +53,14 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
           
           <button
             onClick={syncSyrianCars}
-            disabled={syncingSyrianCars || loading || (syncStatus?.syriancars && !syncStatus.syriancars.allowed)}
+            disabled={syncingSyrianCars || loading || (syncStatus?.syriancars?.status === 'IN_PROGRESS')}
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${
-              syncStatus?.syriancars && !syncStatus.syriancars.allowed
+              syncStatus?.syriancars?.status === 'IN_PROGRESS'
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-orange-600 hover:bg-orange-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={syncStatus?.syriancars && !syncStatus.syriancars.allowed 
-              ? `Blocked: ${syncStatus.syriancars.message}` 
+            title={syncStatus?.syriancars?.status === 'IN_PROGRESS'
+              ? `Syncing: ${syncStatus.syriancars.lastSyncMessage || 'In progress...'}` 
               : 'Import data from SyrianCars'}
           >
             <MdRefresh className={`w-4 h-4 ${syncingSyrianCars ? 'animate-spin' : ''}`} />
@@ -85,11 +85,11 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
           {syncStatus?.carquery && (
             <div className="space-y-2">
               <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                syncStatus.carquery.allowed 
+                syncStatus.carquery.status !== 'FAILED' 
                   ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                   : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
               }`}>
-                {syncStatus.carquery.allowed ? (
+                {syncStatus.carquery.status !== 'FAILED' ? (
                   <>
                     <MdCheckCircle className="w-4 h-4" />
                     Available
@@ -102,7 +102,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
                 )}
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {syncStatus.carquery.message}
+                {syncStatus.carquery.lastSyncMessage || 'No sync message available'}
               </p>
             </div>
           )}
@@ -122,11 +122,11 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
           {syncStatus?.syriancars && (
             <div className="space-y-2">
               <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                syncStatus.syriancars.allowed 
+                syncStatus.syriancars.status !== 'FAILED' 
                   ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                   : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
               }`}>
-                {syncStatus.syriancars.allowed ? (
+                {syncStatus.syriancars.status !== 'FAILED' ? (
                   <>
                     <MdCheckCircle className="w-4 h-4" />
                     Available
@@ -139,7 +139,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
                 )}
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {syncStatus.syriancars.message}
+                {syncStatus.syriancars.lastSyncMessage || 'No sync message available'}
               </p>
             </div>
           )}

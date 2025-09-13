@@ -49,10 +49,14 @@ export interface AddForm {
 }
 
 export interface SyncStatusItem {
-  allowed: boolean;
-  message: string;
+  id?: number;
+  providerName: string;
+  status: 'IDLE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
   lastSyncTime?: string;
-  hoursSinceLastSync?: number;
+  lastSyncMessage?: string;
+  totalRecordsSynced?: number;
+  totalRecordsFailed?: number;
+  startTime?: string;
 }
 
 export interface SyncStatus {
