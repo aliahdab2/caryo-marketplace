@@ -18,6 +18,8 @@ public interface CarModelRepository extends JpaRepository<CarModel, Long> {
     
     List<CarModel> findByBrandAndIsActiveTrue(CarBrand brand);
     
+    List<CarModel> findByIsActiveFalse();
+    
     List<CarModel> findByBrandIdAndName(Long brandId, String name);
     
     @Query("SELECT m FROM CarModel m WHERE " +

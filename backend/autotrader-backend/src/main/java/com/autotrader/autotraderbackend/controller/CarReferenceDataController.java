@@ -250,4 +250,92 @@ public class CarReferenceDataController {
         log.debug("Model updated successfully: {}", response);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/brands/{brandId}/status")
+    @Operation(
+        summary = "Update car brand status",
+        description = "Update the status of a car brand (ACTIVE, INACTIVE, PENDING). This is the recommended way to manage brand visibility.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Brand status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Brand not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid status value")
+        }
+    )
+    public ResponseEntity<CarBrandResponse> updateBrandStatus(
+            @Parameter(description = "ID of the car brand", required = true) 
+            @PathVariable Long brandId,
+            @Parameter(description = "New status for the brand", required = true)
+            @RequestParam String status) {
+        log.debug("Request received to update brand ID: {} to status: {}", brandId, status);
+        
+        CarBrand updatedBrand = carBrandService.updateBrandStatus(brandId, status);
+        CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
+        
+        log.debug("Brand status updated successfully: {}", response);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/models/{modelId}/status")
+    @Operation(
+        summary = "Update car model status",
+        description = "Update the status of a car model (ACTIVE, INACTIVE, PENDING). This is the recommended way to manage model visibility.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Model status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Model not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid status value")
+        }
+    )
+    public ResponseEntity<CarModelResponse> updateModelStatus(
+            @Parameter(description = "ID of the car model", required = true) 
+            @PathVariable Long modelId,
+            @Parameter(description = "New status for the model", required = true)
+            @RequestParam String status) {
+        log.debug("Request received to update model ID: {} to status: {}", modelId, status);
+        
+        CarModel updatedModel = carModelService.updateModelStatus(modelId, status);
+        CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
+        
+        log.debug("Model status updated successfully: {}", response);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/brands/pending")
+    @Operation(
+        summary = "Get pending car brands",
+        description = "Returns all car brands that are pending admin approval",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of pending car brands retrieved successfully")
+        }
+    )
+    public ResponseEntity<List<CarBrandResponse>> getPendingBrands() {
+        log.debug("Request received to get pending car brands");
+        
+        List<CarBrand> pendingBrands = carBrandService.getPendingBrands();
+        List<CarBrandResponse> brandResponses = pendingBrands.stream()
+                .map(CarBrandResponse::fromEntity)
+                .toList();
+        
+        log.debug("Returning {} pending car brands", brandResponses.size());
+        return ResponseEntity.ok(brandResponses);
+    }
+
+    @GetMapping("/models/pending")
+    @Operation(
+        summary = "Get pending car models",
+        description = "Returns all car models that are pending admin approval",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of pending car models retrieved successfully")
+        }
+    )
+    public ResponseEntity<List<CarModelResponse>> getPendingModels() {
+        log.debug("Request received to get pending car models");
+        
+        List<CarModel> pendingModels = carModelService.getPendingModels();
+        List<CarModelResponse> modelResponses = pendingModels.stream()
+                .map(CarModelResponse::fromEntity)
+                .toList();
+        
+        log.debug("Returning {} pending car models", modelResponses.size());
+        return ResponseEntity.ok(modelResponses);
+    }
 }

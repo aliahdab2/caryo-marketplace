@@ -122,7 +122,7 @@ public class CarBrandService {
         brand.setName(createRequest.getName());
         brand.setDisplayNameEn(createRequest.getDisplayNameEn());
         brand.setDisplayNameAr(createRequest.getDisplayNameAr());
-        brand.setIsActive(createRequest.getIsActive());
+        brand.setIsActive(false); // New brands start as inactive, requiring admin approval
         
         // Generate unique slug from name
         String baseSlug = createRequest.getName().toLowerCase()
@@ -234,5 +234,41 @@ public class CarBrandService {
         if (carBrandRepository.existsByDisplayNameArIgnoreCase(displayNameAr)) {
             throw new IllegalArgumentException("Brand with Arabic name '" + displayNameAr + "' already exists");
         }
+    }
+
+    /**
+     * Update brand status (ACTIVE, INACTIVE, PENDING)
+     */
+    public CarBrand updateBrandStatus(Long brandId, String status) {
+        CarBrand brand = getBrandById(brandId);
+        
+        // Validate status
+        if (!isValidStatus(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
+        }
+        
+        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
+        brand.setIsActive(isActive);
+        
+        return carBrandRepository.save(brand);
+    }
+
+    /**
+     * Get all pending brands (for admin approval)
+     */
+    public List<CarBrand> getPendingBrands() {
+        // For now, we'll consider inactive brands as pending
+        // In future, you might want to add a separate status field
+        return carBrandRepository.findByIsActiveFalse();
+    }
+
+    /**
+     * Validate status value
+     */
+    private boolean isValidStatus(String status) {
+        return status != null && 
+               (status.equalsIgnoreCase("ACTIVE") || 
+                status.equalsIgnoreCase("INACTIVE") || 
+                status.equalsIgnoreCase("PENDING"));
     }
 }

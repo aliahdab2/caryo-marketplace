@@ -15,6 +15,8 @@ public interface CarBrandRepository extends JpaRepository<CarBrand, Long> {
     
     List<CarBrand> findByIsActiveTrue();
     
+    List<CarBrand> findByIsActiveFalse();
+    
     Optional<CarBrand> findByName(String name);
 
     @Query("SELECT b FROM CarBrand b WHERE " +

@@ -173,7 +173,7 @@ public class CarModelService {
         model.setName(createRequest.getName());
         model.setDisplayNameEn(createRequest.getDisplayNameEn());
         model.setDisplayNameAr(createRequest.getDisplayNameAr());
-        model.setIsActive(createRequest.getIsActive());
+        model.setIsActive(false); // New models start as inactive, requiring admin approval
         model.setBrand(brand);
         
         // Generate unique slug from name and brand
@@ -298,5 +298,41 @@ public class CarModelService {
         if (carModelRepository.existsByBrandAndDisplayNameArIgnoreCase(brand, displayNameAr)) {
             throw new IllegalArgumentException("Model with Arabic name '" + displayNameAr + "' already exists for brand '" + brand.getName() + "'");
         }
+    }
+
+    /**
+     * Update model status (ACTIVE, INACTIVE, PENDING)
+     */
+    public CarModel updateModelStatus(Long modelId, String status) {
+        CarModel model = getModelById(modelId);
+        
+        // Validate status
+        if (!isValidStatus(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
+        }
+        
+        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
+        model.setIsActive(isActive);
+        
+        return carModelRepository.save(model);
+    }
+
+    /**
+     * Get all pending models (for admin approval)
+     */
+    public List<CarModel> getPendingModels() {
+        // For now, we'll consider inactive models as pending
+        // In future, you might want to add a separate status field
+        return carModelRepository.findByIsActiveFalse();
+    }
+
+    /**
+     * Validate status value
+     */
+    private boolean isValidStatus(String status) {
+        return status != null && 
+               (status.equalsIgnoreCase("ACTIVE") || 
+                status.equalsIgnoreCase("INACTIVE") || 
+                status.equalsIgnoreCase("PENDING"));
     }
 }
