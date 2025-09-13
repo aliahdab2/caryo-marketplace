@@ -11,6 +11,8 @@ import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import AutoLanguageDetector from "@/components/AutoLanguageDetector";
 import ClientProviders from "@/providers/ClientProviders";
+// Import secure logging to prevent sensitive data exposure
+import "@/lib/secure-logging";
 
 
 const geistSans = Geist({

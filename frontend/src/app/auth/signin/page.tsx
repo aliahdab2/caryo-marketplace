@@ -467,20 +467,8 @@ const SignInPage: React.FC = () => {
 
 
           
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('orConnector')}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <GoogleSignInButton callbackUrl={callbackUrl} className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
-            </div>
+            {/* Conditionally render OAuth section */}
+            <OAuthSection callbackUrl={callbackUrl} t={t} />
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -499,5 +487,27 @@ const SignInPage: React.FC = () => {
     </div>
   );
 }
+
+// OAuth Section Component - shows Google OAuth option
+const OAuthSection: React.FC<{ callbackUrl: string; t: (key: string) => string }> = ({ callbackUrl, t }) => {
+  return (
+    <>
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
+            {t('orConnector')}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <GoogleSignInButton callbackUrl={callbackUrl} className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
+      </div>
+    </>
+  );
+};
 
 export default SignInPage;

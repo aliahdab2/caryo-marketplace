@@ -41,17 +41,25 @@ interface AugmentedSession extends NextAuthSession {
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
+    // Include Google provider with validation to prevent malformed requests
+    ...(process.env.GOOGLE_CLIENT_ID && 
+        process.env.GOOGLE_CLIENT_SECRET &&
+        process.env.GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com') &&
+        process.env.GOOGLE_CLIENT_ID !== 'your-google-client-id-here.apps.googleusercontent.com' &&
+        process.env.GOOGLE_CLIENT_SECRET !== 'your-google-client-secret-here' &&
+        process.env.GOOGLE_CLIENT_SECRET.length > 20 ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        authorization: {
+          params: {
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code",
+          },
         },
-      },
-    }),
+      })
+    ] : []),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -202,7 +210,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  debug: false, // Disable debug logging for security
+  debug: process.env.NODE_ENV === 'development', // Enable debug in dev, disable in production
   logger: {
     error(code, metadata) {
       // Suppress CLIENT_FETCH_ERROR during auto-login process
@@ -213,15 +221,24 @@ export const authOptions: NextAuthOptions = {
           return;
         }
       }
-      console.error('NextAuth Error:', code, metadata);
+      
+      if (process.env.NODE_ENV === 'development') {
+        // In development, show full error details for debugging
+        console.error('NextAuth Error:', code, metadata);
+      } else {
+        // In production, only log the error code for security
+        console.error('NextAuth Error:', code);
+      }
     },
     warn(code) {
       console.warn('NextAuth Warning:', code);
     },
     debug(code, metadata) {
+      // Only show debug logs in development
       if (process.env.NODE_ENV === 'development') {
         console.debug('NextAuth Debug:', code, metadata);
       }
+      // Production: no debug logs at all
     }
   }
 };

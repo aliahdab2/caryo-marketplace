@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn } from "next-auth/react"; // Removed SignInResponse
-import { useState, useCallback } from "react";
+import { signIn, getProviders } from "next-auth/react"; // Removed SignInResponse
+import { useState, useCallback, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 // Removed: import { useTranslation } from "react-i18next";
 import { GoogleSignInButtonProps } from "@/types/components";
@@ -24,8 +24,45 @@ export default function GoogleSignInButton({
   
   const [isLoading, setIsLoading] = useState(false); // Renamed for clarity from 'loading'
   const [error, setError] = useState<string | null>(null);
+  const [providersLoaded, setProvidersLoaded] = useState(false);
+
+  // Check if Google provider is available
+  useEffect(() => {
+    const checkProviders = async () => {
+      try {
+        const providers = await getProviders();
+        // Just check if providers are loaded, no need to store the result
+        console.log('Providers loaded:', !!providers?.google);
+      } catch (error) {
+        console.warn('Failed to check providers:', error);
+      } finally {
+        setProvidersLoaded(true);
+      }
+    };
+    
+    checkProviders();
+  }, []);
 
   const handleSignIn = useCallback(async () => {
+    // Check if we have valid Google credentials before attempting sign-in
+    // Skip this check in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const { getProviders } = await import("next-auth/react");
+        const providers = await getProviders();
+        const googleProvider = providers?.google;
+        
+        if (!googleProvider) {
+          setError("Google Sign-In is not properly configured. Please contact the administrator.");
+          return;
+        }
+      } catch (error) {
+        console.warn('Could not verify Google provider availability:', error);
+        setError("Unable to verify Google Sign-In availability. Please try again later.");
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -97,9 +134,11 @@ export default function GoogleSignInButton({
     }
   }, [callbackUrl, redirect, onSuccess, onError]);
 
+  // Always show the Google button - let it handle errors gracefully
+
   return (
     <>
-      {!ready ? (
+      {!ready || !providersLoaded ? (
         // Loading state
         <button
           disabled

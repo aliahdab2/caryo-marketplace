@@ -47,11 +47,11 @@ describe('NextAuth Environment Configuration', () => {
     expect(process.env.NEXT_PUBLIC_API_URL).not.toBe('');
   });
 
-  test('authOptions has required configuration', () => {
+  test('authOptions has required configuration with Google OAuth', () => {
     process.env.NEXTAUTH_SECRET = 'test-secret';
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
-    process.env.GOOGLE_CLIENT_ID = 'test-client-id';
-    process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret';
+    process.env.GOOGLE_CLIENT_ID = 'test-client-id.apps.googleusercontent.com';
+    process.env.GOOGLE_CLIENT_SECRET = 'test-client-secret-with-sufficient-length';
     process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8080';
     
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -60,6 +60,24 @@ describe('NextAuth Environment Configuration', () => {
     expect(authOptions).toBeDefined();
     expect(authOptions.providers).toBeDefined();
     expect(authOptions.providers).toHaveLength(2); // Google + Credentials
+    expect(authOptions.session).toBeDefined();
+    expect(authOptions.callbacks).toBeDefined();
+  });
+
+  test('authOptions works without Google OAuth credentials', () => {
+    process.env.NEXTAUTH_SECRET = 'test-secret';
+    process.env.NEXTAUTH_URL = 'http://localhost:3000';
+    process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8080';
+    // Explicitly unset Google credentials
+    delete process.env.GOOGLE_CLIENT_ID;
+    delete process.env.GOOGLE_CLIENT_SECRET;
+    
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { authOptions } = require('@/lib/auth-config');
+    
+    expect(authOptions).toBeDefined();
+    expect(authOptions.providers).toBeDefined();
+    expect(authOptions.providers).toHaveLength(1); // Only Credentials
     expect(authOptions.session).toBeDefined();
     expect(authOptions.callbacks).toBeDefined();
   });
