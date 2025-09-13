@@ -70,16 +70,7 @@ public class SyrianCarsDataService implements CarDataProvider {
         log.info("  - Scraping Timeout: {}ms", scrapingTimeout);
         
         if (enabled) {
-            try {
-                boolean available = testConnection();
-                if (available) {
-                    log.info("✅ SyrianCars data service: READY");
-                } else {
-                    log.warn("⚠️ SyrianCars data service: LIMITED - Some features may be unavailable");
-                }
-            } catch (Exception e) {
-                log.warn("⚠️ SyrianCars data service initialization warning: {} - Will use fallback data", e.getMessage());
-            }
+            log.info("✅ SyrianCars data service: CONFIGURED - Connection testing will be done on-demand");
         } else {
             log.info("SyrianCars data service is disabled via configuration");
         }

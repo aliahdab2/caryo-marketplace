@@ -61,21 +61,8 @@ public class CarQueryApiClient {
         log.info("  - Max Retry Attempts: {}", config.getRetry().getMaxAttempts());
         log.info("  - Retry Delay: {}ms", config.getRetry().getDelayMs());
         
-        // Test connectivity if enabled
-        if (true) { // CarQuery is enabled if this bean is created
-            try {
-                boolean connected = testConnection();
-                if (connected) {
-                    log.info("✅ CarQuery API connectivity test: SUCCESS");
-                } else {
-                    log.warn("⚠️ CarQuery API connectivity test: FAILED - API may be unavailable");
-                }
-            } catch (Exception e) {
-                log.warn("⚠️ CarQuery API connectivity test failed: {} - Will use fallback data sources", e.getMessage());
-            }
-        } else {
-            log.info("CarQuery API is disabled via configuration");
-        }
+        // CarQuery API client is configured and ready for on-demand use
+        log.info("✅ CarQuery API client: CONFIGURED - Connection testing will be done on-demand");
     }
 
     /**
