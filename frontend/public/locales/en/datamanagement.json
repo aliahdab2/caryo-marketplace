@@ -113,5 +113,12 @@
   "bulkActions": "Bulk Actions",
   "authError": "Authentication required. Please log in again.",
   "connectionError": "Unable to connect to server. Please check your connection.",
-  "loadError": "Failed to load data. Please try again."
+  "loadError": "Failed to load data. Please try again.",
+  "clearSelection": "Clear selection",
+  "activate": "Activate",
+  "deactivate": "Deactivate",
+  "brandSelected": "brand selected",
+  "brandsSelected": "brands selected",
+  "modelSelected": "model selected",
+  "modelsSelected": "models selected"
 }

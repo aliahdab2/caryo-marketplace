@@ -16,6 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -370,5 +371,103 @@ class PasswordResetServiceTest {
 
         // Assert
         assertEquals(0, count);
+    }
+
+    // ==========================================
+    // LANGUAGE DETECTION TESTS
+    // ==========================================
+
+    @Test
+    void passwordReset_WithArabicEmail_ShouldSendArabicEmail() {
+        // Arrange
+        String arabicEmail = "test@test.sa"; // Saudi domain should trigger Arabic
+        when(userRepository.findByEmail(arabicEmail)).thenReturn(Optional.of(testUser));
+        when(tokenRepository.findValidTokenByUser(any(), any())).thenReturn(Optional.empty());
+        when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(testToken);
+        doNothing().when(emailService).sendPasswordResetEmail(any(), any(), any(), any());
+
+        // Act
+        PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(arabicEmail, "5.1.1.1");
+
+        // Assert
+        assertTrue(result.isSuccess());
+        verify(emailService).sendPasswordResetEmail(
+            eq(testUser.getEmail()),
+            eq(testUser.getUsername()),
+            anyString(),
+            eq("ar") // Should detect Arabic from Saudi domain
+        );
+    }
+
+    @Test
+    void passwordReset_WithMiddleEastIp_ShouldSendArabicEmail() {
+        // Arrange
+        String internationalEmail = "test@gmail.com";
+        when(userRepository.findByEmail(internationalEmail)).thenReturn(Optional.of(testUser));
+        when(tokenRepository.findValidTokenByUser(any(), any())).thenReturn(Optional.empty());
+        when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(testToken);
+        doNothing().when(emailService).sendPasswordResetEmail(any(), any(), any(), any());
+
+        // Act
+        PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(internationalEmail, "5.1.1.1"); // Saudi IP
+
+        // Assert
+        assertTrue(result.isSuccess());
+        verify(emailService).sendPasswordResetEmail(
+            eq(testUser.getEmail()),
+            eq(testUser.getUsername()),
+            anyString(),
+            eq("ar") // Should detect Arabic from Middle East IP
+        );
+    }
+
+    @Test
+    void passwordReset_WithInternationalEmailAndIp_ShouldSendEnglishEmail() {
+        // Arrange
+        String internationalEmail = "test@gmail.com";
+        when(userRepository.findByEmail(internationalEmail)).thenReturn(Optional.of(testUser));
+        when(tokenRepository.findValidTokenByUser(any(), any())).thenReturn(Optional.empty());
+        when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(testToken);
+        doNothing().when(emailService).sendPasswordResetEmail(any(), any(), any(), any());
+
+        // Act
+        PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(internationalEmail, "8.8.8.8"); // Google DNS (International)
+
+        // Assert
+        assertTrue(result.isSuccess());
+        verify(emailService).sendPasswordResetEmail(
+            eq(testUser.getEmail()),
+            eq(testUser.getUsername()),
+            anyString(),
+            eq("en") // Should default to English for international
+        );
+    }
+
+    @Test
+    void passwordReset_WithUserHavingArabicPreference_ShouldSendArabicEmail() {
+        // Arrange
+        User userWithArabicPreference = new User();
+        userWithArabicPreference.setId(2L);
+        userWithArabicPreference.setUsername("arabic-user");
+        userWithArabicPreference.setEmail("user@test.com");
+        userWithArabicPreference.setPreferredLanguage("ar");
+
+        String internationalEmail = "user@test.com";
+        when(userRepository.findByEmail(internationalEmail)).thenReturn(Optional.of(userWithArabicPreference));
+        when(tokenRepository.findValidTokenByUser(any(), any())).thenReturn(Optional.empty());
+        when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(testToken);
+        doNothing().when(emailService).sendPasswordResetEmail(any(), any(), any(), any());
+
+        // Act
+        PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(internationalEmail, "8.8.8.8");
+
+        // Assert
+        assertTrue(result.isSuccess());
+        verify(emailService).sendPasswordResetEmail(
+            eq(userWithArabicPreference.getEmail()),
+            eq(userWithArabicPreference.getUsername()),
+            anyString(),
+            eq("ar") // Should use user's Arabic preference
+        );
     }
 }

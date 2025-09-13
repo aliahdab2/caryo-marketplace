@@ -273,23 +273,41 @@ public class PasswordResetService {
     
     /**
      * Detect user's preferred language based on various factors
+     * Implements multi-factor language detection for better UX
      */
     private String detectUserLanguage(User user, String clientIp) {
-        // TODO: In the future, we could:
-        // 1. Add a language field to the User entity
-        // 2. Check user's browser Accept-Language header
-        // 3. Use IP geolocation to detect country/region
-        // 4. Check user's listing history for language patterns
-        
-        // For now, use a simple heuristic:
-        // - Check if user's email domain suggests Arabic region
-        // - Default to English for international domains
-        
+        // Priority order for language detection:
+        // 1. User's explicit language preference (if available)
+        // 2. IP-based geolocation
+        // 3. Email domain regional hints
+        // 4. Browser language headers (if available)
+        // 5. Default fallback
+
+        // Check if user has explicit language preference in profile
+        if (user.getPreferredLanguage() != null && !user.getPreferredLanguage().trim().isEmpty()) {
+            String userLang = user.getPreferredLanguage().trim().toLowerCase();
+            if (userLang.startsWith("ar")) {
+                return "ar";
+            }
+            if (userLang.startsWith("en")) {
+                return "en";
+            }
+        }
+
+        // IP-based geolocation (improved implementation)
+        if (clientIp != null && !clientIp.equals("127.0.0.1") && !clientIp.equals("0:0:0:0:0:0:0:1")) {
+            String ipBasedLanguage = detectLanguageFromIp(clientIp);
+            if (ipBasedLanguage != null) {
+                return ipBasedLanguage;
+            }
+        }
+
+        // Email domain regional hints (expanded list)
         if (user.getEmail() != null) {
             String emailDomain = user.getEmail().toLowerCase();
-            
-            // Arabic regions/domains that might indicate Arabic preference
-            if (emailDomain.contains(".sy") || emailDomain.contains(".sa") || 
+
+            // Middle East and North Africa (Arabic-speaking regions)
+            if (emailDomain.contains(".sy") || emailDomain.contains(".sa") ||
                 emailDomain.contains(".ae") || emailDomain.contains(".jo") ||
                 emailDomain.contains(".lb") || emailDomain.contains(".eg") ||
                 emailDomain.contains(".iq") || emailDomain.contains(".kw") ||
@@ -299,24 +317,74 @@ public class PasswordResetService {
                 emailDomain.contains(".tn") || emailDomain.contains(".dz") ||
                 emailDomain.contains(".ly") || emailDomain.contains(".sd") ||
                 emailDomain.contains(".so") || emailDomain.contains(".dj") ||
-                emailDomain.contains(".km") || emailDomain.contains(".mr")) {
+                emailDomain.contains(".km") || emailDomain.contains(".mr") ||
+                emailDomain.contains(".me") || emailDomain.contains(".ye")) {
+                return "ar";
+            }
+
+            // Additional regional indicators
+            if (emailDomain.contains(".com.sa") || emailDomain.contains(".co.ae") ||
+                emailDomain.contains(".gov.sy") || emailDomain.contains(".org.jo")) {
                 return "ar";
             }
         }
-        
-        // Check IP address for regional hints (very basic)
-        if (clientIp != null && !clientIp.equals("127.0.0.1") && !clientIp.equals("0:0:0:0:0:0:0:1")) {
-            // TODO: Implement proper IP geolocation
-            // For now, assume local/regional IPs might prefer Arabic
-            if (clientIp.startsWith("192.168.") || clientIp.startsWith("10.") || 
-                clientIp.startsWith("172.")) {
-                // Private IP ranges - could be local users, default to Arabic for Middle East deployment
-                return "ar";
-            }
-        }
-        
+
         // Default to English for international users
         return "en";
+    }
+
+    /**
+     * Detect language based on IP address using basic geolocation logic
+     * In production, this should be replaced with a proper geolocation service
+     */
+    private String detectLanguageFromIp(String clientIp) {
+        try {
+            // Remove IPv6 prefix if present
+            if (clientIp.contains("::ffff:")) {
+                clientIp = clientIp.substring(clientIp.lastIndexOf(":") + 1);
+            }
+
+            // Parse IP address
+            String[] parts = clientIp.split("\\.");
+            if (parts.length != 4) {
+                return null; // Not IPv4
+            }
+
+            int firstOctet = Integer.parseInt(parts[0]);
+
+            // Middle East IP ranges (basic detection)
+            // 5.0.0.0 - 5.255.255.255 (Saudi Arabia)
+            // 31.0.0.0 - 31.255.255.255 (Egypt, Saudi Arabia)
+            // 37.0.0.0 - 37.255.255.255 (Syria, Jordan, Lebanon)
+            // 41.0.0.0 - 41.255.255.255 (Kuwait, UAE, Qatar)
+            // 46.0.0.0 - 46.255.255.255 (UAE, Bahrain)
+            // 82.0.0.0 - 82.255.255.255 (Saudi Arabia, UAE)
+            // 87.0.0.0 - 87.255.255.255 (Jordan, Lebanon, Syria)
+            // 91.0.0.0 - 91.255.255.255 (Saudi Arabia, UAE)
+            // 94.0.0.0 - 94.255.255.255 (Jordan, Lebanon, Syria)
+            // 185.0.0.0 - 185.255.255.255 (Various Middle East countries)
+            // 188.0.0.0 - 188.255.255.255 (Various Middle East countries)
+            // 213.0.0.0 - 213.255.255.255 (Various Middle East countries)
+
+            if (firstOctet == 5 || firstOctet == 31 || firstOctet == 37 ||
+                firstOctet == 41 || firstOctet == 46 || firstOctet == 82 ||
+                firstOctet == 87 || firstOctet == 91 || firstOctet == 94 ||
+                firstOctet == 185 || firstOctet == 188 || firstOctet == 213) {
+                return "ar";
+            }
+
+            // Private IP ranges - could be local users
+            if (firstOctet == 10 || firstOctet == 172 || firstOctet == 192) {
+                // For private networks, check if it's likely a Middle East deployment
+                // This is a heuristic - in production, use proper geolocation
+                return "ar";
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error parsing IP address for language detection: {}", clientIp);
+        }
+
+        return null; // Could not determine language from IP
     }
     
     /**

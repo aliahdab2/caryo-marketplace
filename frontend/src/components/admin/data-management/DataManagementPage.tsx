@@ -887,7 +887,10 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                       <span className="text-[10px] font-bold text-white">{selectedBrands.size}</span>
                     </div>
                     <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      {selectedBrands.size === 1 ? 'brand' : 'brands'} selected
+                      {selectedBrands.size === 1
+                        ? t('datamanagement:brandSelected')
+                        : t('datamanagement:brandsSelected')
+                      }
                     </span>
                   </div>
                 </div>
@@ -898,7 +901,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                     }}
                     className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   >
-                    Clear selection
+                    {t('datamanagement:clearSelection')}
                   </button>
                   <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
                   <button
@@ -907,7 +910,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                     className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiRefreshCw className={`w-3 h-3 ${bulkUpdatingBrands ? 'animate-spin' : ''}`} />
-                    Activate
+                    {t('datamanagement:activate')}
                   </button>
                   <button
                     onClick={() => bulkUpdateBrands(false)}
@@ -915,7 +918,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                     className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiX className="w-3 h-3" />
-                    Deactivate
+                    {t('datamanagement:deactivate')}
                   </button>
                 </div>
               </div>
@@ -997,7 +1000,10 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                       <span className="text-[10px] font-bold text-white">{selectedModels.size}</span>
                     </div>
                     <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      {selectedModels.size === 1 ? 'model' : 'models'} selected
+                      {selectedModels.size === 1
+                        ? t('datamanagement:modelSelected')
+                        : t('datamanagement:modelsSelected')
+                      }
                     </span>
                   </div>
                 </div>
@@ -1008,7 +1014,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                     }}
                     className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   >
-                    Clear selection
+                    {t('datamanagement:clearSelection')}
                   </button>
                   <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
                   <button
@@ -1017,7 +1023,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                     className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiRefreshCw className={`w-3 h-3 ${bulkUpdatingModels ? 'animate-spin' : ''}`} />
-                    Activate
+                    {t('datamanagement:activate')}
                   </button>
                   <button
                     onClick={() => bulkUpdateModels(false)}
@@ -1025,7 +1031,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                     className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiX className="w-3 h-3" />
-                    Deactivate
+                    {t('datamanagement:deactivate')}
                   </button>
                 </div>
               </div>
@@ -1117,7 +1123,11 @@ const Pagination: React.FC<{
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        {`Showing ${startItem}-${endItem} of ${totalItems} results`}
+        {_t('datamanagement:showingResults', `Showing ${startItem}-${endItem} of ${totalItems} results`, {
+          start: startItem,
+          end: endItem,
+          total: totalItems
+        })}
       </div>
       
       <div className="flex items-center gap-2">
