@@ -4,6 +4,8 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
+import com.autotrader.autotraderbackend.payload.request.UpdateModelRequest;
+import com.autotrader.autotraderbackend.payload.request.CreateModelRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -154,6 +156,46 @@ public class CarModelService {
     }
     
     /**
+     * Create a new car model using request DTO
+     * @param createRequest Model creation details from request
+     * @return Created model
+     */
+    @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    public CarModel createModel(CreateModelRequest createRequest) {
+        // Ensure the brand exists
+        CarBrand brand = carBrandService.getBrandById(createRequest.getBrandId());
+        
+        // Validate model uniqueness
+        validateModelUniqueness(brand, createRequest);
+        
+        CarModel model = new CarModel();
+        model.setName(createRequest.getName());
+        model.setDisplayNameEn(createRequest.getDisplayNameEn());
+        model.setDisplayNameAr(createRequest.getDisplayNameAr());
+        model.setIsActive(createRequest.getIsActive());
+        model.setBrand(brand);
+        
+        // Generate unique slug from name and brand
+        String baseSlug = (brand.getName() + "-" + createRequest.getName()).toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", ""); // Remove leading/trailing dashes
+        
+        String slug = baseSlug;
+        int counter = 1;
+        while (carModelRepository.findBySlug(slug).isPresent()) {
+            slug = baseSlug + "-" + counter;
+            counter++;
+        }
+        model.setSlug(slug);
+        
+        log.info("Creating new car model using request DTO: {} for brand: {}", createRequest.getName(), brand.getName());
+        return carModelRepository.save(model);
+    }
+    
+    /**
      * Update an existing car model
      * @param id Model ID
      * @param modelDetails Updated model details
@@ -178,6 +220,34 @@ public class CarModelService {
         }
         
         log.info("Updated car model with id: {}", id);
+        return carModelRepository.save(model);
+    }
+    
+    /**
+     * Update an existing car model using request DTO
+     * @param id Model ID
+     * @param updateRequest Updated model details from request
+     * @return Updated model
+     * @throws ResourceNotFoundException if model not found
+     */
+    @Transactional
+    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    public CarModel updateModel(Long id, UpdateModelRequest updateRequest) {
+        CarModel model = getModelById(id);
+        
+        model.setName(updateRequest.getName());
+        model.setDisplayNameEn(updateRequest.getDisplayNameEn());
+        model.setDisplayNameAr(updateRequest.getDisplayNameAr());
+        model.setIsActive(updateRequest.getIsActive());
+        // Don't update slug as it should be immutable for URL stability
+        
+        // If brand has changed, validate the new brand
+        if (!model.getBrand().getId().equals(updateRequest.getBrandId())) {
+            CarBrand newBrand = carBrandService.getBrandById(updateRequest.getBrandId());
+            model.setBrand(newBrand);
+        }
+        
+        log.info("Updated car model with id: {} using request DTO", id);
         return carModelRepository.save(model);
     }
     
@@ -207,5 +277,26 @@ public class CarModelService {
         CarModel model = getModelById(id);
         log.info("Deleting car model with id: {}", id);
         carModelRepository.delete(model);
+    }
+    
+    /**
+     * Validate that a model doesn't already exist for the given brand
+     */
+    private void validateModelUniqueness(CarBrand brand, CreateModelRequest modelRequest) {
+        String name = modelRequest.getName().trim();
+        String displayNameEn = modelRequest.getDisplayNameEn().trim();
+        String displayNameAr = modelRequest.getDisplayNameAr().trim();
+        
+        if (carModelRepository.existsByBrandAndNameIgnoreCase(brand, name)) {
+            throw new IllegalArgumentException("Model with name '" + name + "' already exists for brand '" + brand.getName() + "'");
+        }
+        
+        if (carModelRepository.existsByBrandAndDisplayNameEnIgnoreCase(brand, displayNameEn)) {
+            throw new IllegalArgumentException("Model with English name '" + displayNameEn + "' already exists for brand '" + brand.getName() + "'");
+        }
+        
+        if (carModelRepository.existsByBrandAndDisplayNameArIgnoreCase(brand, displayNameAr)) {
+            throw new IllegalArgumentException("Model with Arabic name '" + displayNameAr + "' already exists for brand '" + brand.getName() + "'");
+        }
     }
 }

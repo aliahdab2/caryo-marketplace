@@ -21,4 +21,10 @@ public interface CarBrandRepository extends JpaRepository<CarBrand, Long> {
            "LOWER(b.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(b.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<CarBrand> searchByName(String query);
+    
+    // Duplicate checking methods
+    boolean existsByNameIgnoreCase(String name);
+    boolean existsByDisplayNameEnIgnoreCase(String displayNameEn);
+    boolean existsByDisplayNameArIgnoreCase(String displayNameAr);
+    boolean existsBySlug(String slug);
 }

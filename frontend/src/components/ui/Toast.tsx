@@ -105,8 +105,8 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed top-5 right-5 z-50 max-w-sm w-full rounded-lg shadow-lg border transition-all duration-300 ease-in-out transform ${
-        isLeaving ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+      className={`max-w-sm w-full rounded-lg shadow-lg border transition-all duration-300 ease-in-out transform ${
+        isLeaving ? 'ltr:translate-x-full rtl:-translate-x-full opacity-0' : 'translate-x-0 opacity-100'
       } ${config.bgColor} ${config.borderColor} ${className}`}
       role="alert"
       aria-live="polite"
@@ -121,7 +121,7 @@ export default function Toast({
             />
           </div>
           
-          <div className="ml-3 flex-1">
+          <div className="ltr:ml-3 rtl:mr-3 flex-1">
             {title && (
               <h3 className={`text-sm font-medium ${config.titleColor} mb-1`}>
                 {title}
@@ -133,10 +133,10 @@ export default function Toast({
           </div>
           
           {dismissible && (
-            <div className="ml-4 flex-shrink-0">
+            <div className="ltr:ml-4 rtl:mr-4 flex-shrink-0">
               <button
                 onClick={handleClose}
-                className={`inline-flex rounded-md p-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${config.iconColor} hover:${config.bgColor}`}
+                className={`inline-flex rounded-md p-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${config.iconColor} hover:bg-gray-100 dark:hover:bg-gray-800`}
                 aria-label="Close notification"
               >
                 <MdClose className="text-lg" aria-hidden="true" />

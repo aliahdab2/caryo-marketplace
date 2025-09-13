@@ -106,5 +106,9 @@
   "soldBy": "Sold by",
   "viewDetails": "View Details",
   "winterTires": "Winter Tires",
-  "settings": "Display your phone number on your ads"
+  "settings": "Display your phone number on your ads",
+  "saving": "Saving...",
+  "blocking": "Blocking...",
+  "reporting": "Reporting...",
+  "deleting": "Deleting..."
 }

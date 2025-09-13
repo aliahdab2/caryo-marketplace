@@ -92,5 +92,7 @@
   "helpCenter": "مركز المساعدة",
   "mainNavigation": "التنقل الرئيسي",
   "navigation": "التنقل",
-  "loginRequired": "الرجاء تسجيل الدخول للوصول إلى لوحة التحكم"
+  "loginRequired": "الرجاء تسجيل الدخول للوصول إلى لوحة التحكم",
+  "dataManagement": "إدارة البيانات",
+  "dataManagementTooltip": "إدارة بيانات الماركات والموديلات"
 }

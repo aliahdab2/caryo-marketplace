@@ -171,13 +171,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
         
-        Locale locale = getUserLocale(request);
-        String message = getMessage("error.validation.failed", locale, ex.getMessage());
-        
         log.warn("Illegal argument: {}", ex.getMessage());
         
+        // Return the specific error message directly for better user experience
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(message));
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     /**

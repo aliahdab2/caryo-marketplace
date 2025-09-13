@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.service.CaryoDataService;
 import com.autotrader.autotraderbackend.service.CarDataExcelService;
 import com.autotrader.autotraderbackend.service.CarBrandService;
 import com.autotrader.autotraderbackend.service.CarModelService;
+import com.autotrader.autotraderbackend.service.ApiSyncTrackingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simplified admin controller for data import operations
@@ -34,6 +38,7 @@ public class AdminDataManagementController {
     private final CarDataExcelService carDataExcelService;
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
+    private final ApiSyncTrackingService apiSyncTrackingService;
 
     // Constructor to handle optional SyrianCarsDataService
     public AdminDataManagementController(
@@ -42,13 +47,15 @@ public class AdminDataManagementController {
             CaryoDataService caryoDataService,
             CarDataExcelService carDataExcelService,
             CarBrandService carBrandService,
-            CarModelService carModelService) {
+            CarModelService carModelService,
+            ApiSyncTrackingService apiSyncTrackingService) {
         this.carQueryDataService = carQueryDataService;
         this.syrianCarsDataService = syrianCarsDataService;
         this.caryoDataService = caryoDataService;
         this.carDataExcelService = carDataExcelService;
         this.carBrandService = carBrandService;
         this.carModelService = carModelService;
+        this.apiSyncTrackingService = apiSyncTrackingService;
     }
 
     /**
@@ -63,12 +70,23 @@ public class AdminDataManagementController {
         log.info("Admin triggered CarQuery data import");
 
         try {
+            // Check if sync is allowed (rate limiting protection)
+            ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkCarQuerySyncStatus();
+            
+            if (!syncStatus.isAllowed()) {
+                log.warn("CarQuery sync blocked: {}", syncStatus.getMessage());
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Sync blocked to prevent API rate limiting: " + syncStatus.getMessage()));
+            }
+
             var result = carQueryDataService.loadCompleteCarDataset();
 
             if (result.isSuccess()) {
-                log.info("CarQuery data import completed successfully");
+                // Record successful sync to prevent future rate limiting
+                apiSyncTrackingService.recordCarQuerySync();
+                log.info("CarQuery data import completed successfully and sync recorded");
                 return ResponseEntity.ok(ApiResponse.success(
-                    "CarQuery data imported successfully", "Import completed"));
+                    "CarQuery data imported successfully", "Import completed. Next sync allowed in 2 hours."));
             } else {
                 log.warn("CarQuery data import failed: {}", result.getErrorMessage());
                 return ResponseEntity.badRequest()
@@ -100,12 +118,23 @@ public class AdminDataManagementController {
                     .body(ApiResponse.error("SyrianCars data service is not enabled"));
             }
 
+            // Check if sync is allowed (rate limiting protection)
+            ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkSyrianCarsSyncStatus();
+            
+            if (!syncStatus.isAllowed()) {
+                log.warn("SyrianCars sync blocked: {}", syncStatus.getMessage());
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Sync blocked to prevent rate limiting: " + syncStatus.getMessage()));
+            }
+
             var result = syrianCarsDataService.loadCompleteDataset();
 
             if (result.isSuccess()) {
-                log.info("SyrianCars data import completed successfully");
+                // Record successful sync to prevent future rate limiting
+                apiSyncTrackingService.recordSyrianCarsSync();
+                log.info("SyrianCars data import completed successfully and sync recorded");
                 return ResponseEntity.ok(ApiResponse.success(
-                    "SyrianCars data imported successfully", "Import completed"));
+                    "SyrianCars data imported successfully", "Import completed. Next sync allowed in 1 hour."));
             } else {
                 log.warn("SyrianCars data import failed: {}", result.getErrorMessage());
                 return ResponseEntity.badRequest()
@@ -188,6 +217,49 @@ public class AdminDataManagementController {
             
         } catch (Exception e) {
             log.error("Error importing car data from Excel", e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get sync status for all APIs to prevent rate limiting
+     */
+    @GetMapping("/sync-status")
+    @Operation(
+        summary = "Get API Sync Status",
+        description = "Get current sync status for all external APIs to prevent rate limiting"
+    )
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSyncStatus() {
+        log.info("Admin requested API sync status");
+
+        try {
+            Map<String, ApiSyncTrackingService.SyncStatus> syncStatuses = apiSyncTrackingService.getAllSyncStatuses();
+            
+            Map<String, Object> response = new HashMap<>();
+            
+            for (Map.Entry<String, ApiSyncTrackingService.SyncStatus> entry : syncStatuses.entrySet()) {
+                String apiName = entry.getKey();
+                ApiSyncTrackingService.SyncStatus status = entry.getValue();
+                
+                Map<String, Object> apiStatus = new HashMap<>();
+                apiStatus.put("allowed", status.isAllowed());
+                apiStatus.put("message", status.getMessage());
+                apiStatus.put("lastSyncTime", status.getLastSyncTime());
+                apiStatus.put("hoursSinceLastSync", status.getHoursSinceLastSync());
+                
+                if (!status.isAllowed()) {
+                    int cooldownHours = apiName.equals("carquery") ? 2 : 1;
+                    apiStatus.put("remainingCooldownHours", status.getRemainingCooldownHours(cooldownHours));
+                }
+                
+                response.put(apiName, apiStatus);
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success("Sync status retrieved", response));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving sync status", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }

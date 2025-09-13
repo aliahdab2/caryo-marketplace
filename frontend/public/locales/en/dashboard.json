@@ -92,5 +92,7 @@
   "settings.showEmailDesc": "Display your email address publicly",
   "settings.showPhone": "Show Phone",
   "settings.showPhoneDesc": "Display your phone number publicly",
-  "loginRequired": "Please log in to access dashboard"
+  "loginRequired": "Please log in to access dashboard",
+  "dataManagement": "Data Management",
+  "dataManagementTooltip": "Manage car brands and models data"
 }
