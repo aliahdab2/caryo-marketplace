@@ -26,6 +26,7 @@ import {
 } from 'react-icons/fi';
 
 import { CarBrand, CarModel } from './types';
+import { SyncOperations } from './components/SyncOperations';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -129,6 +130,7 @@ export const DataManagementPage: React.FC = () => {
     statistics,
     brands,
     models,
+    syncStatus,
     loadData,
     exportExcel,
     importExcel,
@@ -426,12 +428,13 @@ export const DataManagementPage: React.FC = () => {
         </div>
 
         {/* Sync Operations */}
-        <SyncOperationsCard
-          t={t}
-          syncingCarQuery={syncingCarQuery}
-          syncingSyrianCars={syncingSyrianCars}
-          handleSyncCarQuery={syncCarQuery}
-          handleSyncSyrianCars={syncSyrianCars}
+        <SyncOperations
+          syncStatus={syncStatus}
+          loading={loading}
+          onSyncComplete={() => {
+            // Refresh data after sync completes
+            loadData();
+          }}
         />
 
         {/* Brands Management */}

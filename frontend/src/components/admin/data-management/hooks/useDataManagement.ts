@@ -87,19 +87,63 @@ export const useDataManagement = () => {
     }
   }, [makeAuthenticatedRequest]);
 
+  const fetchAllModels = useCallback(async () => {
+    let allModels: CarModel[] = [];
+    let page = 0;
+    let hasMore = true;
+    const size = 100; // Fetch 100 models per page
+
+    while (hasMore) {
+      try {
+        const response = await makeAuthenticatedRequest(`/api/admin/car-models?page=${page}&size=${size}&sortBy=name`);
+        if (response.ok) {
+          const pageData = await response.json();
+          const modelsOnPage = pageData.data?.content || [];
+          allModels = [...allModels, ...modelsOnPage];
+          if (pageData.data?.last === true || modelsOnPage.length < size) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        } else {
+          console.error(`Failed to load models page ${page}:`, response.status, response.statusText);
+          hasMore = false; // Stop if there's an error
+        }
+      } catch (error) {
+        console.error(`Error fetching models page ${page}:`, error);
+        hasMore = false; // Stop on network error
+      }
+    }
+    return allModels;
+  }, [makeAuthenticatedRequest]);
+
   // Load all data
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       
-      const [brandsRes, modelsRes, statsRes] = await Promise.all([
+      const [brandsRes, statsRes, syrianCarsRes, carQueryRes] = await Promise.all([
         makeAuthenticatedRequest('/api/admin/car-brands?size=1000'), 
-        makeAuthenticatedRequest('/api/admin/car-models?size=1000&sortBy=name'),  
         makeAuthenticatedRequest('/api/admin/data/statistics'),
+        makeAuthenticatedRequest('/api/admin/data/sync-status/SyrianCars'),
+        makeAuthenticatedRequest('/api/admin/data/sync-status/CarQueryAPI'),
       ]);
 
-      // Fetch and set sync status separately
-      await fetchAndSetSyncStatus();
+      // Fetch models separately using the new paginated fetcher
+      const modelsData = await fetchAllModels();
+      setModels(modelsData);
+
+      // Process sync status
+      const newSyncStatus: SyncStatus = {};
+      if (syrianCarsRes.ok) {
+        const data = await syrianCarsRes.json();
+        if (data.success && data.data) newSyncStatus.syriancars = data.data;
+      }
+      if (carQueryRes.ok) {
+        const data = await carQueryRes.json();
+        if (data.success && data.data) newSyncStatus.carquery = data.data;
+      }
+      setSyncStatus(newSyncStatus);
 
       let brandsData: CarBrand[] = [];
       if (brandsRes.ok) {
@@ -110,19 +154,6 @@ export const useDataManagement = () => {
       } else {
         console.error('Failed to load brands:', brandsRes.status, brandsRes.statusText);
         if (brandsRes.status === 401 || brandsRes.status === 403) {
-          throw new Error('Authentication required. Please log in again.');
-        }
-      }
-
-      if (modelsRes.ok) {
-        const modelsResponse = await modelsRes.json();
-        const modelsData = modelsResponse.data?.content || []; // Extract from paginated response
-        console.log('Loaded models:', modelsData);
-        // Backend now provides full brand information, no need to populate manually
-        setModels(modelsData);
-      } else {
-        console.error('Failed to load models:', modelsRes.status, modelsRes.statusText);
-        if (modelsRes.status === 401 || modelsRes.status === 403) {
           throw new Error('Authentication required. Please log in again.');
         }
       }
@@ -140,8 +171,8 @@ export const useDataManagement = () => {
         setStatistics({
           totalBrands: brandsData.length,
           activeBrands: brandsData.filter(b => b.isActive).length,
-          totalModels: 0,
-          activeModels: 0
+          totalModels: modelsData.length,
+          activeModels: modelsData.filter(m => m.isActive).length
         });
       }
 
@@ -159,7 +190,7 @@ export const useDataManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [showError, t, makeAuthenticatedRequest, fetchAndSetSyncStatus]);
+  }, [showError, t, makeAuthenticatedRequest, fetchAllModels]);
 
   // Polling for sync status
   useEffect(() => {
