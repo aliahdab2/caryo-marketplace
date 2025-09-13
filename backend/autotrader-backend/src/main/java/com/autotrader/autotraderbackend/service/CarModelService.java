@@ -335,4 +335,16 @@ public class CarModelService {
                 status.equalsIgnoreCase("INACTIVE") || 
                 status.equalsIgnoreCase("PENDING"));
     }
+
+    /**
+     * Validates that a model is active and can be used for new listings.
+     * Industry best practice: Prevent NEW listings with inactive models, but keep existing ones visible.
+     */
+    public void validateModelActiveForNewListing(Long modelId) {
+        CarModel model = getModelById(modelId);
+        if (!model.getIsActive()) {
+            throw new IllegalArgumentException("Cannot create new listings with inactive model: " + model.getDisplayNameEn() + 
+                ". This model is marked as discontinued or under review. Please contact support if you believe this is an error.");
+        }
+    }
 }

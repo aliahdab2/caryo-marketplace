@@ -12,6 +12,7 @@ import com.autotrader.autotraderbackend.payload.request.CreateModelRequest;
 import com.autotrader.autotraderbackend.payload.request.CreateBrandWithModelRequest;
 import com.autotrader.autotraderbackend.service.CarDataManagementService;
 import com.autotrader.autotraderbackend.service.*;
+import com.autotrader.autotraderbackend.service.BrandModelStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -45,6 +46,7 @@ public class CarReferenceDataController {
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final CarDataManagementService carDataManagementService;
+    private final BrandModelStatusService brandModelStatusService;
 
     @GetMapping
     @Operation(
@@ -255,10 +257,33 @@ public class CarReferenceDataController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/brands/{brandId}/status-impact")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Check impact of brand status change (Admin Only)",
+        description = "Check how many active listings would be affected if this brand is deactivated. Use this before deactivating brands to understand the impact.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Impact analysis completed"),
+            @ApiResponse(responseCode = "404", description = "Brand not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required")
+        }
+    )
+    public ResponseEntity<BrandModelStatusService.StatusChangeImpact> checkBrandStatusImpact(
+            @Parameter(description = "ID of the car brand", required = true) 
+            @PathVariable Long brandId) {
+        log.debug("Request received to check brand deactivation impact: brandId={}", brandId);
+        
+        BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkBrandDeactivationImpact(brandId);
+        
+        log.debug("Brand impact analysis completed: {} listings affected, severity: {}", 
+                impact.getAffectedListingsCount(), impact.getSeverityLevel());
+        return ResponseEntity.ok(impact);
+    }
+
     @PutMapping("/brands/{brandId}/status")
     @Operation(
         summary = "Update car brand status",
-        description = "Update the status of a car brand (ACTIVE, INACTIVE, PENDING). This is the recommended way to manage brand visibility.",
+        description = "Update the status of a car brand (ACTIVE, INACTIVE, PENDING). WARNING: Deactivating a brand will immediately hide all its listings from users. Check impact first using GET /brands/{brandId}/status-impact",
         responses = {
             @ApiResponse(responseCode = "200", description = "Brand status updated successfully"),
             @ApiResponse(responseCode = "404", description = "Brand not found"),
@@ -272,6 +297,13 @@ public class CarReferenceDataController {
             @RequestParam String status) {
         log.debug("Request received to update brand ID: {} to status: {}", brandId, status);
         
+        // Log impact warning for deactivation
+        if ("false".equalsIgnoreCase(status) || "inactive".equalsIgnoreCase(status)) {
+            BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkBrandDeactivationImpact(brandId);
+            log.warn("BRAND DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}", 
+                    impact.getAffectedListingsCount(), impact.getSeverityLevel());
+        }
+        
         CarBrand updatedBrand = carBrandService.updateBrandStatus(brandId, status);
         CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
         
@@ -279,10 +311,33 @@ public class CarReferenceDataController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/models/{modelId}/status-impact")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Check impact of model status change (Admin Only)",
+        description = "Check how many active listings would be affected if this model is deactivated. Use this before deactivating models to understand the impact.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Impact analysis completed"),
+            @ApiResponse(responseCode = "404", description = "Model not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required")
+        }
+    )
+    public ResponseEntity<BrandModelStatusService.StatusChangeImpact> checkModelStatusImpact(
+            @Parameter(description = "ID of the car model", required = true) 
+            @PathVariable Long modelId) {
+        log.debug("Request received to check model deactivation impact: modelId={}", modelId);
+        
+        BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkModelDeactivationImpact(modelId);
+        
+        log.debug("Model impact analysis completed: {} listings affected, severity: {}", 
+                impact.getAffectedListingsCount(), impact.getSeverityLevel());
+        return ResponseEntity.ok(impact);
+    }
+
     @PutMapping("/models/{modelId}/status")
     @Operation(
         summary = "Update car model status",
-        description = "Update the status of a car model (ACTIVE, INACTIVE, PENDING). This is the recommended way to manage model visibility.",
+        description = "Update the status of a car model (ACTIVE, INACTIVE, PENDING). WARNING: Deactivating a model will immediately hide all its listings from users. Check impact first using GET /models/{modelId}/status-impact",
         responses = {
             @ApiResponse(responseCode = "200", description = "Model status updated successfully"),
             @ApiResponse(responseCode = "404", description = "Model not found"),
@@ -295,6 +350,13 @@ public class CarReferenceDataController {
             @Parameter(description = "New status for the model", required = true)
             @RequestParam String status) {
         log.debug("Request received to update model ID: {} to status: {}", modelId, status);
+        
+        // Log impact warning for deactivation
+        if ("false".equalsIgnoreCase(status) || "inactive".equalsIgnoreCase(status)) {
+            BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkModelDeactivationImpact(modelId);
+            log.warn("MODEL DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}", 
+                    impact.getAffectedListingsCount(), impact.getSeverityLevel());
+        }
         
         CarModel updatedModel = carModelService.updateModelStatus(modelId, status);
         CarModelResponse response = CarModelResponse.fromEntity(updatedModel);

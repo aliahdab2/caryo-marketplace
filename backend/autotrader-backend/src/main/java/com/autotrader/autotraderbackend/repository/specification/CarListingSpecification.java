@@ -188,6 +188,21 @@ public class CarListingSpecification {
     }
 
     /**
+     * NOTE: Removed automatic hiding of listings with inactive brands/models.
+     * 
+     * Industry best practice (AutoTrader.co.uk, etc.) is to:
+     * 1. Keep existing listings visible (historical accuracy)
+     * 2. Prevent NEW listings with inactive brands/models
+     * 3. Use status badges to indicate legacy/discontinued items
+     * 4. Provide migration tools for bulk updates
+     * 
+     * Automatically hiding listings causes:
+     * - User confusion (listings disappear without explanation)
+     * - Revenue loss (hidden active listings)
+     * - Trust issues (users don't understand changes)
+     */
+
+    /**
      * Adds year range filtering predicates (validation already done).
      */
     private static void addYearRangePredicates(ListingFilterRequest filter,

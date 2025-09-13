@@ -271,4 +271,16 @@ public class CarBrandService {
                 status.equalsIgnoreCase("INACTIVE") || 
                 status.equalsIgnoreCase("PENDING"));
     }
+
+    /**
+     * Validates that a brand is active and can be used for new listings.
+     * Industry best practice: Prevent NEW listings with inactive brands, but keep existing ones visible.
+     */
+    public void validateBrandActiveForNewListing(Long brandId) {
+        CarBrand brand = getBrandById(brandId);
+        if (!brand.getIsActive()) {
+            throw new IllegalArgumentException("Cannot create new listings with inactive brand: " + brand.getDisplayNameEn() + 
+                ". This brand is marked as discontinued or under review. Please contact support if you believe this is an error.");
+        }
+    }
 }
