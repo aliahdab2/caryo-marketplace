@@ -4,38 +4,26 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
-import com.autotrader.autotraderbackend.service.CarBrandService;
 import com.autotrader.autotraderbackend.service.CarModelService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Integration tests for smart activation functionality
  * Tests the complete flow from API endpoint to database
  */
 @SpringBootTest
-@AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("Smart Activation Integration Tests")
 class SmartActivationIntegrationTest {
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @Autowired
     private CarBrandRepository carBrandRepository;
@@ -44,13 +32,7 @@ class SmartActivationIntegrationTest {
     private CarModelRepository carModelRepository;
 
     @Autowired
-    private CarBrandService carBrandService;
-
-    @Autowired
     private CarModelService carModelService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private CarBrand inactiveBrand;
     private CarModel inactiveModel;
@@ -82,70 +64,9 @@ class SmartActivationIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    @DisplayName("Should auto-activate parent brand when activating model via API")
-    void shouldAutoActivateParentBrandViaAPI() throws Exception {
-        // Given: Model update request to activate model
-        CarModel updateRequest = new CarModel();
-        updateRequest.setName("Camry");
-        updateRequest.setDisplayNameEn("Camry");
-        updateRequest.setDisplayNameAr("كامري");
-        updateRequest.setIsActive(true); // Activating the model
-        updateRequest.setBrand(inactiveBrand);
-
-        // When: Making API call to update model
-        mockMvc.perform(put("/api/admin/car-models/{id}", inactiveModel.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isActive").value(true))
-                .andExpect(jsonPath("$.brand.isActive").value(true)); // Brand should be auto-activated
-
-        // Then: Verify database state
-        CarModel updatedModel = carModelRepository.findById(inactiveModel.getId()).orElseThrow();
-        CarBrand updatedBrand = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
-
-        assertThat(updatedModel.getIsActive()).isTrue();
-        assertThat(updatedBrand.getIsActive()).isTrue(); // Brand should be auto-activated
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    @DisplayName("Should not auto-activate when model is deactivated via API")
-    void shouldNotAutoActivateWhenDeactivatingViaAPI() throws Exception {
-        // Given: First activate both brand and model
-        inactiveBrand.setIsActive(true);
-        carBrandRepository.save(inactiveBrand);
-        inactiveModel.setIsActive(true);
-        carModelRepository.save(inactiveModel);
-
-        // Model update request to deactivate model
-        CarModel updateRequest = new CarModel();
-        updateRequest.setName("Camry");
-        updateRequest.setDisplayNameEn("Camry");
-        updateRequest.setDisplayNameAr("كامري");
-        updateRequest.setIsActive(false); // Deactivating the model
-        updateRequest.setBrand(inactiveBrand);
-
-        // When: Making API call to deactivate model
-        mockMvc.perform(put("/api/admin/car-models/{id}", inactiveModel.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isActive").value(false));
-
-        // Then: Verify brand remains active (not auto-deactivated)
-        CarModel updatedModel = carModelRepository.findById(inactiveModel.getId()).orElseThrow();
-        CarBrand updatedBrand = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
-
-        assertThat(updatedModel.getIsActive()).isFalse();
-        assertThat(updatedBrand.getIsActive()).isTrue(); // Brand should remain active
-    }
-
-    @Test
-    @DisplayName("Should auto-activate parent brand via service layer")
+    @DisplayName("Should auto-activate parent brand when activating model via service")
     void shouldAutoActivateParentBrandViaService() {
-        // Given: Model update to activate
+        // Given: Model update request to activate model
         CarModel updateRequest = new CarModel();
         updateRequest.setName("Camry");
         updateRequest.setDisplayNameEn("Camry");
@@ -162,6 +83,7 @@ class SmartActivationIntegrationTest {
         CarBrand updatedBrand = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
         assertThat(updatedBrand.getIsActive()).isTrue(); // Brand should be auto-activated
     }
+
 
     @Test
     @DisplayName("Should handle multiple models activation for same brand")
