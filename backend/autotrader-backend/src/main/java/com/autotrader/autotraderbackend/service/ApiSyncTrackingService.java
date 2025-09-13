@@ -19,9 +19,9 @@ public class ApiSyncTrackingService {
     // Track last sync times for different APIs
     private final Map<String, LocalDateTime> lastSyncTimes = new ConcurrentHashMap<>();
     
-    // Cooldown periods (in hours)
-    private static final int CARQUERY_COOLDOWN_HOURS = 2;
-    private static final int SYRIANCARS_COOLDOWN_HOURS = 1;
+    // Cooldown periods (in hours) - Temporarily disabled for testing
+    private static final int CARQUERY_COOLDOWN_HOURS = 0; // Disabled for testing
+    private static final int SYRIANCARS_COOLDOWN_HOURS = 0; // Disabled for testing
     
     /**
      * Check if CarQuery sync is allowed

@@ -385,8 +385,11 @@ public class SyrianCarsDataService implements CarDataProvider {
                             continue;
                         }
 
+                        // Clean the brand name before translation
+                        String cleanBrandName = cleanBrandNameForTranslation(brandName);
+                        
                         // Generate Arabic translation
-                        String arabicName = arabicTranslationService.translateBrandToArabic(brandName);
+                        String arabicName = arabicTranslationService.translateBrandToArabic(cleanBrandName);
                         
                         // Only add if we have a valid Arabic translation
                         if (arabicName != null && !arabicName.trim().isEmpty() && !arabicName.equalsIgnoreCase(brandName)) {
@@ -425,6 +428,43 @@ public class SyrianCarsDataService implements CarDataProvider {
         }
 
         return brands;
+    }
+
+    /**
+     * Clean brand name for translation by removing counts, extra text, and extracting the English brand name
+     * Examples:
+     * "بيجو - Peugeot (57)" -> "Peugeot"
+     * "تويوتا - Toyota (258)" -> "Toyota" 
+     * "BMW (712)" -> "BMW"
+     */
+    private String cleanBrandNameForTranslation(String brandName) {
+        if (brandName == null || brandName.trim().isEmpty()) {
+            return brandName;
+        }
+        
+        String cleaned = brandName.trim();
+        
+        // Remove count numbers in parentheses (e.g., "(57)", "(258)")
+        cleaned = cleaned.replaceAll("\\s*\\(\\d+\\)\\s*$", "");
+        
+        // If the text contains both Arabic and English (e.g., "بيجو - Peugeot"), extract English part
+        if (cleaned.contains(" - ")) {
+            String[] parts = cleaned.split(" - ");
+            // Look for the English part (contains Latin characters)
+            for (String part : parts) {
+                String trimmedPart = part.trim();
+                if (trimmedPart.matches(".*[a-zA-Z].*")) { // Contains Latin characters
+                    cleaned = trimmedPart;
+                    break;
+                }
+            }
+        }
+        
+        // Remove any remaining parentheses and extra whitespace
+        cleaned = cleaned.replaceAll("[\\(\\)]", "").trim();
+        
+        log.debug("Cleaned brand name: '{}' -> '{}'", brandName, cleaned);
+        return cleaned;
     }
 
     /**
