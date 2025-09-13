@@ -122,7 +122,7 @@ public class CarBrandService {
         brand.setName(createRequest.getName());
         brand.setDisplayNameEn(createRequest.getDisplayNameEn());
         brand.setDisplayNameAr(createRequest.getDisplayNameAr());
-        brand.setIsActive(false); // New brands start as inactive, requiring admin approval
+        brand.setIsActive(true); // Admin-created brands are active by default
         
         // Generate unique slug from name
         String baseSlug = createRequest.getName().toLowerCase()

@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -143,12 +144,14 @@ public class CarReferenceDataController {
     }
 
     @PostMapping("/brands")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-        summary = "Create new car brand",
-        description = "Create a new car brand with English and Arabic names",
+        summary = "Create new car brand (Admin Only)",
+        description = "Create a new car brand with English and Arabic names. Only administrators can create brands manually.",
         responses = {
             @ApiResponse(responseCode = "201", description = "Brand created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid brand data")
+            @ApiResponse(responseCode = "400", description = "Invalid brand data"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required")
         }
     )
     public ResponseEntity<CarBrandResponse> createBrand(
@@ -163,9 +166,10 @@ public class CarReferenceDataController {
     }
 
     @PostMapping("/brands-with-model")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-        summary = "Create new car brand with model",
-        description = "Create a new car brand with its first model atomically. This ensures brands are never created without models.",
+        summary = "Create new car brand with model (Admin Only)",
+        description = "Create a new car brand with its first model atomically. Only administrators can create brands manually.",
         responses = {
             @ApiResponse(responseCode = "201", description = "Brand and model created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid brand or model data"),

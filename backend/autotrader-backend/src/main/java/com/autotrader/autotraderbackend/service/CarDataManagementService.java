@@ -61,7 +61,7 @@ public class CarDataManagementService {
         brand.setName(request.getBrand().getName());
         brand.setDisplayNameEn(request.getBrand().getDisplayNameEn());
         brand.setDisplayNameAr(request.getBrand().getDisplayNameAr());
-        brand.setIsActive(false); // New brands start as inactive, requiring admin approval
+        brand.setIsActive(true); // Admin-created brands are active by default
         
         // Generate unique slug for brand
         String brandSlug = generateUniqueSlug(request.getBrand().getName(), "brand");
@@ -78,7 +78,7 @@ public class CarDataManagementService {
         model.setName(request.getModel().getName());
         model.setDisplayNameEn(request.getModel().getDisplayNameEn());
         model.setDisplayNameAr(request.getModel().getDisplayNameAr());
-        model.setIsActive(false); // New models start as inactive, requiring admin approval
+        model.setIsActive(true); // Admin-created models are active by default
         model.setBrand(savedBrand);
         
         // Generate unique slug for model

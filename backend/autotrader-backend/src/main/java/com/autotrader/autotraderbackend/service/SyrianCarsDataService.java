@@ -757,7 +757,7 @@ public class SyrianCarsDataService implements CarDataProvider {
             brand.setSlug(brandSlug);
             brand.setDisplayNameEn(englishName);
             brand.setDisplayNameAr(arabicName);
-            brand.setIsActive(true);
+            brand.setIsActive(false); // External API data requires admin review
 
             CarBrand savedBrand = carBrandService.createBrand(brand);
             log.info("✅ SYRIAN BRAND CREATED: '{}' -> '{}' (ID: {}, slug: {})", 
@@ -866,7 +866,7 @@ public class SyrianCarsDataService implements CarDataProvider {
             model.setDisplayNameEn(englishModelName);
             model.setDisplayNameAr(arabicModelName);
             model.setBrand(brand);
-            model.setIsActive(true);
+            model.setIsActive(false); // External API data requires admin review
 
             CarModel savedModel = carModelService.createModel(model);
             log.info("✅ SYRIAN MODEL CREATED: '{}' -> '{}' for brand '{}' (ID: {}, slug: {})", 

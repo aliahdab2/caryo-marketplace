@@ -173,7 +173,7 @@ public class CarModelService {
         model.setName(createRequest.getName());
         model.setDisplayNameEn(createRequest.getDisplayNameEn());
         model.setDisplayNameAr(createRequest.getDisplayNameAr());
-        model.setIsActive(false); // New models start as inactive, requiring admin approval
+        model.setIsActive(true); // Admin-created models are active by default
         model.setBrand(brand);
         
         // Generate unique slug from name and brand
