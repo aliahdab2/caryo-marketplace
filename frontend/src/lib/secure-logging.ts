@@ -38,7 +38,11 @@ function sanitizeLogData(data: unknown): unknown {
   }
 
   if (typeof data === 'object' && data !== null) {
-    const sanitized: Record<string, unknown> = Array.isArray(data) ? [] : {};
+    if (Array.isArray(data)) {
+      return data.map(item => sanitizeLogData(item));
+    }
+    
+    const sanitized: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(data)) {
       // Check if key is sensitive
