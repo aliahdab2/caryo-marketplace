@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.payload.request.CreateCarModelRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateCarModelRequest;
+import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.CarModelResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarBrandService;
@@ -69,7 +70,7 @@ public class AdminCarModelController {
             CarModelResponse response = CarModelResponse.fromEntity(createdModel);
 
             log.info("Successfully created car model with ID: {}", createdModel.getId());
-            return ResponseEntity.ok(ApiResponse.success("Model created successfully", response));
+            return ResponseEntity.ok(ApiResponse.success(response, "Model created successfully"));
 
         } catch (Exception e) {
             log.error("Error creating car model: {}", e.getMessage(), e);
@@ -112,7 +113,7 @@ public class AdminCarModelController {
             CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
 
             log.info("Successfully updated car model ID: {}", id);
-            return ResponseEntity.ok(ApiResponse.success("Model updated successfully", response));
+            return ResponseEntity.ok(ApiResponse.success(response, "Model updated successfully"));
 
         } catch (Exception e) {
             log.error("Error updating car model ID {}: {}", id, e.getMessage(), e);
@@ -142,7 +143,7 @@ public class AdminCarModelController {
             carModelService.deleteModel(id);
 
             log.info("Successfully deleted car model ID: {}", id);
-            return ResponseEntity.ok(ApiResponse.success("Model deleted successfully", null));
+            return ResponseEntity.ok(ApiResponse.success("Model deleted successfully"));
 
         } catch (Exception e) {
             log.error("Error deleting car model ID {}: {}", id, e.getMessage(), e);
@@ -164,7 +165,7 @@ public class AdminCarModelController {
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
             @Parameter(description = "Search term") @RequestParam(required = false) String search,
             @Parameter(description = "Brand ID filter") @RequestParam(required = false) Long brandId,
-            @Parameter(description = "Sort field") @RequestParam(defaultValue = "nameEn") String sortBy,
+            @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sortBy,
             @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDir) {
         
         try {
@@ -205,7 +206,7 @@ public class AdminCarModelController {
                 modelPage.isLast()
             );
 
-            return ResponseEntity.ok(ApiResponse.success("Models retrieved successfully", pagedResponse));
+            return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Models retrieved successfully"));
 
         } catch (Exception e) {
             log.error("Error retrieving car models: {}", e.getMessage(), e);
@@ -229,7 +230,7 @@ public class AdminCarModelController {
             CarModel model = carModelService.getModelById(id);
             CarModelResponse response = CarModelResponse.fromEntity(model);
 
-            return ResponseEntity.ok(ApiResponse.success("Model retrieved successfully", response));
+            return ResponseEntity.ok(ApiResponse.success(response, "Model retrieved successfully"));
 
         } catch (Exception e) {
             log.error("Error retrieving car model ID {}: {}", id, e.getMessage(), e);
@@ -260,7 +261,7 @@ public class AdminCarModelController {
             CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
 
             log.info("Successfully toggled status for car model ID: {} to {}", id, updatedModel.getIsActive());
-            return ResponseEntity.ok(ApiResponse.success("Model status updated successfully", response));
+            return ResponseEntity.ok(ApiResponse.success(response, "Model status updated successfully"));
 
         } catch (Exception e) {
             log.error("Error toggling status for car model ID {}: {}", id, e.getMessage(), e);
@@ -300,8 +301,7 @@ public class AdminCarModelController {
 
             log.info("Successfully updated {} out of {} models", updatedCount, modelIds.size());
             return ResponseEntity.ok(ApiResponse.success(
-                String.format("Updated %d out of %d models", updatedCount, modelIds.size()), 
-                null));
+                String.format("Updated %d out of %d models", updatedCount, modelIds.size())));
 
         } catch (Exception e) {
             log.error("Error in bulk update: {}", e.getMessage(), e);
@@ -345,7 +345,7 @@ public class AdminCarModelController {
 
             log.info("Found {} models matching search query '{}'", modelResponses.size(), query);
             return ResponseEntity.ok(ApiResponse.success(
-                "Models found: " + modelResponses.size(), modelResponses));
+                modelResponses, "Models found: " + modelResponses.size()));
 
         } catch (Exception e) {
             log.error("Error searching car models: {}", e.getMessage(), e);
@@ -379,8 +379,7 @@ public class AdminCarModelController {
 
             log.info("Found {} models for brand '{}'", modelResponses.size(), brand.getDisplayNameEn());
             return ResponseEntity.ok(ApiResponse.success(
-                "Found " + modelResponses.size() + " models for brand '" + brand.getDisplayNameEn() + "'",
-                modelResponses));
+                modelResponses, "Found " + modelResponses.size() + " models for brand '" + brand.getDisplayNameEn() + "'"));
 
         } catch (Exception e) {
             log.error("Error getting models by brand: {}", e.getMessage(), e);
@@ -413,8 +412,7 @@ public class AdminCarModelController {
 
             log.info("Found {} {} models", modelResponses.size(), active ? "active" : "inactive");
             return ResponseEntity.ok(ApiResponse.success(
-                "Found " + modelResponses.size() + " " + (active ? "active" : "inactive") + " models",
-                modelResponses));
+                modelResponses, "Found " + modelResponses.size() + " " + (active ? "active" : "inactive") + " models"));
 
         } catch (Exception e) {
             log.error("Error getting models by status: {}", e.getMessage(), e);
@@ -423,34 +421,4 @@ public class AdminCarModelController {
         }
     }
 
-    /**
-     * API Response wrapper
-     */
-    public static class ApiResponse<T> {
-        private boolean success;
-        private String message;
-        private T data;
-
-        public ApiResponse(boolean success, String message, T data) {
-            this.success = success;
-            this.message = message;
-            this.data = data;
-        }
-
-        public static <T> ApiResponse<T> success(String message, T data) {
-            return new ApiResponse<>(true, message, data);
-        }
-
-        public static <T> ApiResponse<T> error(String message) {
-            return new ApiResponse<>(false, message, null);
-        }
-
-        // Getters and setters
-        public boolean isSuccess() { return success; }
-        public void setSuccess(boolean success) { this.success = success; }
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-        public T getData() { return data; }
-        public void setData(T data) { this.data = data; }
-    }
 }

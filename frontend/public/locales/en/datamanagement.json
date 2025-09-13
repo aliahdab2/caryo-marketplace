@@ -106,5 +106,12 @@
   "actions": "Actions",
   "addNewBrand": "Add New Brand",
   "brandName": "Brand Name",
-  "updateSuccess": "Updated successfully"
+  "updateSuccess": "Updated successfully",
+  "activate": "Activate",
+  "deactivate": "Deactivate",
+  "selectAll": "Select All",
+  "bulkActions": "Bulk Actions",
+  "authError": "Authentication required. Please log in again.",
+  "connectionError": "Unable to connect to server. Please check your connection.",
+  "loadError": "Failed to load data. Please try again."
 }

@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.payload.request.CreateModelRequest;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,8 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -207,5 +210,99 @@ class CarModelServiceSmartActivationTest {
         verify(carBrandService, times(1)).updateBrand(eq(3L), any(CarBrand.class));
         verify(carBrandService, times(1)).getBrandById(3L);
         verify(carModelRepository, times(1)).save(any(CarModel.class));
+    }
+
+    @Test
+    @DisplayName("Should auto-activate brand when creating active model with inactive brand")
+    void shouldAutoActivateBrandWhenCreatingActiveModel() {
+        // Given
+        CreateModelRequest createRequest = new CreateModelRequest();
+        createRequest.setBrandId(1L);
+        createRequest.setName("New Model");
+        createRequest.setDisplayNameEn("New Model");
+        createRequest.setDisplayNameAr("موديل جديد");
+
+        CarModel savedModel = new CarModel();
+        savedModel.setId(1L);
+        savedModel.setName("New Model");
+        savedModel.setDisplayNameEn("New Model");
+        savedModel.setDisplayNameAr("موديل جديد");
+        savedModel.setIsActive(true);
+        savedModel.setBrand(inactiveBrand);
+
+        when(carBrandService.getBrandById(1L)).thenReturn(inactiveBrand);
+        when(carModelRepository.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(carModelRepository.save(any(CarModel.class))).thenReturn(savedModel);
+
+        // When
+        CarModel result = carModelService.createModel(createRequest);
+
+        // Then
+        verify(carBrandService).updateBrand(eq(1L), any(CarBrand.class));
+        verify(carModelRepository).save(any(CarModel.class));
+        assertThat(result.getIsActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should not auto-activate brand when creating active model with already active brand")
+    void shouldNotAutoActivateBrandWhenBrandAlreadyActive() {
+        // Given
+        CreateModelRequest createRequest = new CreateModelRequest();
+        createRequest.setBrandId(2L);
+        createRequest.setName("New Model");
+        createRequest.setDisplayNameEn("New Model");
+        createRequest.setDisplayNameAr("موديل جديد");
+
+        CarModel savedModel = new CarModel();
+        savedModel.setId(1L);
+        savedModel.setName("New Model");
+        savedModel.setDisplayNameEn("New Model");
+        savedModel.setDisplayNameAr("موديل جديد");
+        savedModel.setIsActive(true);
+        savedModel.setBrand(activeBrand);
+
+        when(carBrandService.getBrandById(2L)).thenReturn(activeBrand);
+        when(carModelRepository.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(carModelRepository.save(any(CarModel.class))).thenReturn(savedModel);
+
+        // When
+        CarModel result = carModelService.createModel(createRequest);
+
+        // Then
+        verify(carBrandService, never()).updateBrand(any(Long.class), any(CarBrand.class));
+        verify(carModelRepository).save(any(CarModel.class));
+        assertThat(result.getIsActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should not auto-activate brand when creating inactive model")
+    void shouldNotAutoActivateBrandWhenCreatingInactiveModel() {
+        // Given
+        CreateModelRequest createRequest = new CreateModelRequest();
+        createRequest.setBrandId(1L);
+        createRequest.setName("Inactive Model");
+        createRequest.setDisplayNameEn("Inactive Model");
+        createRequest.setDisplayNameAr("موديل غير نشط");
+        createRequest.setIsActive(false); // Creating inactive model
+
+        CarModel savedModel = new CarModel();
+        savedModel.setId(1L);
+        savedModel.setName("Inactive Model");
+        savedModel.setDisplayNameEn("Inactive Model");
+        savedModel.setDisplayNameAr("موديل غير نشط");
+        savedModel.setIsActive(false);
+        savedModel.setBrand(inactiveBrand);
+
+        when(carBrandService.getBrandById(1L)).thenReturn(inactiveBrand);
+        when(carModelRepository.findBySlug(anyString())).thenReturn(Optional.empty());
+        when(carModelRepository.save(any(CarModel.class))).thenReturn(savedModel);
+
+        // When
+        CarModel result = carModelService.createModel(createRequest);
+
+        // Then: Brand should NOT be activated since model is inactive
+        verify(carBrandService, never()).updateBrand(any(Long.class), any(CarBrand.class));
+        verify(carModelRepository).save(any(CarModel.class));
+        assertThat(result.getIsActive()).isFalse();
     }
 }

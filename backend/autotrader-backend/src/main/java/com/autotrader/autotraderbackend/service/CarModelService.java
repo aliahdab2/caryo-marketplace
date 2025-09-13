@@ -151,6 +151,14 @@ public class CarModelService {
         CarBrand brand = carBrandService.getBrandById(model.getBrand().getId());
         model.setBrand(brand);
         
+        // Smart activation: If creating an active model and parent brand is inactive, activate the brand
+        if (model.getIsActive() && !brand.getIsActive()) {
+            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
+                    brand.getDisplayNameEn(), model.getName());
+            brand.setIsActive(true);
+            carBrandService.updateBrand(brand.getId(), brand);
+        }
+        
         log.info("Creating new car model: {} for brand: {}", model.getName(), brand.getName());
         return carModelRepository.save(model);
     }
@@ -173,8 +181,16 @@ public class CarModelService {
         model.setName(createRequest.getName());
         model.setDisplayNameEn(createRequest.getDisplayNameEn());
         model.setDisplayNameAr(createRequest.getDisplayNameAr());
-        model.setIsActive(true); // Admin-created models are active by default
+        model.setIsActive(createRequest.getIsActive() != null ? createRequest.getIsActive() : true);
         model.setBrand(brand);
+        
+        // Smart activation: If creating an active model and parent brand is inactive, activate the brand
+        if (model.getIsActive() && !brand.getIsActive()) {
+            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
+                    brand.getDisplayNameEn(), createRequest.getName());
+            brand.setIsActive(true);
+            carBrandService.updateBrand(brand.getId(), brand);
+        }
         
         // Generate unique slug from name and brand
         String baseSlug = (brand.getName() + "-" + createRequest.getName()).toLowerCase()

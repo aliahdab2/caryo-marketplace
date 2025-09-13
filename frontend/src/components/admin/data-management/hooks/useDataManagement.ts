@@ -41,6 +41,9 @@ export const useDataManagement = () => {
         setBrands(brandsData);
       } else {
         console.error('Failed to load brands:', brandsRes.status, brandsRes.statusText);
+        if (brandsRes.status === 401 || brandsRes.status === 403) {
+          throw new Error('Authentication required. Please log in again.');
+        }
       }
 
       if (modelsRes.ok) {
@@ -51,6 +54,9 @@ export const useDataManagement = () => {
         setModels(modelsData);
       } else {
         console.error('Failed to load models:', modelsRes.status, modelsRes.statusText);
+        if (modelsRes.status === 401 || modelsRes.status === 403) {
+          throw new Error('Authentication required. Please log in again.');
+        }
       }
 
       if (statsRes.ok) {
@@ -59,6 +65,9 @@ export const useDataManagement = () => {
         setStatistics(statsData.data || statsData);
       } else {
         console.error('Failed to load statistics:', statsRes.status, statsRes.statusText);
+        if (statsRes.status === 401 || statsRes.status === 403) {
+          throw new Error('Authentication required. Please log in again.');
+        }
         // Set default statistics if admin endpoint fails
         setStatistics({
           totalBrands: brandsData.length,
@@ -74,10 +83,21 @@ export const useDataManagement = () => {
         setSyncStatus(syncData.data || syncData);
       } else {
         console.error('Failed to load sync status:', syncStatusRes.status, syncStatusRes.statusText);
+        if (syncStatusRes.status === 401 || syncStatusRes.status === 403) {
+          throw new Error('Authentication required. Please log in again.');
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      showError(t('datamanagement:loadError'));
+
+      // Handle authentication errors specifically
+      if (error instanceof Error && error.message === 'Authentication required. Please log in again.') {
+        showError(t('datamanagement:authError') || 'Authentication required. Please log in again.');
+      } else if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        showError(t('datamanagement:connectionError') || 'Unable to connect to server. Please check your connection.');
+      } else {
+        showError(t('datamanagement:loadError') || 'Failed to load data. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
