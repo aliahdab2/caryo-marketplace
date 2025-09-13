@@ -3,13 +3,19 @@ package com.autotrader.autotraderbackend.controller.admin;
 import com.autotrader.autotraderbackend.service.CarQueryDataService;
 import com.autotrader.autotraderbackend.service.SyrianCarsDataService;
 import com.autotrader.autotraderbackend.service.CaryoDataService;
+import com.autotrader.autotraderbackend.service.CarDataExcelService;
+import com.autotrader.autotraderbackend.service.CarBrandService;
+import com.autotrader.autotraderbackend.service.CarModelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Simplified admin controller for data import operations
@@ -18,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/data")
 @PreAuthorize("hasRole('ADMIN')")
-@RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Admin Data Management", description = "Admin endpoints for data imports")
 public class AdminDataManagementController {
@@ -26,6 +31,25 @@ public class AdminDataManagementController {
     private final CarQueryDataService carQueryDataService;
     private final SyrianCarsDataService syrianCarsDataService;
     private final CaryoDataService caryoDataService;
+    private final CarDataExcelService carDataExcelService;
+    private final CarBrandService carBrandService;
+    private final CarModelService carModelService;
+
+    // Constructor to handle optional SyrianCarsDataService
+    public AdminDataManagementController(
+            CarQueryDataService carQueryDataService,
+            @Autowired(required = false) SyrianCarsDataService syrianCarsDataService,
+            CaryoDataService caryoDataService,
+            CarDataExcelService carDataExcelService,
+            CarBrandService carBrandService,
+            CarModelService carModelService) {
+        this.carQueryDataService = carQueryDataService;
+        this.syrianCarsDataService = syrianCarsDataService;
+        this.caryoDataService = caryoDataService;
+        this.carDataExcelService = carDataExcelService;
+        this.carBrandService = carBrandService;
+        this.carModelService = carModelService;
+    }
 
     /**
      * Import data from CarQuery API directly to database
@@ -70,6 +94,12 @@ public class AdminDataManagementController {
         log.info("Admin triggered SyrianCars data import");
 
         try {
+            if (syrianCarsDataService == null) {
+                log.warn("SyrianCars data service is not available");
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("SyrianCars data service is not enabled"));
+            }
+
             var result = syrianCarsDataService.loadCompleteDataset();
 
             if (result.isSuccess()) {
@@ -87,6 +117,135 @@ public class AdminDataManagementController {
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Export car brands and models data to Excel
+     */
+    @GetMapping("/export-excel")
+    @Operation(
+        summary = "Export Car Data to Excel",
+        description = "Export all car brands and models to Excel file with bilingual support"
+    )
+    public ResponseEntity<byte[]> exportCarDataToExcel() {
+        log.info("Admin requested car data export to Excel");
+
+        try {
+            byte[] excelData = carDataExcelService.exportCarDataToExcel();
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "caryo-car-data-export.xlsx");
+            headers.setContentLength(excelData.length);
+            
+            log.info("Successfully exported car data to Excel ({} bytes)", excelData.length);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+                    
+        } catch (Exception e) {
+            log.error("Error exporting car data to Excel", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Import car brands and models data from Excel
+     */
+    @PostMapping("/import-excel")
+    @Operation(
+        summary = "Import Car Data from Excel",
+        description = "Import car brands and models from Excel file with data validation"
+    )
+    public ResponseEntity<ApiResponse<String>> importCarDataFromExcel(
+            @RequestParam("file") MultipartFile file) {
+        log.info("Admin requested car data import from Excel file: {}", file.getOriginalFilename());
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("File is empty"));
+            }
+            
+            if (!isExcelFile(file)) {
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("File must be an Excel file (.xlsx or .xls)"));
+            }
+            
+            // Import data
+            CarDataExcelService.ExcelImportResult result = carDataExcelService.importCarDataFromExcel(file);
+            
+            if (result.isSuccess()) {
+                log.info("Car data import completed successfully: {}", result.getSummary());
+                return ResponseEntity.ok(ApiResponse.success(
+                    "Car data imported successfully", result.getSummary()));
+            } else {
+                log.warn("Car data import completed with errors: {}", result.getSummary());
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Import completed with errors: " + result.getSummary()));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error importing car data from Excel", e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get current car data statistics
+     */
+    @GetMapping("/statistics")
+    @Operation(
+        summary = "Get Car Data Statistics",
+        description = "Get current statistics of car brands and models in the database"
+    )
+    public ResponseEntity<ApiResponse<DataStatistics>> getCarDataStatistics() {
+        log.info("Admin requested car data statistics");
+
+        try {
+            DataStatistics stats = new DataStatistics();
+            stats.totalBrands = carBrandService.getAllBrands().size();
+            stats.activeBrands = carBrandService.getActiveBrands().size();
+            stats.totalModels = carModelService.getAllModels().size();
+            stats.activeModels = (int) carModelService.getAllModels().stream()
+                .filter(model -> model.getIsActive() != null && model.getIsActive())
+                .count();
+            
+            return ResponseEntity.ok(ApiResponse.success("Statistics retrieved", stats));
+            
+        } catch (Exception e) {
+            log.error("Error retrieving car data statistics", e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Helper method to validate Excel file
+     */
+    private boolean isExcelFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        String filename = file.getOriginalFilename();
+        
+        return (contentType != null && (
+                contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+                contentType.equals("application/vnd.ms-excel")
+        )) || (filename != null && (
+                filename.toLowerCase().endsWith(".xlsx") ||
+                filename.toLowerCase().endsWith(".xls")
+        ));
+    }
+
+    /**
+     * Data statistics class
+     */
+    public static class DataStatistics {
+        public int totalBrands;
+        public int activeBrands;
+        public int totalModels;
+        public int activeModels;
     }
 
     /**

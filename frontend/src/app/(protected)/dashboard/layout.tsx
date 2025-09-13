@@ -20,7 +20,8 @@ import {
   MdEmail,
   MdSupportAgent,
   MdAdd,
-  MdAdminPanelSettings
+  MdAdminPanelSettings,
+  MdStorage
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
@@ -183,12 +184,20 @@ export default function DashboardLayout({
       tooltip: t('messagesTooltip') || 'Your messages'
     },
     // Admin navigation - only show to admin users
-    ...(isAdmin() ? [{
-      name: t('adminPanel', 'Admin Panel'),
-      href: "/dashboard/admin",
-      icon: <MdAdminPanelSettings className="text-xl" />,
-      tooltip: t('adminPanelTooltip', 'Manage listings and users')
-    }] : []),
+    ...(isAdmin() ? [
+      {
+        name: t('adminPanel', 'Admin Panel'),
+        href: "/dashboard/admin",
+        icon: <MdAdminPanelSettings className="text-xl" />,
+        tooltip: t('adminPanelTooltip', 'Manage listings and users')
+      },
+      {
+        name: t('dataManagement', 'Data Management'),
+        href: "/dashboard/admin/data-management",
+        icon: <MdStorage className="text-xl" />,
+        tooltip: t('dataManagementTooltip', 'Manage car brands and models data')
+      }
+    ] : []),
     {
       name: t('profile'),
       href: "/dashboard/profile",

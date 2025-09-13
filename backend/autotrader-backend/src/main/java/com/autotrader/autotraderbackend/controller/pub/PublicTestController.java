@@ -3,8 +3,8 @@ package com.autotrader.autotraderbackend.controller.pub;
 import com.autotrader.autotraderbackend.service.SyrianCarsDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/public")
-@RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Public Test", description = "Public endpoints for testing (development only)")
 public class PublicTestController {
 
     private final SyrianCarsDataService syrianCarsDataService;
+
+    // Constructor to handle optional SyrianCarsDataService
+    public PublicTestController(@Autowired(required = false) SyrianCarsDataService syrianCarsDataService) {
+        this.syrianCarsDataService = syrianCarsDataService;
+    }
 
     /**
      * Test endpoint for SyrianCars data import (no auth required for testing)
@@ -32,6 +36,12 @@ public class PublicTestController {
         log.info("Public test endpoint triggered for SyrianCars data import");
 
         try {
+            if (syrianCarsDataService == null) {
+                log.warn("SyrianCars data service is not available");
+                return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("SyrianCars data service is not enabled"));
+            }
+
             var result = syrianCarsDataService.loadCompleteDataset();
 
             if (result.isSuccess()) {
