@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useRouter } from 'next/navigation';
 import { useLanguageDirection } from '@/utils/languageDirection';
 import { isAdmin } from '@/utils/auth';
@@ -552,7 +553,7 @@ export const DataManagementPage: React.FC = () => {
                     totalItems={filteredBrands.length}
                     itemsPerPage={ITEMS_PER_PAGE}
                     isRTL={isRTL}
-                    _t={t}
+                    t={t}
                   />
                 </div>
               </div>
@@ -655,7 +656,7 @@ export const DataManagementPage: React.FC = () => {
                     totalItems={filteredModels.length}
                     itemsPerPage={ITEMS_PER_PAGE}
                     isRTL={isRTL}
-                    _t={t}
+                    t={t}
                   />
                 </div>
               </div>
@@ -1087,8 +1088,8 @@ const Pagination: React.FC<{
   totalItems: number;
   itemsPerPage: number;
   isRTL: boolean;
-  _t: (key: string) => string;
-}> = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, isRTL, _t }) => {
+  t: TFunction;
+}> = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, isRTL, t }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -1123,7 +1124,8 @@ const Pagination: React.FC<{
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        {_t('datamanagement:showingResults', `Showing ${startItem}-${endItem} of ${totalItems} results`, {
+        {t('datamanagement:showingResults', {
+          defaultValue: `Showing ${startItem}-${endItem} of ${totalItems} results`,
           start: startItem,
           end: endItem,
           total: totalItems
