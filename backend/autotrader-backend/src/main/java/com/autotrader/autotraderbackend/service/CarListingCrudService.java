@@ -31,13 +31,11 @@ public class CarListingCrudService {
     private final CarListingRepository carListingRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
-    private final GovernorateRepository governorateRepository;
     private final CarListingMapper carListingMapper;
     private final CarModelService carModelService;
     private final TransmissionService transmissionService;
     private final FuelTypeService fuelTypeService;
     private final BodyStyleService bodyStyleService;
-    private final SavedSearchService savedSearchService;
 
     /**
      * Check if user can create listings (email verified and account active).
@@ -307,23 +305,6 @@ public class CarListingCrudService {
                 });
     }
 
-    private CarListing findListingById(Long listingId) {
-        return carListingRepository.findById(listingId)
-                .orElseThrow(() -> {
-                    log.warn("CarListing lookup failed for ID: {}", listingId);
-                    return new ResourceNotFoundException("CarListing", "id", listingId);
-                });
-    }
-
-    private void authorizeListingModification(CarListing listing, User user, String action) {
-        if (listing.getSeller() == null || !listing.getSeller().getId().equals(user.getId())) {
-            log.warn("Authorization failed: User '{}' (ID: {}) attempted to {} listing ID {} owned by '{}' (ID: {})",
-                     user.getUsername(), user.getId(), action, listing.getId(),
-                     listing.getSeller() != null ? listing.getSeller().getUsername() : "unknown",
-                     listing.getSeller() != null ? listing.getSeller().getId() : "unknown");
-            throw new SecurityException("User does not have permission to modify this listing.");
-        }
-    }
 
     private CarListing buildCarListingFromRequest(CreateListingRequest request, User user) {
         CarListing carListing = new CarListing();

@@ -1,5 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
+import com.autotrader.autotraderbackend.dto.openai.OpenAIResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,19 @@ public class OpenAITranslationService {
     private final String apiKey;
     private final String model;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
     private final boolean isEnabled;
 
     public OpenAITranslationService(
             @Value("${openai.api.key:${OPENAI_API_KEY:}}") String apiKey,
             @Value("${openai.model:gpt-4o}") String model,
-            RestTemplate restTemplate) {
+            RestTemplate restTemplate,
+            ObjectMapper objectMapper) {
 
         this.apiKey = apiKey;
         this.model = model;
         this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
         this.isEnabled = apiKey != null && !apiKey.trim().isEmpty();
 
         if (this.isEnabled) {
@@ -97,26 +102,35 @@ public class OpenAITranslationService {
             requestBody.put("temperature", 0.3);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-            if (response.getBody() != null && response.getBody().containsKey("choices")) {
-                java.util.List choices = (java.util.List) response.getBody().get("choices");
-                if (!choices.isEmpty()) {
-                    Map choice = (Map) choices.get(0);
-                    Map message = (Map) choice.get("message");
-                    String translation = (String) message.get("content");
+            if (response.getBody() != null) {
+                try {
+                    OpenAIResponse openAIResponse = objectMapper.readValue(response.getBody(), OpenAIResponse.class);
 
-                    if (translation != null) {
-                        translation = translation.trim();
-                        // Clean up the response (remove quotes if present)
-                        if (translation.startsWith("\"") && translation.endsWith("\"")) {
-                            translation = translation.substring(1, translation.length() - 1);
+                    if (openAIResponse.isSuccessful()) {
+                        String rawTranslation = openAIResponse.getTranslationContent();
+                        if (rawTranslation != null) {
+                            String cleanedTranslation = cleanTranslationResponse(rawTranslation);
+
+                            // Log successful translation with usage info
+                            if (openAIResponse.getUsage() != null) {
+                                log.debug("OpenAI translation successful. Tokens used: {}, Cost: ${:.4f}",
+                                        openAIResponse.getUsage().getTotalTokens(),
+                                        openAIResponse.getUsage().calculateEstimatedCost());
+                            }
+
+                            return cleanedTranslation;
+                        } else {
+                            log.warn("OpenAI returned successful response but no translation content");
                         }
-                        return translation;
+                    } else {
+                        log.warn("OpenAI response validation failed. Finish reason: {}", openAIResponse.getFinishReason());
                     }
+                } catch (Exception e) {
+                    log.error("Error parsing OpenAI API response: {}", e.getMessage(), e);
                 }
             }
-
         } catch (Exception e) {
             log.error("Error calling OpenAI API: {}", e.getMessage());
         }
@@ -145,5 +159,35 @@ public class OpenAITranslationService {
      */
     public boolean isAvailable() {
         return isEnabled;
+    }
+
+    /**
+     * Cleans and normalizes the translation response from OpenAI
+     * Handles common formatting issues like extra quotes
+     */
+    private String cleanTranslationResponse(String rawTranslation) {
+        if (rawTranslation == null) {
+            return null;
+        }
+
+        String cleaned = rawTranslation.trim();
+
+        // Remove surrounding quotes if present (OpenAI sometimes adds them)
+        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() > 1) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1).trim();
+        }
+
+        // Remove surrounding single quotes if present
+        if (cleaned.startsWith("'") && cleaned.endsWith("'") && cleaned.length() > 1) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1).trim();
+        }
+
+        // Basic validation - ensure it's not just whitespace or empty
+        if (cleaned.isEmpty()) {
+            log.warn("OpenAI returned empty translation after cleaning");
+            return null;
+        }
+
+        return cleaned;
     }
 }

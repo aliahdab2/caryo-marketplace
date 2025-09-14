@@ -451,22 +451,6 @@ public class CarListingAnalyticsService {
                (filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty());
     }
 
-    private boolean hasNonTransmissionFilters(ListingFilterRequest filterRequest) {
-        if (filterRequest == null) return false;
-
-        return (filterRequest.getBrandSlugs() != null && !filterRequest.getBrandSlugs().isEmpty()) ||
-               (filterRequest.getModelSlugs() != null && !filterRequest.getModelSlugs().isEmpty()) ||
-               filterRequest.getMinYear() != null || filterRequest.getMaxYear() != null ||
-               filterRequest.getMinPrice() != null || filterRequest.getMaxPrice() != null ||
-               filterRequest.getMinMileage() != null || filterRequest.getMaxMileage() != null ||
-               (filterRequest.getLocations() != null && !filterRequest.getLocations().isEmpty()) ||
-               filterRequest.getLocationId() != null ||
-               (filterRequest.getSellerTypeIds() != null && !filterRequest.getSellerTypeIds().isEmpty()) ||
-               (filterRequest.getFuelTypeSlugs() != null && !filterRequest.getFuelTypeSlugs().isEmpty()) ||
-               filterRequest.getIsSold() != null ||
-               filterRequest.getIsArchived() != null ||
-               (filterRequest.getSearchQuery() != null && !filterRequest.getSearchQuery().trim().isEmpty());
-    }
 
     private ListingFilterRequest createFilterExcludingYear(ListingFilterRequest original) {
         if (original == null) return new ListingFilterRequest();
