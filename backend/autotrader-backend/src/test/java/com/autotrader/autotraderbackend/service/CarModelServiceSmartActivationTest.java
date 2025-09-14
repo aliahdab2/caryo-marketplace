@@ -84,7 +84,7 @@ class CarModelServiceSmartActivationTest {
         modelToUpdate.setName("Camry");
         modelToUpdate.setDisplayNameEn("Camry");
         modelToUpdate.setDisplayNameAr("كامري");
-        modelToUpdate.setIsActive(true); // Activating the model
+        modelToUpdate.setStatus(ModelStatus.ACTIVE); // Activating the model
         modelToUpdate.setBrand(inactiveBrand);
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(inactiveModel));
@@ -106,7 +106,7 @@ class CarModelServiceSmartActivationTest {
         modelToUpdate.setName("Civic");
         modelToUpdate.setDisplayNameEn("Civic");
         modelToUpdate.setDisplayNameAr("سيفيك");
-        modelToUpdate.setIsActive(true); // Activating the model
+        modelToUpdate.setStatus(ModelStatus.ACTIVE); // Activating the model
         modelToUpdate.setBrand(activeBrand);
 
         when(carModelRepository.findById(2L)).thenReturn(java.util.Optional.of(activeModel));
@@ -128,7 +128,7 @@ class CarModelServiceSmartActivationTest {
         modelToUpdate.setName("Camry");
         modelToUpdate.setDisplayNameEn("Camry");
         modelToUpdate.setDisplayNameAr("كامري");
-        modelToUpdate.setIsActive(false); // Deactivating the model
+        modelToUpdate.setStatus(ModelStatus.INACTIVE); // Deactivating the model
         modelToUpdate.setBrand(inactiveBrand);
 
         // Set up active model initially
@@ -159,7 +159,7 @@ class CarModelServiceSmartActivationTest {
         modelToUpdate.setName("Camry");
         modelToUpdate.setDisplayNameEn("Camry");
         modelToUpdate.setDisplayNameAr("كامري");
-        modelToUpdate.setIsActive(true); // Keeping active
+        modelToUpdate.setStatus(ModelStatus.ACTIVE); // Keeping active
         modelToUpdate.setBrand(inactiveBrand);
 
         // Set up already active model
@@ -197,7 +197,7 @@ class CarModelServiceSmartActivationTest {
         modelToUpdate.setName("Camry");
         modelToUpdate.setDisplayNameEn("Camry");
         modelToUpdate.setDisplayNameAr("كامري");
-        modelToUpdate.setIsActive(true); // Activating the model
+        modelToUpdate.setStatus(ModelStatus.ACTIVE); // Activating the model
         modelToUpdate.setBrand(newInactiveBrand); // Moving to different brand
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(inactiveModel));

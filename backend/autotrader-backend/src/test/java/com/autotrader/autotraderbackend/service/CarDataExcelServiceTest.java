@@ -41,7 +41,7 @@ class CarDataExcelServiceTest {
         brand1.setDisplayNameEn("Toyota");
         brand1.setDisplayNameAr("تويوتا");
         brand1.setSlug("toyota");
-        brand.setStatus(ModelStatus.ACTIVE);
+        brand1.setStatus(ModelStatus.ACTIVE);
 
         CarBrand brand2 = new CarBrand();
         brand2.setId(2L);
@@ -49,7 +49,7 @@ class CarDataExcelServiceTest {
         brand2.setDisplayNameEn("Honda");
         brand2.setDisplayNameAr("هوندا");
         brand2.setSlug("honda");
-        brand.setStatus(ModelStatus.ACTIVE);
+        brand2.setStatus(ModelStatus.ACTIVE);
 
         mockBrands = Arrays.asList(brand1, brand2);
 

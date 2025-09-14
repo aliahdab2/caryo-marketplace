@@ -5,14 +5,12 @@ import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.ListingMedia;
-import com.autotrader.autotraderbackend.model.;
 import com.autotrader.autotraderbackend.model.User;
 
-import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
+import com.autotrader.autotraderbackend.model.Location;
 
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
-// Ensure com.autotrader.autotraderbackend.payload.response.LocationResponse is NOT imported here
 import com.autotrader.autotraderbackend.service.storage.StorageService;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +25,6 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

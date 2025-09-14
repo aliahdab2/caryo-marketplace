@@ -104,7 +104,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE));
+        assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
         verify(carBrandService, times(1)).getBrandById(1L);
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
@@ -138,7 +138,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE));
+        assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
         verify(carBrandService, times(1)).getBrandBySlug("toyota");
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
