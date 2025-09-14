@@ -180,7 +180,7 @@ public class CarListing {
     @Column(name = "last_renewed_at")
     private LocalDateTime lastRenewedAt;
 
-    @Column(name = "search_score_boost", columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
+    @Column(name = "search_score_boost", columnDefinition = "DECIMAL(3,2)")
     private Double searchScoreBoost = 0.0;
 
     @Column(name = "recently_renewed", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")

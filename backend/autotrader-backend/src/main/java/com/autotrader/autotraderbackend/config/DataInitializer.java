@@ -93,7 +93,7 @@ public class DataInitializer implements CommandLineRunner {
                 user.setRoles(roles);
                 
                 // Save the user
-                user = Objects.requireNonNull(userRepository.save(user), 
+                user = Objects.requireNonNull(userRepository.saveAndFlush(user),
                     "Failed to save regular user");
                 log.info("Regular user created successfully");
             } else {
@@ -107,7 +107,7 @@ public class DataInitializer implements CommandLineRunner {
                         if (!user.isEmailVerified() ||
                             user.getAccountStatus() != com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED) {
                             user.markEmailVerifiedByOAuth("development", "user-setup");
-                            user = userRepository.save(user);
+                            user = userRepository.saveAndFlush(user);
                             log.info("Updated existing regular user to verified status");
                         }
                     }
@@ -148,7 +148,7 @@ public class DataInitializer implements CommandLineRunner {
                 if (!userRole.isPresent()) {
                     try {
                         Role newUserRole = new Role("ROLE_USER");
-                        newUserRole = Objects.requireNonNull(roleRepository.save(newUserRole), 
+                        newUserRole = Objects.requireNonNull(roleRepository.saveAndFlush(newUserRole),
                             "Failed to save ROLE_USER");
                         roles.add(newUserRole);
                     } catch (Exception e) {
@@ -160,7 +160,7 @@ public class DataInitializer implements CommandLineRunner {
                 if (!adminRole.isPresent()) {
                     try {
                         Role newAdminRole = new Role("ROLE_ADMIN");
-                        newAdminRole = Objects.requireNonNull(roleRepository.save(newAdminRole), 
+                        newAdminRole = Objects.requireNonNull(roleRepository.saveAndFlush(newAdminRole),
                             "Failed to save ROLE_ADMIN");
                         roles.add(newAdminRole);
                     } catch (Exception e) {
@@ -182,7 +182,7 @@ public class DataInitializer implements CommandLineRunner {
                 adminUser.setRoles(roles);
                 
                 // Save the admin user
-                adminUser = Objects.requireNonNull(userRepository.save(adminUser), 
+                adminUser = Objects.requireNonNull(userRepository.saveAndFlush(adminUser),
                     "Failed to save admin user");
                 log.info("Admin user created successfully");
             } else {
@@ -196,7 +196,7 @@ public class DataInitializer implements CommandLineRunner {
                         if (!adminUser.isEmailVerified() ||
                             adminUser.getAccountStatus() != com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED) {
                             adminUser.markEmailVerifiedByOAuth("development", "admin-setup");
-                            adminUser = userRepository.save(adminUser);
+                            adminUser = userRepository.saveAndFlush(adminUser);
                             log.info("Updated existing admin user to verified status");
                         }
                     }

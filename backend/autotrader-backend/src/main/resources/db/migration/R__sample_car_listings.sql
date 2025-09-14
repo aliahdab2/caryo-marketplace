@@ -9,9 +9,11 @@ DELETE FROM car_listings WHERE title LIKE '%Test Listing%' OR title LIKE '%Sampl
 DELETE FROM car_listings WHERE title LIKE '% - Test Listing %';
 
 -- Create a test user first if it doesn't exist (with proper verification_method)
-INSERT INTO users (id, username, email, password, created_at, updated_at, verification_method, email_verified, account_status)
-SELECT 1, 'testuser', 'test@example.com', '$2a$10$dummy.hash.for.test.purposes', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'MANUAL', true, 'VERIFIED'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE id = 1);
+-- Use a higher ID to avoid conflicts with DataInitializer users
+INSERT INTO users (username, email, password, created_at, updated_at, verification_method, email_verified, account_status)
+SELECT 'testuser', 'test@example.com', '$2a$10$dummy.hash.for.test.purposes', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'MANUAL', true, 'VERIFIED'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'testuser')
+ON CONFLICT (username) DO NOTHING;
 
 -- Insert simple sample car listings with proper model_id references and Arabic translations
 INSERT INTO car_listings (
@@ -27,7 +29,7 @@ SELECT
     28000, 45000, 2020,
     mb.name, m.name, m.id,
     'White', 4, 4,
-    1, 'Automatic', true, false, false,
+    (SELECT id FROM users WHERE username = 'testuser'), 'Automatic', true, false, false,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -43,7 +45,7 @@ SELECT
     22000, 35000, 2019,
     mb.name, m.name, m.id,
     'Black', 4, 4,
-    1, 'Automatic', true, false, false,
+    (SELECT id FROM users WHERE username = 'testuser'), 'Automatic', true, false, false,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -59,7 +61,7 @@ SELECT
     25000, 15000, 2021,
     mb.name, m.name, m.id,
     'Silver', 4, 4,
-    1, 'Automatic', true, false, false,
+    (SELECT id FROM users WHERE username = 'testuser'), 'Automatic', true, false, false,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -75,7 +77,7 @@ SELECT
     20000, 60000, 2018,
     mb.name, m.name, m.id,
     'Red', 4, 4,
-    1, 'Automatic', true, false, false,
+    (SELECT id FROM users WHERE username = 'testuser'), 'Automatic', true, false, false,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m
@@ -91,7 +93,7 @@ SELECT
     18000, 40000, 2020,
     mb.name, m.name, m.id,
     'Blue', 4, 4,
-    1, 'Automatic', true, false, false,
+    (SELECT id FROM users WHERE username = 'testuser'), 'Automatic', true, false, false,
     mb.display_name_en, mb.display_name_ar, m.display_name_en, m.display_name_ar,
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM models m

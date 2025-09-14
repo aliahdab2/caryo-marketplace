@@ -43,6 +43,37 @@ This repository contains the development plan for the Caryo Marketplace project,
 - **Advanced Testing Suite**: 25+ test files covering authentication, messaging, RTL, and accessibility ✅
 - **CarMediaGallery Component**: Advanced media gallery with video support and touch gestures ✅
 
+### 🚀 **Next Major Initiative: Dealer Portal & B2B Features**
+**NEW HIGH PRIORITY** - This transforms Caryo from consumer-only marketplace to dual-sided platform
+- **Business Impact**: $100K+ monthly revenue potential
+- **Timeline**: 3-4 months to MVP
+- **Key Features**: Bulk upload tools, dealer dashboard, subscription system
+- **Market Opportunity**: Serve professional car dealers in Syria
+
+### 📋 **Immediate Next Steps (Priority Order)**
+1. **Complete Technical Fixes** (Current blockers)
+   - Fix Java 21 compatibility ✅ (DONE)
+   - Resolve NewsletterSubscriptionRequest compilation errors ✅ (DONE)
+   - Clean up remaining linter errors
+   - Test current features
+
+2. **Dealer Portal Foundation** (Leverage existing systems!)
+   - **Extend existing User model** with dealer fields (company_name, dealer_type, etc.)
+   - **Add dealer role** to existing authentication system
+   - **Create dealer registration flow** extending your existing signup
+   - **Extend dashboard** with dealer-specific views
+
+3. **Bulk Upload MVP** (Critical dealer feature - build on existing listing system)
+   - **Add bulk upload component** to your existing listing management page
+   - **Leverage existing validation** for data processing
+   - **Use existing error handling** and progress tracking
+   - **Extend existing APIs** rather than creating new ones
+
+4. **Revenue System** (Build on existing foundation)
+   - **Extend existing user management** with subscription tiers
+   - **Add commission tracking** to existing transaction system
+   - **Leverage existing payment integration** for subscriptions
+
 ### ✅ **Public Marketplace Pages (Recently Completed)**
 - **Anonymous browsing capabilities**: ✅ Fully implemented with public API endpoints
 - **Featured listings display**: ✅ Homepage shows featured cars using public APIs
@@ -532,6 +563,133 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - Better user experience with intuitive URLs  
 - Enhanced search engine understanding of content
 - Support for complex filtering scenarios
+
+### Phase 9: Advanced Search & Voice Features (Planned)
+
+### Phase 10: Dealer Portal & B2B Features ⭐⭐⭐ **NEW HIGH PRIORITY**
+**Status**: 🚀 **READY TO START - Leverage Existing Infrastructure**
+**Priority**: Critical
+**Business Value**: High Revenue Potential
+**Target Completion**: 2-3 months (Faster due to existing foundation!)
+
+#### **Vision: Extend Your Existing Platform**
+**You already have 80% of the foundation!** Leverage your existing dashboard, listings, admin, and authentication systems to add dealer-specific features.
+
+#### **What You Already Have (Excellent Foundation):**
+- ✅ **Complete Dashboard System** - User dashboards with analytics
+- ✅ **Full Listing CRUD** - Create, edit, delete listings
+- ✅ **Advanced Admin Panel** - User management, data management
+- ✅ **Authentication System** - JWT, roles, user management
+- ✅ **Messaging System** - Real-time communication
+- ✅ **Saved Searches** - Advanced filtering and notifications
+- ✅ **Image Management** - MinIO integration, media handling
+
+#### **What We Need to Add (Focused Extensions):**
+
+##### **10.1 Dealer Role Extension** (1-2 weeks)
+- [ ] **Extend Authentication** - Add dealer role to existing user system
+- [ ] **Dealer Profile Fields** - Add business info to existing user profiles
+- [ ] **Dealer Verification** - Document upload for business verification
+- [ ] **Dealer Permissions** - Role-based access for dealer features
+
+##### **10.2 Bulk Upload Integration** ⭐ **CRITICAL** (2-3 weeks)
+- [ ] **Bulk Upload Component** - Add to existing listing management
+- [ ] **CSV/Excel Parser** - Process dealer inventory files
+- [ ] **Data Validation** - Leverage existing validation logic
+- [ ] **Progress Tracking** - Real-time upload progress
+- [ ] **Error Handling** - Use existing error handling system
+- [ ] **Duplicate Management** - Handle existing vs new listings
+
+##### **10.3 Dealer Dashboard Extensions** (2-3 weeks)
+- [ ] **Dealer-Specific Views** - Extend existing dashboard with dealer metrics
+- [ ] **Lead Management** - Track inquiries from your existing messaging system
+- [ ] **Performance Analytics** - Extend existing analytics for dealers
+- [ ] **Revenue Tracking** - Add commission and subscription tracking
+
+##### **10.4 Public Dealer Pages** (2-3 weeks)
+- [ ] **Dealer Profile Pages** - Dynamic pages using existing user profile system
+- [ ] **Dealer Branding** - Custom styling options
+- [ ] **Dealer Directory** - Search and filter dealers
+- [ ] **Dealer Ratings** - Leverage existing review system
+
+##### **10.5 Subscription & Revenue System** (3-4 weeks)
+- [ ] **Subscription Management** - Add to existing user management
+- [ ] **Tiered Plans** - Basic ($25), Professional ($75), Enterprise ($200)
+- [ ] **Payment Integration** - Extend existing payment system
+- [ ] **Commission Tracking** - Track dealer-to-consumer transactions
+- [ ] **Lead Revenue** - Monetize qualified leads ($5-15 each)
+
+##### **10.6 Dealer Onboarding** (1-2 weeks)
+- [ ] **Dealer Registration** - Extend existing signup with business fields
+- [ ] **Verification Workflow** - Use existing admin approval system
+- [ ] **Welcome Process** - Guide dealers through platform features
+- [ ] **Training Materials** - Documentation for bulk upload, analytics
+
+#### **Technical Implementation Plan:**
+
+##### **Backend Extensions (Leverage Existing):**
+```java
+// Extend existing entities rather than create new ones
+- User entity → Add dealer fields (company_name, dealer_type, subscription_tier)
+- CarListing entity → Add dealer relationship and commission tracking
+- Extend existing analytics → Add dealer-specific metrics
+- Leverage existing messaging → Track dealer-customer conversations
+```
+
+##### **Frontend Extensions (Build on Existing):**
+```typescript
+// Extend existing routes rather than create new ones
+/app/(protected)/dashboard/page.tsx     // ← Add dealer-specific views
+/app/(protected)/dashboard/listings/page.tsx  // ← Add bulk upload
+/app/(protected)/dashboard/analytics/page.tsx // ← Add dealer metrics
+/app/dealers/[slug]/page.tsx            // ← New: Public dealer pages
+/app/dealer/onboarding/page.tsx         // ← New: Dealer signup
+```
+
+##### **API Extensions (Use Existing Structure):**
+```javascript
+// Extend existing APIs rather than create new ones
+POST   /api/auth/register              // ← Add dealer registration fields
+GET    /api/user/profile               // ← Include dealer information
+POST   /api/listings/bulk              // ← New: Bulk upload endpoint
+GET    /api/analytics/dashboard        // ← Add dealer-specific metrics
+GET    /api/dealers/{slug}             // ← New: Public dealer profile
+```
+
+#### **Business Implementation:**
+
+##### **Accelerated Timeline (Leveraging Your Foundation):**
+- **Week 1-2**: Dealer role extension and basic features
+- **Week 3-6**: Bulk upload and dealer dashboard enhancements
+- **Week 7-10**: Public dealer pages and subscription system
+- **Week 11-12**: Testing, optimization, and beta launch
+
+##### **Revenue Projections (More Aggressive Timeline):**
+- **Month 3**: 50 dealers, $7.5K monthly revenue
+- **Month 6**: 150 dealers, $37.5K monthly revenue
+- **Month 9**: 300 dealers, $75K monthly revenue
+- **Month 12**: 500 dealers, $125K monthly revenue
+
+##### **Dealer Acquisition Strategy:**
+- **Leverage Existing Network**: Start with your current users who might be dealers
+- **Target High-Value Dealers**: Focus on major dealerships first
+- **Referral Program**: Offer incentives for dealer referrals
+- **Industry Partnerships**: Connect with Syrian auto associations
+
+#### **Success Metrics:**
+- **Dealer Acquisition**: 300+ verified dealers within 12 months
+- **Revenue Target**: $75K+ monthly recurring revenue by month 9
+- **Dealer Satisfaction**: 4.5/5 star rating from dealers
+- **Platform Usage**: 70% of dealers actively using daily
+- **Lead Conversion**: 15% average lead conversion rate
+
+#### **Risk Mitigation (Lower Risk Due to Existing Foundation):**
+- **Build on Proven System**: Leverage your tested dashboard and listing system
+- **Incremental Development**: Add features without breaking existing functionality
+- **Dealer Feedback Loop**: Beta test with real dealers early
+- **Flexible Scaling**: Start small, scale based on demand
+
+### Phase 11: Advanced Dealer Features (Planned)
 
 ### Phase 9: Advanced Search & Voice Features (Planned)
 
