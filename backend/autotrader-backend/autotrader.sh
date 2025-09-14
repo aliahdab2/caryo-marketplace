@@ -346,4 +346,4 @@ main() {
 }
 
 # Execute main function
-main "$@"x
+main "$@"
