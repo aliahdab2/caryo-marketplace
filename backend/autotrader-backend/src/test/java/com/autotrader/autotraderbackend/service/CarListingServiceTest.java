@@ -616,12 +616,6 @@ class CarListingServiceTest {
     void getCountsByFuelType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{"diesel", 80L},
-            new Object[]{"electric", 20L},
-            new Object[]{"hybrid", 30L}
-        );
         
         Map<String, Long> expectedResult = Map.of(
             "gasoline", 150L,
