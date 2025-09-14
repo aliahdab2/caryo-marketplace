@@ -49,14 +49,14 @@ class CarModelServiceSmartActivationTest {
         inactiveBrand.setName("Toyota");
         inactiveBrand.setDisplayNameEn("Toyota");
         inactiveBrand.setDisplayNameAr("تويوتا");
-        inactiveBrand.setIsActive(false); // Inactive brand
+        inactiveBrand.setStatus(ModelStatus.INACTIVE); // Inactive brand
 
         activeBrand = new CarBrand();
         activeBrand.setId(2L);
         activeBrand.setName("Honda");
         activeBrand.setDisplayNameEn("Honda");
         activeBrand.setDisplayNameAr("هوندا");
-        activeBrand.setIsActive(true); // Active brand
+        activeBrand.setStatus(ModelStatus.ACTIVE); // Active brand
 
         // Create test models
         inactiveModel = new CarModel();
@@ -64,7 +64,7 @@ class CarModelServiceSmartActivationTest {
         inactiveModel.setName("Camry");
         inactiveModel.setDisplayNameEn("Camry");
         inactiveModel.setDisplayNameAr("كامري");
-        inactiveModel.setIsActive(false); // Inactive model
+        inactiveModel.setStatus(ModelStatus.INACTIVE); // Inactive model
         inactiveModel.setBrand(inactiveBrand);
 
         activeModel = new CarModel();
@@ -72,7 +72,7 @@ class CarModelServiceSmartActivationTest {
         activeModel.setName("Civic");
         activeModel.setDisplayNameEn("Civic");
         activeModel.setDisplayNameAr("سيفيك");
-        activeModel.setIsActive(true); // Active model
+        activeModel.setStatus(ModelStatus.ACTIVE); // Active model
         activeModel.setBrand(activeBrand);
     }
 
@@ -137,7 +137,7 @@ class CarModelServiceSmartActivationTest {
         currentlyActiveModel.setName("Camry");
         currentlyActiveModel.setDisplayNameEn("Camry");
         currentlyActiveModel.setDisplayNameAr("كامري");
-        currentlyActiveModel.setIsActive(true); // Currently active
+        currentlyActiveModel.setStatus(ModelStatus.ACTIVE); // Currently active
         currentlyActiveModel.setBrand(inactiveBrand);
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(currentlyActiveModel));
@@ -168,7 +168,7 @@ class CarModelServiceSmartActivationTest {
         currentlyActiveModel.setName("Camry");
         currentlyActiveModel.setDisplayNameEn("Camry");
         currentlyActiveModel.setDisplayNameAr("كامري");
-        currentlyActiveModel.setIsActive(true); // Already active
+        currentlyActiveModel.setStatus(ModelStatus.ACTIVE); // Already active
         currentlyActiveModel.setBrand(inactiveBrand);
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(currentlyActiveModel));
@@ -191,7 +191,7 @@ class CarModelServiceSmartActivationTest {
         newInactiveBrand.setName("Nissan");
         newInactiveBrand.setDisplayNameEn("Nissan");
         newInactiveBrand.setDisplayNameAr("نيسان");
-        newInactiveBrand.setIsActive(false);
+        newInactiveBrand.setStatus(ModelStatus.INACTIVE);
 
         CarModel modelToUpdate = new CarModel();
         modelToUpdate.setName("Camry");
@@ -228,7 +228,7 @@ class CarModelServiceSmartActivationTest {
         savedModel.setName("New Model");
         savedModel.setDisplayNameEn("New Model");
         savedModel.setDisplayNameAr("موديل جديد");
-        savedModel.setIsActive(true);
+        savedModel.setStatus(ModelStatus.ACTIVE);
         savedModel.setBrand(inactiveBrand);
 
         when(carBrandService.getBrandById(1L)).thenReturn(inactiveBrand);
@@ -259,7 +259,7 @@ class CarModelServiceSmartActivationTest {
         savedModel.setName("New Model");
         savedModel.setDisplayNameEn("New Model");
         savedModel.setDisplayNameAr("موديل جديد");
-        savedModel.setIsActive(true);
+        savedModel.setStatus(ModelStatus.ACTIVE);
         savedModel.setBrand(activeBrand);
 
         when(carBrandService.getBrandById(2L)).thenReturn(activeBrand);
@@ -291,7 +291,7 @@ class CarModelServiceSmartActivationTest {
         savedModel.setName("Inactive Model");
         savedModel.setDisplayNameEn("Inactive Model");
         savedModel.setDisplayNameAr("موديل غير نشط");
-        savedModel.setIsActive(false);
+        savedModel.setStatus(ModelStatus.INACTIVE);
         savedModel.setBrand(inactiveBrand);
 
         when(carBrandService.getBrandById(1L)).thenReturn(inactiveBrand);

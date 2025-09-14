@@ -237,7 +237,7 @@ class CarListingResponseTest {
             assertEquals("Camry", response.getModel().getDisplayNameEn());
             assertEquals("كامري", response.getModel().getDisplayNameAr());
             assertEquals(BRAND_ID, response.getModel().getBrandId());
-            assertEquals("ACTIVE", assertTrue(response.getModel().getStatus() == ModelStatus.ACTIVE.getStatus()));
+            assertEquals("ACTIVE", assertTrue(response.getModel().getStatus() == ModelStatus.ACTIVE));
         }
 
         @Test

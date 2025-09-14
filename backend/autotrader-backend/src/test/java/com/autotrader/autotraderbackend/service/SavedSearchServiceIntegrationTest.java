@@ -141,7 +141,7 @@ class SavedSearchServiceIntegrationTest {
         assertNotNull(response.getId());
         assertEquals("My Toyota Search", response.getNameEn());
         assertEquals("بحث تويوتا", response.getNameAr());
-        assertEquals("ACTIVE", assertTrue(response.getStatus() == ModelStatus.ACTIVE.getStatus()));
+        assertTrue(response.getIsActive());
         assertNotNull(response.getCreatedAt());
     }
 

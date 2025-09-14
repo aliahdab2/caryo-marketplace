@@ -3,9 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarTrim;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +51,7 @@ class CarReferenceFilterServiceTest {
         testBrand1.setSlug("toyota");
         testBrand1.setDisplayNameEn("Toyota");
         testBrand1.setDisplayNameAr("تويوتا");
-        testBrand1.setIsActive(true);
+        testBrand1.setStatus(ModelStatus.ACTIVE);
         testBrand1.setModels(new ArrayList<>());
 
         testBrand2 = new CarBrand();
@@ -62,7 +60,7 @@ class CarReferenceFilterServiceTest {
         testBrand2.setSlug("honda");
         testBrand2.setDisplayNameEn("Honda");
         testBrand2.setDisplayNameAr("هوندا");
-        testBrand2.setIsActive(true);
+        testBrand2.setStatus(ModelStatus.ACTIVE);
         testBrand2.setModels(new ArrayList<>());
 
         // Set up test models
@@ -73,7 +71,7 @@ class CarReferenceFilterServiceTest {
         testModel1.setSlug("camry");
         testModel1.setDisplayNameEn("Camry");
         testModel1.setDisplayNameAr("كامري");
-        testModel1.setIsActive(true);
+        testModel1.setStatus(ModelStatus.ACTIVE);
         testModel1.setTrims(new ArrayList<>());
 
         testModel2 = new CarModel();
@@ -83,7 +81,7 @@ class CarReferenceFilterServiceTest {
         testModel2.setSlug("accord");
         testModel2.setDisplayNameEn("Accord");
         testModel2.setDisplayNameAr("أكورد");
-        testModel2.setIsActive(true);
+        testModel2.setStatus(ModelStatus.ACTIVE);
         testModel2.setTrims(new ArrayList<>());
 
         // Set up test trims

@@ -3,13 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.model.Location;
 import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarBrand;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
-import com.autotrader.autotraderbackend.model.ModelStatus;
-import com.autotrader.autotraderbackend.model.Country;
-import com.autotrader.autotraderbackend.model.ModelStatus;
-import com.autotrader.autotraderbackend.model.Governorate;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
@@ -21,7 +15,6 @@ import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
-import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,7 +102,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         testBrand.setDisplayNameEn("Test Brand");
         testBrand.setDisplayNameAr("علامة تجريبية");
         testBrand.setSlug("test-brand");
-        testBrand.setIsActive(true);
+        testBrand.setStatus(ModelStatus.ACTIVE);
         CarBrand savedBrand = carBrandRepository.save(testBrand);
         
         CarModel testModel = new CarModel();
@@ -118,7 +111,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         testModel.setDisplayNameAr("موديل تجريبي");
         testModel.setSlug("test-model");
         testModel.setBrand(savedBrand);
-        testModel.setIsActive(true);
+        testModel.setStatus(ModelStatus.ACTIVE);
         CarModel savedModel = carModelRepository.save(testModel);
         testModelId = savedModel.getId();
 

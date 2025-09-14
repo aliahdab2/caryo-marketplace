@@ -40,7 +40,7 @@ class CarBrandServiceTest {
         testBrand.setSlug("toyota");
         testBrand.setDisplayNameEn("Toyota");
         testBrand.setDisplayNameAr("تويوتا");
-        testBrand.setIsActive(true);
+        testBrand.setStatus(ModelStatus.ACTIVE);
     }
 
     @Test
@@ -185,7 +185,7 @@ class CarBrandServiceTest {
         updatedBrand.setName("Toyota Updated");
         updatedBrand.setDisplayNameEn("Toyota Updated");
         updatedBrand.setDisplayNameAr("تويوتا محدث");
-        updatedBrand.setIsActive(false);
+        updatedBrand.setStatus(ModelStatus.INACTIVE);
         
         when(carBrandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
         when(carBrandRepository.save(any(CarBrand.class))).thenAnswer(invocation -> invocation.getArgument(0));

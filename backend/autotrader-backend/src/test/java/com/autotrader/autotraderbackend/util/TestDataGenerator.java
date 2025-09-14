@@ -3,19 +3,12 @@ package com.autotrader.autotraderbackend.util;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarListing;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Country;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Governorate;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Location;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Role;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.User;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CountryRepository;
 
@@ -219,7 +212,7 @@ public class TestDataGenerator {
             newBrand.setSlug(slug);
             newBrand.setDisplayNameEn(name);
             newBrand.setDisplayNameAr(name);
-            newBrand.setIsActive(true);
+            newBrand.setStatus(ModelStatus.ACTIVE);
             return carBrandRepository.save(newBrand);
         }
     }
@@ -240,7 +233,7 @@ public class TestDataGenerator {
             testBrand.setSlug(slug);
             testBrand.setDisplayNameEn(slug.substring(0, 1).toUpperCase() + slug.substring(1).replace("-", " "));
             testBrand.setDisplayNameAr("علامة تجارية اختبار");
-            testBrand.setIsActive(true);
+            testBrand.setStatus(ModelStatus.ACTIVE);
             return carBrandRepository.save(testBrand);
         }
     }

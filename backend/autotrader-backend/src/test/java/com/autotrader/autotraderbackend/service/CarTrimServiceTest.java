@@ -47,7 +47,7 @@ class CarTrimServiceTest {
         testBrand.setSlug("toyota");
         testBrand.setDisplayNameEn("Toyota");
         testBrand.setDisplayNameAr("تويوتا");
-        testBrand.setIsActive(true);
+        testBrand.setStatus(ModelStatus.ACTIVE);
 
         // Set up test model
         testModel = new CarModel();
@@ -57,7 +57,7 @@ class CarTrimServiceTest {
         testModel.setSlug("camry");
         testModel.setDisplayNameEn("Camry");
         testModel.setDisplayNameAr("كامري");
-        testModel.setIsActive(true);
+        testModel.setStatus(ModelStatus.ACTIVE);
         
         // Set up test trim
         testTrim = new CarTrim();

@@ -3,7 +3,6 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
-import com.autotrader.autotraderbackend.model.ModelStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ class CarDataExcelServiceTest {
         brand1.setDisplayNameEn("Toyota");
         brand1.setDisplayNameAr("تويوتا");
         brand1.setSlug("toyota");
-        brand1.setIsActive(true);
+        brand.setStatus(ModelStatus.ACTIVE);
 
         CarBrand brand2 = new CarBrand();
         brand2.setId(2L);
@@ -50,7 +49,7 @@ class CarDataExcelServiceTest {
         brand2.setDisplayNameEn("Honda");
         brand2.setDisplayNameAr("هوندا");
         brand2.setSlug("honda");
-        brand2.setIsActive(true);
+        brand.setStatus(ModelStatus.ACTIVE);
 
         mockBrands = Arrays.asList(brand1, brand2);
 
@@ -62,7 +61,7 @@ class CarDataExcelServiceTest {
         model1.setDisplayNameAr("كامري");
         model1.setSlug("toyota-camry");
         model1.setBrand(brand1);
-        model1.setIsActive(true);
+        model1.setStatus(ModelStatus.ACTIVE);
 
         CarModel model2 = new CarModel();
         model2.setId(2L);
@@ -71,7 +70,7 @@ class CarDataExcelServiceTest {
         model2.setDisplayNameAr("سيفيك");
         model2.setSlug("honda-civic");
         model2.setBrand(brand2);
-        model2.setIsActive(true);
+        model2.setStatus(ModelStatus.ACTIVE);
 
         mockModels = Arrays.asList(model1, model2);
     }

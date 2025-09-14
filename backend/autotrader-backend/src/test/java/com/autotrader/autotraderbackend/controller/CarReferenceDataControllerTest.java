@@ -58,14 +58,14 @@ class CarReferenceDataControllerTest {
         brand1.setName("Toyota");
         brand1.setDisplayNameEn("Toyota");
         brand1.setDisplayNameAr("تويوتا");
-        brand1.setIsActive(true);
+        brand1.setStatus(ModelStatus.ACTIVE);
         
         CarBrand brand2 = new CarBrand();
         brand2.setId(2L);
         brand2.setName("Nissan");
         brand2.setDisplayNameEn("Nissan");
         brand2.setDisplayNameAr("نيسان");
-        brand2.setIsActive(true);
+        brand2.setStatus(ModelStatus.ACTIVE);
         
         List<CarBrand> expectedBrands = Arrays.asList(brand1, brand2);
         
@@ -107,14 +107,14 @@ class CarReferenceDataControllerTest {
         model1.setName("Corolla");
         model1.setDisplayNameEn("Corolla");
         model1.setDisplayNameAr("كورولا");
-        model1.setIsActive(true);
+        model1.setStatus(ModelStatus.ACTIVE);
         
         CarModel model2 = new CarModel();
         model2.setId(2L);
         model2.setName("Camry");
         model2.setDisplayNameEn("Camry");
         model2.setDisplayNameAr("كامري");
-        model2.setIsActive(true);
+        model2.setStatus(ModelStatus.ACTIVE);
         
         List<CarModel> expectedModels = Arrays.asList(model1, model2);
         

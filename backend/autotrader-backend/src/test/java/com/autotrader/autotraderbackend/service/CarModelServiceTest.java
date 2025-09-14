@@ -46,7 +46,7 @@ class CarModelServiceTest {
         testBrand.setSlug("toyota");
         testBrand.setDisplayNameEn("Toyota");
         testBrand.setDisplayNameAr("تويوتا");
-        testBrand.setIsActive(true);
+        testBrand.setStatus(ModelStatus.ACTIVE);
 
         // Set up test model
         testModel = new CarModel();
@@ -56,7 +56,7 @@ class CarModelServiceTest {
         testModel.setSlug("camry");
         testModel.setDisplayNameEn("Camry");
         testModel.setDisplayNameAr("كامري");
-        testModel.setIsActive(true);
+        testModel.setStatus(ModelStatus.ACTIVE);
     }
 
     @Test
@@ -104,7 +104,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE.getStatus()));
+        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE));
         verify(carBrandService, times(1)).getBrandById(1L);
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
@@ -138,7 +138,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE.getStatus()));
+        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE));
         verify(carBrandService, times(1)).getBrandBySlug("toyota");
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
@@ -307,7 +307,7 @@ class CarModelServiceTest {
         updatedModel.setName("Camry Updated");
         updatedModel.setDisplayNameEn("Camry Updated");
         updatedModel.setDisplayNameAr("كامري محدث");
-        updatedModel.setIsActive(false);
+        updatedModel.setStatus(ModelStatus.INACTIVE);
         updatedModel.setBrand(testBrand);
         
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
