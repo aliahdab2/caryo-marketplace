@@ -62,7 +62,7 @@ class CarBrandServiceTest {
     void getActiveBrands_ShouldReturnOnlyActiveBrands() {
         // Arrange
         List<CarBrand> expectedBrands = Arrays.asList(testBrand);
-        when(carBrandRepository.findByIsActiveTrue()).thenReturn(expectedBrands);
+        when(carBrandRepository.findByStatus(ModelStatus.ACTIVE)).thenReturn(expectedBrands);
 
         // Act
         List<CarBrand> result = carBrandService.getActiveBrands();
@@ -70,7 +70,7 @@ class CarBrandServiceTest {
         // Assert
         assertEquals(expectedBrands.size(), result.size());
         assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
-        verify(carBrandRepository, times(1)).findByIsActiveTrue();
+        verify(carBrandRepository, times(1)).findByStatus(ModelStatus.ACTIVE);
     }
 
     @Test
@@ -153,14 +153,14 @@ class CarBrandServiceTest {
         // Arrange
         String query = "";
         List<CarBrand> expectedBrands = Arrays.asList(testBrand);
-        when(carBrandRepository.findByIsActiveTrue()).thenReturn(expectedBrands);
+        when(carBrandRepository.findByStatus(ModelStatus.ACTIVE)).thenReturn(expectedBrands);
 
         // Act
         List<CarBrand> result = carBrandService.searchBrands(query);
 
         // Assert
         assertEquals(expectedBrands.size(), result.size());
-        verify(carBrandRepository, times(1)).findByIsActiveTrue();
+        verify(carBrandRepository, times(1)).findByStatus(ModelStatus.ACTIVE);
         verify(carBrandRepository, never()).searchByName(anyString());
     }
 

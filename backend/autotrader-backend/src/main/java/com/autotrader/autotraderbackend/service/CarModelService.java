@@ -78,7 +78,7 @@ public class CarModelService {
     public List<CarModel> getActiveModelsByBrandId(Long brandId) {
         log.debug("Fetching active car models for brand ID: {}", brandId);
         CarBrand brand = carBrandService.getBrandById(brandId);
-        return carModelRepository.findByBrandAndIsActiveTrue(brand);
+        return carModelRepository.findByBrandAndStatus(brand, ModelStatus.ACTIVE);
     }
     
     /**
@@ -100,7 +100,7 @@ public class CarModelService {
     @Transactional(readOnly = true)
     public List<CarModel> getActiveModelsByBrandSlug(String brandSlug) {
         CarBrand brand = carBrandService.getBrandBySlug(brandSlug);
-        return carModelRepository.findByBrandAndIsActiveTrue(brand);
+        return carModelRepository.findByBrandAndStatus(brand, ModelStatus.ACTIVE);
     }
     
     /**

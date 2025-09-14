@@ -97,7 +97,7 @@ class CarModelServiceTest {
         // Arrange
         List<CarModel> expectedModels = Arrays.asList(testModel);
         when(carBrandService.getBrandById(1L)).thenReturn(testBrand);
-        when(carModelRepository.findByBrandAndIsActiveTrue(testBrand)).thenReturn(expectedModels);
+        when(carModelRepository.findByBrandAndStatus(testBrand, ModelStatus.ACTIVE)).thenReturn(expectedModels);
 
         // Act
         List<CarModel> result = carModelService.getActiveModelsByBrandId(1L);
@@ -106,7 +106,7 @@ class CarModelServiceTest {
         assertEquals(expectedModels.size(), result.size());
         assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
         verify(carBrandService, times(1)).getBrandById(1L);
-        verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
+        verify(carModelRepository, times(1)).findByBrandAndStatus(testBrand, ModelStatus.ACTIVE);
     }
 
     @Test
@@ -131,7 +131,7 @@ class CarModelServiceTest {
         // Arrange
         List<CarModel> expectedModels = Arrays.asList(testModel);
         when(carBrandService.getBrandBySlug("toyota")).thenReturn(testBrand);
-        when(carModelRepository.findByBrandAndIsActiveTrue(testBrand)).thenReturn(expectedModels);
+        when(carModelRepository.findByBrandAndStatus(testBrand, ModelStatus.ACTIVE)).thenReturn(expectedModels);
 
         // Act
         List<CarModel> result = carModelService.getActiveModelsByBrandSlug("toyota");
@@ -140,7 +140,7 @@ class CarModelServiceTest {
         assertEquals(expectedModels.size(), result.size());
         assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
         verify(carBrandService, times(1)).getBrandBySlug("toyota");
-        verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
+        verify(carModelRepository, times(1)).findByBrandAndStatus(testBrand, ModelStatus.ACTIVE);
     }
 
     @Test
