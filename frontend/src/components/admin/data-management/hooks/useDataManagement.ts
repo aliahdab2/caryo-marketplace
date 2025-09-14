@@ -122,9 +122,10 @@ export const useDataManagement = () => {
     try {
       setLoading(true);
 
-      const [brandsRes, statsRes] = await Promise.all([
+      const [brandsRes, statsRes, syncStatusData] = await Promise.all([
         makeAuthenticatedRequest('/api/admin/car-brands?size=1000'),
         makeAuthenticatedRequest('/api/admin/data/statistics'),
+        fetchAndSetSyncStatus(), // Load sync status on page refresh
       ]);
 
       // Fetch models separately using the new paginated fetcher
@@ -176,7 +177,7 @@ export const useDataManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [showError, t, makeAuthenticatedRequest, fetchAllModels]);
+  }, [showError, t, makeAuthenticatedRequest, fetchAllModels, fetchAndSetSyncStatus]);
 
   // Manual sync status fetching (no automatic polling)
   const refreshSyncStatus = useCallback(async () => {

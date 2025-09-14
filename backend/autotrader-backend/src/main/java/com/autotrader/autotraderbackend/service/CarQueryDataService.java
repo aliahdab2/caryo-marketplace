@@ -705,6 +705,15 @@ public class CarQueryDataService implements CarDataProvider {
             // Generate slug with brand-model format for proper filtering
             String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 
+            // Check if model with this slug already exists
+            try {
+                carModelService.getModelBySlug(modelSlug);
+                log.debug("Model with slug '{}' already exists, skipping creation", modelSlug);
+                return;
+            } catch (Exception e) {
+                // Model doesn't exist, proceed with creation
+            }
+
             CarModel model = new CarModel();
             model.setName(englishModelName);
             model.setSlug(modelSlug);
