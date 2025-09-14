@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.payload.request.UpdateBrandRequest;
 import com.autotrader.autotraderbackend.payload.request.CreateBrandRequest;
@@ -41,7 +42,7 @@ public class CarBrandService {
     @Cacheable(value = "activeBrands", key = "'active'")
     public List<CarBrand> getActiveBrands() {
         log.debug("Fetching active car brands from database");
-        return carBrandRepository.findByIsActiveTrue();
+        return carBrandRepository.findByStatus(ModelStatus.ACTIVE);
     }
     
     /**
@@ -122,7 +123,7 @@ public class CarBrandService {
         brand.setName(createRequest.getName());
         brand.setDisplayNameEn(createRequest.getDisplayNameEn());
         brand.setDisplayNameAr(createRequest.getDisplayNameAr());
-        brand.setIsActive(true); // Admin-created brands are active by default
+        brand.setStatus(ModelStatus.ACTIVE); // Admin-created brands are active by default
         
         // Generate unique slug from name
         String baseSlug = createRequest.getName().toLowerCase()
@@ -156,16 +157,16 @@ public class CarBrandService {
         CarBrand brand = getBrandById(id);
         
         // Validation: Warn if trying to deactivate a brand that has active models
-        if (!brandDetails.getIsActive() && brand.getIsActive()) {
+        if (brandDetails.getStatus() != ModelStatus.ACTIVE && brand.getStatus() == ModelStatus.ACTIVE) {
             // Check if brand has active models (we'll need to inject CarModelService for this)
-            log.warn("Attempting to deactivate brand '{}' - this may hide active models from users", 
+            log.warn("Attempting to deactivate brand '{}' - this may hide active models from users",
                     brand.getDisplayNameEn());
         }
-        
+
         brand.setName(brandDetails.getName());
         brand.setDisplayNameEn(brandDetails.getDisplayNameEn());
         brand.setDisplayNameAr(brandDetails.getDisplayNameAr());
-        brand.setIsActive(brandDetails.getIsActive());
+        brand.setStatus(brandDetails.getStatus());
         // Don't update slug as it should be immutable for URL stability
         
         log.info("Updated car brand with id: {}", id);
@@ -187,7 +188,7 @@ public class CarBrandService {
         brand.setName(updateRequest.getName());
         brand.setDisplayNameEn(updateRequest.getDisplayNameEn());
         brand.setDisplayNameAr(updateRequest.getDisplayNameAr());
-        brand.setIsActive(updateRequest.getIsActive());
+        brand.setStatus(updateRequest.getIsActive() ? ModelStatus.ACTIVE : ModelStatus.INACTIVE);
         // Don't update slug as it should be immutable for URL stability
         
         log.info("Updated car brand with id: {} using request DTO", id);
@@ -204,7 +205,7 @@ public class CarBrandService {
     @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
     public CarBrand updateBrandActivation(Long id, boolean isActive) {
         CarBrand brand = getBrandById(id);
-        brand.setIsActive(isActive);
+        brand.setStatus(isActive ? ModelStatus.ACTIVE : ModelStatus.INACTIVE);
         
         log.info("Updated activation status of brand with id: {} to: {}", id, isActive);
         return carBrandRepository.save(brand);
@@ -254,8 +255,21 @@ public class CarBrandService {
             throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
         }
         
-        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
-        brand.setIsActive(isActive);
+        ModelStatus brandStatus;
+        switch (status.toUpperCase()) {
+            case "ACTIVE":
+                brandStatus = ModelStatus.ACTIVE;
+                break;
+            case "INACTIVE":
+                brandStatus = ModelStatus.INACTIVE;
+                break;
+            case "REJECTED":
+                brandStatus = ModelStatus.REJECTED;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, REJECTED");
+        }
+        brand.setStatus(brandStatus);
         
         return carBrandRepository.save(brand);
     }
@@ -266,17 +280,17 @@ public class CarBrandService {
     public List<CarBrand> getPendingBrands() {
         // For now, we'll consider inactive brands as pending
         // In future, you might want to add a separate status field
-        return carBrandRepository.findByIsActiveFalse();
+        return carBrandRepository.findByStatus(ModelStatus.INACTIVE);
     }
 
     /**
      * Validate status value
      */
     private boolean isValidStatus(String status) {
-        return status != null && 
-               (status.equalsIgnoreCase("ACTIVE") || 
-                status.equalsIgnoreCase("INACTIVE") || 
-                status.equalsIgnoreCase("PENDING"));
+        return status != null &&
+               (status.equalsIgnoreCase("ACTIVE") ||
+                status.equalsIgnoreCase("INACTIVE") ||
+                status.equalsIgnoreCase("REJECTED"));
     }
 
     /**
@@ -285,8 +299,8 @@ public class CarBrandService {
      */
     public void validateBrandActiveForNewListing(Long brandId) {
         CarBrand brand = getBrandById(brandId);
-        if (!brand.getIsActive()) {
-            throw new IllegalArgumentException("Cannot create new listings with inactive brand: " + brand.getDisplayNameEn() + 
+        if (brand.getStatus() != ModelStatus.ACTIVE) {
+            throw new IllegalArgumentException("Cannot create new listings with inactive brand: " + brand.getDisplayNameEn() +
                 ". This brand is marked as discontinued or under review. Please contact support if you believe this is an error.");
         }
     }

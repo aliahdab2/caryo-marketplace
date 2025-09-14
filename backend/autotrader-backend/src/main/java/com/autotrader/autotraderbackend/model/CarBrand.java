@@ -34,7 +34,9 @@ public class CarBrand {
     @Enumerated(EnumType.STRING)
     private ModelStatus status = ModelStatus.INACTIVE;
 
+
     @JsonIgnore
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarModel> models = new ArrayList<>();
+
 }

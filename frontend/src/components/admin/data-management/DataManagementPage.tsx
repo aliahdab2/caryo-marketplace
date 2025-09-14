@@ -32,8 +32,8 @@ import { SyncOperations } from './components/SyncOperations';
 const ITEMS_PER_PAGE = 20;
 
 // Type definitions for save functions
-type BrandSaveData = { name?: string; displayNameEn?: string; displayNameAr?: string; isActive?: boolean };
-type ModelSaveData = { name?: string; displayNameEn?: string; displayNameAr?: string; brandId?: string; isActive?: boolean };
+type BrandSaveData = { name?: string; displayNameEn?: string; displayNameAr?: string; status?: 'ACTIVE' | 'INACTIVE' | 'REJECTED' };
+type ModelSaveData = { name?: string; displayNameEn?: string; displayNameAr?: string; brandId?: string; status?: 'ACTIVE' | 'INACTIVE' | 'REJECTED' };
 type BrandSaveFunction = (id: number, data: BrandSaveData) => void;
 type ModelSaveFunction = (id: number, data: ModelSaveData) => void;
 
@@ -68,7 +68,7 @@ interface BrandsTableProps {
   toggleBrandSelection: (id: number) => void;
   toggleAllBrands: () => void;
   isRTL: boolean;
-  bulkUpdateBrands: (isActive: boolean) => void;
+  bulkUpdateBrands: (status: 'ACTIVE' | 'INACTIVE' | 'REJECTED') => void;
   bulkUpdatingBrands: boolean;
 }
 
@@ -82,7 +82,7 @@ interface ModelsTableProps {
   toggleModelSelection: (id: number) => void;
   toggleAllModels: () => void;
   isRTL: boolean;
-  bulkUpdateModels: (isActive: boolean) => void;
+  bulkUpdateModels: (status: 'ACTIVE' | 'INACTIVE' | 'REJECTED') => void;
   bulkUpdatingModels: boolean;
 }
 
@@ -203,19 +203,19 @@ export const DataManagementPage: React.FC = () => {
   };
 
   // Bulk update functions
-  const bulkUpdateBrands = async (isActive: boolean) => {
+  const bulkUpdateBrands = async (status: 'ACTIVE' | 'INACTIVE' | 'REJECTED') => {
     if (selectedBrands.size === 0) return;
-    
+
     setBulkUpdatingBrands(true);
     try {
       const promises = Array.from(selectedBrands).map(brandId => {
         const brand = brands.find(b => b.id === brandId);
         if (brand) {
-          return updateBrand(brandId, { ...brand, isActive });
+          return updateBrand(brandId, { ...brand, status });
         }
         return Promise.resolve();
       });
-      
+
       await Promise.all(promises);
       setSelectedBrands(new Set());
       loadData(); // Refresh data
@@ -226,7 +226,7 @@ export const DataManagementPage: React.FC = () => {
     }
   };
 
-  const bulkUpdateModels = async (isActive: boolean) => {
+  const bulkUpdateModels = async (status: 'ACTIVE' | 'INACTIVE' | 'REJECTED') => {
     if (selectedModels.size === 0) return;
 
     setBulkUpdatingModels(true);
@@ -239,7 +239,7 @@ export const DataManagementPage: React.FC = () => {
             displayNameEn: model.displayNameEn,
             displayNameAr: model.displayNameAr,
             brandId: model.brandId.toString(),
-            isActive
+            status
           });
         }
         return Promise.resolve();
@@ -911,7 +911,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                   </button>
                   <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
                   <button
-                    onClick={() => bulkUpdateBrands(true)}
+                    onClick={() => bulkUpdateBrands('ACTIVE')}
                     disabled={bulkUpdatingBrands}
                     className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -919,7 +919,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
                     {t('datamanagement:activate')}
                   </button>
                   <button
-                    onClick={() => bulkUpdateBrands(false)}
+                    onClick={() => bulkUpdateBrands('REJECTED')}
                     disabled={bulkUpdatingBrands}
                     className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -1024,7 +1024,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                   </button>
                   <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
                   <button
-                    onClick={() => bulkUpdateModels(true)}
+                    onClick={() => bulkUpdateModels('ACTIVE')}
                     disabled={bulkUpdatingModels}
                     className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -1032,7 +1032,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
                     {t('datamanagement:activate')}
                   </button>
                   <button
-                    onClick={() => bulkUpdateModels(false)}
+                    onClick={() => bulkUpdateModels('REJECTED')}
                     disabled={bulkUpdatingModels}
                     className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -1188,7 +1188,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
     name: brand.name,
     displayNameEn: brand.displayNameEn,
     displayNameAr: brand.displayNameAr,
-    isActive: brand.isActive
+    status: brand.status
   });
 
   const handleSave = () => {
@@ -1232,12 +1232,13 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
         </td>
         <td className="py-2 px-3">
           <select
-            value={editData.isActive ? 'true' : 'false'}
-            onChange={(e) => setEditData({...editData, isActive: e.target.value === 'true'})}
+            value={editData.status || ''}
+            onChange={(e) => setEditData({...editData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'REJECTED'})}
             className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           >
-            <option value="true">{t('datamanagement:active')}</option>
-            <option value="false">{t('datamanagement:inactive')}</option>
+            <option value="ACTIVE">{t('datamanagement:active')}</option>
+            <option value="INACTIVE">{t('datamanagement:inactive')}</option>
+            <option value="REJECTED">{t('datamanagement:rejected')}</option>
           </select>
         </td>
         <td className="py-2 px-3">
@@ -1275,11 +1276,15 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.displayNameAr}</td>
       <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          brand.isActive 
+          brand.status === 'ACTIVE'
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            : brand.status === 'INACTIVE'
+            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
         }`}>
-          {brand.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
+          {brand.status === 'ACTIVE' ? t('datamanagement:active') :
+           brand.status === 'INACTIVE' ? t('datamanagement:inactive') :
+           t('datamanagement:rejected')}
         </span>
       </td>
       <td className="py-2 px-3">
@@ -1311,7 +1316,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
     displayNameEn: model.displayNameEn,
     displayNameAr: model.displayNameAr,
     brandId: model.brandId,
-    isActive: model.isActive
+    status: model.status
   });
 
   const handleSave = () => {
@@ -1368,12 +1373,13 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
         </td>
         <td className="py-2 px-3">
           <select
-            value={editData.isActive ? 'true' : 'false'}
-            onChange={(e) => setEditData({...editData, isActive: e.target.value === 'true'})}
+            value={editData.status || ''}
+            onChange={(e) => setEditData({...editData, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'REJECTED'})}
             className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           >
-            <option value="true">{t('datamanagement:active')}</option>
-            <option value="false">{t('datamanagement:inactive')}</option>
+            <option value="ACTIVE">{t('datamanagement:active')}</option>
+            <option value="INACTIVE">{t('datamanagement:inactive')}</option>
+            <option value="REJECTED">{t('datamanagement:rejected')}</option>
           </select>
         </td>
         <td className="py-2 px-3">
@@ -1414,11 +1420,15 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{model.displayNameAr}</td>
       <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          model.isActive 
+          model.status === 'ACTIVE'
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+            : model.status === 'INACTIVE'
+            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
         }`}>
-          {model.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
+          {model.status === 'ACTIVE' ? t('datamanagement:active') :
+           model.status === 'INACTIVE' ? t('datamanagement:inactive') :
+           t('datamanagement:rejected')}
         </span>
       </td>
       <td className="py-2 px-3">

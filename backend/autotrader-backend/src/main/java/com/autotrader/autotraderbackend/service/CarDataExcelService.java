@@ -141,7 +141,7 @@ public class CarDataExcelService {
             row.createCell(4).setCellValue(""); // Country of origin - not in current model
             
             Cell activeCell = row.createCell(5);
-            activeCell.setCellValue(brand.getIsActive() != null ? brand.getIsActive() : true);
+            activeCell.setCellValue(brand.getStatus() != null ? (brand.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE) : true);
             activeCell.setCellStyle(booleanStyle);
             
             // Date cells would need actual timestamps from your model
@@ -190,7 +190,7 @@ public class CarDataExcelService {
             row.createCell(8).setCellValue(""); // Year end - not in current model
             
             Cell activeCell = row.createCell(9);
-            activeCell.setCellValue(model.getIsActive() != null ? model.getIsActive() : true);
+            activeCell.setCellValue(model.getStatus() != null ? (model.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE) : true);
             activeCell.setCellStyle(booleanStyle);
             
             row.createCell(10).setCellValue(""); // Created at
@@ -267,7 +267,7 @@ public class CarDataExcelService {
                 brand.setDisplayNameEn(nameEn);
                 brand.setDisplayNameAr(nameAr);
                 brand.setSlug(slug);
-                brand.setIsActive(isActive != null ? isActive : true);
+                brand.setStatus((isActive != null && isActive) ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
                 
                 // Save brand
                 if (isUpdate) {
@@ -365,7 +365,7 @@ public class CarDataExcelService {
                 model.setDisplayNameAr(modelNameAr);
                 model.setSlug(slug);
                 model.setBrand(brand);
-                model.setIsActive(isActive != null ? isActive : true);
+                model.setStatus((isActive != null && isActive) ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
                 
                 // Save model
                 if (isUpdate) {

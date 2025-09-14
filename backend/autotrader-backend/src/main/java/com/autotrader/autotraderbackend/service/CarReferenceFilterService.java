@@ -160,7 +160,7 @@ public class CarReferenceFilterService {
         copy.setSlug(brand.getSlug());
         copy.setDisplayNameEn(brand.getDisplayNameEn());
         copy.setDisplayNameAr(brand.getDisplayNameAr());
-        copy.setIsActive(brand.getIsActive());
+        copy.setStatus(brand.getStatus());
         copy.setModels(Collections.emptyList());  // Will be populated later if needed
         return copy;
     }
@@ -172,7 +172,7 @@ public class CarReferenceFilterService {
         copy.setSlug(model.getSlug());
         copy.setDisplayNameEn(model.getDisplayNameEn());
         copy.setDisplayNameAr(model.getDisplayNameAr());
-        copy.setIsActive(model.getIsActive());
+        copy.setStatus(model.getStatus());
         copy.setTrims(Collections.emptyList());  // Will be populated later if needed
         // Don't set brand to avoid circular reference
         return copy;

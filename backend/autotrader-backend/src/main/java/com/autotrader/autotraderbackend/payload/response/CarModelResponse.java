@@ -19,7 +19,7 @@ public class CarModelResponse {
     private String slug;
     private String displayNameEn;
     private String displayNameAr;
-    private Boolean isActive;
+    private String status;
     private Long brandId; // Include brand ID for reference
     private CarBrandResponse brand; // Include full brand information for admin interface
     
@@ -35,7 +35,7 @@ public class CarModelResponse {
             model.getSlug(),
             model.getDisplayNameEn(),
             model.getDisplayNameAr(),
-            model.getIsActive(),
+            model.getStatus() != null ? model.getStatus().toString() : "INACTIVE",
             model.getBrand() != null ? model.getBrand().getId() : null,
             model.getBrand() != null ? CarBrandResponse.fromEntity(model.getBrand()) : null
         );

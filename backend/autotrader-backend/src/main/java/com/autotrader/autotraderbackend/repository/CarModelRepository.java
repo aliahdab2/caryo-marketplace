@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.repository;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,6 +29,10 @@ public interface CarModelRepository extends JpaRepository<CarModel, Long> {
     Optional<CarModel> findBySlug(String slug);
     
     List<CarModel> findByBrand(CarBrand brand);
+    
+    List<CarModel> findByStatus(ModelStatus status);
+    
+    List<CarModel> findByBrandAndStatus(CarBrand brand, ModelStatus status);
     
     List<CarModel> findByBrandAndIsActiveTrue(CarBrand brand);
     

@@ -23,7 +23,7 @@ export const BrandsTable: React.FC<BrandsTableProps> = ({
       name: brand.name,
       displayNameEn: brand.displayNameEn,
       displayNameAr: brand.displayNameAr,
-      isActive: brand.isActive
+      status: brand.status
     });
   };
 
@@ -108,20 +108,25 @@ export const BrandsTable: React.FC<BrandsTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   {editingBrand === brand.id ? (
                     <select
-                      value={editForm.isActive ? 'true' : 'false'}
-                      onChange={(e) => setEditForm({...editForm, isActive: e.target.value === 'true'})}
+                      value={editForm.status || ''}
+                      onChange={(e) => setEditForm({...editForm, status: e.target.value as 'ACTIVE' | 'INACTIVE' | 'REJECTED'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
-                      <option value="true">{t('datamanagement:active')}</option>
-                      <option value="false">{t('datamanagement:inactive')}</option>
+                      <option value="ACTIVE">{t('datamanagement:active')}</option>
+                      <option value="INACTIVE">{t('datamanagement:inactive')}</option>
+                      <option value="REJECTED">{t('datamanagement:rejected')}</option>
                     </select>
                   ) : (
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      brand.isActive 
+                      brand.status === 'ACTIVE'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        : brand.status === 'INACTIVE'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                         : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                     }`}>
-                      {brand.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
+                      {brand.status === 'ACTIVE' ? t('datamanagement:active') :
+                       brand.status === 'INACTIVE' ? t('datamanagement:inactive') :
+                       t('datamanagement:rejected')}
                     </span>
                   )}
                 </td>

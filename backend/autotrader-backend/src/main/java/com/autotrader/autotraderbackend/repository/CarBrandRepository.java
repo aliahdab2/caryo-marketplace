@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.repository;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,8 @@ import java.util.Optional;
 public interface CarBrandRepository extends JpaRepository<CarBrand, Long> {
     
     Optional<CarBrand> findBySlug(String slug);
+    
+    List<CarBrand> findByStatus(ModelStatus status);
     
     List<CarBrand> findByIsActiveTrue();
     

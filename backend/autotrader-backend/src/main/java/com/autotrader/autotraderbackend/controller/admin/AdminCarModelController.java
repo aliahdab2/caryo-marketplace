@@ -64,7 +64,7 @@ public class AdminCarModelController {
             model.setDisplayNameEn(request.getNameEn());
             model.setDisplayNameAr(request.getNameAr() != null ? request.getNameAr() : request.getNameEn());
             model.setBrand(brand);
-            model.setIsActive(request.isActive());
+            model.setStatus(request.isActive() ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
 
             CarModel createdModel = carModelService.createModel(model);
             CarModelResponse response = CarModelResponse.fromEntity(createdModel);
@@ -107,7 +107,7 @@ public class AdminCarModelController {
             existingModel.setSlug(request.getSlug() != null ? request.getSlug() : request.getNameEn().toLowerCase().replaceAll("[^a-z0-9-]", "-"));
             existingModel.setDisplayNameEn(request.getNameEn());
             existingModel.setDisplayNameAr(request.getNameAr() != null ? request.getNameAr() : request.getNameEn());
-            existingModel.setIsActive(request.isActive());
+            existingModel.setStatus(request.isActive() ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
 
             CarModel updatedModel = carModelService.updateModel(id, existingModel);
             CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
@@ -236,12 +236,14 @@ public class AdminCarModelController {
 
         try {
             CarModel model = carModelService.getModelById(id);
-            model.setIsActive(!model.getIsActive());
-            
+            model.setStatus(model.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE ? 
+                com.autotrader.autotraderbackend.model.ModelStatus.REJECTED : 
+                com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE);
+
             CarModel updatedModel = carModelService.updateModel(id, model);
             CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
 
-            log.info("Successfully toggled status for car model ID: {} to {}", id, updatedModel.getIsActive());
+            log.info("Successfully toggled status for car model ID: {} to {}", id, updatedModel.getStatus());
             return ResponseEntity.ok(ApiResponse.success(response, "Model status updated successfully"));
 
         } catch (Exception e) {
@@ -384,7 +386,7 @@ public class AdminCarModelController {
 
         try {
             List<CarModel> models = carModelService.getAllModels().stream()
-                .filter(model -> model.getIsActive() == active)
+                .filter(model -> (model.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE) == active)
                 .collect(Collectors.toList());
 
             List<CarModelResponse> modelResponses = models.stream()

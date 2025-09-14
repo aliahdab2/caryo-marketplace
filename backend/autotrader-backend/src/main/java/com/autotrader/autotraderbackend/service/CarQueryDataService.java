@@ -599,7 +599,7 @@ public class CarQueryDataService implements CarDataProvider {
             brand.setSlug(brandSlug);
             brand.setDisplayNameEn(englishName);
             brand.setDisplayNameAr(arabicName);
-            brand.setIsActive(false); // External API data requires admin review
+            brand.setStatus(com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE); // External API data requires admin review
 
             carBrandService.createBrand(brand);
             log.info("✅ BRAND SUCCESSFULLY CREATED: {} ({}) - 100% data quality assurance", englishName, arabicName);
@@ -720,7 +720,7 @@ public class CarQueryDataService implements CarDataProvider {
             model.setDisplayNameEn(englishModelName);
             model.setDisplayNameAr(arabicModelName);
             model.setBrand(brand);
-            model.setIsActive(false); // External API data requires admin review
+            model.setStatus(com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE); // External API data requires admin review
 
             carModelService.createModel(model);
             log.info("✅ MODEL SUCCESSFULLY CREATED: {} ({}) for brand {} - 100% data quality assurance",

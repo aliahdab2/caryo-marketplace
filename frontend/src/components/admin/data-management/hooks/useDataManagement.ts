@@ -142,7 +142,7 @@ export const useDataManagement = () => {
         // Set default statistics if admin endpoint fails
         setStatistics({
           totalBrands: brandsData.length,
-          activeBrands: brandsData.filter(b => b.isActive).length,
+          activeBrands: brandsData.filter(b => b.status === 'ACTIVE').length,
           totalModels: 0, // Will be updated when models load
           activeModels: 0 // Will be updated when models load
         });

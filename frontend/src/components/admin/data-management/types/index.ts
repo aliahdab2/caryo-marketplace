@@ -37,7 +37,7 @@ export interface EditForm {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
+  status?: 'ACTIVE' | 'INACTIVE' | 'REJECTED';
   brandId?: string;
 }
 
@@ -75,14 +75,14 @@ export interface UpdateBrandData {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
+  status?: 'ACTIVE' | 'INACTIVE' | 'REJECTED';
 }
 
 export interface UpdateModelData {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
+  status?: 'ACTIVE' | 'INACTIVE' | 'REJECTED';
   brandId?: string;
 }
 

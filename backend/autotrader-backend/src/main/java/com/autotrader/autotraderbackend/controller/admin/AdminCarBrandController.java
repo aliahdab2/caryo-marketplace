@@ -60,7 +60,7 @@ public class AdminCarBrandController {
             brand.setSlug(request.getSlug());
             brand.setDisplayNameEn(request.getDisplayNameEn());
             brand.setDisplayNameAr(request.getDisplayNameAr());
-            brand.setIsActive(request.isActive());
+            brand.setStatus(request.isActive() ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
 
             CarBrand createdBrand = carBrandService.createBrand(brand);
             CarBrandResponse response = CarBrandResponse.fromEntity(createdBrand);
@@ -97,7 +97,7 @@ public class AdminCarBrandController {
             existingBrand.setSlug(request.getSlug());
             existingBrand.setDisplayNameEn(request.getDisplayNameEn());
             existingBrand.setDisplayNameAr(request.getDisplayNameAr());
-            existingBrand.setIsActive(request.isActive());
+            existingBrand.setStatus(request.isActive() ? com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE : com.autotrader.autotraderbackend.model.ModelStatus.INACTIVE);
 
             CarBrand updatedBrand = carBrandService.updateBrand(id, existingBrand);
             CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
@@ -242,12 +242,14 @@ public class AdminCarBrandController {
 
         try {
             CarBrand brand = carBrandService.getBrandById(id);
-            brand.setIsActive(!brand.getIsActive());
-            
+            brand.setStatus(brand.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE ? 
+                com.autotrader.autotraderbackend.model.ModelStatus.REJECTED : 
+                com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE);
+
             CarBrand updatedBrand = carBrandService.updateBrand(id, brand);
             CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
 
-            log.info("Successfully toggled status for car brand ID: {} to {}", id, updatedBrand.getIsActive());
+            log.info("Successfully toggled status for car brand ID: {} to {}", id, updatedBrand.getStatus());
             return ResponseEntity.ok(ApiResponse.success("Brand status updated successfully", response));
 
         } catch (Exception e) {
@@ -310,7 +312,7 @@ public class AdminCarBrandController {
 
         try {
             List<CarBrand> brands = carBrandService.getAllBrands().stream()
-                .filter(brand -> brand.getIsActive() == active)
+                .filter(brand -> (brand.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE) == active)
                 .collect(Collectors.toList());
 
             List<CarBrandResponse> brandResponses = brands.stream()

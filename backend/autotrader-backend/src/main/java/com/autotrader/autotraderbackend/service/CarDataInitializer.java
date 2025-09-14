@@ -226,7 +226,7 @@ public class CarDataInitializer implements CommandLineRunner {
                     brand.setSlug(brandData.getSlug());
                     brand.setDisplayNameEn(brandData.getDisplayNameEn());
                     brand.setDisplayNameAr(brandData.getDisplayNameAr());
-                    brand.setIsActive(true);
+                    brand.setStatus(com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE);
 
                     carBrandService.createBrand(brand);
                     createdCount++;
@@ -409,7 +409,7 @@ public class CarDataInitializer implements CommandLineRunner {
                     brand.setSlug(brandData.getSlug());
                     brand.setDisplayNameEn(brandData.getDisplayNameEn());
                     brand.setDisplayNameAr(brandData.getDisplayNameAr());
-                    brand.setIsActive(true);
+                    brand.setStatus(com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE);
 
                     carBrandService.createBrand(brand);
                     createdCount++;
@@ -603,7 +603,7 @@ public class CarDataInitializer implements CommandLineRunner {
                     model.setSlug(modelData.getSlug());
                     model.setDisplayNameEn(modelData.getDisplayNameEn());
                     model.setDisplayNameAr(modelData.getDisplayNameAr());
-                    model.setIsActive(true);
+                    model.setStatus(com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE);
 
                     carModelService.createModel(model);
                     createdCount++;

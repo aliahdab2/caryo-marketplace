@@ -40,7 +40,9 @@ public class CarModel {
     @Enumerated(EnumType.STRING)
     private ModelStatus status = ModelStatus.INACTIVE;
 
+
     @JsonIgnore
     @OneToMany(mappedBy = "model", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarTrim> trims = new ArrayList<>();
+
 }

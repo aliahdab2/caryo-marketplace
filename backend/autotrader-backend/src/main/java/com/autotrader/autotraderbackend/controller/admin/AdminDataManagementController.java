@@ -356,7 +356,7 @@ public class AdminDataManagementController {
             stats.activeBrands = carBrandService.getActiveBrands().size();
             stats.totalModels = carModelService.getAllModels().size();
             stats.activeModels = (int) carModelService.getAllModels().stream()
-                .filter(model -> model.getIsActive() != null && model.getIsActive())
+                .filter(model -> model.getStatus() != null && model.getStatus() == com.autotrader.autotraderbackend.model.ModelStatus.ACTIVE)
                 .count();
             
             return ResponseEntity.ok(ApiResponse.success("Statistics retrieved", stats));

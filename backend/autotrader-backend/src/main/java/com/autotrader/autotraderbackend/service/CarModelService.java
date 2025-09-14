@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.payload.request.UpdateModelRequest;
 import com.autotrader.autotraderbackend.payload.request.CreateModelRequest;
@@ -169,10 +170,10 @@ public class CarModelService {
         model.setBrand(brand);
         
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
-        if (model.getIsActive() && !brand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
+        if (model.getStatus() == ModelStatus.ACTIVE && brand.getStatus() != ModelStatus.ACTIVE) {
+            log.info("Auto-activating parent brand '{}' because active model '{}' is being created",
                     brand.getDisplayNameEn(), model.getName());
-            brand.setIsActive(true);
+            brand.setStatus(ModelStatus.ACTIVE);
             carBrandService.updateBrand(brand.getId(), brand);
         }
         
@@ -198,14 +199,14 @@ public class CarModelService {
         model.setName(createRequest.getName());
         model.setDisplayNameEn(createRequest.getDisplayNameEn());
         model.setDisplayNameAr(createRequest.getDisplayNameAr());
-        model.setIsActive(createRequest.getIsActive() != null ? createRequest.getIsActive() : true);
+        model.setStatus(createRequest.getIsActive() != null ? (createRequest.getIsActive() ? ModelStatus.ACTIVE : ModelStatus.INACTIVE) : ModelStatus.ACTIVE);
         model.setBrand(brand);
-        
+
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
-        if (model.getIsActive() && !brand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
+        if (model.getStatus() == ModelStatus.ACTIVE && brand.getStatus() != ModelStatus.ACTIVE) {
+            log.info("Auto-activating parent brand '{}' because active model '{}' is being created",
                     brand.getDisplayNameEn(), createRequest.getName());
-            brand.setIsActive(true);
+            brand.setStatus(ModelStatus.ACTIVE);
             carBrandService.updateBrand(brand.getId(), brand);
         }
         
@@ -252,16 +253,16 @@ public class CarModelService {
         }
         
         // Smart activation: If model is being activated, ensure parent brand is also active
-        if (modelDetails.getIsActive() && !model.getIsActive()) {
-            if (!targetBrand.getIsActive()) {
-                log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+        if (modelDetails.getStatus() == ModelStatus.ACTIVE && model.getStatus() != ModelStatus.ACTIVE) {
+            if (targetBrand.getStatus() != ModelStatus.ACTIVE) {
+                log.info("Auto-activating parent brand '{}' because model '{}' is being activated",
                         targetBrand.getDisplayNameEn(), model.getDisplayNameEn());
-                targetBrand.setIsActive(true);
+                targetBrand.setStatus(ModelStatus.ACTIVE);
                 carBrandService.updateBrand(targetBrand.getId(), targetBrand);
             }
         }
-        
-        model.setIsActive(modelDetails.getIsActive());
+
+        model.setStatus(modelDetails.getStatus());
         // Don't update slug as it should be immutable for URL stability
         
         log.info("Updated car model with id: {}", id);
@@ -284,8 +285,8 @@ public class CarModelService {
         model.setDisplayNameEn(updateRequest.getDisplayNameEn());
         model.setDisplayNameAr(updateRequest.getDisplayNameAr());
         
-        boolean wasActive = model.getIsActive(); // Store previous active status
-        model.setIsActive(updateRequest.getIsActive());
+        ModelStatus wasStatus = model.getStatus(); // Store previous status
+        model.setStatus(updateRequest.getIsActive() ? ModelStatus.ACTIVE : ModelStatus.INACTIVE);
         
         // Don't update slug as it should be immutable for URL stability
         
@@ -298,10 +299,10 @@ public class CarModelService {
         }
         
         // Smart activation: If model is becoming active and its brand is inactive, activate the brand
-        if (model.getIsActive() && !wasActive && !currentBrand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+        if (model.getStatus() == ModelStatus.ACTIVE && wasStatus != ModelStatus.ACTIVE && currentBrand.getStatus() != ModelStatus.ACTIVE) {
+            log.info("Auto-activating parent brand '{}' because model '{}' is being activated",
                     currentBrand.getDisplayNameEn(), model.getDisplayNameEn());
-            currentBrand.setIsActive(true);
+            currentBrand.setStatus(ModelStatus.ACTIVE);
             carBrandService.updateBrand(currentBrand.getId(), currentBrand);
         }
         
@@ -319,15 +320,15 @@ public class CarModelService {
     @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModelActivation(Long id, boolean isActive) {
         CarModel model = getModelById(id);
-        boolean wasActive = model.getIsActive();
-        model.setIsActive(isActive);
-        
+        ModelStatus wasStatus = model.getStatus();
+        model.setStatus(isActive ? ModelStatus.ACTIVE : ModelStatus.INACTIVE);
+
         // Smart activation: If model is becoming active and its brand is inactive, activate the brand
-        if (isActive && !wasActive && !model.getBrand().getIsActive()) {
+        if (isActive && wasStatus != ModelStatus.ACTIVE && model.getBrand().getStatus() != ModelStatus.ACTIVE) {
             CarBrand brand = model.getBrand();
-            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+            log.info("Auto-activating parent brand '{}' because model '{}' is being activated",
                     brand.getDisplayNameEn(), model.getDisplayNameEn());
-            brand.setIsActive(true);
+            brand.setStatus(ModelStatus.ACTIVE);
             carBrandService.updateBrand(brand.getId(), brand);
         }
         
@@ -379,8 +380,21 @@ public class CarModelService {
             throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
         }
         
-        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
-        model.setIsActive(isActive);
+        ModelStatus modelStatus;
+        switch (status.toUpperCase()) {
+            case "ACTIVE":
+                modelStatus = ModelStatus.ACTIVE;
+                break;
+            case "INACTIVE":
+                modelStatus = ModelStatus.INACTIVE;
+                break;
+            case "REJECTED":
+                modelStatus = ModelStatus.REJECTED;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, REJECTED");
+        }
+        model.setStatus(modelStatus);
         
         return carModelRepository.save(model);
     }
@@ -391,17 +405,17 @@ public class CarModelService {
     public List<CarModel> getPendingModels() {
         // For now, we'll consider inactive models as pending
         // In future, you might want to add a separate status field
-        return carModelRepository.findByIsActiveFalse();
+        return carModelRepository.findByStatus(ModelStatus.INACTIVE);
     }
 
     /**
      * Validate status value
      */
     private boolean isValidStatus(String status) {
-        return status != null && 
-               (status.equalsIgnoreCase("ACTIVE") || 
-                status.equalsIgnoreCase("INACTIVE") || 
-                status.equalsIgnoreCase("PENDING"));
+        return status != null &&
+               (status.equalsIgnoreCase("ACTIVE") ||
+                status.equalsIgnoreCase("INACTIVE") ||
+                status.equalsIgnoreCase("REJECTED"));
     }
 
     /**
@@ -410,8 +424,8 @@ public class CarModelService {
      */
     public void validateModelActiveForNewListing(Long modelId) {
         CarModel model = getModelById(modelId);
-        if (!model.getIsActive()) {
-            throw new IllegalArgumentException("Cannot create new listings with inactive model: " + model.getDisplayNameEn() + 
+        if (model.getStatus() != ModelStatus.ACTIVE) {
+            throw new IllegalArgumentException("Cannot create new listings with inactive model: " + model.getDisplayNameEn() +
                 ". This model is marked as discontinued or under review. Please contact support if you believe this is an error.");
         }
     }
