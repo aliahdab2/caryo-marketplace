@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface CarModelRepository extends JpaRepository<CarModel, Long> {
     
-    @Query("SELECT m FROM CarModel m WHERE " +
+    @Query("SELECT m FROM CarModel m LEFT JOIN FETCH m.brand WHERE " +
            "(:search IS NULL OR :search = '' OR " +
            "m.name LIKE CONCAT('%', :search, '%') OR " +
            "m.displayNameEn LIKE CONCAT('%', :search, '%') OR " +
@@ -39,6 +39,10 @@ public interface CarModelRepository extends JpaRepository<CarModel, Long> {
            "LOWER(m.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(m.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<CarModel> searchByName(String query);
+    
+    // Method to fetch all models with brand relationships loaded
+    @Query("SELECT m FROM CarModel m LEFT JOIN FETCH m.brand")
+    List<CarModel> findAllWithBrands();
     
     // Duplicate checking methods
     boolean existsByBrandAndNameIgnoreCase(CarBrand brand, String name);

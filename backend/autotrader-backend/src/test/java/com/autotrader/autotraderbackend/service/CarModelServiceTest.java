@@ -62,7 +62,7 @@ class CarModelServiceTest {
     void getAllModels_ShouldReturnAllModels() {
         // Arrange
         List<CarModel> expectedModels = Arrays.asList(testModel);
-        when(carModelRepository.findAll()).thenReturn(expectedModels);
+        when(carModelRepository.findAllWithBrands()).thenReturn(expectedModels);
 
         // Act
         List<CarModel> result = carModelService.getAllModels();
@@ -70,7 +70,7 @@ class CarModelServiceTest {
         // Assert
         assertEquals(expectedModels.size(), result.size());
         assertEquals(expectedModels.get(0).getName(), result.get(0).getName());
-        verify(carModelRepository, times(1)).findAll();
+        verify(carModelRepository, times(1)).findAllWithBrands();
     }
 
     @Test
@@ -222,14 +222,14 @@ class CarModelServiceTest {
         // Arrange
         String query = "";
         List<CarModel> expectedModels = Arrays.asList(testModel);
-        when(carModelRepository.findAll()).thenReturn(expectedModels);
+        when(carModelRepository.findAllWithBrands()).thenReturn(expectedModels);
 
         // Act
         List<CarModel> result = carModelService.searchModels(query);
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        verify(carModelRepository, times(1)).findAll();
+        verify(carModelRepository, times(1)).findAllWithBrands();
         verify(carModelRepository, never()).searchByName(anyString());
     }
 

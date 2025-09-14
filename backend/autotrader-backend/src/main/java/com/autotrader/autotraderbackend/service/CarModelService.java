@@ -36,7 +36,8 @@ public class CarModelService {
     @Cacheable(value = "carModels", key = "'all'")
     public List<CarModel> getAllModels() {
         log.debug("Fetching all car models from database");
-        return carModelRepository.findAll();
+        // Use a custom query to ensure brand relationships are loaded
+        return carModelRepository.findAllWithBrands();
     }
 
     /**
