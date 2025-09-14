@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.request.CreateModelRequest;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -240,7 +241,7 @@ class CarModelServiceSmartActivationTest {
         // Then
         verify(carBrandService).updateBrand(eq(1L), any(CarBrand.class));
         verify(carModelRepository).save(any(CarModel.class));
-        assertThat(result.getIsActive()).isTrue();
+        assertThat(result.getStatus() == ModelStatus.ACTIVE).isTrue();
     }
 
     @Test
@@ -271,7 +272,7 @@ class CarModelServiceSmartActivationTest {
         // Then
         verify(carBrandService, never()).updateBrand(any(Long.class), any(CarBrand.class));
         verify(carModelRepository).save(any(CarModel.class));
-        assertThat(result.getIsActive()).isTrue();
+        assertThat(result.getStatus() == ModelStatus.ACTIVE).isTrue();
     }
 
     @Test
@@ -303,6 +304,6 @@ class CarModelServiceSmartActivationTest {
         // Then: Brand should NOT be activated since model is inactive
         verify(carBrandService, never()).updateBrand(any(Long.class), any(CarBrand.class));
         verify(carModelRepository).save(any(CarModel.class));
-        assertThat(result.getIsActive()).isFalse();
+        assertThat(result.getStatus() == ModelStatus.ACTIVE).isFalse();
     }
 }

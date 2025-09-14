@@ -1,13 +1,21 @@
 package com.autotrader.autotraderbackend.mapper;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.ListingMedia;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.ListingMediaResponse;
 // Ensure com.autotrader.autotraderbackend.payload.response.LocationResponse is NOT imported here

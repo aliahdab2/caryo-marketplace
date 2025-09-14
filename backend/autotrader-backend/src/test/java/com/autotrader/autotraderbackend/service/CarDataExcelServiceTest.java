@@ -1,7 +1,9 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,13 +1,21 @@
 package com.autotrader.autotraderbackend.util;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarListing;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Location;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Role;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CountryRepository;
 
@@ -69,7 +77,7 @@ public class TestDataGenerator {
         brand.setSlug("toyota" + uniqueSuffix);
         brand.setDisplayNameEn("Toyota" + uniqueSuffix);
         brand.setDisplayNameAr("تويوتا" + uniqueSuffix);
-        brand.setIsActive(true);
+        brand.setStatus(ModelStatus.ACTIVE);
         return brand;
     }
 
@@ -86,7 +94,7 @@ public class TestDataGenerator {
         model.setDisplayNameEn("Camry");
         model.setDisplayNameAr("كامري");
         model.setBrand(brand);
-        model.setIsActive(true);
+        model.setStatus(ModelStatus.ACTIVE);
         return model;
     }
 

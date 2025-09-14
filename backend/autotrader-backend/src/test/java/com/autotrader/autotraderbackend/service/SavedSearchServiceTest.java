@@ -4,7 +4,9 @@ import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
 import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.SavedSearch;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.SavedSearchRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
@@ -130,7 +132,7 @@ class SavedSearchServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNameEn()).isEqualTo("My Toyota Search");
-        assertThat(result.get(0).getIsActive()).isTrue();
+        assertThat(result.get(0).getStatus() == ModelStatus.ACTIVE).isTrue();
 
         verify(userRepository).findByUsername("testuser");
         verify(savedSearchRepository).findByUserAndIsActiveTrueOrderByCreatedAtDesc(testUser);
@@ -248,7 +250,7 @@ class SavedSearchServiceTest {
         savedSearchService.deleteSavedSearch(searchId, "testuser");
 
         // Then
-        assertThat(testSavedSearch.getIsActive()).isFalse();
+        assertThat(testSavedSearch.getStatus() == ModelStatus.ACTIVE).isFalse();
 
         verify(userRepository).findByUsername("testuser");
         verify(savedSearchRepository).findByIdAndUser(searchId, testUser);

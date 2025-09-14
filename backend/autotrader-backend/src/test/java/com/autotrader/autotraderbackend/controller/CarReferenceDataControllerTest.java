@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.response.CarBrandResponse;
 import com.autotrader.autotraderbackend.payload.response.CarModelResponse;
 import com.autotrader.autotraderbackend.service.*;

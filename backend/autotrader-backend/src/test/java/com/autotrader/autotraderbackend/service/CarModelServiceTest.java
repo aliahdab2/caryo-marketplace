@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,7 +104,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertTrue(result.get(0).getIsActive());
+        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE.getStatus()));
         verify(carBrandService, times(1)).getBrandById(1L);
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
@@ -137,7 +138,7 @@ class CarModelServiceTest {
 
         // Assert
         assertEquals(expectedModels.size(), result.size());
-        assertTrue(result.get(0).getIsActive());
+        assertEquals("ACTIVE", assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE.getStatus()));
         verify(carBrandService, times(1)).getBrandBySlug("toyota");
         verify(carModelRepository, times(1)).findByBrandAndIsActiveTrue(testBrand);
     }
@@ -320,7 +321,7 @@ class CarModelServiceTest {
         assertEquals(updatedModel.getName(), result.getName());
         assertEquals(updatedModel.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedModel.getDisplayNameAr(), result.getDisplayNameAr());
-        assertEquals(updatedModel.getIsActive(), result.getIsActive());
+        assertEquals(updatedModel.getStatus() == ModelStatus.ACTIVE, result.getStatus() == ModelStatus.ACTIVE);
         // Verify slug is not updated
         assertEquals(testModel.getSlug(), result.getSlug());
         
@@ -366,7 +367,7 @@ class CarModelServiceTest {
         CarModel result = carModelService.updateModelActivation(1L, false);
         
         // Assert
-        assertFalse(result.getIsActive());
+        assertFalse(result.getStatus() == ModelStatus.ACTIVE);
         verify(carModelRepository, times(1)).findById(1L);
         verify(carModelRepository, times(1)).save(any(CarModel.class));
     }

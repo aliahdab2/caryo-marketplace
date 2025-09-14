@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.util;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -84,7 +85,7 @@ public class TestDataBuilder {
         model.setSlug("test-model");
         model.setDisplayNameEn("Test Model");
         model.setDisplayNameAr("موديل تجريبي");
-        model.setIsActive(true);
+        model.setStatus(ModelStatus.ACTIVE);
         return model;
     }
 
@@ -97,7 +98,7 @@ public class TestDataBuilder {
         brand.setDisplayNameEn("Test Brand");
         brand.setDisplayNameAr("ماركة تجريبية");
         brand.setSlug("test-brand");
-        brand.setIsActive(true);
+        brand.setStatus(ModelStatus.ACTIVE);
         return brand;
     }
 

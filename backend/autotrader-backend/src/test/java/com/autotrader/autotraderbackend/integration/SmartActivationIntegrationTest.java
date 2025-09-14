@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.integration;
 
 import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import com.autotrader.autotraderbackend.repository.CarModelRepository;
 import com.autotrader.autotraderbackend.service.CarModelService;
@@ -49,7 +50,7 @@ class SmartActivationIntegrationTest {
         inactiveBrand.setSlug("toyota");
         inactiveBrand.setDisplayNameEn("Toyota");
         inactiveBrand.setDisplayNameAr("تويوتا");
-        inactiveBrand.setIsActive(false);
+        inactiveBrand.setStatus(ModelStatus.INACTIVE);
         inactiveBrand = carBrandRepository.save(inactiveBrand);
 
         // Create and save inactive model
@@ -58,7 +59,7 @@ class SmartActivationIntegrationTest {
         inactiveModel.setSlug("toyota-camry");
         inactiveModel.setDisplayNameEn("Camry");
         inactiveModel.setDisplayNameAr("كامري");
-        inactiveModel.setIsActive(false);
+        inactiveModel.setStatus(ModelStatus.INACTIVE);
         inactiveModel.setBrand(inactiveBrand);
         inactiveModel = carModelRepository.save(inactiveModel);
     }
@@ -71,17 +72,17 @@ class SmartActivationIntegrationTest {
         updateRequest.setName("Camry");
         updateRequest.setDisplayNameEn("Camry");
         updateRequest.setDisplayNameAr("كامري");
-        updateRequest.setIsActive(true); // Activating the model
+        updateRequest.setStatus(ModelStatus.ACTIVE); // Activating the model
         updateRequest.setBrand(inactiveBrand);
 
         // When: Updating via service
         CarModel updatedModel = carModelService.updateModel(inactiveModel.getId(), updateRequest);
 
         // Then: Verify both model and brand are active
-        assertThat(updatedModel.getIsActive()).isTrue();
+        assertThat(updatedModel.getStatus() == ModelStatus.ACTIVE).isTrue();
         
         CarBrand updatedBrand = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
-        assertThat(updatedBrand.getIsActive()).isTrue(); // Brand should be auto-activated
+        assertThat(updatedBrand.getStatus() == ModelStatus.ACTIVE).isTrue(); // Brand should be auto-activated
     }
 
 
@@ -94,7 +95,7 @@ class SmartActivationIntegrationTest {
         secondModel.setSlug("toyota-corolla");
         secondModel.setDisplayNameEn("Corolla");
         secondModel.setDisplayNameAr("كورولا");
-        secondModel.setIsActive(false);
+        secondModel.setStatus(ModelStatus.INACTIVE);
         secondModel.setBrand(inactiveBrand);
         secondModel = carModelRepository.save(secondModel);
 
@@ -103,20 +104,20 @@ class SmartActivationIntegrationTest {
         firstUpdate.setName("Camry");
         firstUpdate.setDisplayNameEn("Camry");
         firstUpdate.setDisplayNameAr("كامري");
-        firstUpdate.setIsActive(true);
+        firstUpdate.setStatus(ModelStatus.ACTIVE);
         firstUpdate.setBrand(inactiveBrand);
         carModelService.updateModel(inactiveModel.getId(), firstUpdate);
 
         // Then: Brand should be active
         CarBrand brandAfterFirst = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
-        assertThat(brandAfterFirst.getIsActive()).isTrue();
+        assertThat(brandAfterFirst.getStatus() == ModelStatus.ACTIVE).isTrue();
 
         // When: Activate second model (brand already active)
         CarModel secondUpdate = new CarModel();
         secondUpdate.setName("Corolla");
         secondUpdate.setDisplayNameEn("Corolla");
         secondUpdate.setDisplayNameAr("كورولا");
-        secondUpdate.setIsActive(true);
+        secondUpdate.setStatus(ModelStatus.ACTIVE);
         secondUpdate.setBrand(inactiveBrand);
         carModelService.updateModel(secondModel.getId(), secondUpdate);
 
@@ -125,9 +126,9 @@ class SmartActivationIntegrationTest {
         CarModel finalFirstModel = carModelRepository.findById(inactiveModel.getId()).orElseThrow();
         CarModel finalSecondModel = carModelRepository.findById(secondModel.getId()).orElseThrow();
 
-        assertThat(finalBrand.getIsActive()).isTrue();
-        assertThat(finalFirstModel.getIsActive()).isTrue();
-        assertThat(finalSecondModel.getIsActive()).isTrue();
+        assertThat(finalBrand.getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalFirstModel.getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalSecondModel.getStatus() == ModelStatus.ACTIVE).isTrue();
     }
 
     @Test
@@ -149,11 +150,11 @@ class SmartActivationIntegrationTest {
         CarModel finalModel1 = carModelRepository.findById(model1.getId()).orElseThrow();
         CarModel finalModel2 = carModelRepository.findById(model2.getId()).orElseThrow();
 
-        assertThat(finalBrand.getIsActive()).isTrue();
-        assertThat(finalModel1.getIsActive()).isTrue();
-        assertThat(finalModel2.getIsActive()).isTrue();
-        assertThat(finalModel1.getBrand().getIsActive()).isTrue();
-        assertThat(finalModel2.getBrand().getIsActive()).isTrue();
+        assertThat(finalBrand.getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalModel1.getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalModel2.getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalModel1.getBrand().getStatus() == ModelStatus.ACTIVE).isTrue();
+        assertThat(finalModel2.getBrand().getStatus() == ModelStatus.ACTIVE).isTrue();
     }
 
     private CarModel createTestModel(String name, String slug, String displayNameEn, String displayNameAr) {
@@ -162,7 +163,7 @@ class SmartActivationIntegrationTest {
         model.setSlug(slug);
         model.setDisplayNameEn(displayNameEn);
         model.setDisplayNameAr(displayNameAr);
-        model.setIsActive(false);
+        model.setStatus(ModelStatus.INACTIVE);
         model.setBrand(inactiveBrand);
         return carModelRepository.save(model);
     }
@@ -172,7 +173,7 @@ class SmartActivationIntegrationTest {
         update.setName(name);
         update.setDisplayNameEn(displayNameEn);
         update.setDisplayNameAr(displayNameAr);
-        update.setIsActive(isActive);
+        update.setStatus(isActive ? ModelStatus.ACTIVE : ModelStatus.INACTIVE);
         update.setBrand(inactiveBrand);
         return update;
     }

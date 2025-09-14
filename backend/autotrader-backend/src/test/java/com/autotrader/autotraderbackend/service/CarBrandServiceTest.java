@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.CarBrandRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ class CarBrandServiceTest {
 
         // Assert
         assertEquals(expectedBrands.size(), result.size());
-        assertTrue(result.get(0).getIsActive());
+        assertTrue(result.get(0).getStatus() == ModelStatus.ACTIVE);
         verify(carBrandRepository, times(1)).findByIsActiveTrue();
     }
 
@@ -197,7 +198,7 @@ class CarBrandServiceTest {
         assertEquals(updatedBrand.getName(), result.getName());
         assertEquals(updatedBrand.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedBrand.getDisplayNameAr(), result.getDisplayNameAr());
-        assertEquals(updatedBrand.getIsActive(), result.getIsActive());
+        assertEquals(updatedBrand.getStatus(), result.getStatus());
         // Verify slug is not updated
         assertEquals(testBrand.getSlug(), result.getSlug());
         
@@ -215,7 +216,7 @@ class CarBrandServiceTest {
         CarBrand result = carBrandService.updateBrandActivation(1L, false);
         
         // Assert
-        assertFalse(result.getIsActive());
+        assertEquals(ModelStatus.INACTIVE, result.getStatus());
         verify(carBrandRepository, times(1)).findById(1L);
         verify(carBrandRepository, times(1)).save(any(CarBrand.class));
     }

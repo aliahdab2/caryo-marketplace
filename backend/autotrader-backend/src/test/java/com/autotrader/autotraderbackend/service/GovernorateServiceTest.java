@@ -1,7 +1,9 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.Governorate;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.model.Country;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.response.GovernorateResponse;
 import com.autotrader.autotraderbackend.repository.GovernorateRepository;
 import com.autotrader.autotraderbackend.repository.CountryRepository;

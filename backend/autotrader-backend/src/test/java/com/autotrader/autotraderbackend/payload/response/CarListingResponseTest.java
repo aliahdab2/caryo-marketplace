@@ -75,13 +75,13 @@ class CarListingResponseTest {
      * Helper method to create nested response objects
      */
     private CarBrandResponse createTestBrand() {
-        return new CarBrandResponse(BRAND_ID, "Toyota", "toyota", "Toyota", "تويوتا", true);
+        return new CarBrandResponse(BRAND_ID, "Toyota", "toyota", "Toyota", "تويوتا", "ACTIVE");
     }
 
     private CarModelResponse createTestModel() {
         // Create a test brand response for the model
-        CarBrandResponse testBrand = new CarBrandResponse(BRAND_ID, "Toyota", "toyota", "Toyota", "تويوتا", true);
-        return new CarModelResponse(MODEL_ID, "Camry", "camry", "Camry", "كامري", true, BRAND_ID, testBrand);
+        CarBrandResponse testBrand = new CarBrandResponse(BRAND_ID, "Toyota", "toyota", "Toyota", "تويوتا", "ACTIVE");
+        return new CarModelResponse(MODEL_ID, "Camry", "camry", "Camry", "كامري", "ACTIVE", BRAND_ID, testBrand);
     }
 
     private TransmissionResponse createTestTransmission() {
@@ -216,7 +216,7 @@ class CarListingResponseTest {
             assertEquals("toyota", response.getBrand().getSlug());
             assertEquals("Toyota", response.getBrand().getDisplayNameEn());
             assertEquals("تويوتا", response.getBrand().getDisplayNameAr());
-            assertTrue(response.getBrand().getIsActive());
+            assertEquals("ACTIVE", response.getBrand().getStatus());
         }
 
         @Test
@@ -237,7 +237,7 @@ class CarListingResponseTest {
             assertEquals("Camry", response.getModel().getDisplayNameEn());
             assertEquals("كامري", response.getModel().getDisplayNameAr());
             assertEquals(BRAND_ID, response.getModel().getBrandId());
-            assertTrue(response.getModel().getIsActive());
+            assertEquals("ACTIVE", assertTrue(response.getModel().getStatus() == ModelStatus.ACTIVE.getStatus()));
         }
 
         @Test

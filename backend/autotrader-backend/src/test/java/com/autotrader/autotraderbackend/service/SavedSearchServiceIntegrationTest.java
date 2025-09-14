@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.payload.request.SavedSearchRequest;
 import com.autotrader.autotraderbackend.payload.response.SavedSearchResponse;
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,7 +141,7 @@ class SavedSearchServiceIntegrationTest {
         assertNotNull(response.getId());
         assertEquals("My Toyota Search", response.getNameEn());
         assertEquals("بحث تويوتا", response.getNameAr());
-        assertTrue(response.getIsActive());
+        assertEquals("ACTIVE", assertTrue(response.getStatus() == ModelStatus.ACTIVE.getStatus()));
         assertNotNull(response.getCreatedAt());
     }
 

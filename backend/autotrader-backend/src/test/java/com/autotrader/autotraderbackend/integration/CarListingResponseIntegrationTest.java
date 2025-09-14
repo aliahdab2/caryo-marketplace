@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.integration;
 
 import com.autotrader.autotraderbackend.mapper.CarListingMapper;
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class CarListingResponseIntegrationTest {
         brand.setSlug("toyota");
         brand.setDisplayNameEn("Toyota");
         brand.setDisplayNameAr("تويوتا");
-        brand.setIsActive(true);
+        brand.setStatus(ModelStatus.ACTIVE);
 
         CarModel model = new CarModel();
         model.setId(15L);
@@ -45,7 +46,7 @@ public class CarListingResponseIntegrationTest {
         model.setSlug("camry");
         model.setDisplayNameEn("Camry");
         model.setDisplayNameAr("كامري");
-        model.setIsActive(true);
+        model.setStatus(ModelStatus.ACTIVE);
         model.setBrand(brand);
         
 

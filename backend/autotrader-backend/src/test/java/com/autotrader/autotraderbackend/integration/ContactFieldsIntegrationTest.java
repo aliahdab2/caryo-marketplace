@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.integration;
 
 import com.autotrader.autotraderbackend.model.*;
+import com.autotrader.autotraderbackend.model.ModelStatus;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
