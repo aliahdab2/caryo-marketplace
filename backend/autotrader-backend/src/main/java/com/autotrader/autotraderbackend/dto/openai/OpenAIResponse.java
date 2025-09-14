@@ -59,8 +59,13 @@ public class OpenAIResponse {
      * Checks if the response indicates an error or incomplete data
      */
     public boolean isSuccessful() {
-        return hasValidTranslation() &&
-               (usage == null || usage.hasValidUsageData()); // Usage is optional
+        // Must have valid translation content
+        if (!hasValidTranslation()) {
+            return false;
+        }
+        
+        // Usage data is optional, but if present, it must be valid
+        return usage == null || usage.hasValidUsageData();
     }
 
     /**
