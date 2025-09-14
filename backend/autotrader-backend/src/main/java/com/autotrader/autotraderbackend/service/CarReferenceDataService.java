@@ -17,9 +17,6 @@ import java.util.Map;
 @Slf4j
 public class CarReferenceDataService {
 
-    private final CarBrandService carBrandService;
-    private final CarModelService carModelService;
-    private final CarTrimService carTrimService;
     private final CarConditionService carConditionService;
     private final DriveTypeService driveTypeService;
     private final BodyStyleService bodyStyleService;

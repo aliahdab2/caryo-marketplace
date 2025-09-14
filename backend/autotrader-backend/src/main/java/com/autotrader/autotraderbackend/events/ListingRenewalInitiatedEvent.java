@@ -3,7 +3,6 @@ package com.autotrader.autotraderbackend.events;
 import com.autotrader.autotraderbackend.model.CarListing;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import java.util.Objects;
 
 /**
  * Event that is published when a car listing renewal is initiated.
