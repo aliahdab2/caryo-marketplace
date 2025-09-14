@@ -25,6 +25,14 @@ class CarListingAnalyticsServiceTest {
     @Mock
     private CarListingRepository carListingRepository;
 
+    /**
+     * Helper method to create properly typed Specification matcher
+     */
+    @SuppressWarnings("unchecked")
+    private <T> org.springframework.data.jpa.domain.Specification<T> anySpecification() {
+        return any(org.springframework.data.jpa.domain.Specification.class);
+    }
+
     @InjectMocks
     private CarListingAnalyticsService analyticsService;
 
@@ -106,7 +114,7 @@ class CarListingAnalyticsServiceTest {
             createMockListingWithBrand("toyota")
         );
 
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
         when(carListingRepository.findDistinctBrandSlugsWithCounts()).thenReturn(mockBrandCounts);
 
         // Act
@@ -119,7 +127,7 @@ class CarListingAnalyticsServiceTest {
         assertTrue(result.containsKey("models"));
 
         // Verify that specification-based queries were used for years and models due to complex filter
-        verify(carListingRepository, times(2)).findAll(any(Specification.class));
+        verify(carListingRepository, times(2)).findAll(anySpecification());
         verify(carListingRepository).findDistinctBrandSlugsWithCounts();
     }
 
@@ -154,7 +162,7 @@ class CarListingAnalyticsServiceTest {
             createMockListing(2021)
         );
 
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
 
         // Act
         Map<String, Long> result = analyticsService.getCountsByYear(complexFilter);
@@ -196,7 +204,7 @@ class CarListingAnalyticsServiceTest {
             createMockListingWithBrand("toyota")
         );
 
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
 
         // Act
         Map<String, Long> result = analyticsService.getCountsByBrand(complexFilter);
@@ -269,7 +277,7 @@ class CarListingAnalyticsServiceTest {
             createMockListingWithTransmission("automatic")
         );
 
-        when(carListingRepository.findAll(any(Specification.class))).thenReturn(mockListings);
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
 
         // Act
         Map<String, Long> result = analyticsService.getCountsByTransmission(filterRequest);

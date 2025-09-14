@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.model.NewsletterSubscription;
-import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionRequest;
+import com.autotrader.autotraderbackend.payload.request.NewsletterSubscriptionRequest;
 import com.autotrader.autotraderbackend.repository.NewsletterSubscriptionRepository;
 import com.autotrader.autotraderbackend.service.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -34,6 +35,14 @@ class CarListingQueryServiceTest {
 
     @Mock
     private CarListingRepository carListingRepository;
+
+    /**
+     * Helper method to create properly typed Specification matcher
+     */
+    @SuppressWarnings("unchecked")
+    private <T> org.springframework.data.jpa.domain.Specification<T> anySpecification() {
+        return any(org.springframework.data.jpa.domain.Specification.class);
+    }
 
     @Mock
     private GovernorateRepository governorateRepository;
@@ -67,7 +76,7 @@ class CarListingQueryServiceTest {
         List<CarListing> listings = List.of(testListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When
@@ -78,21 +87,21 @@ class CarListingQueryServiceTest {
         assertEquals(1, result.getTotalElements());
         assertEquals(testResponse, result.getContent().get(0));
 
-        verify(carListingRepository).findAll(any(Specification.class), eq(pageable));
+        verify(carListingRepository).findAll(anySpecification(), eq(pageable));
         verify(carListingMapper).toCarListingResponse(testListing);
     }
 
     @Test
     void getApprovedListingsCount_ShouldReturnCount() {
         // Given
-        when(carListingRepository.count(any(Specification.class))).thenReturn(5L);
+        when(carListingRepository.count(anySpecification())).thenReturn(5L);
 
         // When
         long result = queryService.getApprovedListingsCount();
 
         // Then
         assertEquals(5L, result);
-        verify(carListingRepository).count(any(Specification.class));
+        verify(carListingRepository).count(anySpecification());
     }
 
     @Test
@@ -109,7 +118,7 @@ class CarListingQueryServiceTest {
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
         when(governorateRepository.findById(1L)).thenReturn(Optional.of(governorate));
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When
@@ -119,7 +128,7 @@ class CarListingQueryServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         verify(governorateRepository).findById(1L);
-        verify(carListingRepository).findAll(any(Specification.class), eq(pageable));
+        verify(carListingRepository).findAll(anySpecification(), eq(pageable));
     }
 
     @Test
@@ -139,7 +148,7 @@ class CarListingQueryServiceTest {
         assertTrue(result.getContent().isEmpty());
 
         verify(governorateRepository).findById(999L);
-        verify(carListingRepository, never()).findAll(any(Specification.class), any(Pageable.class));
+        verify(carListingRepository, never()).findAll(anySpecification(), any(Pageable.class));
     }
 
     @Test
@@ -156,7 +165,7 @@ class CarListingQueryServiceTest {
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
         when(governorateRepository.findBySlug("test-slug")).thenReturn(Optional.of(governorate));
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When
@@ -190,7 +199,7 @@ class CarListingQueryServiceTest {
         List<CarListing> listings = List.of(testListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageableWithValidSort))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageableWithValidSort))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When
@@ -213,7 +222,7 @@ class CarListingQueryServiceTest {
         List<CarListing> listings = List.of(testListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When
@@ -222,7 +231,7 @@ class CarListingQueryServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        verify(carListingRepository).findAll(any(Specification.class), eq(pageable));
+        verify(carListingRepository).findAll(anySpecification(), eq(pageable));
     }
 
     @Test
@@ -231,14 +240,14 @@ class CarListingQueryServiceTest {
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(List.of("toyota"));
 
-        when(carListingRepository.count(any(Specification.class))).thenReturn(15L);
+        when(carListingRepository.count(anySpecification())).thenReturn(15L);
 
         // When
         long result = queryService.getFilteredListingsCount(filterRequest);
 
         // Then
         assertEquals(15L, result);
-        verify(carListingRepository).count(any(Specification.class));
+        verify(carListingRepository).count(anySpecification());
     }
 
     @Test
@@ -255,7 +264,7 @@ class CarListingQueryServiceTest {
         // Then
         assertEquals(0L, result);
         verify(governorateRepository).findById(999L);
-        verify(carListingRepository, never()).count(any(Specification.class));
+        verify(carListingRepository, never()).count(anySpecification());
     }
 
     @Test
@@ -263,7 +272,7 @@ class CarListingQueryServiceTest {
         // Given
         Page<CarListing> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(emptyPage);
 
         // When
         Page<CarListingResponse> result = queryService.getAllApprovedListings(pageable);
@@ -277,7 +286,7 @@ class CarListingQueryServiceTest {
     @Test
     void getApprovedListingsCount_WithZeroResults_ShouldReturnZero() {
         // Given
-        when(carListingRepository.count(any(Specification.class))).thenReturn(0L);
+        when(carListingRepository.count(anySpecification())).thenReturn(0L);
 
         // When
         long result = queryService.getApprovedListingsCount();
@@ -293,7 +302,7 @@ class CarListingQueryServiceTest {
         List<CarListing> listings = List.of(testListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageable))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When & Then - This should not throw an exception
@@ -312,7 +321,7 @@ class CarListingQueryServiceTest {
         List<CarListing> listings = List.of(testListing);
         Page<CarListing> listingPage = new PageImpl<>(listings, pageable, 1);
 
-        when(carListingRepository.findAll(any(Specification.class), eq(pageableWithCompoundSort))).thenReturn(listingPage);
+        when(carListingRepository.findAll(anySpecification(), eq(pageableWithCompoundSort))).thenReturn(listingPage);
         when(carListingMapper.toCarListingResponse(testListing)).thenReturn(testResponse);
 
         // When

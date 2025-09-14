@@ -150,8 +150,7 @@ jacocoTestReport {
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += [
         "-Xlint:deprecation",
-        "-Xlint:unchecked",
-        "-Ajc.disable.cache=true"
+        "-Xlint:unchecked"
     ]
     options.annotationProcessorPath = configurations.annotationProcessor
 }
