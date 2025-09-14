@@ -36,8 +36,9 @@ public class CarModel {
     @Column(name = "display_name_ar", nullable = false, length = 100)
     private String displayNameAr;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ModelStatus status = ModelStatus.INACTIVE;
 
     @JsonIgnore
     @OneToMany(mappedBy = "model", cascade = CascadeType.ALL, orphanRemoval = true)

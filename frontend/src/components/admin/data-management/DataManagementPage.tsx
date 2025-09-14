@@ -111,7 +111,7 @@ export const DataManagementPage: React.FC = () => {
   const [modelsPage, setModelsPage] = useState(1);
   const [brandsSearch, setBrandsSearch] = useState('');
   const [modelsSearch, setModelsSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'rejected'>('all');
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>('');
   
   
@@ -263,9 +263,10 @@ export const DataManagementPage: React.FC = () => {
         brand.displayNameEn.toLowerCase().includes(brandsSearch.toLowerCase()) ||
         brand.displayNameAr.includes(brandsSearch);
       
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && brand.isActive) ||
-        (statusFilter === 'inactive' && !brand.isActive);
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'active' && brand.status === 'ACTIVE') ||
+        (statusFilter === 'inactive' && brand.status === 'INACTIVE') ||
+        (statusFilter === 'rejected' && brand.status === 'REJECTED');
       
       return matchesSearch && matchesStatus;
     });
@@ -278,9 +279,10 @@ export const DataManagementPage: React.FC = () => {
         model.displayNameEn.toLowerCase().includes(modelsSearch.toLowerCase()) ||
         model.displayNameAr.includes(modelsSearch);
       
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && model.isActive) ||
-        (statusFilter === 'inactive' && !model.isActive);
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'active' && model.status === 'ACTIVE') ||
+        (statusFilter === 'inactive' && model.status === 'INACTIVE') ||
+        (statusFilter === 'rejected' && model.status === 'REJECTED');
       
       const matchesBrand = !selectedBrandFilter || 
         model.brandId.toString() === selectedBrandFilter;
@@ -507,6 +509,7 @@ export const DataManagementPage: React.FC = () => {
                 <option value="all">{t('datamanagement:allStatuses')}</option>
                 <option value="active">{t('datamanagement:active')}</option>
                 <option value="inactive">{t('datamanagement:inactive')}</option>
+                <option value="rejected">{t('datamanagement:rejected')}</option>
               </select>
 
               <button

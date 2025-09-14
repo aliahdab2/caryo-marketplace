@@ -4,7 +4,7 @@ export interface CarBrand {
   displayNameEn: string;
   displayNameAr: string;
   slug: string;
-  isActive: boolean;
+  status: 'ACTIVE' | 'INACTIVE' | 'REJECTED';
 }
 
 export interface CarModel {
@@ -15,7 +15,7 @@ export interface CarModel {
   slug: string;
   brandId: number;
   brand: CarBrand;
-  isActive: boolean;
+  status: 'ACTIVE' | 'INACTIVE' | 'REJECTED';
 }
 
 export interface DataStatistics {
@@ -37,7 +37,7 @@ export interface EditForm {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  isActive?: boolean;
+  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
   brandId?: string;
 }
 
@@ -75,14 +75,14 @@ export interface UpdateBrandData {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  isActive?: boolean;
+  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
 }
 
 export interface UpdateModelData {
   name?: string;
   displayNameEn?: string;
   displayNameAr?: string;
-  isActive?: boolean;
+  status?: 'ACTIVE' | 'INACTIVE' | 'IGNORED';
   brandId?: string;
 }
 
