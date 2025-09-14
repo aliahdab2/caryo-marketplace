@@ -117,33 +117,19 @@ export const useDataManagement = () => {
     return allModels;
   }, [makeAuthenticatedRequest]);
 
-  // Load all data
+  // Load all data (without automatic sync status fetching)
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      
-      const [brandsRes, statsRes, syrianCarsRes, carQueryRes] = await Promise.all([
-        makeAuthenticatedRequest('/api/admin/car-brands?size=1000'), 
+
+      const [brandsRes, statsRes] = await Promise.all([
+        makeAuthenticatedRequest('/api/admin/car-brands?size=1000'),
         makeAuthenticatedRequest('/api/admin/data/statistics'),
-        makeAuthenticatedRequest('/api/admin/data/sync-status/SyrianCars'),
-        makeAuthenticatedRequest('/api/admin/data/sync-status/CarQueryAPI'),
       ]);
 
       // Fetch models separately using the new paginated fetcher
       const modelsData = await fetchAllModels();
       setModels(modelsData);
-
-      // Process sync status
-      const newSyncStatus: SyncStatus = {};
-      if (syrianCarsRes.ok) {
-        const data = await syrianCarsRes.json();
-        if (data.success && data.data) newSyncStatus.syriancars = data.data;
-      }
-      if (carQueryRes.ok) {
-        const data = await carQueryRes.json();
-        if (data.success && data.data) newSyncStatus.carquery = data.data;
-      }
-      setSyncStatus(newSyncStatus);
 
       let brandsData: CarBrand[] = [];
       if (brandsRes.ok) {
@@ -192,29 +178,10 @@ export const useDataManagement = () => {
     }
   }, [showError, t, makeAuthenticatedRequest, fetchAllModels]);
 
-  // Polling for sync status
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    const startPolling = () => {
-      intervalId = setInterval(async () => {
-        const currentSyncStatus = await fetchAndSetSyncStatus();
-        const isSyrianCarsSyncing = currentSyncStatus.syriancars?.status === 'IN_PROGRESS';
-        const isCarQuerySyncing = currentSyncStatus.carquery?.status === 'IN_PROGRESS';
-        
-        const pollingInterval = (isSyrianCarsSyncing || isCarQuerySyncing) ? 5000 : 30000; // 5s if syncing, 30s otherwise
-
-        // If interval needs to change, clear and restart
-        if (intervalId && pollingInterval !== (intervalId as NodeJS.Timeout & { _repeat?: number })._repeat) { // _repeat is internal but works for checking current interval
-          clearInterval(intervalId);
-          startPolling();
-        }
-      }, 30000); // Initial interval, will be adjusted inside
-    };
-
-    startPolling();
-
-    return () => clearInterval(intervalId); // Cleanup on unmount
+  // Manual sync status fetching (no automatic polling)
+  const refreshSyncStatus = useCallback(async () => {
+    console.log("Manually refreshing sync status...");
+    await fetchAndSetSyncStatus();
   }, [fetchAndSetSyncStatus]);
 
   // Sync SyrianCars data
@@ -438,9 +405,10 @@ export const useDataManagement = () => {
     brands,
     models,
     syncStatus,
-    
+
     // Actions
     loadData,
+    refreshSyncStatus,
     exportExcel,
     importExcel,
     updateBrand,

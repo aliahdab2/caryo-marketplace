@@ -87,7 +87,7 @@ class DataInitializerTest {
         // Then
         verify(userRepository).existsByUsername("user");
         verify(passwordEncoder).encode("Password123!");
-        verify(userRepository, times(2)).save(any(User.class)); // Regular user created, admin user updated
+        verify(userRepository, times(2)).saveAndFlush(any(User.class)); // Regular user created, admin user updated
     }
 
     @Test
@@ -102,7 +102,7 @@ class DataInitializerTest {
         // Then
         verify(userRepository).existsByUsername("admin");
         verify(passwordEncoder).encode("Admin123!");
-        verify(userRepository, times(2)).save(any(User.class)); // Admin user created, regular user updated
+        verify(userRepository, times(2)).saveAndFlush(any(User.class)); // Admin user created, regular user updated
     }
 
     @Test
@@ -110,14 +110,14 @@ class DataInitializerTest {
         // Given
         when(userRepository.existsByUsername("user")).thenReturn(false);
         when(userRepository.existsByUsername("admin")).thenReturn(true);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         dataInitializer.run();
 
         // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository, times(2)).save(userCaptor.capture()); // Both users are processed
+        verify(userRepository, times(2)).saveAndFlush(userCaptor.capture()); // Both users are processed
 
         // Find the regular user (not admin)
         User savedUser = userCaptor.getAllValues().stream()
@@ -144,14 +144,14 @@ class DataInitializerTest {
         // Given
         when(userRepository.existsByUsername("user")).thenReturn(true);
         when(userRepository.existsByUsername("admin")).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         dataInitializer.run();
 
         // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository, times(2)).save(userCaptor.capture()); // Both users are processed
+        verify(userRepository, times(2)).saveAndFlush(userCaptor.capture()); // Both users are processed
 
         // Find the admin user
         User savedUser = userCaptor.getAllValues().stream()
@@ -181,11 +181,11 @@ class DataInitializerTest {
     void shouldGenerateTokensForBothUsers() {
         // Given
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         // When
         dataInitializer.run();
-        
+
         // Then
         verify(jwtUtils, times(2)).generateJwtToken(any(Authentication.class));
     }
@@ -211,9 +211,9 @@ class DataInitializerTest {
         // When
         dataInitializer.run();
 
-        // Then - existing users should be updated (not created), so save should be called twice
+        // Then - existing users should be updated (not created), so saveAndFlush should be called twice
         verify(userRepository).existsByUsername("user");
         verify(userRepository).existsByUsername("admin");
-        verify(userRepository, times(2)).save(any(User.class)); // Both users will be saved to update verification
+        verify(userRepository, times(2)).saveAndFlush(any(User.class)); // Both users will be saved to update verification
     }
 }

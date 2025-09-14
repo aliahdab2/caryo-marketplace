@@ -31,18 +31,11 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CarListingQueryServiceTest {
+class CarListingQueryServiceTest extends BaseCarListingTest {
 
     @Mock
     private CarListingRepository carListingRepository;
 
-    /**
-     * Helper method to create properly typed Specification matcher
-     */
-    @SuppressWarnings("unchecked")
-    private <T> org.springframework.data.jpa.domain.Specification<T> anySpecification() {
-        return any(org.springframework.data.jpa.domain.Specification.class);
-    }
 
     @Mock
     private GovernorateRepository governorateRepository;
