@@ -29,7 +29,7 @@ import {
 import { CarBrand, CarModel } from './types';
 import { SyncOperations } from './components/SyncOperations';
 
-const ITEMS_PER_PAGE = 50;
+const ITEMS_PER_PAGE = 20;
 
 // Type definitions for save functions
 type BrandSaveData = { name?: string; displayNameEn?: string; displayNameAr?: string; isActive?: boolean };
