@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 public class CarDataLoaderService {
 
     private final CarQueryDataService carQueryDataService;
-    private final CaryoDataService caryoDataService;
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final CarDataProviderRegistry providerRegistry; // New centralized registry

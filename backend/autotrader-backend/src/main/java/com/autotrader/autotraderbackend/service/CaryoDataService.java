@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CaryoDataService implements CarDataProvider {
 
-    private final CarBrandService carBrandService;
-    private final CarModelService carModelService;
 
     @Value("${caryo.api.enabled:false}")
     private boolean enabled;

@@ -87,34 +87,20 @@ export const useDataManagement = () => {
     }
   }, [makeAuthenticatedRequest]);
 
+  // Simple: fetch all models (both active and inactive for admin review)
   const fetchAllModels = useCallback(async () => {
-    let allModels: CarModel[] = [];
-    let page = 0;
-    let hasMore = true;
-    const size = 100; // Fetch 100 models per page
-
-    while (hasMore) {
-      try {
-        const response = await makeAuthenticatedRequest(`/api/admin/car-models?page=${page}&size=${size}&sortBy=name`);
-        if (response.ok) {
-          const pageData = await response.json();
-          const modelsOnPage = pageData.data?.content || [];
-          allModels = [...allModels, ...modelsOnPage];
-          if (pageData.data?.last === true || modelsOnPage.length < size) {
-            hasMore = false;
-          } else {
-            page++;
-          }
-        } else {
-          console.error(`Failed to load models page ${page}:`, response.status, response.statusText);
-          hasMore = false; // Stop if there's an error
-        }
-      } catch (error) {
-        console.error(`Error fetching models page ${page}:`, error);
-        hasMore = false; // Stop on network error
+    try {
+      const response = await makeAuthenticatedRequest('/api/admin/car-models?page=0&size=1000&sortBy=name');
+      if (response.ok) {
+        const data = await response.json();
+        const models = data.data?.content || [];
+        setModels(models);
+      } else {
+        console.error('Failed to load models:', response.status, response.statusText);
       }
+    } catch (error) {
+      console.error('Error fetching models:', error);
     }
-    return allModels;
   }, [makeAuthenticatedRequest]);
 
   // Load all data (without automatic sync status fetching)
@@ -122,14 +108,14 @@ export const useDataManagement = () => {
     try {
       setLoading(true);
 
-      const [brandsRes, statsRes] = await Promise.all([
+      const [brandsRes, statsRes, _syncStatusData] = await Promise.all([
         makeAuthenticatedRequest('/api/admin/car-brands?size=1000'),
         makeAuthenticatedRequest('/api/admin/data/statistics'),
+        fetchAndSetSyncStatus(), // Load sync status on page refresh
       ]);
 
-      // Fetch models separately using the new paginated fetcher
-      const modelsData = await fetchAllModels();
-      setModels(modelsData);
+      // Fetch models separately (it sets the state internally)
+      await fetchAllModels();
 
       let brandsData: CarBrand[] = [];
       if (brandsRes.ok) {
@@ -157,8 +143,8 @@ export const useDataManagement = () => {
         setStatistics({
           totalBrands: brandsData.length,
           activeBrands: brandsData.filter(b => b.isActive).length,
-          totalModels: modelsData.length,
-          activeModels: modelsData.filter(m => m.isActive).length
+          totalModels: 0, // Will be updated when models load
+          activeModels: 0 // Will be updated when models load
         });
       }
 
@@ -176,7 +162,7 @@ export const useDataManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [showError, t, makeAuthenticatedRequest, fetchAllModels]);
+  }, [showError, t, makeAuthenticatedRequest, fetchAllModels, fetchAndSetSyncStatus]);
 
   // Manual sync status fetching (no automatic polling)
   const refreshSyncStatus = useCallback(async () => {

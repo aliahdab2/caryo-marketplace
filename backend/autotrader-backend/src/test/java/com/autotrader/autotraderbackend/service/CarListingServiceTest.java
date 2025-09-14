@@ -600,25 +600,6 @@ class CarListingServiceTest {
         verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
-    // Helper method to create seller type for testing
-    private com.autotrader.autotraderbackend.model.SellerType createSellerType(String name) {
-        com.autotrader.autotraderbackend.model.SellerType sellerType = 
-            new com.autotrader.autotraderbackend.model.SellerType();
-        sellerType.setId(1L);
-        sellerType.setName(name);
-        sellerType.setDisplayNameEn(name);
-        sellerType.setDisplayNameAr(name);
-        return sellerType;
-    }
-
-    // Helper method to create test user
-    private User createTestUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
-        user.setEmail("test@example.com");
-        return user;
-    }
 
     // Helper method to create test listing
     private CarListing createTestListing() {
@@ -635,12 +616,6 @@ class CarListingServiceTest {
     void getCountsByFuelType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        List<Object[]> mockResults = Arrays.asList(
-            new Object[]{"gasoline", 150L},
-            new Object[]{"diesel", 80L},
-            new Object[]{"electric", 20L},
-            new Object[]{"hybrid", 30L}
-        );
         
         Map<String, Long> expectedResult = Map.of(
             "gasoline", 150L,
@@ -800,18 +775,6 @@ class CarListingServiceTest {
         verify(analyticsService).getCountsByFuelType(filterRequest);
     }
 
-    private CarListing createTestListingWithFuelType(String fuelTypeName) {
-        CarListing listing = createTestListing();
-        if (fuelTypeName != null) {
-            com.autotrader.autotraderbackend.model.FuelType fuelType = new com.autotrader.autotraderbackend.model.FuelType();
-            fuelType.setId(1L);
-            fuelType.setName(fuelTypeName);
-            fuelType.setDisplayNameEn(fuelTypeName);
-            fuelType.setDisplayNameAr(fuelTypeName);
-            listing.setFuelType(fuelType);
-        }
-        return listing;
-    }
 
     // --- CRUD Delegation Tests ---
 

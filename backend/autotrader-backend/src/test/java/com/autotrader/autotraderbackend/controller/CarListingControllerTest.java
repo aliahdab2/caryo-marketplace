@@ -4,7 +4,6 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
-import com.autotrader.autotraderbackend.service.CarListingStatusService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,15 +33,12 @@ class CarListingControllerTest {
     @Mock
     private CarListingService carListingService;
 
-    @Mock
-    private CarListingStatusService carListingStatusService;
-
     private CarListingController carListingController;
     private CarListingResponse carListingResponse;
 
     @BeforeEach
     void setUp() {
-        carListingController = new CarListingController(carListingService, carListingStatusService);
+        carListingController = new CarListingController(carListingService);
         carListingResponse = new CarListingResponse();
         carListingResponse.setId(1L);
         carListingResponse.setTitle("Test Car");

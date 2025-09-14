@@ -32,7 +32,6 @@ import java.util.Map;
 public class CarListingController {
 
     private final CarListingService carListingService;
-    private final CarListingStatusService carListingStatusService;
 
 
     // Endpoint for approving listings moved to end of class

@@ -364,7 +364,7 @@ public class SavedSearchService {
 
             try {
                 // Brand filter
-                if (filters.get("brandSlugs") instanceof List<?> brandSlugs && !((List<?>) filters.get("brandSlugs")).isEmpty()) {
+                if (filters.get("brandSlugs") instanceof List<?> && !((List<?>) filters.get("brandSlugs")).isEmpty()) {
                     List<String> brands = ((List<?>) filters.get("brandSlugs")).stream()
                         .map(Object::toString)
                         .collect(Collectors.toList());
@@ -372,7 +372,7 @@ public class SavedSearchService {
                 }
 
                 // Model filter
-                if (filters.get("modelSlugs") instanceof List<?> modelSlugs && !((List<?>) filters.get("modelSlugs")).isEmpty()) {
+                if (filters.get("modelSlugs") instanceof List<?> && !((List<?>) filters.get("modelSlugs")).isEmpty()) {
                     List<String> models = ((List<?>) filters.get("modelSlugs")).stream()
                         .map(Object::toString)
                         .collect(Collectors.toList());
@@ -415,7 +415,7 @@ public class SavedSearchService {
                 }
 
                 // Fuel type filter
-                if (filters.get("fuelTypeSlugs") instanceof List<?> fuelTypeSlugs && !((List<?>) filters.get("fuelTypeSlugs")).isEmpty()) {
+                if (filters.get("fuelTypeSlugs") instanceof List<?> && !((List<?>) filters.get("fuelTypeSlugs")).isEmpty()) {
                     List<String> fuelTypes = ((List<?>) filters.get("fuelTypeSlugs")).stream()
                         .map(Object::toString)
                         .collect(Collectors.toList());
@@ -423,7 +423,7 @@ public class SavedSearchService {
                 }
 
                 // Body type filter
-                if (filters.get("bodyType") instanceof List<?> bodyTypes && !((List<?>) filters.get("bodyType")).isEmpty()) {
+                if (filters.get("bodyType") instanceof List<?> && !((List<?>) filters.get("bodyType")).isEmpty()) {
                     List<String> bodyTypeSlugs = ((List<?>) filters.get("bodyType")).stream()
                         .map(Object::toString)
                         .collect(Collectors.toList());
@@ -436,7 +436,7 @@ public class SavedSearchService {
                 }
 
                 // Location filter (governorate)
-                if (filters.get("location") instanceof List<?> locations && !((List<?>) filters.get("location")).isEmpty()) {
+                if (filters.get("location") instanceof List<?> && !((List<?>) filters.get("location")).isEmpty()) {
                     List<String> locationNames = ((List<?>) filters.get("location")).stream()
                         .map(Object::toString)
                         .collect(Collectors.toList());

@@ -114,6 +114,7 @@ export const DataManagementPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>('');
   
+  
   // State for editing
   const [editingBrand, setEditingBrand] = useState<number | null>(null);
   const [editingModel, setEditingModel] = useState<number | null>(null);
@@ -162,6 +163,7 @@ export const DataManagementPage: React.FC = () => {
       return;
     }
   }, [router]);
+
 
   // Bulk selection functions
   const toggleBrandSelection = (brandId: number) => {
@@ -307,7 +309,7 @@ export const DataManagementPage: React.FC = () => {
 
   useEffect(() => {
     setModelsPage(1);
-  }, [modelsSearch, statusFilter, selectedBrandFilter]);
+  }, [modelsSearch, selectedBrandFilter]);
 
   // Loading state
   if (loading) {
