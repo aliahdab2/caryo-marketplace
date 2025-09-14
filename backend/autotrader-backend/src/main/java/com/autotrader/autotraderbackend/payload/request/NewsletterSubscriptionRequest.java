@@ -1,4 +1,4 @@
-package com.autotrader.autotraderbackend.payload;
+package com.autotrader.autotraderbackend.payload.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,6 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionRequest;
+import com.autotrader.autotraderbackend.payload.request.NewsletterSubscriptionRequest;
 import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionResponse;
 import com.autotrader.autotraderbackend.service.NewsletterService;
 import io.swagger.v3.oas.annotations.Operation;

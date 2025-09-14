@@ -1,7 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.NewsletterSubscription;
-import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionRequest;
+import com.autotrader.autotraderbackend.payload.request.NewsletterSubscriptionRequest;
 import com.autotrader.autotraderbackend.payload.NewsletterSubscriptionResponse;
 import com.autotrader.autotraderbackend.repository.NewsletterSubscriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
