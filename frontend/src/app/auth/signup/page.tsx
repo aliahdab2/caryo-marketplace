@@ -1,9 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import SignupForm from '@/components/auth/SignupForm';
-import Link from 'next/link';
 import NextImage from 'next/image';
 
 export default function SignUpPage() {
@@ -95,37 +93,9 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          {/* Social Login Options First */}
-          <div className="space-y-4 mb-6">
-            <GoogleSignInButton callbackUrl="/dashboard" className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {t('orSignupWithEmail')}
-                </span>
-              </div>
-            </div>
-          </div>
 
           {/* Traditional Signup Form */}
           <SignupForm />
-
-          {/* Sign-in Link */}
-          <div className="text-center mt-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('alreadyHaveAccount')}{" "}
-              <Link
-                href="/auth/signin"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-              >
-                {t('signIn')}
-              </Link>
-            </p>
-          </div>
 
         </div>
       </div>

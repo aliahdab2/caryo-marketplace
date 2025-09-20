@@ -96,7 +96,7 @@ export function useSignupValidation(
     if (!formData.dateOfBirth.trim()) {
       errors.dateOfBirth = t ? t('dateOfBirthRequired') : 'dateOfBirthRequired';
     } else {
-      // Validate age (must be 18+)
+      // Validate age (must be 16+ for account creation, 18+ for selling)
       const birthDate = new Date(formData.dateOfBirth);
       if (isNaN(birthDate.getTime())) {
         errors.dateOfBirth = t ? t('invalidDateOfBirth') : 'invalidDateOfBirth';
@@ -107,8 +107,8 @@ export function useSignupValidation(
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
           age--;
         }
-        if (age < 18) {
-          errors.dateOfBirth = t ? t('ageRestriction') : 'ageRestriction';
+        if (age < 16) {
+          errors.dateOfBirth = t ? t('under16NotAllowed') : 'under16NotAllowed';
         }
       }
     }

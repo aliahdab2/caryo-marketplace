@@ -49,6 +49,7 @@ export default function SignupForm() {
   useEffect(() => {
     // Clear any error state first - this should prevent premature alerts
     updateUIState({
+      currentStep: 1, // Always start from step 1 for better UX
       error: '',
       hasAttemptedValidation: false,
       // Also clear all field-specific errors
@@ -315,10 +316,7 @@ export default function SignupForm() {
           );
         } else {
           return (
-          <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('personalInformation', 'Personal Information')}
-              </h3>
+            <div className="space-y-6">
               <Step2PrivateSellerForm
                 username={formData.username}
                 setUsername={(value) => updateFormData({ username: value })}

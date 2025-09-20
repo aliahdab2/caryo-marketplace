@@ -120,6 +120,8 @@ export function useSignupForm() {
           const mergedUIState = {
             ...initialUIState, // Start with defaults
             ...parsedUIState,  // Override with saved data
+            // Always start from step 1 for better UX
+            currentStep: 1,
             // Ensure selectedSellerType has a valid default if empty
             selectedSellerType: parsedUIState.selectedSellerType || initialUIState.selectedSellerType,
             // Always reset validation state on page load to prevent premature errors
@@ -154,11 +156,35 @@ export function useSignupForm() {
   }, []);
 
   const updateFormData = useCallback((updates: Partial<SignupFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData(prev => {
+      // Only update if there are actual changes to prevent unnecessary re-renders
+      const hasChanges = Object.keys(updates).some(key => {
+        const typedKey = key as keyof SignupFormData;
+        return prev[typedKey] !== updates[typedKey];
+      });
+      
+      if (!hasChanges) {
+        return prev; // Return same reference to prevent re-render
+      }
+      
+      return { ...prev, ...updates };
+    });
   }, []);
 
   const updateUIState = useCallback((updates: Partial<SignupUIState>) => {
-    setUIState(prev => ({ ...prev, ...updates }));
+    setUIState(prev => {
+      // Only update if there are actual changes to prevent unnecessary re-renders
+      const hasChanges = Object.keys(updates).some(key => {
+        const typedKey = key as keyof SignupUIState;
+        return prev[typedKey] !== updates[typedKey];
+      });
+      
+      if (!hasChanges) {
+        return prev; // Return same reference to prevent re-render
+      }
+      
+      return { ...prev, ...updates };
+    });
   }, []);
 
   // Auto-save to localStorage when data changes

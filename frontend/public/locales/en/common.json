@@ -113,5 +113,11 @@
   "deleting": "Deleting...",
   "syncing": "Syncing...",
   "refresh": "Refresh",
-  "showingResults": "Showing {{start}}-{{end}} of {{total}} results"
+  "showingResults": "Showing {{start}}-{{end}} of {{total}} results",
+  "phoneHelp": "Enter your Syrian mobile number (9 digits starting with 9, without the country code)",
+  "validPhoneWithOperator": "Valid {{operator}} number",
+  "loadingCities": "Loading cities...",
+  "noCitiesFound": "No cities found",
+  "noCities": "No cities available",
+  "cityHelp": "Start typing to search for your city"
 }

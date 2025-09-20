@@ -10,8 +10,10 @@ export interface Location {
   countryCode: string;
   latitude?: number;
   longitude?: number;
-  isActive: boolean;
+  active: boolean; // Backend returns 'active', not 'isActive'
   governorateId?: number;
+  governorateNameEn?: string;
+  governorateNameAr?: string;
 }
 
 /**

@@ -62,7 +62,7 @@ export default function DateOfBirthInput({
         {t('dateOfBirth', 'Date of Birth')} {required && <span className="text-red-500 ml-1">*</span>}
         {showAgeRestriction && (
           <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-            (Must be 18+)
+(Must be 16+)
           </span>
         )}
       </label>

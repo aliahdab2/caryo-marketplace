@@ -111,5 +111,11 @@
   "deleting": "جاري الحذف...",
   "syncing": "جاري المزامنة...",
   "refresh": "تحديث",
-  "showingResults": "عرض {{start}}-{{end}} من {{total}} نتيجة"
+  "showingResults": "عرض {{start}}-{{end}} من {{total}} نتيجة",
+  "phoneHelp": "أدخل رقم هاتفك المحمول السوري (9 أرقام تبدأ بـ 9، بدون رمز البلد)",
+  "validPhoneWithOperator": "رقم {{operator}} صحيح",
+  "loadingCities": "جاري تحميل المدن...",
+  "noCitiesFound": "لم يتم العثور على مدن",
+  "noCities": "لا توجد مدن متاحة",
+  "cityHelp": "ابدأ بالكتابة للبحث عن مدينتك"
 }
