@@ -4,29 +4,23 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
-import { useLanguage } from "@/components/EnhancedLanguageProvider";
-import { SupportedLanguage } from "@/utils/i18n";
-import { useManualLanguageOverride } from "@/hooks/useAutomaticLanguageDetection";
-
 export default function SettingsPage() {
-  const { t } = useTranslation('dashboard');
-  const { locale } = useLanguage();
-  const { setLanguageManually } = useManualLanguageOverride();
+  const { t, i18n } = useTranslation('dashboard');
 
   const [accountSettings, setAccountSettings] = useState({
-    language: locale, // Initialize with current locale
+    language: i18n.language, // Initialize with current language
   });
 
   // State for loading indicator during language change
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
 
-  // Effect to keep the language dropdown value synchronized with the actual locale from context
+  // Effect to keep the language dropdown value synchronized with the actual language
   useEffect(() => {
     setAccountSettings(prev => ({
       ...prev,
-      language: locale,
+      language: i18n.language,
     }));
-  }, [locale]);
+  }, [i18n.language]);
 
   // Notification settings state
   const [notificationSettings, setNotificationSettings] = useState({
@@ -46,16 +40,16 @@ export default function SettingsPage() {
   });
 
   // Handle account settings changes
-  const handleAccountChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleAccountChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     if (name === "language") {
-      const newLanguage = value as SupportedLanguage;
-      if (newLanguage !== locale) { // Only proceed if the language is actually different
+      const newLanguage = value;
+      if (newLanguage !== i18n.language) { // Only proceed if the language is actually different
         setIsChangingLanguage(true);
         try {
-          // Use manual override to change language and mark it as user-selected
-          setLanguageManually(newLanguage);
+          // Use i18next to change language - it handles persistence automatically
+          await i18n.changeLanguage(newLanguage);
         } catch (error: unknown) {
           console.error("Failed to change language:", error);
         } finally {

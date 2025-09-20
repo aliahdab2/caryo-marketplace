@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdClose, MdNotificationsNone, MdEmail, MdSchedule } from 'react-icons/md';
-import { useLanguage } from '@/components/EnhancedLanguageProvider';
+// Removed useLanguage import - using i18n.language directly
 import { createSavedSearch, SavedSearchRequest, SavedSearchResponse } from '@/services/savedSearches';
 import { AdvancedSearchFilters } from '@/hooks/useSearchFilters';
 import { useApiData } from '@/hooks/useApiData';
@@ -25,9 +25,8 @@ export default function CreateAlertModal({
   searchQuery,
   onSuccess
 }: CreateAlertModalProps) {
-  const { t } = useTranslation(['search', 'common']);
-  const { direction } = useLanguage();
-  const isRTL = direction.isRTL;
+  const { t, i18n } = useTranslation(['search', 'common']);
+  const isRTL = i18n.language === 'ar';
   
   // Fetch reference data for slug conversion
   const {
