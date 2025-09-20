@@ -293,16 +293,6 @@ export const DataManagementPage: React.FC = () => {
     );
   }
 
-  const handleSaveBrand = async (brandId: number, updatedData: BrandSaveData) => {
-    const success = await updateBrand(brandId, updatedData);
-    if (success) {
-      // Wait a bit for the data to refresh, then exit edit mode
-      setTimeout(() => {
-        setEditingBrand(null);
-      }, 100);
-    }
-  };
-
   const handleSaveModel = async (modelId: number, updatedData: ModelSaveData) => {
     const success = await updateModel(modelId, updatedData);
     if (success) {
