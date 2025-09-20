@@ -1440,12 +1440,12 @@ export default function AdvancedSearchPage() {
             onClose={() => setActiveFilterModal(null)}
             filters={filters}
             setFilters={setFilters}
-            selectedMake={selectedMake}
-            selectedModel={selectedModel}
+            _selectedMake={selectedMake}
+            _selectedModel={selectedModel}
             carMakes={carMakes}
             availableModels={availableModels}
             isLoadingBrands={isLoadingBrands}
-            isLoadingModels={isLoadingModels}
+            _isLoadingModels={isLoadingModels}
             referenceData={referenceData}
             _isLoadingReferenceData={isLoadingReferenceData}
             sellerTypeCounts={sellerTypeCounts}
