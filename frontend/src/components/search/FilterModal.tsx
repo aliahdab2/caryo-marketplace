@@ -22,13 +22,13 @@ interface FilterModalProps {
   onClose: () => void;
   filters: AdvancedSearchFilters;
   setFilters: React.Dispatch<React.SetStateAction<AdvancedSearchFilters>>;
-  selectedMake: number | null;
-  selectedModel: number | null;
+  _selectedMake?: number | null;
+  _selectedModel?: number | null;
   carMakes: CarMake[] | null;
   availableModels: CarModel[] | null;
   allModels?: CarModel[]; // New prop for all models
   isLoadingBrands: boolean;
-  isLoadingModels: boolean;
+  _isLoadingModels?: boolean;
   isLoadingAllModels?: boolean; // New prop for loading all models
   referenceData: CarReferenceData | null;
   _isLoadingReferenceData?: boolean;
@@ -50,10 +50,10 @@ interface FilterModalProps {
 }
 
 const MODAL_CLASSES = {
-  OVERLAY: "fixed inset-0 z-50 overflow-y-auto pointer-events-none",
-  CONTAINER: "flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-6",
+  OVERLAY: "fixed inset-0 z-50 pointer-events-none",
+  CONTAINER: "flex items-center justify-center p-4 text-center sm:items-center sm:p-6",
   BACKDROP: "fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity pointer-events-auto",
-  MODAL: "relative overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl w-full max-w-lg border border-gray-100 pointer-events-auto",
+  MODAL: "relative overflow-hidden rounded-2xl bg-white px-6 py-6 text-left shadow-2xl w-full max-w-lg border border-gray-100 pointer-events-auto max-h-[80vh] h-[80vh] flex-shrink-0 flex flex-col",
   CLOSE_BUTTON: "rounded-full p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all",
   SEPARATOR: "border-t border-gray-200",
   BUTTON_CONTAINER: "flex gap-3 mt-6"
@@ -69,13 +69,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
   onClose,
   filters,
   setFilters,
-  selectedMake,
-  selectedModel,
+  _selectedMake,
+  _selectedModel,
   carMakes,
   availableModels,
   allModels,
   isLoadingBrands,
-  isLoadingModels,
+  _isLoadingModels,
   isLoadingAllModels,
   referenceData,
   _isLoadingReferenceData,
@@ -133,37 +133,23 @@ const FilterModal: React.FC<FilterModalProps> = ({
   }, []);
 
   // Collapsible section component
-  const CollapsibleSection = ({ 
-    title, 
-    sectionName, 
-    children, 
-    icon 
-  }: { 
-    title: string; 
-    sectionName: string; 
-    children: React.ReactNode; 
+  const CollapsibleSection = ({
+    title,
+    sectionName,
+    children,
+    icon
+  }: {
+    title: string;
+    sectionName: string;
+    children: React.ReactNode;
     icon: React.ReactNode;
   }) => {
     const isCollapsed = collapsedSections[sectionName];
     const sectionRef = useRef<HTMLDivElement>(null);
     const prevCollapsedRef = useRef<boolean>(isCollapsed);
-    
-    // Auto-scroll to section when it expands (not when it collapses)
-    useEffect(() => {
-      // Only scroll when expanding (was collapsed, now expanded)
-      if (prevCollapsedRef.current && !isCollapsed && sectionRef.current) {
-        // Use setTimeout to ensure the animation has started
-        setTimeout(() => {
-          sectionRef.current?.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'nearest' 
-          });
-        }, 100);
-      }
-      
-      // Update the previous state
-      prevCollapsedRef.current = isCollapsed;
-    }, [isCollapsed]);
+
+    // Update the previous state
+    prevCollapsedRef.current = isCollapsed;
     
     return (
       <div ref={sectionRef} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -293,7 +279,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
         const modelsToUse = allModels || availableModels || [];
         
         // Filter brands and models based on search query
-        const filteredBrands = (carMakes || []).map(brand => {
+        const _filteredBrands = (carMakes || []).map(brand => {
           // Filter models for this brand using brandId instead of brand object
           const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
           let showBrand = false;
@@ -504,12 +490,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 <div className="flex items-center justify-center py-8">
                   <div data-testid="loading-spinner" className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                 </div>
-              ) : filteredBrands.length === 0 ? (
+              ) : _filteredBrands.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchQuery ? 'No brands or models found' : 'No brands available'}
                 </div>
               ) : (
-                filteredBrands
+                _filteredBrands
                   .filter((brand): brand is CarMake & { filteredModels: CarModel[] } => brand !== null)
                   .map((brand) => (
                     <div key={brand.id}>
@@ -708,76 +694,339 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 </svg>
               }
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('make', 'Make')}</label>
-                  <select
-                    value={selectedMake || ''}
-                    onChange={(e) => {
-                      const makeId = e.target.value ? Number(e.target.value) : null;
-                      if (selectedMake !== makeId) {
-                        if (makeId && carMakes) {
-                          const brand = carMakes.find(make => make.id === makeId);
-                          if (brand && brand.slug) {
-                            updateFiltersAndState(
-                              { brands: [brand.slug], models: [] },
-                              { selectedMake: makeId, selectedModel: null }
-                            );
-                          }
-                        } else {
-                          updateFiltersAndState(
-                            { brands: [], models: [] },
-                            { selectedMake: null, selectedModel: null }
-                          );
-                        }
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
-                    disabled={isLoadingBrands}
-                  >
-                    <option value="">{t('any', 'Any')}</option>
-                    {carMakes?.map(make => (
-                      <option key={make.id} value={make.id}>
-                        {currentLanguage === 'ar' ? make.displayNameAr : make.displayNameEn}
-                      </option>
-                    ))}
-                  </select>
+              <div className="flex flex-col">
+                {/* Search Bar */}
+                <div className="relative mb-4">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t('search:searchMakeModel', 'Search for make or model')}
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
-                
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">{t('model', 'Model')}</label>
-                  <select
-                    value={selectedModel || ''}
-                    onChange={(e) => {
-                      const modelId = e.target.value ? Number(e.target.value) : null;
-                      if (selectedModel !== modelId) {
-                        if (modelId && availableModels) {
-                          const model = availableModels.find(m => m.id === modelId);
-                          if (model && model.slug) {
-                            updateFiltersAndState(
-                              { models: [model.slug] },
-                              { selectedModel: modelId }
-                            );
-                          }
-                        } else {
-                          updateFiltersAndState(
-                            { models: [] },
-                            { selectedModel: null }
-                          );
+                {/* Chips Row (fixed height to avoid modal resize) */}
+                <div className="mb-3 min-h-[40px]">
+                  {(() => {
+                    // Helper to get display name
+                    const getBrandName = (brand: CarMake) => currentLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn;
+                    const getModelName = (model: CarModel) => currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
+
+                    // Define chip interface
+                    interface Chip {
+                      type: 'brand' | 'model';
+                      id: number;
+                      label: string;
+                      brandId?: number;
+                      slug?: string; // Added for search query handling
+                    }
+
+                    // Chips: collect all selected brands and models from filters
+                    const chips: Chip[] = [];
+
+                    // Add brand chips from filters.brands
+                    if (filters.brands && filters.brands.length > 0) {
+                      filters.brands.forEach(brandSlug => {
+                        const brand = carMakes?.find(b => b.slug === brandSlug);
+                        if (brand) {
+                          chips.push({
+                            type: 'brand',
+                            id: brand.id,
+                            label: getBrandName(brand),
+                            slug: brandSlug
+                          });
                         }
+                      });
+                    }
+
+                    // Add model chips from filters.models
+                    if (filters.models && filters.models.length > 0) {
+                      filters.models.forEach(modelSlug => {
+                        const model = allModels?.find(m => m.slug === modelSlug);
+                        if (model) {
+                          const modelName = getModelName(model);
+                          chips.push({
+                            type: 'model',
+                            id: model.id,
+                            label: modelName,
+                            brandId: model.brandId,
+                            slug: modelSlug
+                          });
+                        }
+                      });
+                    }
+
+                    // Remove chip handler
+                    const handleRemoveChip = (chip: Chip) => {
+                      if (chip.type === 'brand') {
+                        // Remove brand and all its associated models from filters
+                        const updatedBrands = filters.brands?.filter(b => b !== chip.slug) || [];
+
+                        // Find all models that belong to this brand and remove them
+                        const brandToRemove = carMakes?.find(b => b.slug === chip.slug);
+                        let updatedModels = filters.models || [];
+
+                        if (brandToRemove) {
+                          // Get all models that belong to this brand
+                          const brandModels = allModels?.filter(model => model.brandId === brandToRemove.id) || [];
+                          const brandModelSlugs = brandModels.map(model => model.slug);
+
+                          // Remove all models that belong to this brand
+                          updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
+                        }
+
+                        updateFiltersAndState({
+                          brands: updatedBrands.length > 0 ? updatedBrands : undefined,
+                          models: updatedModels.length > 0 ? updatedModels : undefined
+                        });
+                      } else {
+                        // Remove model from filters
+                        const updatedModels = filters.models?.filter(m => m !== chip.slug) || [];
+                        updateFiltersAndState({
+                          models: updatedModels.length > 0 ? updatedModels : undefined
+                        });
                       }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
-                    disabled={!selectedMake || isLoadingModels}
-                  >
-                    <option value="">{t('any', 'Any')}</option>
-                    {availableModels?.map(model => (
-                      <option key={model.id} value={model.id}>
-                        {currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn}
-                      </option>
-                    ))}
-                  </select>
+                    };
+
+                    // Use allModels if available, otherwise fall back to availableModels
+                    const modelsToUse = allModels || availableModels || [];
+
+                    // Filter brands and models based on search query
+                    const _filteredBrands = (carMakes || []).map(brand => {
+                      // Filter models for this brand using brandId instead of brand object
+                      const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
+                      let showBrand = false;
+                      let filteredModels = brandModels;
+                      if (searchQuery) {
+                        // Check if brand matches in either English or Arabic
+                        const brandMatchesEn = brand.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+                        const brandMatchesAr = brand.displayNameAr.includes(searchQuery);
+
+                        if (brandMatchesEn || brandMatchesAr) {
+                          showBrand = true;
+                        } else {
+                          // Otherwise, only show models that match in either language
+                          filteredModels = brandModels.filter(model => {
+                            const modelMatchesEn = model.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+                            const modelMatchesAr = model.displayNameAr.includes(searchQuery);
+                            return modelMatchesEn || modelMatchesAr;
+                          });
+                          if (filteredModels.length > 0) showBrand = true;
+                        }
+                      } else {
+                        showBrand = true;
+                      }
+                      return showBrand ? { ...brand, filteredModels } : null;
+                    }).filter(Boolean);
+
+                    if (chips.length > 0) {
+                      return (
+                        <div className="flex flex-wrap gap-2">
+                          {chips.map(chip => (
+                            <span key={chip.type + chip.id} className="flex items-center bg-gray-200 rounded-full px-3 py-1 text-sm font-medium text-gray-800">
+                              {chip.label}
+                              <button
+                                className="ml-2 text-gray-500 hover:text-red-500 focus:outline-none"
+                                onClick={() => handleRemoveChip(chip)}
+                                aria-label={t('search:remove', 'Remove')}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
+                {/* Brands and Models List */}
+                <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
+                  {isLoadingBrands || isLoadingAllModels ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div data-testid="loading-spinner" className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : (() => {
+                    // Use allModels if available, otherwise fall back to availableModels
+                    const modelsToUse = allModels || availableModels || [];
+
+                    // Filter brands and models based on search query
+                    const _filteredBrands = (carMakes || []).map(brand => {
+                      // Filter models for this brand using brandId instead of brand object
+                      const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
+                      let showBrand = false;
+                      let filteredModels = brandModels;
+                      if (searchQuery) {
+                        // Check if brand matches in either English or Arabic
+                        const brandMatchesEn = brand.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+                        const brandMatchesAr = brand.displayNameAr.includes(searchQuery);
+
+                        if (brandMatchesEn || brandMatchesAr) {
+                          showBrand = true;
+                        } else {
+                          // Otherwise, only show models that match in either language
+                          filteredModels = brandModels.filter(model => {
+                            const modelMatchesEn = model.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
+                            const modelMatchesAr = model.displayNameAr.includes(searchQuery);
+                            return modelMatchesEn || modelMatchesAr;
+                          });
+                          if (filteredModels.length > 0) showBrand = true;
+                        }
+                      } else {
+                        showBrand = true;
+                      }
+                      return showBrand ? { ...brand, filteredModels } : null;
+                    }).filter(Boolean);
+
+                    // Helper to get display name
+                    const getBrandName = (brand: CarMake) => currentLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn;
+                    const getModelName = (model: CarModel) => currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
+
+                    // Brand/model checkbox handlers
+                    const handleBrandCheckbox = (brand: CarMake) => {
+                      const isSelected = filters.brands?.includes(brand.slug) || false;
+                      const updatedBrands = filters.brands || [];
+
+                      if (isSelected) {
+                        // Remove brand and all its associated models
+                        const newBrands = updatedBrands.filter(b => b !== brand.slug);
+
+                        // Find all models that belong to this brand and remove them
+                        let updatedModels = filters.models || [];
+                        const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
+                        const brandModelSlugs = brandModels.map(model => model.slug);
+
+                        // Remove all models that belong to this brand
+                        updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
+
+                        updateFiltersAndState({
+                          brands: newBrands.length > 0 ? newBrands : undefined,
+                          models: updatedModels.length > 0 ? updatedModels : undefined
+                        });
+                      } else {
+                        // Add brand
+                        updateFiltersAndState({
+                          brands: [...updatedBrands, brand.slug]
+                        });
+                      }
+                    };
+
+                    const handleModelCheckbox = (model: CarModel) => {
+                      const isSelected = filters.models?.includes(model.slug) || false;
+                      const updatedModels = filters.models || [];
+                      const updatedBrands = filters.brands || [];
+
+                      if (isSelected) {
+                        // Remove model
+                        const newModels = updatedModels.filter(m => m !== model.slug);
+                        updateFiltersAndState({
+                          models: newModels.length > 0 ? newModels : undefined
+                        });
+                      } else {
+                        // Add model and ensure brand is also added
+                        const newModels = [...updatedModels, model.slug];
+                        let newBrands = updatedBrands;
+
+                        // Add brand if it's not already selected
+                        const brand = carMakes?.find(b => b.id === model.brandId);
+                        if (brand && !updatedBrands.includes(brand.slug)) {
+                          newBrands = [...updatedBrands, brand.slug];
+                        }
+
+                        updateFiltersAndState({
+                          models: newModels,
+                          brands: newBrands.length > 0 ? newBrands : undefined
+                        });
+                      }
+                    };
+
+                    // Brand/model checked state
+                    const isBrandChecked = (brand: CarMake) => filters.brands?.includes(brand.slug) || false;
+                    const isModelChecked = (model: CarModel) => filters.models?.includes(model.slug) || false;
+
+                    if (_filteredBrands.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          {searchQuery ? 'No brands or models found' : 'No brands available'}
+                        </div>
+                      );
+                    }
+
+                    return _filteredBrands
+                      .filter((brand): brand is CarMake & { filteredModels: CarModel[] } => brand !== null)
+                      .map((brand) => (
+                        <div key={brand.id}>
+                          <div className="flex justify-between items-center p-2">
+                            {/* Left side: Checkbox, Brand Name, Count */}
+                            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                              <input
+                                type="checkbox"
+                                checked={isBrandChecked(brand)}
+                                onChange={() => handleBrandCheckbox(brand)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="font-medium text-gray-900">{getBrandName(brand)}</span>
+                              <span className="text-sm text-gray-500">({brandCounts[brand.slug]?.toLocaleString() || 0})</span>
+                            </div>
+                            {/* Right side: Arrow or placeholder, always fixed width */}
+                            <div className="flex items-center justify-center w-6 h-6">
+                              {brand.filteredModels.length > 0 ? (
+                                <button
+                                  onClick={() => toggleBrandExpansion(brand.id)}
+                                  className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                  aria-label={expandedBrands.has(brand.id) ? 'Collapse models' : 'Expand models'}
+                                >
+                                  <svg
+                                    className={`w-4 h-4 transition-transform ${expandedBrands.has(brand.id) ? 'rotate-180' : ''}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                              ) : (
+                                <span className="w-4 h-4" />
+                              )}
+                            </div>
+                          </div>
+                          {/* Models under brand - only show when expanded */}
+                          {expandedBrands.has(brand.id) && brand.filteredModels.length > 0 && (
+                            <div className={currentLanguage === 'ar' ? 'mr-8 space-y-1' : 'ml-8 space-y-1'}>
+                              {brand.filteredModels.map((model: CarModel) => (
+                                <div key={model.id} className="flex items-center space-x-3 rtl:space-x-reverse p-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={isModelChecked(model)}
+                                    onChange={() => handleModelCheckbox(model)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm text-gray-700">{getModelName(model)}</span>
+                                  <span className="text-xs text-gray-500">({modelCounts[model.slug]?.toLocaleString() || 0})</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ));
+                  })()}
+                </div>
+                {/* Show All Brands Link - Only show when there are hidden brands */}
+                {searchQuery && (
+                  <div className="text-center mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    >
+                      {t('search:showAllBrands', 'Show all brands')}
+                    </button>
+                  </div>
+                )}
               </div>
             </CollapsibleSection>
             
@@ -960,9 +1209,14 @@ const FilterModal: React.FC<FilterModalProps> = ({
       <div className={MODAL_CLASSES.CONTAINER}>
         <div className={MODAL_CLASSES.BACKDROP} onClick={onClose} />
         
-        <div 
+        <div
           ref={modalRef}
-          className={`${MODAL_CLASSES.MODAL} max-h-[95vh] overflow-hidden flex flex-col`}
+          className={MODAL_CLASSES.MODAL}
+          style={{
+            height: '80vh !important',
+            maxHeight: '80vh !important',
+            overflow: 'hidden'
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               onClose();
