@@ -1,11 +1,19 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { signOut } from "next-auth/react";
 import SignupForm from '@/components/auth/SignupForm';
 import NextImage from 'next/image';
 
 export default function SignUpPage() {
   const { t } = useTranslation('auth');
+
+  // Clear any existing session errors when user visits signup page
+  useEffect(() => {
+    // Clear any failed authentication state that might be blocking the signup
+    signOut({ redirect: false });
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
