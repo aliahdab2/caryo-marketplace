@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import NextImage from 'next/image';
 import { isValidEmail } from '@/utils/emailValidation';
 import SyrianPhoneInput from '@/components/ui/SyrianPhoneInput';
+import { useRTL } from '@/hooks/useRTL';
 
 interface Step4DealerContactInfoProps {
   businessEmail: string;
@@ -34,6 +35,7 @@ export default function Step4DealerContactInfo({
   hasAttemptedValidation
 }: Step4DealerContactInfoProps) {
   const { t } = useTranslation('auth');
+  const { direction } = useRTL();
   const [_showLogoModal, _setShowLogoModal] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,10 +81,10 @@ export default function Step4DealerContactInfo({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className={`space-y-6 animate-fade-in ${direction.className}`} dir={direction.dir}>
       {/* Business Email */}
       <div className="mb-5">
-        <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label htmlFor="businessEmail" className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 ${direction.textAlign}`}>
           {t('businessEmail', 'Business Email')}
         </label>
         <div className="relative group">
@@ -122,8 +124,8 @@ export default function Step4DealerContactInfo({
           />
         </div>
         {businessEmailError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-            <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <p className={`mt-2 text-sm text-red-600 dark:text-red-400 flex items-center ${direction.flexDirection} ${direction.textAlign}`}>
+            <svg className={`w-4 h-4 ${direction.marginEnd('1')} flex-shrink-0`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -149,9 +151,9 @@ export default function Step4DealerContactInfo({
 
       {/* Business Logo */}
       <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 ${direction.textAlign}`}>
           {t('businessLogo', 'Business Logo')}
-          <span className="ml-1 text-gray-400 cursor-help" title={t('logoRequirements', 'Upload a high-quality logo (PNG, JPG, max 5MB)')}>
+          <span className={`${direction.marginStart('1')} text-gray-400 cursor-help`} title={t('logoRequirements', 'Upload a high-quality logo (PNG, JPG, max 5MB)')}>
             <svg className="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>

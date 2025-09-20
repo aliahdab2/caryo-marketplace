@@ -6,6 +6,7 @@ import { isValidEmail } from '@/utils/emailValidation';
 import DateOfBirthInput from './DateOfBirthInput';
 import SyrianPhoneInput from '@/components/ui/SyrianPhoneInput';
 import SyrianCitySelect from '@/components/ui/SyrianCitySelect';
+import { useRTL } from '@/hooks/useRTL';
 
 interface Step2PrivateSellerFormProps {
   username: string;
@@ -59,15 +60,16 @@ export default function Step2PrivateSellerForm({
   hasAttemptedValidation
 }: Step2PrivateSellerFormProps) {
   const { t } = useTranslation('auth');
+  const { direction } = useRTL();
 
   // Phone validation is now handled by SyrianPhoneInput component
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className={`space-y-6 animate-fade-in ${direction.className}`} dir={direction.dir}>
       {/* Full Name */}
       <div className="group">
-        <label htmlFor="username" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400">
-          {t('fullName', 'Full Name')} <span className="text-red-500 ml-1">*</span>
+        <label htmlFor="username" className={`block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 ${direction.textAlign}`}>
+          {t('fullName', 'Full Name')} <span className={`text-red-500 ${direction.marginStart('1')}`}>*</span>
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-4 rtl:pr-4 pointer-events-none">
@@ -102,8 +104,8 @@ export default function Step2PrivateSellerForm({
 
       {/* Email */}
       <div className="group">
-        <label htmlFor="email" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400">
-          {t('email')} <span className="text-red-500 ml-1">*</span>
+        <label htmlFor="email" className={`block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 ${direction.textAlign}`}>
+          {t('email')} <span className={`text-red-500 ${direction.marginStart('1')}`}>*</span>
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-4 rtl:pr-4 pointer-events-none">
@@ -160,7 +162,7 @@ export default function Step2PrivateSellerForm({
           )}
         </div>
         {emailError && (
-          <div className="mt-3 flex items-start space-x-2 animate-slide-down">
+          <div className={`mt-3 flex items-start ${direction.spaceX('2')} animate-slide-down`}>
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center w-5 h-5 bg-red-100 dark:bg-red-900/30 rounded-full">
                 <svg className="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +170,7 @@ export default function Step2PrivateSellerForm({
                 </svg>
               </div>
             </div>
-            <div className="flex-1">
+            <div className={`flex-1 ${direction.textAlign}`}>
               <p className="text-sm text-red-700 dark:text-red-300">
                 {emailError}
               </p>

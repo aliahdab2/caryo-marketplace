@@ -1,5 +1,13 @@
 /**
- * Simple Syrian phone number validation utilities
+ * Syrian phone number validation utilities
+ * 
+ * Supports formats:
+ * - +963XXXXXXXXX (international with +)
+ * - 963XXXXXXXXX (international without +)
+ * - 09XXXXXXXX (local with 0)
+ * - 9XXXXXXXX (local without 0)
+ * 
+ * Validates against Syrian operators: Syriatel (91, 98, 99) and MTN (92-96)
  */
 
 export interface PhoneValidationResult {

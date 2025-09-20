@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRTL } from '@/hooks/useRTL';
 
 interface SignupNavigationProps {
   currentStep: number;
@@ -27,6 +28,7 @@ export default function SignupNavigation({
   submitText
 }: SignupNavigationProps) {
   const { t } = useTranslation('auth');
+  const { isRTL, direction, getArrowDirection } = useRTL();
 
   const isLastStep = currentStep === totalSteps;
   const isFirstStep = currentStep === 1;
@@ -52,7 +54,7 @@ export default function SignupNavigation({
   };
 
   return (
-    <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+    <div className={`flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700 ${direction.className}`} dir={direction.dir}>
       {/* Previous button */}
       <button
         type="button"
@@ -64,9 +66,9 @@ export default function SignupNavigation({
             : 'text-gray-400 dark:text-gray-600 cursor-not-allowed bg-gray-100 dark:bg-gray-800'
         }`}
       >
-        <div className="relative z-10 flex items-center space-x-2">
-          <svg className={`w-4 h-4 transition-transform duration-200 ${!isFirstStep && !loading ? 'group-hover:-translate-x-1' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+        <div className={`relative z-10 flex items-center ${direction.spaceX('2')}`}>
+          <svg className={`w-4 h-4 transition-transform duration-200 ${!isFirstStep && !loading ? (isRTL ? 'group-hover:translate-x-1' : 'group-hover:-translate-x-1') : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={getArrowDirection('left')}></path>
           </svg>
           <span>{t('previous', 'Previous')}</span>
         </div>
@@ -86,7 +88,7 @@ export default function SignupNavigation({
             : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
         }`}
       >
-        <div className="relative z-10 flex items-center space-x-2">
+        <div className={`relative z-10 flex items-center ${direction.spaceX('2')}`}>
           {loading ? (
             <>
               <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -98,8 +100,8 @@ export default function SignupNavigation({
           ) : (
             <>
               <span>{getNextButtonText()}</span>
-              <svg className={`w-4 h-4 transition-transform duration-200 ${!getNextButtonDisabled() ? 'group-hover:translate-x-1' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+              <svg className={`w-4 h-4 transition-transform duration-200 ${!getNextButtonDisabled() ? (isRTL ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1') : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={getArrowDirection('right')}></path>
               </svg>
             </>
           )}

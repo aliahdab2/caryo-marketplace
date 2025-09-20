@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRTL } from '@/hooks/useRTL';
 
 interface ProgressIndicatorProps {
   currentStep: number;
@@ -13,6 +14,7 @@ export default function ProgressIndicator({
   stepTitles = []
 }: ProgressIndicatorProps) {
   const { t } = useTranslation('auth');
+  const { direction } = useRTL();
 
   const progress = (currentStep / totalSteps) * 100;
 
@@ -24,17 +26,17 @@ export default function ProgressIndicator({
   };
 
   return (
-    <div className="mb-8">
+    <div className={`mb-8 ${direction.className}`} dir={direction.dir}>
       {/* Step indicator */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-base font-semibold text-gray-800 dark:text-gray-200 transition-colors">
           {getStepTitle(currentStep)}
         </span>
-        <div className="flex items-center space-x-2">
+        <div className={`flex items-center ${direction.spaceX('2')}`}>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
             {currentStep} {t('of', 'of')} {totalSteps}
           </span>
-          <div className="flex items-center space-x-1">
+          <div className={`flex items-center ${direction.spaceX('1')}`}>
             {Array.from({ length: totalSteps }, (_, index) => {
               const stepNumber = index + 1;
               const isCompleted = stepNumber < currentStep;

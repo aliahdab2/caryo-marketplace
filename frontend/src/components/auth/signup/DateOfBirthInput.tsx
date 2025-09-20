@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { validateAge, getMinDateFor18Years } from '@/utils/ageValidation';
+import { useRTL } from '@/hooks/useRTL';
 
 interface DateOfBirthInputProps {
   value: string;
@@ -26,6 +27,7 @@ export default function DateOfBirthInput({
   hasAttemptedValidation = false
 }: DateOfBirthInputProps) {
   const { t } = useTranslation(['auth', 'validation']);
+  const { direction } = useRTL();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -57,11 +59,11 @@ export default function DateOfBirthInput({
   const _minDate = getMinDateFor18Years();
 
   return (
-    <div className={`group ${className}`}>
-      <label htmlFor="dateOfBirth" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400">
-        {t('dateOfBirth', 'Date of Birth')} {required && <span className="text-red-500 ml-1">*</span>}
+    <div className={`group ${className} ${direction.className}`} dir={direction.dir}>
+      <label htmlFor="dateOfBirth" className={`block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 ${direction.textAlign}`}>
+        {t('dateOfBirth', 'Date of Birth')} {required && <span className={`text-red-500 ${direction.marginStart('1')}`}>*</span>}
         {showAgeRestriction && (
-          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+          <span className={`text-xs text-gray-500 dark:text-gray-400 ${direction.marginStart('2')}`}>
 (Must be 16+)
           </span>
         )}
@@ -111,7 +113,7 @@ export default function DateOfBirthInput({
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start space-x-2 animate-slide-down">
+        <div className={`mt-3 flex items-start ${direction.spaceX('2')} animate-slide-down`}>
           <div className="flex-shrink-0">
             <div className="flex items-center justify-center w-5 h-5 bg-red-100 dark:bg-red-900/30 rounded-full">
               <svg className="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +121,7 @@ export default function DateOfBirthInput({
               </svg>
             </div>
           </div>
-          <div className="flex-1">
+          <div className={`flex-1 ${direction.textAlign}`}>
             <p className="text-sm text-red-700 dark:text-red-300">
               {error}
             </p>
@@ -128,8 +130,8 @@ export default function DateOfBirthInput({
       )}
 
       {!error && value && (
-        <div className="mt-2 text-xs text-green-600 dark:text-green-400 flex items-center">
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className={`mt-2 text-xs text-green-600 dark:text-green-400 flex items-center ${direction.flexDirection} ${direction.textAlign}`}>
+          <svg className={`w-4 h-4 ${direction.marginEnd('1')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           Age requirement satisfied

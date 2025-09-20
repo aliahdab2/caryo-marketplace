@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSignupForm, SignupUIState } from '@/hooks/auth/useSignupForm';
+import { useRTL } from '@/hooks/useRTL';
 import { useSignupValidation } from '@/hooks/auth/useSignupValidation';
 import { useSignupSubmission } from '@/hooks/auth/useSignupSubmission';
 import { useSignupKeyboardNavigation } from '@/hooks/auth/useSignupKeyboardNavigation';
@@ -19,6 +20,7 @@ import {
 
 export default function SignupForm() {
   const { t } = useTranslation(['auth', 'validation']);
+  const { isRTL, direction } = useRTL();
   const [showAgeRestrictionModal, setShowAgeRestrictionModal] = React.useState(false);
   const [userAge, setUserAge] = React.useState<number | undefined>();
 
@@ -379,7 +381,7 @@ export default function SignupForm() {
 
   return (
     <>
-      <div className="space-y-6" data-testid="signup-form">
+      <div className={`space-y-6 ${direction.className}`} data-testid="signup-form" dir={direction.dir}>
         {/* Progress Indicator */}
         {uiState.selectedSellerType && (
           <ProgressIndicator
@@ -397,8 +399,9 @@ export default function SignupForm() {
 
         {/* Error Display */}
         {uiState.error && (
-          <div role="alert" className="p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-sm">
-            <svg className="w-4 h-4 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div role="alert" className={`p-3 bg-red-50 rounded-md dark:bg-red-900/30 dark:text-red-200 text-red-700 flex items-center text-sm ${
+            direction.borderStart('4')} border-red-500 dark:border-red-700 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <svg className={`w-4 h-4 flex-shrink-0 ${direction.marginEnd('2')}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
