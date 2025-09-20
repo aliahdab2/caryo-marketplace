@@ -29,6 +29,9 @@ class CarModelServiceTest {
     
     @Mock
     private CarBrandService carBrandService;
+    
+    @Mock
+    private CarHierarchyService carHierarchyService;
 
     @InjectMocks
     private CarModelService carModelService;
@@ -311,6 +314,7 @@ class CarModelServiceTest {
         
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
         when(carModelRepository.save(any(CarModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(carHierarchyService.cascadeDeactivateFromModels(any())).thenReturn(new CarHierarchyService.HierarchyOperationResult());
 
         // Act
         CarModel result = carModelService.updateModel(1L, updatedModel);

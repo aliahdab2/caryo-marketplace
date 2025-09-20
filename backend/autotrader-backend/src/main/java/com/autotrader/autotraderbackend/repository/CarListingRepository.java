@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -118,4 +119,32 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
            "WHERE cl.approved = true AND cl.sold = false AND cl.archived = false " +
            "AND m.slug = :modelSlug")
     long countByModelSlug(@Param("modelSlug") String modelSlug);
+    
+    // Hierarchy management methods
+    
+    /**
+     * Count active car listings by brand ID
+     */
+    @Query("SELECT COUNT(cl) FROM CarListing cl WHERE cl.model.brand.id = :brandId AND cl.isUserActive = true")
+    long countActiveByBrandId(@Param("brandId") Long brandId);
+
+    /**
+     * Count active car listings by model IDs
+     */
+    @Query("SELECT COUNT(cl) FROM CarListing cl WHERE cl.model.id IN :modelIds AND cl.isUserActive = true")
+    long countActiveByModelIds(@Param("modelIds") List<Long> modelIds);
+
+    /**
+     * Bulk deactivate car listings by brand ID
+     */
+    @Modifying
+    @Query("UPDATE CarListing cl SET cl.isUserActive = false WHERE cl.model.brand.id = :brandId AND cl.isUserActive = true")
+    int deactivateByBrandId(@Param("brandId") Long brandId);
+
+    /**
+     * Bulk deactivate car listings by model IDs
+     */
+    @Modifying
+    @Query("UPDATE CarListing cl SET cl.isUserActive = false WHERE cl.model.id IN :modelIds AND cl.isUserActive = true")
+    int deactivateByModelIds(@Param("modelIds") List<Long> modelIds);
 }

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { getAuthHeaders } from '@/utils/auth';
 import { useToastHelpers } from '@/components/ui/ToastProvider';
 import { useTranslation } from 'react-i18next';
+import { clearApiCache } from '@/services/api';
 import { CarBrand, CarModel, DataStatistics, SyncStatus, ImportResult, UpdateBrandData, UpdateModelData, CreateBrandData, CreateModelData } from '../types';
 
 export const useDataManagement = () => {
@@ -87,17 +88,44 @@ export const useDataManagement = () => {
     }
   }, [makeAuthenticatedRequest]);
 
-  // Simple: fetch all models (both active and inactive for admin review)
+  // Fetch all models (both active and inactive for admin review)
   const fetchAllModels = useCallback(async () => {
     try {
-      const response = await makeAuthenticatedRequest('/api/admin/car-models?page=0&size=1000&sortBy=name');
-      if (response.ok) {
-        const data = await response.json();
-        const models = data.data?.content || [];
-        setModels(models);
-      } else {
-        console.error('Failed to load models:', response.status, response.statusText);
+      // First, get the total count to determine how many pages we need
+      const countResponse = await makeAuthenticatedRequest('/api/admin/car-models?page=0&size=1&sortBy=name');
+      if (!countResponse.ok) {
+        console.error('Failed to get model count:', countResponse.status, countResponse.statusText);
+        return;
       }
+
+      const countData = await countResponse.json();
+      const totalElements = countData.data?.totalElements || 0;
+
+      if (totalElements === 0) {
+        setModels([]);
+        return;
+      }
+
+      // Calculate how many requests we need (API might have page size limits)
+      const pageSize = Math.min(1000, totalElements);
+      const totalPages = Math.ceil(totalElements / pageSize);
+
+      const allModels: CarModel[] = [];
+
+      // Fetch all pages
+      for (let page = 0; page < totalPages; page++) {
+        const response = await makeAuthenticatedRequest(`/api/admin/car-models?page=${page}&size=${pageSize}&sortBy=name`);
+        if (response.ok) {
+          const data = await response.json();
+          const pageModels = data.data?.content || [];
+          allModels.push(...pageModels);
+        } else {
+          console.error(`Failed to load models page ${page}:`, response.status, response.statusText);
+        }
+      }
+
+      console.log(`Loaded ${allModels.length} models out of ${totalElements} total`);
+      setModels(allModels);
     } catch (error) {
       console.error('Error fetching models:', error);
     }
@@ -291,6 +319,10 @@ export const useDataManagement = () => {
 
       if (response.ok) {
         showSuccess(t('datamanagement:updateSuccess'));
+        
+        // Clear frontend cache for brands to ensure search page reflects changes immediately
+        clearApiCache('/api/reference-data/brands');
+        
         await loadData();
         return true;
       } else {
@@ -324,7 +356,7 @@ export const useDataManagement = () => {
         return false;
       }
     } catch (error) {
-      console.error('Model update error:', error);
+      console.error('❌ Model update error:', error);
       showError(t('datamanagement:updateError'));
       return false;
     }
@@ -342,6 +374,10 @@ export const useDataManagement = () => {
 
       if (response.ok) {
         showSuccess(t('datamanagement:createSuccess'));
+        
+        // Clear frontend cache for brands to ensure search page reflects new brands immediately
+        clearApiCache('/api/reference-data/brands');
+        
         await loadData();
         return true;
       } else {

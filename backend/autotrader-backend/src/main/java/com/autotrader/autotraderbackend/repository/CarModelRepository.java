@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.model.CarModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -49,4 +50,16 @@ public interface CarModelRepository extends JpaRepository<CarModel, Long> {
     boolean existsByBrandAndDisplayNameEnIgnoreCase(CarBrand brand, String displayNameEn);
     boolean existsByBrandAndDisplayNameArIgnoreCase(CarBrand brand, String displayNameAr);
     boolean existsBySlug(String slug);
+    
+    // Find models by brand ID
+    List<CarModel> findByBrandId(Long brandId);
+    
+    // Count active models by brand ID
+    @Query("SELECT COUNT(m) FROM CarModel m WHERE m.brand.id = :brandId AND m.isActive = true")
+    long countActiveByBrandId(@Param("brandId") Long brandId);
+    
+    // Bulk deactivation of models by brand ID
+    @Modifying
+    @Query("UPDATE CarModel m SET m.isActive = false WHERE m.brand.id = :brandId AND m.isActive = true")
+    int deactivateByBrandId(@Param("brandId") Long brandId);
 }

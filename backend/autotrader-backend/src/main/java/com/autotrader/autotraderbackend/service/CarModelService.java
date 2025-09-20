@@ -27,6 +27,7 @@ public class CarModelService {
 
     private final CarModelRepository carModelRepository;
     private final CarBrandService carBrandService;
+    private final CarHierarchyService carHierarchyService;
 
     /**
      * Get all car models
@@ -162,7 +163,7 @@ public class CarModelService {
      * @return Created model
      */
     @Transactional
-    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarModel createModel(CarModel model) {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(model.getBrand().getId());
@@ -170,10 +171,7 @@ public class CarModelService {
         
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
         if (model.getIsActive() && !brand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
-                    brand.getDisplayNameEn(), model.getName());
-            brand.setIsActive(true);
-            carBrandService.updateBrand(brand.getId(), brand);
+            carHierarchyService.autoActivateBrand(brand.getId(), model.getName());
         }
         
         log.info("Creating new car model: {} for brand: {}", model.getName(), brand.getName());
@@ -186,7 +184,7 @@ public class CarModelService {
      * @return Created model
      */
     @Transactional
-    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarModel createModel(CreateModelRequest createRequest) {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(createRequest.getBrandId());
@@ -203,10 +201,7 @@ public class CarModelService {
         
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
         if (model.getIsActive() && !brand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because active model '{}' is being created", 
-                    brand.getDisplayNameEn(), createRequest.getName());
-            brand.setIsActive(true);
-            carBrandService.updateBrand(brand.getId(), brand);
+            carHierarchyService.autoActivateBrand(brand.getId(), createRequest.getName());
         }
         
         // Generate unique slug from name and brand
@@ -251,14 +246,21 @@ public class CarModelService {
             model.setBrand(targetBrand);
         }
         
+        // Handle activation/deactivation logic
+        boolean wasActive = model.getIsActive();
+        boolean willBeActive = modelDetails.getIsActive();
+        
         // Smart activation: If model is being activated, ensure parent brand is also active
-        if (modelDetails.getIsActive() && !model.getIsActive()) {
+        if (willBeActive && !wasActive) {
             if (!targetBrand.getIsActive()) {
-                log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
-                        targetBrand.getDisplayNameEn(), model.getDisplayNameEn());
-                targetBrand.setIsActive(true);
-                carBrandService.updateBrand(targetBrand.getId(), targetBrand);
+                carHierarchyService.autoActivateBrand(targetBrand.getId(), model.getDisplayNameEn());
             }
+        }
+        
+        // Cascading deactivation: If model is being deactivated, deactivate its car listings
+        if (wasActive && !willBeActive) {
+            log.info("Cascading deactivation from model {} to all its car listings", model.getDisplayNameEn());
+            carHierarchyService.cascadeDeactivateFromModels(List.of(id));
         }
         
         model.setIsActive(modelDetails.getIsActive());
@@ -276,7 +278,7 @@ public class CarModelService {
      * @throws ResourceNotFoundException if model not found
      */
     @Transactional
-    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarModel updateModel(Long id, UpdateModelRequest updateRequest) {
         CarModel model = getModelById(id);
         
@@ -297,12 +299,18 @@ public class CarModelService {
             currentBrand = newBrand; // Update currentBrand to the new brand
         }
         
+        // Handle activation/deactivation logic
+        boolean willBeActive = model.getIsActive();
+        
         // Smart activation: If model is becoming active and its brand is inactive, activate the brand
-        if (model.getIsActive() && !wasActive && !currentBrand.getIsActive()) {
-            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
-                    currentBrand.getDisplayNameEn(), model.getDisplayNameEn());
-            currentBrand.setIsActive(true);
-            carBrandService.updateBrand(currentBrand.getId(), currentBrand);
+        if (willBeActive && !wasActive && !currentBrand.getIsActive()) {
+            carHierarchyService.autoActivateBrand(currentBrand.getId(), model.getDisplayNameEn());
+        }
+        
+        // Cascading deactivation: If model is being deactivated, deactivate its car listings
+        if (wasActive && !willBeActive) {
+            log.info("Cascading deactivation from model {} to all its car listings", model.getDisplayNameEn());
+            carHierarchyService.cascadeDeactivateFromModels(List.of(id));
         }
         
         log.info("Updated car model with id: {} using request DTO", id);
@@ -316,7 +324,7 @@ public class CarModelService {
      * @return Updated model
      */
     @Transactional
-    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarModel updateModelActivation(Long id, boolean isActive) {
         CarModel model = getModelById(id);
         boolean wasActive = model.getIsActive();
@@ -340,7 +348,7 @@ public class CarModelService {
      * @param id Model ID
      */
     @Transactional
-    @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public void deleteModel(Long id) {
         CarModel model = getModelById(id);
         log.info("Deleting car model with id: {}", id);
@@ -367,6 +375,7 @@ public class CarModelService {
             throw new IllegalArgumentException("Model with Arabic name '" + displayNameAr + "' already exists for brand '" + brand.getName() + "'");
         }
     }
+
 
     /**
      * Update model status (ACTIVE, INACTIVE, PENDING)
@@ -415,4 +424,6 @@ public class CarModelService {
                 ". This model is marked as discontinued or under review. Please contact support if you believe this is an error.");
         }
     }
+
+
 }

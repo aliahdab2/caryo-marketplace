@@ -181,7 +181,7 @@ public class CarQueryDataService implements CarDataProvider {
     /**
      * Load complete car dataset from CarQuery API - no fallback, clean data only
      */
-    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarDataProvider.DataLoadResult loadCompleteCarDataset() {
         log.info("Loading complete car dataset from CarQuery API...");
         syncStatusService.startSync(getProviderName());
