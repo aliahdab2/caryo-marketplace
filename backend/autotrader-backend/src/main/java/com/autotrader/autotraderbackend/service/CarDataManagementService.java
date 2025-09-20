@@ -34,7 +34,7 @@ public class CarDataManagementService {
      * @param request Brand and model creation details
      * @return Response containing both created brand and model
      */
-    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public BrandWithModelResponse createBrandWithModel(CreateBrandWithModelRequest request) {
         log.info("Creating new brand '{}' with model '{}'", 
                 request.getBrand().getName(), request.getModel().getName());

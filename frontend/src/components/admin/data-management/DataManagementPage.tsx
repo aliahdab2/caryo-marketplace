@@ -8,6 +8,7 @@ import { useLanguageDirection } from '@/utils/languageDirection';
 import { isAdmin } from '@/utils/auth';
 import { useDataManagement } from './hooks/useDataManagement';
 import { useSync } from './hooks/useSync';
+import { useToastHelpers } from '@/components/ui/ToastProvider';
 import {
   FiDatabase,
   FiDownload,
@@ -44,8 +45,6 @@ interface BrandRowProps {
   onEdit: () => void;
   onSave: BrandSaveFunction;
   onCancel: () => void;
-  isSelected: boolean;
-  onSelect: () => void;
 }
 
 interface ModelRowProps {
@@ -64,17 +63,13 @@ interface BrandsTableProps {
   editingBrand: number | null;
   setEditingBrand: (id: number | null) => void;
   onSave: BrandSaveFunction;
-  selectedBrands: Set<number>;
-  toggleBrandSelection: (id: number) => void;
-  toggleAllBrands: () => void;
   isRTL: boolean;
-  bulkUpdateBrands: (isActive: boolean) => void;
-  bulkUpdatingBrands: boolean;
 }
 
 interface ModelsTableProps {
   models: CarModel[];
   brands: CarBrand[];
+  brandsWithModels: CarBrand[];
   editingModel: number | null;
   setEditingModel: (id: number | null) => void;
   onSave: ModelSaveFunction;
@@ -94,8 +89,8 @@ interface AddBrandFormProps {
 }
 
 interface AddModelFormProps {
-  newModel: { name: string; displayNameEn: string; displayNameAr: string; brandId: string };
-  setNewModel: (data: { name: string; displayNameEn: string; displayNameAr: string; brandId: string }) => void;
+  newModel: { name: string; displayNameEn: string; displayNameAr: string; brandId: string; brandName: string; brandDisplayNameEn: string; brandDisplayNameAr: string; useExistingBrand: boolean };
+  setNewModel: (data: { name: string; displayNameEn: string; displayNameAr: string; brandId: string; brandName: string; brandDisplayNameEn: string; brandDisplayNameAr: string; useExistingBrand: boolean }) => void;
   brands: CarBrand[];
   onSave: () => void;
   onCancel: () => void;
@@ -111,7 +106,7 @@ export const DataManagementPage: React.FC = () => {
   const [modelsPage, setModelsPage] = useState(1);
   const [brandsSearch, setBrandsSearch] = useState('');
   const [modelsSearch, setModelsSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all'); // Default to 'all' to show both active and inactive models
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>('');
   
   
@@ -121,18 +116,18 @@ export const DataManagementPage: React.FC = () => {
   const [showAddBrand, setShowAddBrand] = useState(false);
   const [showAddModel, setShowAddModel] = useState(false);
   const [newBrand, setNewBrand] = useState({ name: '', displayNameEn: '', displayNameAr: '' });
-  const [newModel, setNewModel] = useState({ name: '', displayNameEn: '', displayNameAr: '', brandId: '' });
+  const [newModel, setNewModel] = useState({ name: '', displayNameEn: '', displayNameAr: '', brandId: '', brandName: '', brandDisplayNameEn: '', brandDisplayNameAr: '', useExistingBrand: true });
 
   // Active tab state
   const [activeTab, setActiveTab] = useState<'brands' | 'models'>('brands');
 
-  // State for bulk selection
-  const [selectedBrands, setSelectedBrands] = useState<Set<number>>(new Set());
+  // State for bulk selection (models only)
   const [selectedModels, setSelectedModels] = useState<Set<number>>(new Set());
   
   // State for bulk operations loading
-  const [bulkUpdatingBrands, setBulkUpdatingBrands] = useState(false);
   const [bulkUpdatingModels, setBulkUpdatingModels] = useState(false);
+
+  const { showError } = useToastHelpers();
 
   const {
     loading,
@@ -148,6 +143,7 @@ export const DataManagementPage: React.FC = () => {
     createBrandWithModel,
     createModel
   } = useDataManagement();
+
 
   const {
     syncingCarQuery: _syncingCarQuery,
@@ -166,16 +162,6 @@ export const DataManagementPage: React.FC = () => {
 
 
   // Bulk selection functions
-  const toggleBrandSelection = (brandId: number) => {
-    const newSelected = new Set(selectedBrands);
-    if (newSelected.has(brandId)) {
-      newSelected.delete(brandId);
-    } else {
-      newSelected.add(brandId);
-    }
-    setSelectedBrands(newSelected);
-  };
-
   const toggleModelSelection = (modelId: number) => {
     const newSelected = new Set(selectedModels);
     if (newSelected.has(modelId)) {
@@ -184,14 +170,6 @@ export const DataManagementPage: React.FC = () => {
       newSelected.add(modelId);
     }
     setSelectedModels(newSelected);
-  };
-
-  const toggleAllBrands = () => {
-    if (selectedBrands.size === filteredBrands.length) {
-      setSelectedBrands(new Set());
-    } else {
-      setSelectedBrands(new Set(filteredBrands.map(brand => brand.id)));
-    }
   };
 
   const toggleAllModels = () => {
@@ -203,28 +181,6 @@ export const DataManagementPage: React.FC = () => {
   };
 
   // Bulk update functions
-  const bulkUpdateBrands = async (isActive: boolean) => {
-    if (selectedBrands.size === 0) return;
-    
-    setBulkUpdatingBrands(true);
-    try {
-      const promises = Array.from(selectedBrands).map(brandId => {
-        const brand = brands.find(b => b.id === brandId);
-        if (brand) {
-          return updateBrand(brandId, { ...brand, isActive });
-        }
-        return Promise.resolve();
-      });
-      
-      await Promise.all(promises);
-      setSelectedBrands(new Set());
-      loadData(); // Refresh data
-    } catch (error) {
-      console.error('Error updating brands:', error);
-    } finally {
-      setBulkUpdatingBrands(false);
-    }
-  };
 
   const bulkUpdateModels = async (isActive: boolean) => {
     if (selectedModels.size === 0) return;
@@ -247,7 +203,7 @@ export const DataManagementPage: React.FC = () => {
 
       await Promise.all(promises);
       setSelectedModels(new Set());
-      loadData(); // Refresh data
+      await loadData(); // Refresh data
     } catch (error) {
       console.error('Error updating models:', error);
     } finally {
@@ -258,18 +214,32 @@ export const DataManagementPage: React.FC = () => {
   // Filtered and paginated data
   const filteredBrands = useMemo(() => {
     return brands.filter(brand => {
-      const matchesSearch = !brandsSearch || 
+      // Only show active brands - hide inactive ones completely
+      if (!brand.isActive) {
+        return false;
+      }
+
+      // Check if brand has at least one model
+      const hasModels = models.some(model => model.brandId === brand.id);
+
+      // Only show brands that have models
+      if (!hasModels) {
+        return false;
+      }
+
+      const matchesSearch = !brandsSearch ||
         brand.name.toLowerCase().includes(brandsSearch.toLowerCase()) ||
         brand.displayNameEn.toLowerCase().includes(brandsSearch.toLowerCase()) ||
         brand.displayNameAr.includes(brandsSearch);
-      
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && brand.isActive) ||
-        (statusFilter === 'inactive' && !brand.isActive);
-      
-      return matchesSearch && matchesStatus;
+
+      return matchesSearch;
     });
-  }, [brands, brandsSearch, statusFilter]);
+  }, [brands, brandsSearch, models]);
+
+  // Brands that have models (for dropdown filters) - only active brands
+  const brandsWithModels = useMemo(() => {
+    return brands.filter(brand => brand.isActive && models.some(model => model.brandId === brand.id));
+  }, [brands, models]);
 
   const filteredModels = useMemo(() => {
     return models.filter(model => {
@@ -324,13 +294,33 @@ export const DataManagementPage: React.FC = () => {
   }
 
   const handleSaveBrand = async (brandId: number, updatedData: BrandSaveData) => {
-    await updateBrand(brandId, updatedData);
-    setEditingBrand(null);
+    const success = await updateBrand(brandId, updatedData);
+    if (success) {
+      // Wait a bit for the data to refresh, then exit edit mode
+      setTimeout(() => {
+        setEditingBrand(null);
+      }, 100);
+    }
   };
 
   const handleSaveModel = async (modelId: number, updatedData: ModelSaveData) => {
-    await updateModel(modelId, updatedData);
-    setEditingModel(null);
+    const success = await updateModel(modelId, updatedData);
+    if (success) {
+      // Wait for data refresh, then exit edit mode
+      setTimeout(() => {
+        setEditingModel(null);
+      }, 300);
+    }
+  };
+
+  const handleSaveBrand = async (brandId: number, updatedData: BrandSaveData) => {
+    const success = await updateBrand(brandId, updatedData);
+    if (success) {
+      // Wait for data refresh, then exit edit mode
+      setTimeout(() => {
+        setEditingBrand(null);
+      }, 300);
+    }
   };
 
   const handleAddBrand = async () => {
@@ -345,10 +335,60 @@ export const DataManagementPage: React.FC = () => {
   };
 
   const handleAddModel = async () => {
-    if (!newModel.name || !newModel.displayNameEn || !newModel.displayNameAr || !newModel.brandId) return;
-    
-    await createModel(newModel);
-    setNewModel({ name: '', displayNameEn: '', displayNameAr: '', brandId: '' });
+    // Validation
+    if (!newModel.name || !newModel.displayNameEn || !newModel.displayNameAr) {
+      showError(t('datamanagement:validationError') || 'Please fill in all required fields');
+      return;
+    }
+
+    if (newModel.useExistingBrand) {
+      // Using existing brand
+      if (!newModel.brandId) {
+        showError(t('datamanagement:selectBrandError') || 'Please select a brand');
+        return;
+      }
+
+      const modelData = {
+        name: newModel.name,
+        displayNameEn: newModel.displayNameEn,
+        displayNameAr: newModel.displayNameAr,
+        brandId: newModel.brandId
+      };
+
+      await createModel(modelData);
+    } else {
+      // Creating new brand
+      if (!newModel.brandName || !newModel.brandDisplayNameEn || !newModel.brandDisplayNameAr) {
+        showError(t('datamanagement:brandValidationError') || 'Please fill in all brand fields');
+        return;
+      }
+
+      const brandData = {
+        name: newModel.brandName,
+        displayNameEn: newModel.brandDisplayNameEn,
+        displayNameAr: newModel.brandDisplayNameAr
+      };
+
+      const modelData = {
+        name: newModel.name,
+        displayNameEn: newModel.displayNameEn,
+        displayNameAr: newModel.displayNameAr
+      };
+
+      await createBrandWithModel(brandData, modelData);
+    }
+
+    // Reset form
+    setNewModel({
+      name: '',
+      displayNameEn: '',
+      displayNameAr: '',
+      brandId: '',
+      brandName: '',
+      brandDisplayNameEn: '',
+      brandDisplayNameAr: '',
+      useExistingBrand: true
+    });
     setShowAddModel(false);
   };
 
@@ -539,11 +579,6 @@ export const DataManagementPage: React.FC = () => {
             onSave={handleSaveBrand}
             isRTL={isRTL}
             t={t}
-            selectedBrands={selectedBrands}
-            toggleBrandSelection={toggleBrandSelection}
-            toggleAllBrands={toggleAllBrands}
-            bulkUpdateBrands={bulkUpdateBrands}
-            bulkUpdatingBrands={bulkUpdatingBrands}
           />
 
                 {/* Pagination */}
@@ -591,7 +626,7 @@ export const DataManagementPage: React.FC = () => {
                       className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                     >
                       <option value="">{t('datamanagement:allBrands')}</option>
-                      {brands.map((brand) => (
+                      {brandsWithModels.map((brand) => (
                         <option key={brand.id} value={brand.id}>
                           {brand.displayNameEn}
                         </option>
@@ -626,6 +661,7 @@ export const DataManagementPage: React.FC = () => {
                       newModel={newModel}
                       setNewModel={setNewModel}
                       brands={brands}
+                      brandsWithModels={brandsWithModels}
                       onSave={handleAddModel}
                       onCancel={() => setShowAddModel(false)}
                       t={t}
@@ -637,6 +673,7 @@ export const DataManagementPage: React.FC = () => {
                 <ModelsTable
                   models={paginatedModels}
                   brands={brands}
+                  brandsWithModels={brandsWithModels}
                   editingModel={editingModel}
                   setEditingModel={setEditingModel}
                   onSave={handleSaveModel}
@@ -797,22 +834,77 @@ const AddBrandForm: React.FC<AddBrandFormProps & { t: (key: string) => string }>
   </div>
 );
 
-const AddModelForm: React.FC<AddModelFormProps & { t: (key: string) => string }> = ({ newModel, setNewModel, brands, onSave, onCancel, t }) => (
+const AddModelForm: React.FC<AddModelFormProps & { t: (key: string) => string; brandsWithModels: CarBrand[] }> = ({ newModel, setNewModel, brands: _brands, brandsWithModels, onSave, onCancel, t }) => (
   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
     <h3 className="font-medium text-gray-900 dark:text-white mb-4">{t('datamanagement:addNewModel')}</h3>
+
+    {/* Brand Selection Mode Toggle */}
+    <div className="mb-4">
+      <div className="flex gap-4 mb-4">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            checked={newModel.useExistingBrand}
+            onChange={() => setNewModel({...newModel, useExistingBrand: true, brandId: '', brandName: '', brandDisplayNameEn: '', brandDisplayNameAr: ''})}
+            className="w-4 h-4 text-blue-600"
+          />
+          <span className="text-sm text-gray-900 dark:text-white">{t('datamanagement:useExistingBrand')}</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            checked={!newModel.useExistingBrand}
+            onChange={() => setNewModel({...newModel, useExistingBrand: false, brandId: ''})}
+            className="w-4 h-4 text-blue-600"
+          />
+          <span className="text-sm text-gray-900 dark:text-white">{t('datamanagement:createNewBrand')}</span>
+        </label>
+      </div>
+    </div>
+
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-      <select
-        value={newModel.brandId}
-        onChange={(e) => setNewModel({...newModel, brandId: e.target.value})}
-        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-      >
-        <option value="">{t('datamanagement:selectBrand')}</option>
-        {brands.map((brand: CarBrand) => (
-          <option key={brand.id} value={brand.id}>
-            {brand.displayNameEn}
-          </option>
-        ))}
-      </select>
+      {/* Brand Selection/Creation */}
+      {newModel.useExistingBrand ? (
+        <select
+          value={newModel.brandId}
+          onChange={(e) => setNewModel({...newModel, brandId: e.target.value})}
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+        >
+          <option value="">{t('datamanagement:selectBrand')}</option>
+          {brandsWithModels.map((brand: CarBrand) => (
+            <option key={brand.id} value={brand.id}>
+              {brand.displayNameEn}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <>
+          <input
+            type="text"
+            placeholder={t('datamanagement:brandName')}
+            value={newModel.brandName}
+            onChange={(e) => setNewModel({...newModel, brandName: e.target.value})}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          />
+          <input
+            type="text"
+            placeholder={t('datamanagement:brandDisplayNameEn')}
+            value={newModel.brandDisplayNameEn}
+            onChange={(e) => setNewModel({...newModel, brandDisplayNameEn: e.target.value})}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          />
+          <input
+            type="text"
+            placeholder={t('datamanagement:brandDisplayNameAr')}
+            value={newModel.brandDisplayNameAr}
+            onChange={(e) => setNewModel({...newModel, brandDisplayNameAr: e.target.value})}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          />
+          <div></div> {/* Empty space for grid alignment */}
+        </>
+      )}
+
+      {/* Model Details */}
       <input
         type="text"
         placeholder={t('datamanagement:modelName')}
@@ -855,79 +947,17 @@ const AddModelForm: React.FC<AddModelFormProps & { t: (key: string) => string }>
 );
 
 const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> = ({
-  brands,
+  brands: _brands,
   editingBrand,
   setEditingBrand,
   onSave,
-  selectedBrands,
-  toggleBrandSelection,
-  toggleAllBrands,
   isRTL,
-  t,
-  bulkUpdateBrands,
-  bulkUpdatingBrands
+  t
 }) => (
   <div className="overflow-x-auto">
     <table className="w-full text-sm">
       <thead>
-        <tr className={`border-b border-gray-200 dark:border-gray-600 transition-colors duration-200 ${
-          selectedBrands.size > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-        }`}>
-          <th className="py-2 px-3 h-[40px] w-12">
-            <input
-              type="checkbox"
-              checked={selectedBrands.size === brands.length && brands.length > 0}
-              onChange={toggleAllBrands}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-          </th>
-          {selectedBrands.size > 0 ? (
-            <th colSpan={5} className="py-2 px-4 h-[40px]">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-white">{selectedBrands.size}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      {selectedBrands.size === 1
-                        ? t('datamanagement:brandSelected')
-                        : t('datamanagement:brandsSelected')
-                      }
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      toggleAllBrands();
-                    }}
-                    className="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                  >
-                    {t('datamanagement:clearSelection')}
-                  </button>
-                  <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
-                  <button
-                    onClick={() => bulkUpdateBrands(true)}
-                    disabled={bulkUpdatingBrands}
-                    className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiRefreshCw className={`w-3 h-3 ${bulkUpdatingBrands ? 'animate-spin' : ''}`} />
-                    {t('datamanagement:activate')}
-                  </button>
-                  <button
-                    onClick={() => bulkUpdateBrands(false)}
-                    disabled={bulkUpdatingBrands}
-                    className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiX className="w-3 h-3" />
-                    {t('datamanagement:deactivate')}
-                  </button>
-                </div>
-              </div>
-            </th>
-          ) : (
-            <>
+        <tr className="border-b border-gray-200 dark:border-gray-600">
               <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
                 {t('datamanagement:name')}
               </th>
@@ -943,12 +973,10 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
               <th className={`${isRTL ? 'text-right' : 'text-left'} py-2 px-3 font-medium text-gray-900 dark:text-white h-[40px]`}>
                 {t('datamanagement:actions')}
               </th>
-            </>
-          )}
         </tr>
       </thead>
       <tbody>
-        {brands.map((brand: CarBrand) => (
+        {_brands.map((brand: CarBrand) => (
           <BrandRow
             key={brand.id}
             brand={brand}
@@ -957,8 +985,6 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
             onSave={onSave}
             onCancel={() => setEditingBrand(null)}
             t={t}
-            isSelected={selectedBrands.has(brand.id)}
-            onSelect={() => toggleBrandSelection(brand.id)}
           />
         ))}
       </tbody>
@@ -969,6 +995,7 @@ const BrandsTable: React.FC<BrandsTableProps & { t: (key: string) => string }> =
 const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> = ({
   models,
   brands,
+  brandsWithModels,
   editingModel,
   setEditingModel,
   onSave,
@@ -1069,6 +1096,7 @@ const ModelsTable: React.FC<ModelsTableProps & { t: (key: string) => string }> =
             key={model.id}
             model={model}
             brands={brands}
+            brandsWithModels={brandsWithModels}
             isEditing={editingModel === model.id}
             onEdit={() => setEditingModel(model.id)}
             onSave={onSave}
@@ -1177,9 +1205,7 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
   onEdit,
   onSave,
   onCancel,
-  t,
-  isSelected,
-  onSelect
+  t: _t
 }) => {
   const [editData, setEditData] = useState({
     name: brand.name,
@@ -1195,14 +1221,6 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
   if (isEditing) {
     return (
       <tr className="border-b border-gray-100 dark:border-gray-700">
-        <td className="py-2 px-3">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={onSelect}
-            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-          />
-        </td>
         <td className="py-2 px-3">
           <input
             type="text"
@@ -1229,12 +1247,12 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
         </td>
         <td className="py-2 px-3">
           <select
-            value={editData.isActive ? 'true' : 'false'}
-            onChange={(e) => setEditData({...editData, isActive: e.target.value === 'true'})}
-            className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+            value={editData.isActive ? 'active' : 'inactive'}
+            onChange={(e) => setEditData({...editData, isActive: e.target.value === 'active'})}
+            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           >
-            <option value="true">{t('datamanagement:active')}</option>
-            <option value="false">{t('datamanagement:inactive')}</option>
+            <option value="active">{_t('datamanagement:active')}</option>
+            <option value="inactive">{_t('datamanagement:inactive')}</option>
           </select>
         </td>
         <td className="py-2 px-3">
@@ -1259,24 +1277,16 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
 
   return (
     <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
-      <td className="py-2 px-3">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={onSelect}
-          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-        />
-      </td>
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.name}</td>
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.displayNameEn}</td>
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{brand.displayNameAr}</td>
       <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          brand.isActive 
+          brand.isActive
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
         }`}>
-          {brand.isActive ? t('datamanagement:active') : t('datamanagement:inactive')}
+          {_t(brand.isActive ? 'datamanagement:active' : 'datamanagement:inactive')}
         </span>
       </td>
       <td className="py-2 px-3">
@@ -1292,9 +1302,10 @@ const BrandRow: React.FC<BrandRowProps & { t: (key: string) => string }> = ({
 };
 
 // Model Row Component (same as before but optimized)
-const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
+const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string; brandsWithModels: CarBrand[] }> = ({
   model,
-  brands,
+  brands: _brands,
+  brandsWithModels,
   isEditing,
   onEdit,
   onSave,
@@ -1332,7 +1343,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string }> = ({
             onChange={(e) => setEditData({...editData, brandId: parseInt(e.target.value)})}
             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
           >
-            {brands.map((brand: CarBrand) => (
+            {brandsWithModels.map((brand: CarBrand) => (
               <option key={brand.id} value={brand.id}>
                 {brand.displayNameEn}
               </option>

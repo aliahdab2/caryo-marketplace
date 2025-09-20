@@ -23,6 +23,7 @@ import java.util.List;
 public class CarBrandService {
 
     private final CarBrandRepository carBrandRepository;
+    private final CarHierarchyService carHierarchyService;
 
     /**
      * Get all car brands
@@ -151,15 +152,16 @@ public class CarBrandService {
      * @throws ResourceNotFoundException if brand not found
      */
     @Transactional
-    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarBrand updateBrand(Long id, CarBrand brandDetails) {
         CarBrand brand = getBrandById(id);
+        boolean wasActive = brand.getIsActive();
+        boolean willBeActive = brandDetails.getIsActive();
         
-        // Validation: Warn if trying to deactivate a brand that has active models
-        if (!brandDetails.getIsActive() && brand.getIsActive()) {
-            // Check if brand has active models (we'll need to inject CarModelService for this)
-            log.warn("Attempting to deactivate brand '{}' - this may hide active models from users", 
-                    brand.getDisplayNameEn());
+        // Validate activation status change
+        if (willBeActive && !wasActive) {
+            // Trying to activate a brand - check if it has models
+            carHierarchyService.validateBrandActivation(id, brand.getDisplayNameEn());
         }
         
         brand.setName(brandDetails.getName());
@@ -167,6 +169,12 @@ public class CarBrandService {
         brand.setDisplayNameAr(brandDetails.getDisplayNameAr());
         brand.setIsActive(brandDetails.getIsActive());
         // Don't update slug as it should be immutable for URL stability
+        
+        // If brand is being deactivated, cascade deactivation to all its models
+        if (wasActive && !willBeActive) {
+            log.info("Cascading deactivation from brand {} to all its models", brand.getDisplayNameEn());
+            carHierarchyService.cascadeDeactivateFromBrand(id);
+        }
         
         log.info("Updated car brand with id: {}", id);
         return carBrandRepository.save(brand);
@@ -180,16 +188,24 @@ public class CarBrandService {
      * @throws ResourceNotFoundException if brand not found
      */
     @Transactional
-    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarBrand updateBrand(Long id, UpdateBrandRequest updateRequest) {
         CarBrand brand = getBrandById(id);
-        
+        boolean wasActive = brand.getIsActive();
+        boolean willBeActive = updateRequest.getIsActive();
+
         brand.setName(updateRequest.getName());
         brand.setDisplayNameEn(updateRequest.getDisplayNameEn());
         brand.setDisplayNameAr(updateRequest.getDisplayNameAr());
         brand.setIsActive(updateRequest.getIsActive());
         // Don't update slug as it should be immutable for URL stability
-        
+
+        // If brand is being deactivated, cascade deactivation to all its models
+        if (wasActive && !willBeActive) {
+            log.info("Cascading deactivation from brand {} to all its models", brand.getDisplayNameEn());
+            carHierarchyService.cascadeDeactivateFromBrand(id);
+        }
+
         log.info("Updated car brand with id: {} using request DTO", id);
         return carBrandRepository.save(brand);
     }
@@ -201,7 +217,7 @@ public class CarBrandService {
      * @return Updated brand
      */
     @Transactional
-    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarBrand updateBrandActivation(Long id, boolean isActive) {
         CarBrand brand = getBrandById(id);
         brand.setIsActive(isActive);
@@ -215,7 +231,7 @@ public class CarBrandService {
      * @param id Brand ID
      */
     @Transactional
-    @CacheEvict(value = {"carBrands", "activeBrands"}, allEntries = true)
+    @CacheEvict(value = {"carBrands", "activeBrands", "carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public void deleteBrand(Long id) {
         CarBrand brand = getBrandById(id);
         log.info("Deleting car brand with id: {}", id);

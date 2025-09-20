@@ -25,14 +25,18 @@ class CarBrandServiceTest {
 
     @Mock
     private CarBrandRepository carBrandRepository;
+    
+    @Mock
+    private CarHierarchyService carHierarchyService;
 
-    @InjectMocks
     private CarBrandService carBrandService;
 
     private CarBrand testBrand;
 
     @BeforeEach
     void setUp() {
+        carBrandService = new CarBrandService(carBrandRepository, carHierarchyService);
+        
         testBrand = new CarBrand();
         testBrand.setId(1L);
         testBrand.setName("Toyota");
@@ -188,6 +192,7 @@ class CarBrandServiceTest {
         
         when(carBrandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
         when(carBrandRepository.save(any(CarBrand.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(carHierarchyService.cascadeDeactivateFromBrand(1L)).thenReturn(new CarHierarchyService.HierarchyOperationResult());
 
         // Act
         CarBrand result = carBrandService.updateBrand(1L, updatedBrand);
@@ -203,6 +208,7 @@ class CarBrandServiceTest {
         
         verify(carBrandRepository, times(1)).findById(1L);
         verify(carBrandRepository, times(1)).save(any(CarBrand.class));
+        verify(carHierarchyService, times(1)).cascadeDeactivateFromBrand(1L);
     }
 
     @Test

@@ -389,26 +389,46 @@ public class SyrianCarsDataService implements CarDataProvider {
                     // Validate and add brand
                     if (!brandName.isEmpty() && brandName.length() > 1 && !slug.isEmpty()) {
                         // Skip common non-brand values
-                        if (brandName.equalsIgnoreCase("select") || brandName.equalsIgnoreCase("choose") || 
+                        if (brandName.equalsIgnoreCase("select") || brandName.equalsIgnoreCase("choose") ||
                             brandName.equalsIgnoreCase("all") || brandName.length() < 2) {
                             continue;
                         }
 
-                        // Clean the brand name before translation
-                        String cleanBrandName = cleanBrandNameForTranslation(brandName);
-                        
-                        // Generate slug from cleaned name
-                        String cleanSlug = cleanBrandName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                        
-                        // Generate Arabic translation
-                        String arabicName = arabicTranslationService.translateBrandToArabic(cleanBrandName);
-                        
-                        // Only add if we have a valid Arabic translation
-                        if (arabicName != null && !arabicName.trim().isEmpty() && !arabicName.equalsIgnoreCase(cleanBrandName)) {
-                            brands.add(new SyrianBrand(cleanBrandName, arabicName, cleanSlug)); // Use cleaned name and slug
-                            log.debug("Scraped brand: {} -> {} (slug: {})", cleanBrandName, arabicName, cleanSlug);
+                        // Extract Arabic and English names from the scraped format
+                        String arabicName = null;
+                        String englishName = null;
+
+                        if (brandName.contains(" - ")) {
+                            // Format: "Arabic - English (count)"
+                            String[] parts = brandName.split(" - ");
+                            if (parts.length >= 2) {
+                                arabicName = parts[0].trim();
+                                englishName = cleanBrandNameForTranslation(parts[1]);
+                            }
                         } else {
-                            log.debug("Skipping brand '{}' - no valid Arabic translation", cleanBrandName);
+                            // No Arabic part found, treat as English and try to translate
+                            englishName = cleanBrandNameForTranslation(brandName);
+                        }
+
+                        // Use Arabic name if available, otherwise try OpenAI translation
+                        String finalArabicName = arabicName;
+                        String finalEnglishName = englishName != null ? englishName : cleanBrandNameForTranslation(brandName);
+
+                        if (arabicName == null || arabicName.trim().isEmpty()) {
+                            // No Arabic name in scraped data, try OpenAI translation
+                            finalArabicName = arabicTranslationService.translateBrandToArabic(finalEnglishName);
+                        }
+
+                        // Generate slug from English name
+                        String cleanSlug = finalEnglishName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
+
+                        // Only add if we have both English and Arabic names
+                        if (finalArabicName != null && !finalArabicName.trim().isEmpty() &&
+                            !finalArabicName.equalsIgnoreCase(finalEnglishName)) {
+                            brands.add(new SyrianBrand(finalEnglishName, finalArabicName, cleanSlug));
+                            log.debug("Scraped brand: {} -> {} (slug: {})", finalEnglishName, finalArabicName, cleanSlug);
+                        } else {
+                            log.debug("Skipping brand '{}' - no valid Arabic translation", finalEnglishName);
                         }
                     }
                 }

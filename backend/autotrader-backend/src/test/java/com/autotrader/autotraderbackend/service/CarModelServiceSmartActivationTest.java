@@ -31,6 +31,9 @@ class CarModelServiceSmartActivationTest {
 
     @Mock
     private CarBrandService carBrandService;
+    
+    @Mock
+    private CarHierarchyService carHierarchyService;
 
     @InjectMocks
     private CarModelService carModelService;
@@ -88,12 +91,13 @@ class CarModelServiceSmartActivationTest {
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(inactiveModel));
         when(carModelRepository.save(any(CarModel.class))).thenReturn(inactiveModel);
+        doNothing().when(carHierarchyService).autoActivateBrand(eq(1L), eq("Camry"));
 
         // When: Updating the model to active
         carModelService.updateModel(1L, modelToUpdate);
 
         // Then: Parent brand should be auto-activated
-        verify(carBrandService, times(1)).updateBrand(eq(1L), any(CarBrand.class));
+        verify(carHierarchyService, times(1)).autoActivateBrand(eq(1L), eq("Camry"));
         verify(carModelRepository, times(1)).save(any(CarModel.class));
     }
 
@@ -141,12 +145,14 @@ class CarModelServiceSmartActivationTest {
 
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(currentlyActiveModel));
         when(carModelRepository.save(any(CarModel.class))).thenReturn(currentlyActiveModel);
+        when(carHierarchyService.cascadeDeactivateFromModels(any())).thenReturn(new CarHierarchyService.HierarchyOperationResult());
 
         // When: Updating the model to inactive
         carModelService.updateModel(1L, modelToUpdate);
 
-        // Then: Parent brand should NOT be auto-activated
+        // Then: Parent brand should NOT be auto-activated, but cascading deactivation should occur
         verify(carBrandService, never()).updateBrand(any(Long.class), any(CarBrand.class));
+        verify(carHierarchyService, times(1)).cascadeDeactivateFromModels(any());
         verify(carModelRepository, times(1)).save(any(CarModel.class));
     }
 
@@ -202,12 +208,13 @@ class CarModelServiceSmartActivationTest {
         when(carModelRepository.findById(1L)).thenReturn(java.util.Optional.of(inactiveModel));
         when(carBrandService.getBrandById(3L)).thenReturn(newInactiveBrand);
         when(carModelRepository.save(any(CarModel.class))).thenReturn(inactiveModel);
+        doNothing().when(carHierarchyService).autoActivateBrand(eq(3L), eq("Camry"));
 
         // When: Updating the model with brand change and activation
         carModelService.updateModel(1L, modelToUpdate);
 
         // Then: New parent brand should be auto-activated
-        verify(carBrandService, times(1)).updateBrand(eq(3L), any(CarBrand.class));
+        verify(carHierarchyService, times(1)).autoActivateBrand(eq(3L), eq("Camry"));
         verify(carBrandService, times(1)).getBrandById(3L);
         verify(carModelRepository, times(1)).save(any(CarModel.class));
     }
@@ -233,12 +240,13 @@ class CarModelServiceSmartActivationTest {
         when(carBrandService.getBrandById(1L)).thenReturn(inactiveBrand);
         when(carModelRepository.findBySlug(anyString())).thenReturn(Optional.empty());
         when(carModelRepository.save(any(CarModel.class))).thenReturn(savedModel);
+        doNothing().when(carHierarchyService).autoActivateBrand(eq(1L), eq("New Model"));
 
         // When
         CarModel result = carModelService.createModel(createRequest);
 
         // Then
-        verify(carBrandService).updateBrand(eq(1L), any(CarBrand.class));
+        verify(carHierarchyService).autoActivateBrand(eq(1L), eq("New Model"));
         verify(carModelRepository).save(any(CarModel.class));
         assertThat(result.getIsActive()).isTrue();
     }
