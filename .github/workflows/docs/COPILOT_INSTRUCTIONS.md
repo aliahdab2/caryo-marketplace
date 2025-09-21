@@ -504,6 +504,52 @@ npm run lighthouse:a11y
 - Support multiple input methods (mouse, keyboard, touch, voice)
 - Test with various assistive technologies
 
+## 🔧 Code Quality Standards
+
+### 📋 Linting Requirements
+
+**All code must pass linting and testing without errors or warnings:**
+
+1. ✅ **ESLint**: No ESLint errors or warnings
+2. ✅ **TypeScript**: No TypeScript compilation errors
+3. ✅ **Prettier**: Code must be properly formatted
+4. ✅ **Import Order**: Imports must be organized correctly
+5. ✅ **Unused Variables**: No unused imports or variables
+6. ✅ **Missing Dependencies**: All hook dependencies included
+7. ✅ **Frontend Tests**: All Jest/React Testing Library tests pass
+8. ✅ **Backend Tests**: All unit and integration tests pass
+
+**Before submitting code:**
+```bash
+# Frontend - Run linting and testing
+npm run lint
+npm run type-check
+npm run format:check
+npm run test
+
+# Backend - Run linting and testing
+./gradlew clean test integration
+
+# Auto-fix issues where possible
+npm run lint:fix
+npm run format
+```
+
+**Common Issues to Avoid:**
+- ❌ Unused imports or variables
+- ❌ Missing dependencies in useEffect/useCallback
+- ❌ Incorrect TypeScript types
+- ❌ Inconsistent code formatting
+- ❌ Missing semicolons or trailing commas
+- ❌ Incorrect import order
+- ❌ Failing tests (frontend or backend)
+- ❌ Breaking existing functionality
+
+**ESLint Configuration:**
+- Follow project's ESLint rules in `eslint.config.mjs`
+- Use `eslint-plugin-jsx-a11y` for accessibility linting
+- Ensure React hooks rules are followed
+
 7. **Database Fields**: 
    - Use `name_en` and `name_ar` pattern for bilingual database fields
    - Return localized content based on Accept-Language header
