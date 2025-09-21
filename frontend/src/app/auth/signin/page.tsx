@@ -6,6 +6,7 @@ import { isValidEmail, looksLikeEmail } from '@/utils/emailValidation';
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useDirection } from '@/utils/direction';
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
 import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
@@ -22,6 +23,7 @@ const SignInPage: React.FC = () => {
   useLazyTranslation(AUTH_NAMESPACES);
 
   const { t } = useTranslation(['auth', 'errors', 'validation']);
+  const { isRTL: _isRTL } = useDirection();
   const router = useRouter();
   const _searchParams = useSearchParams();
   const { getErrorMessage } = useApiErrorHandler();
@@ -313,8 +315,8 @@ const SignInPage: React.FC = () => {
             </div>
             
             {error && (
-              <div role="alert" className="mb-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-red-50 border-is-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="8" x2="12" y2="12"></line>
                   <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -323,13 +325,13 @@ const SignInPage: React.FC = () => {
               </div>
             )}
             {verificationSuccess && (
-              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
+              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-green-50 border-is-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
                 <p className="font-medium">{t('auth:emailVerified')} {t('auth:pleaseSignIn')}</p>
               </div>
             )}
             {showSuccess && (
-              <div role="alert" className="mb-6 p-3 sm:p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-green-50 border-is-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-center text-xs sm:text-sm">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
@@ -497,7 +499,7 @@ const OAuthSection: React.FC<{ callbackUrl: string; t: (key: string) => string }
           <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
+          <span className="pis-2 pie-2 bg-white dark:bg-gray-800 text-gray-500">
             {t('orConnector')}
           </span>
         </div>
