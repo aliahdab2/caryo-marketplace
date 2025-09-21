@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useDirection } from "@/utils/direction";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
 
@@ -15,6 +16,7 @@ const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
   const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const { isRTL } = useDirection();
   const searchParams = useSearchParams();
   const _router = useRouter();
   const [latestCars, setLatestCars] = useState<CarListing[]>([]);
@@ -138,7 +140,7 @@ export default function Home() {
         latestCars={latestCars}
         isLoadingListings={isLoadingListings}
         t={(key: string, fallback?: string) => t(key, { ns: 'home', defaultValue: fallback })}
-        isRTL={i18n.language === 'ar'}
+        isRTL={isRTL}
       />
 
       {/* How It Works Section */}
@@ -174,10 +176,10 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 container mx-auto px-4">
+      <section className="py-16 container mx-auto pis-4 pie-4" aria-labelledby="newsletter-title">
         <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2> 
-          <p className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p> 
+          <h2 id="newsletter-title" className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2> 
+          <p id="newsletter-description" className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p> 
           
           {newsletterMessage && (
             <div className={`mb-6 p-3 rounded-md ${newsletterSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -185,20 +187,25 @@ export default function Home() {
             </div>
           )}
           
-          <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+          <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4" aria-describedby="newsletter-description">
+            <label htmlFor="newsletter-email" className="sr-only">
+              {t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
+            </label>
             <input
+              id="newsletter-email"
               type="email"
               value={newsletterEmail}
               onChange={(e) => setNewsletterEmail(e.target.value)}
               placeholder={t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
-              className="flex-grow px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="flex-grow pis-4 pie-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
               required
               disabled={newsletterLoading}
+              aria-describedby="newsletter-description"
             />
             <button
               type="submit"
               disabled={newsletterLoading}
-              className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="pis-6 pie-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
             >
               {newsletterLoading 
                 ? t('subscribing', { ns: 'home', defaultValue: 'Subscribing...'})

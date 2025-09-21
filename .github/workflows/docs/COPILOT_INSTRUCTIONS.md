@@ -195,43 +195,63 @@ backend/
 
 ## RTL (Right-to-Left) Support for Arabic
 
-This project supports both Arabic (RTL) and English (LTR) languages. All components must properly implement RTL support using the provided `useRTL` hook.
+This project supports both Arabic (RTL) and English (LTR) languages. All components must properly implement RTL support using modern CSS logical properties as the primary approach.
 
 ### 🔧 RTL Implementation Strategy
 
-**Primary Approach: CSS Logical Properties (Recommended)**
+**Primary Approach: CSS Logical Properties (Recommended - 90% of cases)**
 ```css
 /* Modern CSS approach - works automatically in RTL/LTR */
 .element {
   margin-inline-start: 1rem;  /* Replaces margin-left/margin-right */
   padding-inline-end: 0.5rem; /* Replaces padding-left/padding-right */
   border-inline-start: 2px solid; /* Replaces border-left/border-right */
+  text-align: start; /* Replaces text-left/text-right */
 }
 ```
 
-**Fallback: useRTL Hook (for complex logic)**
-- Use when CSS logical properties aren't sufficient
-- For dynamic styling based on RTL state
-- For complex layout calculations
+**Secondary: Tailwind RTL utilities (for edge cases)**
+```jsx
+// Only when CSS logical properties aren't sufficient
+<div className="ml-4 rtl:mr-4 rtl:ml-0">
+```
 
-**Always import and use the RTL hook in components that handle:**
-- Layout and positioning
-- Text alignment
-- Margins and padding
-- Icon positioning
-- Flexbox directions
+**Minimal Hook: Only for conditional logic (rare cases)**
+```typescript
+// Use our existing useDirection hook from @/utils/direction
+import { useDirection } from '@/utils/direction';
+
+const { isRTL, direction, getClasses } = useDirection();
+```
+
+**Use the minimal hook ONLY when you need:**
+- Conditional rendering based on direction
+- Complex JavaScript calculations
+- Dynamic class generation that CSS can't handle
 
 ```typescript
-import { useRTL } from '@/hooks/useRTL';
-
+// Example: Using CSS logical properties (preferred)
 function MyComponent() {
-  const { isRTL, dir, textAlign, marginStart, marginEnd, paddingStart, paddingEnd, spaceX } = useRTL();
-
   return (
-    <div dir={dir} className={textAlign}>
-      <div className={`flex ${spaceX('4')}`}>
-        <span className={marginStart('2')}>Text</span>
+    <div className="text-start"> {/* Instead of text-left/text-right */}
+      <div className="flex gap-4">
+        <span className="ms-2"> {/* margin-inline-start */}
+          Text
+        </span>
       </div>
+    </div>
+  );
+}
+
+// Example: Using minimal hook only when needed
+import { useDirection } from '@/utils/direction';
+
+function ConditionalComponent() {
+  const { isRTL } = useDirection();
+  
+  return (
+    <div>
+      {isRTL ? <ArabicSpecificComponent /> : <EnglishSpecificComponent />}
     </div>
   );
 }
@@ -244,8 +264,11 @@ function MyComponent() {
 // Wrong - not RTL aware
 className="mr-4 ml-2 text-left"
 
-// Correct - RTL aware
-className={`${marginStart('4')} ${marginEnd('2')} ${textAlign}`}
+// Better - CSS logical properties
+className="me-4 ms-2 text-start"
+
+// Fallback - Tailwind RTL utilities
+className="mr-4 ml-2 rtl:ml-4 rtl:mr-2 text-left rtl:text-right"
 ```
 
 **❌ Don't use `flex-row` without RTL consideration:**
@@ -264,13 +287,13 @@ className={`flex ${flexDirection}`}
 
 **For every component, ensure:**
 
-1. ✅ Import `useRTL` hook
-2. ✅ Use `dir` attribute on root elements
-3. ✅ Replace `ml-`/`mr-` with `marginStart`/`marginEnd`
-4. ✅ Replace `pl-`/`pr-` with `paddingStart`/`paddingEnd`
-5. ✅ Use `spaceX` for horizontal spacing
-6. ✅ Use `textAlign` instead of `text-left`/`text-right`
-7. ✅ Use `flexDirection` instead of hardcoded `flex-row`/`flex-row-reverse`
+1. ✅ Use CSS logical properties (`ms-`, `me-`, `text-start`)
+2. ✅ Set `dir="rtl"` on root HTML element (handled by layout)
+3. ✅ Replace `ml-`/`mr-` with `ms-`/`me-` (margin-inline-start/end)
+4. ✅ Replace `pl-`/`pr-` with `ps-`/`pe-` (padding-inline-start/end)
+5. ✅ Use `text-start`/`text-end` instead of `text-left`/`text-right`
+6. ✅ Use Tailwind RTL utilities only when CSS logical properties aren't sufficient
+7. ✅ Import `useDirection` hook from `@/utils/direction` only for conditional logic
 8. ✅ Test both Arabic and English layouts
 
 ### 🎯 Priority Components for RTL
@@ -299,7 +322,7 @@ Always test components in both languages:
 
 ### 📚 RTL Resources
 
-- RTL Hook Documentation: `src/hooks/useRTL.ts`
+- RTL Hook Documentation: `src/utils/direction.ts` (useDirection hook)
 - RTL Styles: `src/app/rtl.css`
 - RTL Implementation Guide: `docs/RTL_IMPLEMENTATION.md`
 - Cursor Rules: `.cursorrules`
