@@ -273,12 +273,6 @@ export default function SyrianCitySelect({
         </div>
       )}
 
-      {/* Helper text */}
-      {!error && !loading && cities.length > 0 && (
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {t('cityHelp', 'Start typing to search for your city')}
-        </p>
-      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PasswordInput from '@/components/ui/PasswordInput';
-import PasswordRequirementText from '@/components/auth/PasswordValidation';
 import { isValidEmail } from '@/utils/emailValidation';
 import DateOfBirthInput from './DateOfBirthInput';
 import SyrianPhoneInput from '@/components/ui/SyrianPhoneInput';
@@ -220,7 +219,28 @@ export default function Step2PrivateSellerForm({
       {/* Password */}
       <div className="group">
         <label htmlFor="password" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400">
-          {t('password')} <span className="text-red-500 ml-1">*</span>
+          <div className="flex items-center">
+            {t('password')} <span className="text-red-500 ml-1">*</span>
+            <div className="relative ml-2 group/tooltip">
+              <button
+                type="button"
+                className="flex items-center justify-center w-4 h-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                aria-label="Password requirements"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </button>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible group-focus/tooltip:opacity-100 group-focus/tooltip:visible transition-all duration-200 whitespace-nowrap z-10">
+                <div className="space-y-1">
+                  <div className="font-medium">{t('passwordRequirements', 'Password Requirements:')}</div>
+                  <div>• {t('requirementLength', 'At least 8 characters')}</div>
+                  <div>• {t('requirementTwoTypes', 'At least 2 character types: letters, numbers, or symbols')}</div>
+                </div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 dark:bg-gray-700 rotate-45"></div>
+              </div>
+            </div>
+          </div>
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-4 rtl:pr-4 pointer-events-none">
@@ -252,9 +272,6 @@ export default function Step2PrivateSellerForm({
               </div>
             </div>
           )}
-        </div>
-        <div className="mt-3">
-          <PasswordRequirementText password={password} className="text-xs" />
         </div>
       </div>
 

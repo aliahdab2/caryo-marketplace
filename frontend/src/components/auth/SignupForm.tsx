@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSignupForm, SignupUIState } from '@/hooks/auth/useSignupForm';
-import { useRTL } from '@/hooks/useRTL';
 import { useSignupValidation } from '@/hooks/auth/useSignupValidation';
 import { useSignupSubmission } from '@/hooks/auth/useSignupSubmission';
 import { useSignupKeyboardNavigation } from '@/hooks/auth/useSignupKeyboardNavigation';
@@ -14,13 +13,11 @@ import {
   Step2PrivateSellerForm,
   Step3DealerBusinessInfo,
   Step4DealerContactInfo,
-  ProgressIndicator,
   SignupNavigation
 } from './signup';
 
 export default function SignupForm() {
   const { t } = useTranslation(['auth', 'validation']);
-  const { isRTL, direction } = useRTL();
   const [showAgeRestrictionModal, setShowAgeRestrictionModal] = React.useState(false);
   const [userAge, setUserAge] = React.useState<number | undefined>();
 
@@ -381,27 +378,12 @@ export default function SignupForm() {
 
   return (
     <>
-      <div className={`space-y-6 ${direction.className}`} data-testid="signup-form" dir={direction.dir}>
-        {/* Progress Indicator */}
-        {uiState.selectedSellerType && (
-          <ProgressIndicator
-            currentStep={uiState.currentStep}
-            totalSteps={totalSteps}
-            stepTitles={[
-              t('chooseAccountType', 'Choose Account Type'),
-              isDealerType
-                ? t('businessInformation', 'Business Information')
-                : t('personalInformation', 'Personal Information'),
-              isDealerType ? t('contactInformation', 'Contact Information') : '',
-            ].filter(Boolean)}
-          />
-        )}
+      <div className="flex flex-col h-full min-h-[600px]" data-testid="signup-form">
 
         {/* Error Display */}
         {uiState.error && (
-          <div role="alert" className={`p-3 bg-red-50 rounded-md dark:bg-red-900/30 dark:text-red-200 text-red-700 flex items-center text-sm ${
-            direction.borderStart('4')} border-red-500 dark:border-red-700 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <svg className={`w-4 h-4 flex-shrink-0 ${direction.marginEnd('2')}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div role="alert" className="mb-4 p-3 bg-red-50 rounded-md dark:bg-red-900/30 dark:text-red-200 text-red-700 flex items-center text-sm border-l-4 border-red-500 dark:border-red-700">
+            <svg className="w-4 h-4 flex-shrink-0 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -410,23 +392,25 @@ export default function SignupForm() {
           </div>
         )}
 
-        {/* Step Content */}
-        <div className="min-h-[400px]">
+        {/* Step Content - Flexible height */}
+        <div className="flex-1 mb-6">
           {renderStepContent()}
         </div>
 
-        {/* Navigation */}
+        {/* Navigation - Pinned to bottom with breathing room */}
         {uiState.selectedSellerType && (
-        <SignupNavigation
-          currentStep={uiState.currentStep}
-          totalSteps={totalSteps}
-            onPrevious={handlePreviousStep}
-            onNext={handleNextStep}
-            onSubmit={handleSubmit}
-          loading={uiState.loading}
-            nextDisabled={!canProceedToNextStep}
-            submitDisabled={uiState.loading}
-          />
+        <div className="mt-auto pt-6 pb-4">
+          <SignupNavigation
+            currentStep={uiState.currentStep}
+            totalSteps={totalSteps}
+              onPrevious={handlePreviousStep}
+              onNext={handleNextStep}
+              onSubmit={handleSubmit}
+            loading={uiState.loading}
+              nextDisabled={!canProceedToNextStep}
+              submitDisabled={uiState.loading}
+            />
+        </div>
         )}
     </div>
 

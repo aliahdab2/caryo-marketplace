@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRTL } from '@/hooks/useRTL';
 
 export interface SellerType {
   id: number;
@@ -29,8 +28,8 @@ export default function Step1UserTypeSelection({
   setDealerIntent,
   loading: _loading = false
 }: Step1UserTypeSelectionProps) {
-  const { t } = useTranslation('auth');
-  const { dir, textAlign, getInlineStyles } = useRTL();
+  const { t, i18n } = useTranslation('auth');
+  const isArabic = i18n.language === 'ar';
 
   const handleSellerTypeSelect = (sellerType: string) => {
     setSelectedSellerType(sellerType);
@@ -42,7 +41,6 @@ export default function Step1UserTypeSelection({
   };
 
   // Optimized inline styles using the new helper
-  const inlineStyles = getInlineStyles();
 
   // Enhanced seller type data with icons and improved copy
   const enhancedSellerTypes = [
@@ -77,94 +75,79 @@ export default function Step1UserTypeSelection({
   ];
 
   return (
-    <div className="space-y-6" dir={dir} style={inlineStyles}>
-      {/* Enhanced Header Section */}
-      <div className="text-center" dir={dir} style={inlineStyles}>
-        <h3 className={`text-xl font-bold text-gray-900 dark:text-white mb-3 ${textAlign}`}>
+    <div className="h-full flex flex-col space-y-8">
+      {/* Clean title and description */}
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center" dir={isArabic ? 'rtl' : 'ltr'}>
           {t('chooseAccountType', 'Choose Your Account Type')}
-        </h3>
-        <p className={`text-base text-gray-600 dark:text-gray-400 ${textAlign} max-w-md mx-auto`}>
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-400 text-center max-w-2xl mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
           {t('accountTypeDescription', 'Select the type of account that best fits your needs')}
         </p>
       </div>
 
-      {/* Enhanced Seller Type Cards */}
-      <div className="grid grid-cols-1 gap-6" dir={dir}>
+      {/* Prominent Seller Type Cards - Equal Heights */}
+      <div className="flex-1 grid grid-cols-1 gap-6">
         {enhancedSellerTypes.map((sellerType) => (
           <div
             key={sellerType.id}
             onClick={() => handleSellerTypeSelect(sellerType.name)}
-            dir={dir}
-            className={`relative cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-[1.02] ${
+            className={`relative cursor-pointer rounded-2xl border-2 p-8 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 flex flex-col h-full min-h-[240px] ${
               selectedSellerType === sellerType.name
-                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
-                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md bg-white dark:bg-gray-800'
+                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-xl ring-4 ring-blue-500/10'
+                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg bg-white dark:bg-gray-800'
             }`}
-            style={inlineStyles}
           >
             {/* Selection Indicator */}
-            {selectedSellerType === sellerType.name && (
-              <div className="absolute top-4 right-4 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+            <div className="absolute top-4 right-4">
+              <div className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
+                selectedSellerType === sellerType.name
+                  ? 'border-blue-500 bg-blue-500 shadow-lg'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+              }`}>
+                {selectedSellerType === sellerType.name && (
+                  <svg className="w-4 h-4 text-white m-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                )}
               </div>
-            )}
+            </div>
 
-            <div className="flex items-start space-x-4 rtl:space-x-reverse" dir={dir}>
-              {/* Icon */}
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center text-3xl shadow-inner">
-                  {sellerType.icon}
+            <div className="flex flex-col h-full">
+              {/* Icon and Header */}
+              <div className="flex items-start space-x-8 mb-6">
+                <div className="text-5xl flex-shrink-0">{sellerType.icon}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <h3 className={`text-2xl font-bold text-gray-900 dark:text-white ${isArabic ? 'text-right' : 'text-left'}`} dir={isArabic ? 'rtl' : 'ltr'}>
+                      {sellerType.title}
+                    </h3>
+                    <span className={`px-4 py-1.5 text-sm font-semibold rounded-full ${sellerType.badgeColor} flex-shrink-0`}>
+                      {sellerType.badge}
+                    </span>
+                  </div>
+                  <p className={`text-lg text-gray-600 dark:text-gray-400 ${isArabic ? 'text-right' : 'text-left'} leading-relaxed`} dir={isArabic ? 'rtl' : 'ltr'}>
+                    {sellerType.description}
+                  </p>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className={`flex-1 min-w-0 ${textAlign}`} dir={dir} style={inlineStyles}>
-                {/* Title and Badge */}
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className={`text-lg font-bold text-gray-900 dark:text-white ${textAlign}`}>
-                    {sellerType.title}
-                  </h4>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sellerType.badgeColor}`}>
-                    {sellerType.badge}
-                  </span>
-                </div>
-
-                {/* Description */}
-                <p className={`text-sm text-gray-600 dark:text-gray-400 mb-4 ${textAlign} leading-relaxed`}>
-                  {sellerType.description}
-                </p>
-
-                {/* Enhanced Features List */}
-                <div className="space-y-2">
+              {/* Feature List - Push to bottom */}
+              <div className={`mt-auto ${isArabic ? 'text-right' : 'text-left'}`}>
+                <div className={`flex flex-wrap gap-3 ${isArabic ? 'justify-end' : 'justify-start'}`}>
                   {sellerType.features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-3 rtl:space-x-reverse"
-                      dir={dir}
-                      style={inlineStyles}
-                    >
-                      {/* Enhanced Checkmark */}
-                      <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-
-                      {/* Feature Text */}
-                      <span className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${textAlign}`} dir={dir} style={inlineStyles}>
-                        {feature}
-                      </span>
+                    <div key={index} className="flex items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl px-4 py-2.5" dir={isArabic ? 'rtl' : 'ltr'}>
+                      <span className={`text-green-600 dark:text-green-400 ${isArabic ? 'ml-2' : 'mr-2'} text-base`}>✓</span>
+                      <span className="text-base text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
                     </div>
                   ))}
                 </div>
-
               </div>
             </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 }
