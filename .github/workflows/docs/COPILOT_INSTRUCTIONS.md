@@ -188,9 +188,298 @@ backend/
    - Test in both languages before committing
 
 6. **RTL Support**:
-   - Use CSS logical properties (`margin-inline-start` not `margin-left`)
+   - Use the `useRTL` hook for all components requiring RTL support
+   - Apply `dir={dir}` and proper RTL utilities to all UI components
    - Test UI layout in both Arabic (RTL) and English (LTR)
-   - Ensure text direction works correctly
+   - Ensure text direction and icon positioning work correctly
+
+## RTL (Right-to-Left) Support for Arabic
+
+This project supports both Arabic (RTL) and English (LTR) languages. All components must properly implement RTL support using the provided `useRTL` hook.
+
+### 🔧 RTL Implementation Strategy
+
+**Primary Approach: CSS Logical Properties (Recommended)**
+```css
+/* Modern CSS approach - works automatically in RTL/LTR */
+.element {
+  margin-inline-start: 1rem;  /* Replaces margin-left/margin-right */
+  padding-inline-end: 0.5rem; /* Replaces padding-left/padding-right */
+  border-inline-start: 2px solid; /* Replaces border-left/border-right */
+}
+```
+
+**Fallback: useRTL Hook (for complex logic)**
+- Use when CSS logical properties aren't sufficient
+- For dynamic styling based on RTL state
+- For complex layout calculations
+
+**Always import and use the RTL hook in components that handle:**
+- Layout and positioning
+- Text alignment
+- Margins and padding
+- Icon positioning
+- Flexbox directions
+
+```typescript
+import { useRTL } from '@/hooks/useRTL';
+
+function MyComponent() {
+  const { isRTL, dir, textAlign, marginStart, marginEnd, paddingStart, paddingEnd, spaceX } = useRTL();
+
+  return (
+    <div dir={dir} className={textAlign}>
+      <div className={`flex ${spaceX('4')}`}>
+        <span className={marginStart('2')}>Text</span>
+      </div>
+    </div>
+  );
+}
+```
+
+### 🚫 Common RTL Mistakes to Avoid
+
+**❌ Don't use hardcoded directional classes:**
+```typescript
+// Wrong - not RTL aware
+className="mr-4 ml-2 text-left"
+
+// Correct - RTL aware
+className={`${marginStart('4')} ${marginEnd('2')} ${textAlign}`}
+```
+
+**❌ Don't use `flex-row` without RTL consideration:**
+```typescript
+// Wrong - doesn't reverse in RTL
+className="flex flex-row"
+
+// Better - CSS logical approach
+className="flex" // Default flex-row works with CSS logical properties
+
+// Fallback - RTL-aware utility when needed
+className={`flex ${flexDirection}`}
+```
+
+### 📋 RTL Implementation Checklist
+
+**For every component, ensure:**
+
+1. ✅ Import `useRTL` hook
+2. ✅ Use `dir` attribute on root elements
+3. ✅ Replace `ml-`/`mr-` with `marginStart`/`marginEnd`
+4. ✅ Replace `pl-`/`pr-` with `paddingStart`/`paddingEnd`
+5. ✅ Use `spaceX` for horizontal spacing
+6. ✅ Use `textAlign` instead of `text-left`/`text-right`
+7. ✅ Use `flexDirection` instead of hardcoded `flex-row`/`flex-row-reverse`
+8. ✅ Test both Arabic and English layouts
+
+### 🎯 Priority Components for RTL
+
+**High Priority (User-Facing):**
+- Authentication components (`GoogleSignInButton`, `SignInPromptModal`)
+- Search and filter components
+- Product cards and listings
+- Navigation and menus
+- Forms and inputs
+- Modals and dialogs
+
+**Medium Priority:**
+- Admin panels
+- Data tables
+- Pagination
+- Loading states
+
+### 🔍 RTL Testing
+
+Always test components in both languages:
+- Switch to Arabic (عربي) in the language switcher
+- Verify text flows right-to-left
+- Check icon and button positioning
+- Ensure proper spacing and alignment
+
+### 📚 RTL Resources
+
+- RTL Hook Documentation: `src/hooks/useRTL.ts`
+- RTL Styles: `src/app/rtl.css`
+- RTL Implementation Guide: `docs/RTL_IMPLEMENTATION.md`
+- Cursor Rules: `.cursorrules`
+
+## ♿ Accessibility (A11Y) Guidelines
+
+This project must be accessible to all users, including those with disabilities. All components must follow WCAG 2.1 AA standards and support screen readers, keyboard navigation, and assistive technologies.
+
+### 🔧 Core Accessibility Requirements
+
+**Always implement for every component:**
+
+1. **Semantic HTML**
+   - Use proper heading hierarchy (`<h1>`, `<h2>`, etc.)
+   - Use semantic elements (`<button>`, `<nav>`, `<main>`, `<aside>`)
+   - Avoid generic `<div>` and `<span>` where semantic alternatives exist
+
+2. **Keyboard Navigation**
+   - All interactive elements must be keyboard accessible
+   - Logical tab order (follows reading direction: LTR/RTL)
+   - Visible focus indicators (minimum 3:1 contrast ratio)
+   - No keyboard traps (ESC to exit modals/dropdowns)
+
+3. **Screen Reader Support**
+   - ARIA labels for complex components when needed
+   - Meaningful alt text for images (describe content and function)
+   - Proper heading structure and document outline
+   - Form labels, fieldsets, and error associations
+
+4. **Color & Visual Design**
+   - Minimum 4.5:1 contrast ratio for normal text (WCAG AA)
+   - Minimum 3:1 contrast ratio for large text (18pt+ or 14pt+ bold)
+   - Don't rely on color alone for information
+   - Ensure interactive elements have clear visual states
+
+### 📋 Accessibility Implementation Checklist
+
+**For every component, ensure:**
+
+1. ✅ **ARIA Labels**: `aria-label`, `aria-labelledby`, `aria-describedby`
+2. ✅ **Focus Management**: `tabIndex`, `autoFocus`, focus trapping in modals
+3. ✅ **Keyboard Support**: Enter/Space for buttons, Arrow keys for navigation
+4. ✅ **Screen Reader**: Proper roles, states, and announcements
+5. ✅ **Color Contrast**: Test with automated tools
+6. ✅ **Alt Text**: Descriptive alternative text for images
+7. ✅ **Form Labels**: Every input has an associated label
+8. ✅ **Error Messages**: Accessible error announcements
+
+### 🎯 Component-Specific Accessibility
+
+**Buttons & Interactive Elements:**
+```tsx
+// ✅ Correct
+<button
+  aria-label="Add to favorites"
+  onClick={handleFavorite}
+>
+  <HeartIcon aria-hidden="true" />
+  Favorite
+</button>
+
+// ❌ Wrong - missing aria-label for icon-only button
+<button onClick={handleFavorite}>
+  <HeartIcon />
+</button>
+```
+
+**Forms:**
+```tsx
+// ✅ Correct
+<label htmlFor="email">Email Address</label>
+<input
+  id="email"
+  type="email"
+  aria-describedby="email-error"
+  aria-invalid={hasError}
+/>
+{hasError && (
+  <div id="email-error" role="alert">
+    Please enter a valid email address
+  </div>
+)}
+```
+
+**Modals & Dialogs:**
+```tsx
+// ✅ Correct
+<div
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+  aria-describedby="modal-description"
+>
+  <h2 id="modal-title">Confirm Delete</h2>
+  <p id="modal-description">Are you sure you want to delete this item?</p>
+  {/* Focus management and keyboard handling */}
+</div>
+```
+
+**Images:**
+```tsx
+// ✅ Correct - descriptive alt text
+<img
+  src="car.jpg"
+  alt="Red Toyota Camry 2020 with low mileage"
+  loading="lazy"
+/>
+
+// ❌ Wrong - generic or missing alt
+<img src="car.jpg" alt="Car" />
+<img src="car.jpg" /> // Missing alt entirely
+```
+
+### 🔍 Accessibility Testing
+
+**Manual Testing:**
+- Navigate with keyboard only (Tab, Enter, Space, Arrow keys, Escape)
+- Test with screen reader (NVDA, JAWS, VoiceOver, ORCA)
+- Verify color contrast with WebAIM Contrast Checker
+- Test focus indicators are visible and have 3:1 contrast
+- Test with high contrast mode and reduced motion preferences
+- Verify touch targets are minimum 44px × 44px
+
+**Automated Testing:**
+```bash
+# Run accessibility tests
+npm run test:a11y
+
+# Lighthouse accessibility audit
+npm run lighthouse:a11y
+```
+
+### 🛠️ Accessibility Tools & Libraries
+
+**Recommended Libraries:**
+- `@radix-ui/react-*` - Accessible, unstyled UI primitives
+- `@headlessui/react` - Accessible component primitives
+- `react-aria` - Adobe's accessibility-first component library
+- `@reach/ui` - Accessible React components
+
+**Development Tools:**
+- `eslint-plugin-jsx-a11y` - ESLint rules for accessibility
+- `react-devtools` - Accessibility audit in React DevTools
+- Browser extensions: axe DevTools, WAVE Evaluation Tool
+
+### 📚 Accessibility Resources
+
+- WCAG 2.1 Guidelines: https://www.w3.org/WAI/WCAG21/quickref/
+- ARIA Authoring Practices: https://www.w3.org/WAI/ARIA/apg/
+- Accessibility Testing Tools: axe-core, lighthouse, WAVE
+- React A11Y: https://github.com/reactjs/react-a11y
+
+### 🚫 Common Accessibility Mistakes to Avoid
+
+- Missing alt text on images
+- Non-semantic buttons (using `<div>` with click handlers)
+- Missing form labels
+- Poor color contrast
+- No keyboard navigation support
+- Missing focus indicators
+- Non-descriptive link text ("Click here", "Read more")
+- Tables without proper headers
+- Missing ARIA labels on complex widgets
+
+### 🎯 Additional Best Practices
+
+**Progressive Enhancement:**
+- Ensure core functionality works without JavaScript
+- Provide fallbacks for disabled users (reduced motion, high contrast mode)
+- Test with JavaScript disabled in browsers
+
+**Performance & Accessibility:**
+- Avoid layout shifts that can disorient screen reader users
+- Use `prefers-reduced-motion` media queries for animations
+- Optimize for touch targets (minimum 44px)
+
+**Inclusive Design:**
+- Consider different user capabilities and preferences
+- Support multiple input methods (mouse, keyboard, touch, voice)
+- Test with various assistive technologies
 
 7. **Database Fields**: 
    - Use `name_en` and `name_ar` pattern for bilingual database fields
