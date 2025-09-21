@@ -31,6 +31,8 @@ interface Step2PrivateSellerFormProps {
   loading: boolean;
   passwordError: string;
   hasAttemptedValidation: boolean;
+  usernameError?: string;
+  confirmPasswordError?: string;
 }
 
 export default function Step2PrivateSellerForm({
@@ -56,7 +58,9 @@ export default function Step2PrivateSellerForm({
   setDateOfBirthError,
   loading,
   passwordError: _passwordError,
-  hasAttemptedValidation
+  hasAttemptedValidation,
+  usernameError: _usernameError,
+  confirmPasswordError
 }: Step2PrivateSellerFormProps) {
   const { t } = useTranslation('auth');
   const { direction } = useRTL();
@@ -89,7 +93,7 @@ export default function Step2PrivateSellerForm({
             className="block w-full ltr:pl-16 rtl:pr-16 px-4 py-3.5 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md focus:shadow-lg focus:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
             placeholder={t('fullNamePlaceholder', 'Enter your full name')}
           />
-          {username && (
+          {username && username.trim().length >= 2 && (
             <div className="absolute inset-y-0 ltr:right-4 rtl:left-4 flex items-center">
               <div className="flex items-center justify-center w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full">
                 <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,8 +248,14 @@ export default function Step2PrivateSellerForm({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-4 rtl:pr-4 pointer-events-none">
-            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border border-rose-100 dark:border-rose-800 rounded-lg transition-all duration-200 group-focus-within:border-rose-300 dark:group-focus-within:border-rose-600 group-focus-within:shadow-md">
-              <svg className="w-5 h-5 text-rose-600 dark:text-rose-400 transition-all duration-200 group-focus-within:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 ${
+              _passwordError
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                : 'bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 border-rose-100 dark:border-rose-800 group-focus-within:border-rose-300 dark:group-focus-within:border-rose-600 group-focus-within:shadow-md'
+            }`}>
+              <svg className={`w-5 h-5 transition-all duration-200 group-focus-within:scale-110 ${
+                _passwordError ? 'text-red-600 dark:text-red-400' : 'text-rose-600 dark:text-rose-400'
+              }`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <circle cx="12" cy="16" r="1"></circle>
                 <path d="m9 11 3-3 3 3"></path>
@@ -261,9 +271,13 @@ export default function Step2PrivateSellerForm({
             minLength={6}
             disabled={loading}
             autoComplete="new-password"
-            className="block w-full ltr:pl-16 rtl:pr-16 px-4 py-3.5 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md focus:shadow-lg focus:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
+            className={`block w-full ltr:pl-16 rtl:pr-16 px-4 py-3.5 border-2 rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 hover:shadow-md focus:shadow-lg focus:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed ${
+              _passwordError
+                ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500'
+                : 'border-gray-200 dark:border-gray-700 focus:ring-rose-500/20 focus:border-rose-500 hover:border-gray-300 dark:hover:border-gray-600'
+            }`}
           />
-          {password && password.length >= 6 && (
+          {password && password.length >= 6 && !_passwordError && (
             <div className="absolute inset-y-0 ltr:right-4 rtl:left-4 flex items-center">
               <div className="flex items-center justify-center w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full animate-pulse">
                 <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,6 +287,22 @@ export default function Step2PrivateSellerForm({
             </div>
           )}
         </div>
+        {_passwordError && (
+          <div className={`mt-3 flex items-start ${direction.spaceX('2')} animate-slide-down`}>
+            <div className="flex-shrink-0">
+              <div className="flex items-center justify-center w-5 h-5 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <svg className="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+            </div>
+            <div className={`flex-1 ${direction.textAlign}`}>
+              <p className="text-sm text-red-700 dark:text-red-300">
+                {_passwordError}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confirm Password */}
@@ -313,21 +343,18 @@ export default function Step2PrivateSellerForm({
             </div>
           )}
         </div>
-        {confirmPassword && password && confirmPassword !== password && (
-          <div className="mt-3 flex items-start space-x-2 animate-slide-down">
+        {(confirmPasswordError || (confirmPassword && password && confirmPassword !== password)) && (
+          <div className={`mt-3 flex items-start ${direction.spaceX('2')} animate-slide-down`}>
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-center w-6 h-6 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center justify-center w-5 h-5 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <svg className="w-3 h-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
               </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                Passwords do not match
-              </p>
-              <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-                Please make sure both passwords are identical
+            <div className={`flex-1 ${direction.textAlign}`}>
+              <p className="text-sm text-red-700 dark:text-red-300">
+                {confirmPasswordError || t('passwordsDoNotMatch', 'Passwords do not match')}
               </p>
             </div>
           </div>

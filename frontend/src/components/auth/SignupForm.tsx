@@ -16,7 +16,11 @@ import {
   SignupNavigation
 } from './signup';
 
-export default function SignupForm() {
+interface SignupFormProps {
+  callbackUrl?: string;
+}
+
+export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormProps) {
   const { t } = useTranslation(['auth', 'validation']);
   const [showAgeRestrictionModal, setShowAgeRestrictionModal] = React.useState(false);
   const [userAge, setUserAge] = React.useState<number | undefined>();
@@ -42,6 +46,7 @@ export default function SignupForm() {
     uiState,
     updateUIState,
     clearLocalStorage,
+    callbackUrl,
   });
 
   // Load saved data on component mount and ensure clean state
@@ -244,6 +249,45 @@ export default function SignupForm() {
   function handleSubmit() {
     // Ensure validation flag is set before submission
     updateUIState({ hasAttemptedValidation: true });
+    
+    // Run final validation before submission
+    const validation = validateCurrentStep();
+    if (!validation.isValid) {
+      // Update UI state with validation errors
+      const errorUpdates: Partial<SignupUIState> = {};
+      Object.keys(validation.errors).forEach(key => {
+        const errorMessage = validation.errors[key as keyof typeof validation.errors];
+        // Translate error messages using i18n with proper fallbacks
+        let translatedError = errorMessage;
+
+        // Try to translate the message, fallback to user-friendly defaults
+        if (errorMessage && errorMessage.startsWith('validation.')) {
+          translatedError = t(errorMessage, getUserFriendlyFallback(errorMessage));
+        } else if (errorMessage) {
+          // If it's not a validation key, use it as-is or translate it
+          translatedError = t(errorMessage, errorMessage);
+        }
+
+        if (key === 'email') errorUpdates.emailError = translatedError;
+        else if (key === 'phone') errorUpdates.phoneError = translatedError;
+        else if (key === 'businessEmail') errorUpdates.businessEmailError = translatedError;
+        else if (key === 'businessPhone') errorUpdates.businessPhoneError = translatedError;
+        else if (key === 'businessName') errorUpdates.businessNameError = translatedError;
+        else if (key === 'vatNumber') errorUpdates.vatError = translatedError;
+        else if (key === 'username') errorUpdates.businessNameError = translatedError; // For dealer business name
+        else if (key === 'dateOfBirth') errorUpdates.dateOfBirthError = translatedError;
+        else if (key === 'password') errorUpdates.passwordError = translatedError;
+        else if (key === 'confirmPassword') errorUpdates.passwordError = translatedError; // Map to passwordError for now
+        else if (key === 'city') errorUpdates.businessNameError = translatedError; // Map to businessNameError for now
+        else if (key === 'sellerType') errorUpdates.error = translatedError; // General error for seller type
+      });
+
+      if (Object.keys(errorUpdates).length > 0) {
+        updateUIState(errorUpdates);
+      }
+      return; // Don't proceed with submission if validation fails
+    }
+    
     submitSignup();
   }
 

@@ -99,7 +99,7 @@ export default function Step1UserTypeSelection({
             }`}
           >
             {/* Selection Indicator */}
-            <div className="absolute top-4 right-4">
+            <div className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'}`}>
               <div className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
                 selectedSellerType === sellerType.name
                   ? 'border-blue-500 bg-blue-500 shadow-lg'
@@ -115,10 +115,10 @@ export default function Step1UserTypeSelection({
 
             <div className="flex flex-col h-full">
               {/* Icon and Header */}
-              <div className="flex items-start space-x-8 mb-6">
+              <div className={`flex items-start mb-6 ${isArabic ? 'space-x-reverse space-x-8' : 'space-x-8'}`}>
                 <div className="text-5xl flex-shrink-0">{sellerType.icon}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-3 mb-3">
+                  <div className={`flex items-center mb-3 ${isArabic ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                     <h3 className={`text-2xl font-bold text-gray-900 dark:text-white ${isArabic ? 'text-right' : 'text-left'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                       {sellerType.title}
                     </h3>
@@ -136,7 +136,7 @@ export default function Step1UserTypeSelection({
               <div className={`mt-auto ${isArabic ? 'text-right' : 'text-left'}`}>
                 <div className={`flex flex-wrap gap-3 ${isArabic ? 'justify-end' : 'justify-start'}`}>
                   {sellerType.features.map((feature, index) => (
-                    <div key={index} className="flex items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl px-4 py-2.5" dir={isArabic ? 'rtl' : 'ltr'}>
+                    <div key={index} className={`flex items-center bg-gray-50 dark:bg-gray-700/50 rounded-xl px-4 py-2.5 ${isArabic ? 'flex-row-reverse' : 'flex-row'}`} dir={isArabic ? 'rtl' : 'ltr'}>
                       <span className={`text-green-600 dark:text-green-400 ${isArabic ? 'ml-2' : 'mr-2'} text-base`}>✓</span>
                       <span className="text-base text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
                     </div>

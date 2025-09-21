@@ -35,7 +35,23 @@ export function useRTL() {
   const { i18n } = useTranslation();
   
   const isRTL = useMemo(() => {
-    return RTL_LANGUAGES.has(i18n.language as 'ar' | 'he' | 'fa' | 'ur');
+    // First check i18n language
+    if (i18n.language && RTL_LANGUAGES.has(i18n.language as 'ar' | 'he' | 'fa' | 'ur')) {
+      console.log('🎯 useRTL: Detected RTL from i18n language:', i18n.language);
+      return true;
+    }
+
+    // Fallback to document direction for SSR/hydration cases
+    if (typeof document !== 'undefined') {
+      const docDir = document.documentElement.dir;
+      if (docDir === 'rtl') {
+        console.log('🎯 useRTL: Detected RTL from document.dir:', docDir, 'i18n.language:', i18n.language);
+        return true;
+      }
+    }
+
+    console.log('🎯 useRTL: No RTL detected. i18n.language:', i18n.language, 'document.dir:', typeof document !== 'undefined' ? document.documentElement.dir : 'N/A');
+    return false;
   }, [i18n.language]);
   
   // Core direction properties
