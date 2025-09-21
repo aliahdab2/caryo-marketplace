@@ -19,10 +19,19 @@ export default function ProgressIndicator({
   const progress = (currentStep / totalSteps) * 100;
 
   const getStepTitle = (step: number) => {
-    if (stepTitles[step - 1]) {
+    if (stepTitles && stepTitles[step - 1]) {
       return stepTitles[step - 1];
     }
-    return `${t('step', 'Step')} ${step}`;
+    
+    // Default descriptive step titles
+    const defaultStepTitles = [
+      t('stepChooseAccountType', 'Step 1: Choose Account Type'),
+      t('stepPersonalInfo', 'Step 2: Personal Information'),
+      t('stepBusinessInfo', 'Step 3: Business Information'),
+      t('stepContactInfo', 'Step 4: Contact Information')
+    ];
+    
+    return defaultStepTitles[step - 1] || `${t('step', 'Step')} ${step}`;
   };
 
   return (

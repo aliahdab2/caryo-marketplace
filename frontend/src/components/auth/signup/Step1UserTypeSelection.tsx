@@ -23,14 +23,14 @@ interface Step1UserTypeSelectionProps {
  * Displays seller type options with comprehensive RTL support
  */
 export default function Step1UserTypeSelection({
-  sellerTypes,
+  sellerTypes: _sellerTypes,
   selectedSellerType,
   setSelectedSellerType,
   setDealerIntent,
   loading: _loading = false
 }: Step1UserTypeSelectionProps) {
   const { t } = useTranslation('auth');
-  const { dir, textAlign, flexDirection, spaceX, getInlineStyles } = useRTL();
+  const { dir, textAlign, getInlineStyles } = useRTL();
 
   const handleSellerTypeSelect = (sellerType: string) => {
     setSelectedSellerType(sellerType);
@@ -44,91 +44,122 @@ export default function Step1UserTypeSelection({
   // Optimized inline styles using the new helper
   const inlineStyles = getInlineStyles();
 
+  // Enhanced seller type data with icons and improved copy
+  const enhancedSellerTypes = [
+    {
+      id: 1,
+      name: 'private',
+      icon: '🚗',
+      title: t('privateSeller', 'Private Seller'),
+      description: t('privateSellerImprovedDesc', 'Designed for selling your personal cars'),
+      badge: t('personalUse', 'Personal Use'),
+      badgeColor: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+      features: [
+        t('privateSellerFeature1', 'Sell personal cars'),
+        t('privateSellerFeature2', 'Simple registration'),
+        t('privateSellerFeature3', 'Direct communication')
+      ]
+    },
+    {
+      id: 2,
+      name: 'dealer',
+      icon: '🏢',
+      title: t('dealer', 'Dealer'),
+      description: t('dealerImprovedDesc', 'Designed for car dealerships and showrooms'),
+      badge: t('businessUse', 'Business Use'),
+      badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+      features: [
+        t('dealerFeature1', 'Bulk car listings'),
+        t('dealerFeature2', 'Business verification'),
+        t('dealerFeature3', 'Advanced features')
+      ]
+    }
+  ];
+
   return (
     <div className="space-y-6" dir={dir} style={inlineStyles}>
-      {/* Header Section */}
+      {/* Enhanced Header Section */}
       <div className="text-center" dir={dir} style={inlineStyles}>
-        <h3 className={`text-lg font-semibold text-gray-900 dark:text-white mb-2 ${textAlign}`}>
+        <h3 className={`text-xl font-bold text-gray-900 dark:text-white mb-3 ${textAlign}`}>
           {t('chooseAccountType', 'Choose Your Account Type')}
         </h3>
-        <p className={`text-sm text-gray-600 dark:text-gray-400 ${textAlign}`}>
+        <p className={`text-base text-gray-600 dark:text-gray-400 ${textAlign} max-w-md mx-auto`}>
           {t('accountTypeDescription', 'Select the type of account that best fits your needs')}
         </p>
       </div>
 
-      {/* Seller Type Cards */}
-      <div className="grid grid-cols-1 gap-4" dir={dir}>
-        {[...sellerTypes].sort((a, b) => {
-          if (a.name === 'private') return -1;
-          if (b.name === 'private') return 1;
-          return 0;
-        }).map((sellerType) => (
+      {/* Enhanced Seller Type Cards */}
+      <div className="grid grid-cols-1 gap-6" dir={dir}>
+        {enhancedSellerTypes.map((sellerType) => (
           <div
             key={sellerType.id}
             onClick={() => handleSellerTypeSelect(sellerType.name)}
             dir={dir}
-            className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
+            className={`relative cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-[1.02] ${
               selectedSellerType === sellerType.name
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm'
+                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800'
+                : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md bg-white dark:bg-gray-800'
             }`}
             style={inlineStyles}
           >
-            <div className={`flex items-start ${spaceX('3')}`}>
-              {/* Radio Button */}
-              <div className={`flex-shrink-0 w-5 h-5 rounded-full border-2 mt-0.5 ${
-                selectedSellerType === sellerType.name
-                  ? 'border-blue-500 bg-blue-500'
-                  : 'border-gray-300 dark:border-gray-600'
-              }`}>
-                {selectedSellerType === sellerType.name && (
-                  <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
+            {/* Selection Indicator */}
+            {selectedSellerType === sellerType.name && (
+              <div className="absolute top-4 right-4 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+
+            <div className="flex items-start space-x-4 rtl:space-x-reverse" dir={dir}>
+              {/* Icon */}
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center text-3xl shadow-inner">
+                  {sellerType.icon}
+                </div>
               </div>
 
-              {/* Card Content */}
+              {/* Content */}
               <div className={`flex-1 min-w-0 ${textAlign}`} dir={dir} style={inlineStyles}>
-                {/* Title */}
-                <h4 className={`text-base font-medium text-gray-900 dark:text-white mb-1 ${textAlign}`}>
-                  {sellerType.title}
-                </h4>
+                {/* Title and Badge */}
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className={`text-lg font-bold text-gray-900 dark:text-white ${textAlign}`}>
+                    {sellerType.title}
+                  </h4>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${sellerType.badgeColor}`}>
+                    {sellerType.badge}
+                  </span>
+                </div>
 
                 {/* Description */}
-                <p className={`text-sm text-gray-600 dark:text-gray-400 mb-3 ${textAlign}`}>
+                <p className={`text-sm text-gray-600 dark:text-gray-400 mb-4 ${textAlign} leading-relaxed`}>
                   {sellerType.description}
                 </p>
 
-                {/* Features List */}
-                <div className="space-y-1">
+                {/* Enhanced Features List */}
+                <div className="space-y-2">
                   {sellerType.features.map((feature, index) => (
                     <div
                       key={index}
-                      className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${flexDirection} ${spaceX('2')}`}
+                      className="flex items-center space-x-3 rtl:space-x-reverse"
                       dir={dir}
                       style={inlineStyles}
                     >
-                      {/* Checkmark Icon */}
-                      <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      {/* Enhanced Checkmark */}
+                      <div className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
 
                       {/* Feature Text */}
-                      <span className={textAlign} dir={dir} style={inlineStyles}>
+                      <span className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${textAlign}`} dir={dir} style={inlineStyles}>
                         {feature}
                       </span>
                     </div>
                   ))}
                 </div>
+
               </div>
             </div>
           </div>

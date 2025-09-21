@@ -1,109 +1,50 @@
-/**
- * Auto-Save Indicator Component
- * 
- * Shows the current auto-save status to users.
- * Similar to Google Docs "All changes saved" indicator.
- */
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AutoSaveIndicatorProps } from '@/types/autoSave';
 
-export default function AutoSaveIndicator({ 
-  status, 
-  lastSaved, 
-  className = '' 
-}: AutoSaveIndicatorProps) {
-  const { t } = useTranslation(['common', 'listings']);
+interface AutoSaveIndicatorProps {
+  className?: string;
+}
 
-  const getStatusIcon = () => {
-    switch (status) {
-      case 'saving':
-        return (
-          <svg className="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-            <circle 
-              className="opacity-25" 
-              cx="12" 
-              cy="12" 
-              r="10" 
-              stroke="currentColor" 
-              strokeWidth="4"
-            />
-            <path 
-              className="opacity-75" 
-              fill="currentColor" 
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        );
-      case 'saved':
-        return (
-          <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        );
-      case 'error':
-        return (
-          <svg className="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+/**
+ * Auto-save indicator that shows when form data is being saved
+ */
+export default function AutoSaveIndicator({ className = '' }: AutoSaveIndicatorProps) {
+  const { t } = useTranslation('common');
+  const [isVisible, setIsVisible] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const getStatusText = () => {
-    switch (status) {
-      case 'saving':
-        return t('common:autoSaveSaving', 'Saving...');
-      case 'saved':
-        if (lastSaved) {
-          const timeAgo = getTimeAgo(lastSaved);
-          return t('common:autoSaveSaved', 'Saved {{time}}', { time: timeAgo });
-        }
-        return t('common:autoSaveAllSaved', 'All changes saved');
-      case 'error':
-        return t('common:autoSaveError', 'Save failed - will retry');
-      default:
-        return null;
-    }
-  };
+  useEffect(() => {
+    const handleAutoSave = (event: CustomEvent) => {
+      setMessage(event.detail.message || t('autoSaved', 'Auto-saved'));
+      setIsVisible(true);
 
-  const getTimeAgo = (date: Date): string => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      // Hide after 2 seconds
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2000);
+    };
 
-    if (diffMinutes < 1) {
-      return t('common:justNow', 'just now');
-    } else if (diffMinutes === 1) {
-      return t('common:oneMinuteAgo', '1 minute ago');
-    } else if (diffMinutes < 60) {
-      return t('common:minutesAgo', '{{count}} minutes ago', { count: diffMinutes });
-    } else {
-      const diffHours = Math.floor(diffMinutes / 60);
-      if (diffHours === 1) {
-        return t('common:oneHourAgo', '1 hour ago');
-      }
-      return t('common:hoursAgo', '{{count}} hours ago', { count: diffHours });
-    }
-  };
+    window.addEventListener('autosave', handleAutoSave as EventListener);
 
-  if (status === 'idle') {
-    return null;
-  }
+    return () => {
+      window.removeEventListener('autosave', handleAutoSave as EventListener);
+    };
+  }, [t]);
+
+  if (!isVisible) return null;
 
   return (
-    <div className={`flex items-center gap-2 text-sm ${className}`}>
-      {getStatusIcon()}
-      <span className={`
-        ${status === 'saving' ? 'text-blue-600 dark:text-blue-400' : ''}
-        ${status === 'saved' ? 'text-green-600 dark:text-green-400' : ''}
-        ${status === 'error' ? 'text-red-600 dark:text-red-400' : ''}
-      `}>
-        {getStatusText()}
-      </span>
+    <div className={`fixed top-4 right-4 z-50 ${className}`}>
+      <div className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-4 py-2 shadow-lg animate-fade-in">
+        <div className="flex items-center space-x-2">
+          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span className="text-sm font-medium text-green-800 dark:text-green-200">
+            {message}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
