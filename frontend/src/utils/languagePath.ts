@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useLanguage } from '@/components/EnhancedLanguageProvider';
+import { useTranslation } from 'react-i18next';
 import { SupportedLanguage } from '@/utils/i18nExports';
 
 /**
@@ -38,7 +38,7 @@ const DEFAULT_CONFIG: LanguagePathConfig = {
  * @returns Functions for language path management
  */
 export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
-  const { locale } = useLanguage();
+  const { i18n } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -101,14 +101,14 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
     
     // If first segment is not a language code, redirect to localized path
     if (!isSupportedLanguagePathSegment(firstSegment)) {
-      router.replace(getPathWithLanguage(pathname, locale));
+      router.replace(getPathWithLanguage(pathname, i18n.language as SupportedLanguage));
     }
     // If first segment is a language code but doesn't match current language
-    else if (firstSegment !== locale) {
+    else if (firstSegment !== i18n.language) {
       const restOfPath = `/${pathParts.slice(1).join('/')}`;
-      router.replace(getPathWithLanguage(restOfPath, locale));
+      router.replace(getPathWithLanguage(restOfPath, i18n.language as SupportedLanguage));
     }
-  }, [pathname, locale, router, getPathWithLanguage, isExcludedPath, isSupportedLanguagePathSegment, mergedConfig.redirectToLocalizedPath]);
+  }, [pathname, i18n.language, router, getPathWithLanguage, isExcludedPath, isSupportedLanguagePathSegment, mergedConfig.redirectToLocalizedPath]);
   
   /**
    * Get a localized URL based on the current language
@@ -117,11 +117,11 @@ export function useLanguagePath(config: Partial<LanguagePathConfig> = {}) {
    * @returns Localized URL
    */
   const getLocalizedUrl = (path: string, lang?: SupportedLanguage): string => {
-    return getPathWithLanguage(path, lang || locale);
+    return getPathWithLanguage(path, lang || (i18n.language as SupportedLanguage));
   };
   
   return {
     getLocalizedUrl,
-    currentLanguagePath: getPathWithLanguage(pathname ?? '', locale ?? ''),
+    currentLanguagePath: getPathWithLanguage(pathname ?? '', (i18n.language as SupportedLanguage) ?? ''),
   };
 }

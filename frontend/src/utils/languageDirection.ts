@@ -1,6 +1,6 @@
 "use client";
 
-import { SupportedLanguage, LANGUAGES } from './i18n';
+import { SupportedLanguage, LANGUAGES } from './i18nExports';
 import i18n from './i18n';
 
 /**

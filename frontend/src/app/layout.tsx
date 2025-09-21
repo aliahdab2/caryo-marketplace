@@ -4,12 +4,11 @@ import { cookies } from 'next/headers';
 import "./globals.css";
 // RTL styles are conditionally loaded client-side for performance
 
-import LanguageProvider from "@/components/EnhancedLanguageProvider";
+import SimpleLanguageProvider from "@/components/SimpleLanguageProvider";
 import I18nProvider from "@/components/I18nProvider";
 import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
-import AutoLanguageDetector from "@/components/AutoLanguageDetector";
 import ClientProviders from "@/providers/ClientProviders";
 // Import secure logging to prevent sensitive data exposure
 import "@/lib/secure-logging";
@@ -105,10 +104,9 @@ export default async function RootLayout({
         <ClientProviders>
           <AuthDataHandler />
           <I18nProvider>
-            <LanguageProvider>
-              <AutoLanguageDetector />
+            <SimpleLanguageProvider>
               <MainLayout>{children}</MainLayout>
-            </LanguageProvider>
+            </SimpleLanguageProvider>
           </I18nProvider>
         </ClientProviders>
       </body>

@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import NextImage from 'next/image';
 import { isValidEmail } from '@/utils/emailValidation';
-import GoogleSignInButton from '../GoogleSignInButton';
+import SyrianPhoneInput from '@/components/ui/SyrianPhoneInput';
+import { useRTL } from '@/hooks/useRTL';
 
 interface Step4DealerContactInfoProps {
   businessEmail: string;
@@ -34,14 +35,12 @@ export default function Step4DealerContactInfo({
   hasAttemptedValidation
 }: Step4DealerContactInfoProps) {
   const { t } = useTranslation('auth');
+  const { direction } = useRTL();
   const [_showLogoModal, _setShowLogoModal] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isValidPhoneNumber = (phone: string) => {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
-  };
+  // Phone validation is now handled by SyrianPhoneInput component
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -82,31 +81,10 @@ export default function Step4DealerContactInfo({
   };
 
   return (
-    <>
-      {/* Google Sign-in Option */}
-      <div className="space-y-4 mb-6">
-        <GoogleSignInButton
-          callbackUrl="/dashboard"
-          className="w-full py-2.5 sm:py-3 text-sm sm:text-base"
-        />
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              {t('orCompleteWithEmail', 'Or complete with email')}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Contact Information Form */}
-      <div className="space-y-5">
-        {/* Business Email */}
+    <div className={`space-y-6 animate-fade-in ${direction.className}`} dir={direction.dir}>
+      {/* Business Email */}
       <div className="mb-5">
-        <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label htmlFor="businessEmail" className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 ${direction.textAlign}`}>
           {t('businessEmail', 'Business Email')}
         </label>
         <div className="relative group">
@@ -146,8 +124,8 @@ export default function Step4DealerContactInfo({
           />
         </div>
         {businessEmailError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-            <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <p className={`mt-2 text-sm text-red-600 dark:text-red-400 flex items-center ${direction.flexDirection} ${direction.textAlign}`}>
+            <svg className={`w-4 h-4 ${direction.marginEnd('1')} flex-shrink-0`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -158,62 +136,24 @@ export default function Step4DealerContactInfo({
       </div>
 
       {/* Business Phone */}
-      <div className="mb-5">
-        <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          {t('businessPhone', 'Business Phone')}
-        </label>
-        <div className="relative group">
-          <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-            <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-          </div>
-          <input
-            id="businessPhone"
-            type="tel"
-            value={businessPhone}
-            onChange={(e) => {
-              const newPhone = e.target.value;
-              setBusinessPhone(newPhone);
-              if (businessPhoneError) {
-                setBusinessPhoneError("");
-              }
-            }}
-            onBlur={(e) => {
-              // Only validate on blur if user has attempted validation (clicked Next/Submit)
-              if (!hasAttemptedValidation) return;
-
-              const phoneValue = e.target.value.trim();
-              if (phoneValue && !isValidPhoneNumber(phoneValue)) {
-                setBusinessPhoneError(t('invalidPhoneFormat', 'Invalid phone number format'));
-              }
-            }}
-            disabled={loading}
-            className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
-              businessPhoneError
-                ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
-                : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
-            }`}
-            placeholder={t('businessPhonePlaceholder', '+963 XXX XXX XXX')}
-          />
-        </div>
-        {businessPhoneError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-            <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            {businessPhoneError}
-          </p>
-        )}
-      </div>
+      <SyrianPhoneInput
+        id="businessPhone"
+        value={businessPhone}
+        onChange={setBusinessPhone}
+        error={businessPhoneError}
+        onErrorChange={setBusinessPhoneError}
+        disabled={loading}
+        hasAttemptedValidation={hasAttemptedValidation}
+        label={t('businessPhone', 'Business Phone')}
+        placeholder={t('businessPhonePlaceholder', '9XX XXX XXX')}
+        className="mb-5"
+      />
 
       {/* Business Logo */}
       <div className="mb-5">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <label className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 ${direction.textAlign}`}>
           {t('businessLogo', 'Business Logo')}
-          <span className="ml-1 text-gray-400 cursor-help" title={t('logoRequirements', 'Upload a high-quality logo (PNG, JPG, max 5MB)')}>
+          <span className={`${direction.marginStart('1')} text-gray-400 cursor-help`} title={t('logoRequirements', 'Upload a high-quality logo (PNG, JPG, max 5MB)')}>
             <svg className="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
@@ -282,7 +222,6 @@ export default function Step4DealerContactInfo({
           />
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 }

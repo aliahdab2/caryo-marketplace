@@ -24,12 +24,36 @@ export default function SignInPromptModal({
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
   const handleSignIn = () => {
-    const redirectUrl = callbackUrl || window.location.href;
+    // Extract the original callback URL if we're already on an auth page to prevent nesting
+    const currentUrl = window.location.href;
+    let redirectUrl = callbackUrl || currentUrl;
+    
+    // If we're already on an auth page with a callback URL, extract the original callback
+    if (currentUrl.includes('/auth/') && currentUrl.includes('callbackUrl=')) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const existingCallback = urlParams.get('callbackUrl');
+      if (existingCallback) {
+        redirectUrl = decodeURIComponent(existingCallback);
+      }
+    }
+    
     router.push('/auth/signin?callbackUrl=' + encodeURIComponent(redirectUrl));
   };
 
   const handleSignUp = () => {
-    const redirectUrl = callbackUrl || window.location.href;
+    // Extract the original callback URL if we're already on an auth page to prevent nesting
+    const currentUrl = window.location.href;
+    let redirectUrl = callbackUrl || currentUrl;
+    
+    // If we're already on an auth page with a callback URL, extract the original callback
+    if (currentUrl.includes('/auth/') && currentUrl.includes('callbackUrl=')) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const existingCallback = urlParams.get('callbackUrl');
+      if (existingCallback) {
+        redirectUrl = decodeURIComponent(existingCallback);
+      }
+    }
+    
     router.push('/auth/signup?callbackUrl=' + encodeURIComponent(redirectUrl));
   };
 

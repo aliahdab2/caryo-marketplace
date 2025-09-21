@@ -237,9 +237,10 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   }), [formData, mode]);
 
   // Auto-save functionality (only for create mode)
-  const autoSaveHook = useAutoSave(formData, {
+  const autoSaveHook = useAutoSave({
+    key: `listing-draft-${mode}`,
+    data: formData,
     enabled: autoSave && mode === 'create',
-    mode,
     onSave: (draftId) => {
       wizardLogger.info('Auto-save completed ' + String(draftId));
     },
@@ -822,7 +823,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
           onStepChange={handleStepChange}
           progressPercentage={progressPercentage}
           showAutoSaveIndicator={mode === 'create' && autoSave}
-          autoSaveStatus={autoSaveHook.autoSaveStatus}
+          autoSaveStatus={autoSaveHook.isSaving ? 'saving' : 'saved'}
                     lastSaved={autoSaveHook.lastSaved}
           stepCounterText={t('listings:newListingStepCounter', 'Step {{current}} of {{total}}', { current: currentStep, total: TOTAL_STEPS })}
           percentCompleteText={t('listings:progressComplete', '{{percent}}% Complete', { percent: progressPercentage })}

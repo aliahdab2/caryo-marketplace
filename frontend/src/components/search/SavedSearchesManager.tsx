@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { MdNotificationsNone, MdEdit, MdDelete, MdEmail, MdMailOutline } from 'react-icons/md';
-import { useLanguage } from '@/components/EnhancedLanguageProvider';
+// Removed useLanguage import - using i18n.language directly
 import { 
   getUserSavedSearches, 
   deleteSavedSearch, 
@@ -20,10 +20,9 @@ interface SavedSearchesManagerProps {
 export default function SavedSearchesManager({ 
   onEditSearch 
 }: SavedSearchesManagerProps) {
-  const { t } = useTranslation(['search', 'common']);
-  const { direction } = useLanguage();
+  const { t, i18n } = useTranslation(['search', 'common']);
   const user = useOptimizedUser();
-  const isRTL = direction.isRTL;
+  const isRTL = i18n.language === 'ar';
   
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -100,8 +100,8 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
   onStepChange,
   progressPercentage,
   showAutoSaveIndicator = false,
-  autoSaveStatus,
-  lastSaved,
+  autoSaveStatus: _autoSaveStatus,
+  lastSaved: _lastSaved,
   stepCounterText,
   percentCompleteText
 }) => {
@@ -158,7 +158,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
           <span>{stepCounterText}</span>
           <div className="flex items-center gap-4">
             {showAutoSaveIndicator && (
-              <AutoSaveIndicator status={autoSaveStatus ?? 'idle'} lastSaved={lastSaved ?? null} className="text-xs" />
+              <AutoSaveIndicator className="text-xs" />
             )}
             <span>{percentCompleteText}</span>
           </div>

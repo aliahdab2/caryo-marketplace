@@ -9,6 +9,7 @@ interface UseSignupSubmissionProps {
   uiState: SignupUIState;
   updateUIState: (updates: Partial<SignupUIState>) => void;
   clearLocalStorage: () => void;
+  callbackUrl?: string;
 }
 
 export function useSignupSubmission({
@@ -16,6 +17,7 @@ export function useSignupSubmission({
   uiState,
   updateUIState,
   clearLocalStorage,
+  callbackUrl = '/dashboard',
 }: UseSignupSubmissionProps) {
   const router = useRouter();
   const { t } = useTranslation('auth');
@@ -58,9 +60,29 @@ export function useSignupSubmission({
       // Ensure seller type is selected - with fallback to default
       const sellerType = uiState.selectedSellerType || 'private';
 
-      // Basic required fields validation
-      if (!formData.email || !formData.password || !formData.confirmPassword) {
-        throw new Error(t('fieldRequired', 'Required fields are missing'));
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Form submission data:', {
+          email: formData.email,
+          password: formData.password ? '[REDACTED]' : 'EMPTY',
+          confirmPassword: formData.confirmPassword ? '[REDACTED]' : 'EMPTY',
+          username: formData.username,
+          phone: formData.phone,
+          city: formData.city,
+          dateOfBirth: formData.dateOfBirth,
+          sellerType
+        });
+      }
+
+      // Basic required fields validation with specific error messages
+      if (!formData.email?.trim()) {
+        throw new Error(t('emailRequired', 'Email is required'));
+      }
+      if (!formData.password?.trim()) {
+        throw new Error(t('passwordRequired', 'Password is required'));
+      }
+      if (!formData.confirmPassword?.trim()) {
+        throw new Error(t('confirmPasswordRequired', 'Please confirm your password'));
       }
 
       // Private seller specific validation
@@ -110,9 +132,10 @@ export function useSignupSubmission({
       const message = 'message' in result ? result.message : t('signupSuccess', 'Account created successfully!');
       updateUIState({ successMessage: message, loading: false });
 
-      // Redirect to email verification page
+      // Redirect to email verification page with callback URL
       setTimeout(() => {
-        router.push(`/auth/check-email?email=${encodeURIComponent(formData.email)}`);
+        const checkEmailUrl = `/auth/check-email?email=${encodeURIComponent(formData.email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+        router.push(checkEmailUrl);
       }, 2000);
 
     } catch (err) {
@@ -138,7 +161,7 @@ export function useSignupSubmission({
         console.error("Registration error:", err);
       }
     }
-  }, [formData, uiState, updateUIState, prepareSignupData, clearLocalStorage, router, t]);
+  }, [formData, uiState, updateUIState, prepareSignupData, clearLocalStorage, router, t, callbackUrl]);
 
   return {
     submitSignup,
