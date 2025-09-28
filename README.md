@@ -24,10 +24,11 @@ The project is currently in active development with these key features implement
 **Complete project documentation is organized by category in the [docs/](docs/) directory:**
 
 ### 🚀 Quick Start
-- **New Developers**: [Setup Guide](#development-setup) - Environment setup using AutoTrader CLI
-- **AutoTrader CLI**: [CLI Commands](#autotrader-cli-script) - Unified script for all development tasks
-- **API Integration**: [API Documentation](backend/autotrader-backend/API.md) - Complete API reference with examples
-- **Current Status**: [Development Plan](DEVELOPMENT_PLAN.md) - Project roadmap and priorities
+- **📁 Project Structure**: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - **READ FIRST** - Project organization guide
+- **☕ Java 21 Setup**: [setup/JAVA_SETUP_INSTRUCTIONS.md](setup/JAVA_SETUP_INSTRUCTIONS.md) - **REQUIRED** Java 21 configuration
+- **🚀 Quick Setup**: Run `setup/setup-java21.sh` - One-click environment setup
+- **📖 API Documentation**: [backend/autotrader-backend/API.md](backend/autotrader-backend/API.md) - Complete API reference
+- **📋 Development Plan**: [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) - Project roadmap and current status
 
 ### 📖 Documentation Categories
 - **🏗️ [Architecture](docs/README.md#️-architecture--design)** - System design, database schema, project structure

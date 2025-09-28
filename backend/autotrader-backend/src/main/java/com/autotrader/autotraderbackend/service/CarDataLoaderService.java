@@ -1,5 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
+import com.autotrader.autotraderbackend.model.CarBrand;
+import com.autotrader.autotraderbackend.model.CarModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,7 +52,7 @@ public class CarDataLoaderService {
 
             // Count models by brand
             Map<String, Integer> modelsByBrand = new HashMap<>();
-            for (var brand : carBrandService.getAllBrands()) {
+            for (CarBrand brand : carBrandService.getAllBrands()) {
                 try {
                     List<?> models = carModelService.getModelsByBrandId(brand.getId());
                     modelsByBrand.put(brand.getName(), models.size());
@@ -76,14 +78,14 @@ public class CarDataLoaderService {
 
         try {
             // Check for brands without Arabic names
-            for (var brand : carBrandService.getAllBrands()) {
+            for (CarBrand brand : carBrandService.getAllBrands()) {
                 if (brand.getDisplayNameAr() == null || brand.getDisplayNameAr().trim().isEmpty()) {
                     issues.add("Brand '" + brand.getName() + "' missing Arabic name");
                 }
             }
 
             // Check for models without brands
-            for (var model : carModelService.getAllModels()) {
+            for (CarModel model : carModelService.getAllModels()) {
                 if (model.getBrand() == null) {
                     issues.add("Model '" + model.getName() + "' has no associated brand");
                 }
@@ -91,7 +93,7 @@ public class CarDataLoaderService {
 
             // Check for duplicate slugs
             Set<String> brandSlugs = new HashSet<>();
-            for (var brand : carBrandService.getAllBrands()) {
+            for (CarBrand brand : carBrandService.getAllBrands()) {
                 if (!brandSlugs.add(brand.getSlug())) {
                     issues.add("Duplicate brand slug: " + brand.getSlug());
                 }

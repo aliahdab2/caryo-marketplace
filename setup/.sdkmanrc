@@ -1,0 +1,6 @@
+# SDKMAN configuration for Caryo Marketplace (Root)
+# This file automatically sets Java 21 when you enter the project root
+# Run: sdk env install (first time only)
+# Then: sdk env (to activate)
+
+java=21.0.8-zulu

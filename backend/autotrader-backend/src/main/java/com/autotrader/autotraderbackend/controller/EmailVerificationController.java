@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
+import com.autotrader.autotraderbackend.service.EmailVerificationService.VerificationResult;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,7 +48,7 @@ public class EmailVerificationController {
                     .body(new MessageResponse("Verification token is required"));
         }
         
-        var result = emailVerificationService.verifyEmail(token);
+        VerificationResult result = emailVerificationService.verifyEmail(token);
         
         if (result.isSuccess() && result.getUser() != null) {
             try {

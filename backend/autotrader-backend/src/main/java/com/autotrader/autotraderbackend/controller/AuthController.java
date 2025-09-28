@@ -19,6 +19,7 @@ import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
+import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -338,7 +339,7 @@ public class AuthController {
             } catch (Exception e) {
                 // If private seller type not found, try to find by name
                 try {
-                    var privateSellerType = sellerTypeService.getSellerTypeByName("private");
+                    SellerTypeResponse privateSellerType = sellerTypeService.getSellerTypeByName("private");
                     user.setSellerType(sellerTypeService.getSellerTypeEntityById(privateSellerType.getId()));
                 } catch (Exception ex) {
                     // Log error but don't fail the registration
