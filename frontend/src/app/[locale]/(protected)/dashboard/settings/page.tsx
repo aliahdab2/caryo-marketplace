@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { isValidLocale } from '@/app/i18n/config';
 
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 export default function SettingsPage() {
-  const { t, i18n } = useTranslation('dashboard');
-  const router = useRouter();
+  const { t } = useTranslation('dashboard');
   const pathname = usePathname();
 
   // Extract current locale from URL path instead of relying on i18n.language

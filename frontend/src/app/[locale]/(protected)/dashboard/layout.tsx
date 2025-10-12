@@ -123,7 +123,7 @@ export default function DashboardLayout({
 }) {
   const { user, status } = useOptimizedSession();
   const router = useRouter();
-  const { t, i18n } = useTranslation('dashboard');
+  const { t } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   

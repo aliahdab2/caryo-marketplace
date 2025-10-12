@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useRouter, usePathname } from 'next/navigation';
 import { isValidLocale } from '@/app/i18n/config';
 import type { ComponentProps } from '@/types/components';
@@ -9,7 +8,6 @@ import type { ComponentProps } from '@/types/components';
 type ToggleLanguageSwitcherProps = ComponentProps;
 
 export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwitcherProps) {
-  const { i18n } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   
