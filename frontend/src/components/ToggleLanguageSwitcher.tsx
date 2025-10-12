@@ -13,15 +13,20 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
   const router = useRouter();
   const pathname = usePathname();
   
+  // Extract current locale from URL path instead of relying on i18n.language
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
+    ? pathSegments[0] 
+    : 'en';
+  
   // Handle language change using URL navigation
   const handleLanguageChange = async (lang: string) => {
-    if (lang === i18n.language) {
+    if (lang === currentLang) {
       return; // Already selected
     }
 
     try {
-      // Extract current path without locale
-      const pathSegments = pathname.split('/').filter(Boolean);
+      // Extract current path without locale (reuse already parsed pathSegments)
       let pathWithoutLocale = '/';
       
       // If first segment is a locale, remove it
@@ -33,6 +38,7 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
       
       // Navigate to new locale path
       const newPath = `/${lang}${pathWithoutLocale}`;
+      console.log(`Language switch: ${pathname} -> ${newPath}`);
       router.push(newPath);
     } catch (error) {
       console.error('Failed to switch language:', error);
@@ -46,14 +52,14 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         <button
           onClick={() => handleLanguageChange('en')}
           className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
-            i18n.language === 'en'
+            currentLang === 'en'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
           aria-label="Switch to English"
         >
           English
-          {i18n.language === 'en' && (
+          {currentLang === 'en' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transform transition-all duration-300 ease-in-out" />
           )}
         </button>
@@ -61,14 +67,14 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         <button
           onClick={() => handleLanguageChange('ar')}
           className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
-            i18n.language === 'ar'
+            currentLang === 'ar'
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
           aria-label="Switch to Arabic"
         >
           العربية
-          {i18n.language === 'ar' && (
+          {currentLang === 'ar' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transform transition-all duration-300 ease-in-out" />
           )}
         </button>

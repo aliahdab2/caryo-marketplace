@@ -10,15 +10,19 @@ export default function NavbarLanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   
+  // Extract current locale from URL path instead of relying on i18n.language
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
+    ? pathSegments[0] 
+    : 'en';
+    
   // Get the opposite language
-  const currentLang = i18n.language;
   const oppositeLanguage = currentLang === 'en' ? 'ar' : 'en';
   const oppositeLanguageLabel = oppositeLanguage === 'en' ? 'EN' : 'AR';
 
   const handleLanguageSwitch = async () => {
     try {
-      // Extract current path without locale
-      const pathSegments = pathname.split('/').filter(Boolean);
+      // Extract current path without locale (reuse already parsed pathSegments)
       let pathWithoutLocale = '/';
       
       // If first segment is a locale, remove it
@@ -30,7 +34,17 @@ export default function NavbarLanguageSwitcher() {
       
       // Navigate to new locale path
       const newPath = `/${oppositeLanguage}${pathWithoutLocale}`;
-      router.push(newPath);
+      console.log(`🔄 Language switch debug:`, {
+        currentPath: pathname,
+        currentLang,
+        oppositeLanguage,
+        pathSegments,
+        pathWithoutLocale,
+        newPath
+      });
+      
+      // Try window.location.href as fallback for reliability
+      window.location.href = newPath;
     } catch (error) {
       console.error('Failed to switch language:', error);
     }

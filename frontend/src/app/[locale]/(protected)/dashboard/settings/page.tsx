@@ -11,8 +11,14 @@ export default function SettingsPage() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Extract current locale from URL path instead of relying on i18n.language
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
+    ? pathSegments[0] 
+    : 'en';
+
   const [accountSettings, setAccountSettings] = useState({
-    language: i18n.language, // Initialize with current language
+    language: currentLang, // Initialize with current language from URL
   });
 
   // State for loading indicator during language change
@@ -22,9 +28,9 @@ export default function SettingsPage() {
   useEffect(() => {
     setAccountSettings(prev => ({
       ...prev,
-      language: i18n.language,
+      language: currentLang,
     }));
-  }, [i18n.language]);
+  }, [currentLang]);
 
   // Notification settings state
   const [notificationSettings, setNotificationSettings] = useState({
@@ -49,11 +55,10 @@ export default function SettingsPage() {
 
     if (name === "language") {
       const newLanguage = value;
-      if (newLanguage !== i18n.language) { // Only proceed if the language is actually different
+      if (newLanguage !== currentLang) { // Only proceed if the language is actually different
         setIsChangingLanguage(true);
         try {
-          // Extract current path without locale
-          const pathSegments = pathname.split('/').filter(Boolean);
+          // Extract current path without locale (reuse already parsed pathSegments)
           let pathWithoutLocale = '/';
           
           // If first segment is a locale, remove it
@@ -65,7 +70,9 @@ export default function SettingsPage() {
           
           // Navigate to new locale path
           const newPath = `/${newLanguage}${pathWithoutLocale}`;
-          router.push(newPath);
+          console.log(`🔄 Settings language switch: ${pathname} -> ${newPath}`);
+          // Use window.location.href for reliable navigation in protected routes
+          window.location.href = newPath;
         } catch (error: unknown) {
           console.error("Failed to change language:", error);
         } finally {

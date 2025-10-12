@@ -21,6 +21,12 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
   
+  // Extract current locale from URL path instead of relying on i18n.language
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
+    ? pathSegments[0] 
+    : 'en';
+  
   // Handle clicks outside the dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,14 +53,13 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   };
   
   const handleLanguageChange = async (language: string) => {
-    if (language === i18n.language) {
+    if (language === currentLang) {
       setIsOpen(false);
       return;
     }
 
     try {
-      // Extract current path without locale
-      const pathSegments = pathname.split('/').filter(Boolean);
+      // Extract current path without locale (reuse already parsed pathSegments)
       let pathWithoutLocale = '/';
       
       // If first segment is a locale, remove it
@@ -66,6 +71,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       
       // Navigate to new locale path
       const newPath = `/${language}${pathWithoutLocale}`;
+      console.log(`Language switch: ${pathname} -> ${newPath}`);
       router.push(newPath);
       setIsOpen(false);
     } catch (error) {
@@ -93,7 +99,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-white dark:bg-gray-700 rounded-full border border-gray-200 dark:border-gray-600 text-[8px] font-bold uppercase text-gray-700 dark:text-gray-300">
-            {i18n.language}
+            {currentLang}
           </span>
         </div>
       </button>
@@ -111,7 +117,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                   key={code}
                   onClick={() => handleLanguageChange(code)}
                   className={`${
-                    i18n.language === code
+                    currentLang === code
                       ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                       : 'text-gray-700 dark:text-gray-300'
                   } group flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
@@ -119,7 +125,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 >
                   <span className="mr-3 text-lg">{lang.flag}</span>
                   <span>{lang.name}</span>
-                  {i18n.language === code && (
+                  {currentLang === code && (
                     <svg className="ml-auto h-4 w-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>

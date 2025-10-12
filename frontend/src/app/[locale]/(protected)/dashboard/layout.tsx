@@ -25,6 +25,7 @@ import {
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import { isValidLocale } from "@/app/i18n/config";
 
 // Navigation item type
 type NavItem = {
@@ -44,11 +45,21 @@ const SidebarItem = memo(function SidebarItem({
   isActive: boolean; 
   onClick?: () => void;
 }) {
+  
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    onClick?.();
+    
+    // Use direct navigation to avoid Next.js router conflicts with multiple auth layers
+    // This bypasses the infinite loading issue in protected routes
+    window.location.href = item.href;
+  }, [item.href, onClick]);
+
   return (
   <li>
     <Link 
       href={item.href}
-      onClick={onClick}
+      onClick={handleClick}
       className={`group flex items-center p-3 rounded-lg transition-all duration-200
         ${isActive 
           ? "bg-primary/15 text-primary font-medium shadow-sm" 
@@ -115,6 +126,12 @@ export default function DashboardLayout({
   const { t, i18n } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  
+  // Extract current locale from URL path instead of relying on i18n.language
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentLocale = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
+    ? pathSegments[0] 
+    : 'en';
   // Focused pages: hide the sidebar to emulate the Saved Alerts experience
   const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings', '/dashboard/messages'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
@@ -155,31 +172,31 @@ export default function DashboardLayout({
     // Main navigation
     {
       name: t('overview'),
-      href: `/${i18n.language}/dashboard`,
+      href: `/${currentLocale}/dashboard`,
       icon: <MdDashboard className="text-xl" />,
       tooltip: t('overviewTooltip') || 'Dashboard overview'
     },
     {
       name: t('myListings'),
-      href: `/${i18n.language}/dashboard/listings`,
+      href: `/${currentLocale}/dashboard/listings`,
       icon: <MdDirectionsCar className="text-xl" />,
       tooltip: t('myListingsTooltip') || 'Manage your vehicle listings'
     },
     {
       name: t('favorites'),
-      href: `/${i18n.language}/favorites`,
+      href: `/${currentLocale}/favorites`,
       icon: <MdFavorite className="text-xl" />,
       tooltip: t('favoritesTooltip') || 'Your saved vehicles'
     },
     { 
       name: t('headerSavedSearches', { ns: 'common' }), 
-      href: `/${i18n.language}/saved/alerts`, 
+      href: `/${currentLocale}/saved/alerts`, 
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
     {
       name: t('messages'),
-      href: `/${i18n.language}/dashboard/messages`,
+      href: `/${currentLocale}/dashboard/messages`,
       icon: <MdEmail className="text-xl" />,
       tooltip: t('messagesTooltip') || 'Your messages'
     },
@@ -187,26 +204,26 @@ export default function DashboardLayout({
     ...(isAdmin() ? [
       {
         name: t('adminPanel', 'Admin Panel'),
-        href: `/${i18n.language}/dashboard/admin`,
+        href: `/${currentLocale}/dashboard/admin`,
         icon: <MdAdminPanelSettings className="text-xl" />,
         tooltip: t('adminPanelTooltip', 'Manage listings and users')
       },
       {
         name: t('dataManagement', 'Data Management'),
-        href: `/${i18n.language}/dashboard/admin/data-management`,
+        href: `/${currentLocale}/dashboard/admin/data-management`,
         icon: <MdStorage className="text-xl" />,
         tooltip: t('dataManagementTooltip', 'Manage car brands and models data')
       }
     ] : []),
     {
       name: t('profile'),
-      href: `/${i18n.language}/dashboard/profile`,
+      href: `/${currentLocale}/dashboard/profile`,
       icon: <MdPerson className="text-xl" />,
       tooltip: t('profileTooltip') || 'Manage your profile'
     },
     {
       name: t('settings'),
-      href: `/${i18n.language}/dashboard/settings`,
+      href: `/${currentLocale}/dashboard/settings`,
       icon: <MdSettings className="text-xl" />,
       tooltip: t('settingsTooltip') || 'Account settings'
     },
@@ -216,13 +233,13 @@ export default function DashboardLayout({
   const quickActionItems: NavItem[] = [
     {
       name: t('addListing'),
-      href: `/${i18n.language}/dashboard/listings/new`,
+      href: `/${currentLocale}/dashboard/listings/new`,
       icon: <MdAdd className="text-xl" />,
       tooltip: t('createListing') || 'Create a new listing'
     },
     {
       name: t('support'),
-      href: `/${i18n.language}/dashboard/support`,
+      href: `/${currentLocale}/dashboard/support`,
       icon: <MdSupportAgent className="text-xl" />,
       tooltip: t('helpCenter') || 'Get support'
     }
