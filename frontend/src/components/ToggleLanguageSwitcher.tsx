@@ -1,46 +1,21 @@
 "use client";
 
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { isValidLocale } from '@/app/i18n/config';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import type { ComponentProps } from '@/types/components';
 
 type ToggleLanguageSwitcherProps = ComponentProps;
 
 export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwitcherProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  
-  // Extract current locale from URL path instead of relying on i18n.language
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
-    ? pathSegments[0] 
-    : 'en';
+  const { switchLanguage, isCurrentLanguage } = useLanguageSwitching();
   
   // Handle language change using URL navigation
-  const handleLanguageChange = async (lang: string) => {
-    if (lang === currentLang) {
+  const handleLanguageChange = (lang: string) => {
+    if (isCurrentLanguage(lang)) {
       return; // Already selected
     }
 
-    try {
-      // Extract current path without locale (reuse already parsed pathSegments)
-      let pathWithoutLocale = '/';
-      
-      // If first segment is a locale, remove it
-      if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
-        pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
-      } else {
-        pathWithoutLocale = pathname;
-      }
-      
-      // Navigate to new locale path
-      const newPath = `/${lang}${pathWithoutLocale}`;
-      console.log(`Language switch: ${pathname} -> ${newPath}`);
-      router.push(newPath);
-    } catch (error) {
-      console.error('Failed to switch language:', error);
-    }
+    switchLanguage(lang);
   };
 
   return (
@@ -50,14 +25,14 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         <button
           onClick={() => handleLanguageChange('en')}
           className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
-            currentLang === 'en'
+            isCurrentLanguage('en')
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
           aria-label="Switch to English"
         >
           English
-          {currentLang === 'en' && (
+          {isCurrentLanguage('en') && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transform transition-all duration-300 ease-in-out" />
           )}
         </button>
@@ -65,14 +40,14 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
         <button
           onClick={() => handleLanguageChange('ar')}
           className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${
-            currentLang === 'ar'
+            isCurrentLanguage('ar')
               ? 'text-gray-900 dark:text-white'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
           aria-label="Switch to Arabic"
         >
           العربية
-          {currentLang === 'ar' && (
+          {isCurrentLanguage('ar') && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transform transition-all duration-300 ease-in-out" />
           )}
         </button>

@@ -23,8 +23,7 @@ export default function ConversationList({
   loading
 }: ConversationListProps) {
   const { t } = useTranslation('messages');
-  const { locale } = useLanguageSwitching();
-  const isRTL = i18n.language === 'ar';
+  const { locale, isRTL } = useLanguageSwitching();
 
   if (loading) {
     return (
