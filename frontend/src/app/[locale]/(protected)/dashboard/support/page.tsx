@@ -1,5 +1,8 @@
 "use client";
 
+// Disable static generation for this page since it uses session data
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";

@@ -1,3 +1,6 @@
+// Disable static generation for this page since it uses session data via MessagesPageComponent
+export const dynamic = 'force-dynamic';
+
 import MessagesPageComponent from '@/components/messaging/MessagesPage';
 
 export default function MessagesPage() {
