@@ -371,7 +371,7 @@ describe('Locale Utilities', () => {
 
       expect(result).toEqual({
         query: 'BMW X5 2020',
-        location: 'Damascus, Syria',
+        location: ['Damascus', 'Syria'], // parseSearchParams splits comma-separated values into arrays
         description: 'Car with "special" characters & symbols!',
       });
     });
