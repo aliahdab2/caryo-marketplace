@@ -12,7 +12,7 @@ export interface LocalePageProps {
 /**
  * Extract and validate locale from params
  */
-export async function extractLocale(params: Promise<{ locale: string; [key: string]: any }>): Promise<Locale> {
+export async function extractLocale(params: Promise<{ locale: string; [key: string]: string | string[] }>): Promise<Locale> {
   const { locale } = await params;
   
   if (!isValidLocale(locale)) {
@@ -63,13 +63,13 @@ export function generateLocaleMetadata(
 /**
  * Parse search params into typed object
  */
-export async function parseSearchParams<T = Record<string, any>>(
+export async function parseSearchParams<T = Record<string, unknown>>(
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 ): Promise<T> {
   if (!searchParams) return {} as T;
   
   const params = await searchParams;
-  const parsed: Record<string, any> = {};
+  const parsed: Record<string, unknown> = {};
   
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) {

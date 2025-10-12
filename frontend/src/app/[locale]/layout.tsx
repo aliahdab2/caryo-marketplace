@@ -1,27 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import { locales, localeDirections, isValidLocale } from "../i18n/config";
+import { locales, isValidLocale } from "../i18n/config";
 import { notFound } from "next/navigation";
 import I18nProvider from "@/components/I18nProvider";
 import SimpleLanguageProvider from "@/components/SimpleLanguageProvider";
 import MainLayout from "@/components/layout/MainLayout";
-import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import ClientProviders from "@/providers/ClientProviders";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
 import LocaleHtmlAttributes from "@/components/LocaleHtmlAttributes";
 // Import secure logging to prevent sensitive data exposure
 import "@/lib/secure-logging";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Caryo Marketplace - Buy & Sell Cars in Syria",
@@ -104,8 +92,6 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   if (!isValidLocale(locale)) {
     notFound();
   }
-
-  const direction = localeDirections[locale];
 
   return (
     <ClientProviders>

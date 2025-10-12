@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
@@ -1149,7 +1150,7 @@ export default function AdvancedSearchPage() {
   const handleToggleAlert = useCallback(async () => {
     if (!user) {
       // Redirect to login if not authenticated
-      router.push('/auth/signin');
+      router.push(`/${i18n.language}/auth/signin`);
       return;
     }
 
@@ -1227,7 +1228,7 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsSavingAlert(false);
     }
-  }, [user, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId]);
+  }, [user, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId, i18n.language]);
 
   // Scroll behavior is now handled directly in onPageChange
 
@@ -1414,19 +1415,19 @@ export default function AdvancedSearchPage() {
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
               <span>Want to contact sellers?</span>
-              <a 
-                href="/auth/signup" 
+              <Link 
+                href={`/${i18n.language}/auth/signup`}
                 className="text-blue-600 hover:text-blue-700 font-medium underline"
               >
                 Sign up free
-              </a>
+              </Link>
               <span>•</span>
-              <a 
-                href="/auth/signin" 
+              <Link 
+                href={`/${i18n.language}/auth/signin`}
                 className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
               >
                 Sign in
-              </a>
+              </Link>
             </div>
           </div>
         )}

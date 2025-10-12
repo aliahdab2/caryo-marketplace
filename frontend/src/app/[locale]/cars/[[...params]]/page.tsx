@@ -1,4 +1,3 @@
-import { extractLocale, generateLocaleMetadata, parseSearchParams, type LocalePageProps } from "@/utils/localeUtils";
 import { redirect } from 'next/navigation';
 import SearchRedirector from '@/components/search/SearchRedirector';
 
