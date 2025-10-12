@@ -71,7 +71,7 @@ export default function I18nProvider({ children }: I18nProviderProps) {
 
   if (!mounted || isLoading) {
     // Return a lightweight loading indicator that doesn't block rendering
-    return <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
+    return <div data-testid="loading-bar" className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
   }
 
   return (
