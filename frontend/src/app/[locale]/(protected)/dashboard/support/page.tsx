@@ -34,7 +34,7 @@ interface FAQItem {
 
 export default function SupportPage() {
   const { t } = useTranslation('dashboard');
-  const { currentLang, isRTL } = useLanguageSwitching();
+  const { currentLang } = useLanguageSwitching();
   const { user } = useOptimizedSession();
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');

@@ -18,7 +18,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function SavedAlertsPage() {
   const { t } = useTranslation(['search', 'common']);
-  const { currentLang, isRTL } = useLanguageSwitching();
+  const { isRTL } = useLanguageSwitching();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);

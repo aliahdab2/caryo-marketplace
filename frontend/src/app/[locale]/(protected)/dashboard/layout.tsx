@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth-config";
 import DashboardClientLayout from "./layout.client";
 
-export default async function DashboardLayout(props: any) {
+export default async function DashboardLayout(props: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }> | { locale: string };
+}) {
   const { children } = props;
   const maybeParams = props?.params;
-  const params = (maybeParams && typeof maybeParams.then === 'function') ? await maybeParams : maybeParams;
+  const params = (maybeParams && 'then' in maybeParams) ? await maybeParams : maybeParams;
   const locale = params?.locale || 'en';
 
   const session = await getServerSession(authOptions);

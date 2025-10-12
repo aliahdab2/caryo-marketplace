@@ -7,7 +7,6 @@ import Image from 'next/image';
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
 import { formatDate, formatNumber } from '@/utils/localization';
@@ -24,7 +23,6 @@ type FilterTab = 'all' | 'available' | 'removed';
 export default function FavoritesPage() {
   const { t } = useTranslation(['favorites', 'common']);
   const { locale } = useLanguageSwitching();
-  const router = useRouter();
   const fetchedSignatureRef = useRef<string | null>(null);
   
   const [favorites, setFavorites] = useState<Listing[]>([]);

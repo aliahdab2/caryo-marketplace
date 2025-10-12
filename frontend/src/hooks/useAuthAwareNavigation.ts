@@ -34,7 +34,7 @@ export function useAuthAwareNavigation() {
     // For non-protected routes, prefer SPA navigation
     try {
       router.push(href);
-    } catch (error) {
+    } catch (_error) {
       // Fallback to full reload on any SPA failure
       window.location.href = href;
     }
