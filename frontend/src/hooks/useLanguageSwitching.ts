@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { isValidLocale } from '@/app/i18n/config';
 
 /**
@@ -9,6 +9,7 @@ import { isValidLocale } from '@/app/i18n/config';
  */
 export function useLanguageSwitching() {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Extract current locale from URL path instead of relying on i18n.language
   const pathSegments = pathname.split('/').filter(Boolean);
@@ -41,11 +42,13 @@ export function useLanguageSwitching() {
   };
 
   /**
-   * Switch to target language with reliable navigation
+   * Switch to target language with auth-aware navigation
+   * Uses different strategies based on authentication state and route type
    * @param targetLang - Target language code
    * @param debug - Whether to log debug information
+   * @param forceReload - Force full page reload regardless of route type
    */
-  const switchLanguage = (targetLang: string, debug = false) => {
+  const switchLanguage = (targetLang: string, debug = false, forceReload = false) => {
     if (targetLang === currentLang) {
       return; // Already on target language
     }
@@ -58,12 +61,38 @@ export function useLanguageSwitching() {
         currentLang,
         targetLang,
         pathSegments,
-        newPath
+        newPath,
+        forceReload
       });
     }
 
-    // Use window.location.href for reliable navigation in protected routes
-    window.location.href = newPath;
+    if (forceReload) {
+      // Force full reload if explicitly requested
+      window.location.href = newPath;
+      return;
+    }
+
+    // Smart navigation based on route complexity
+    const isSimplePublicRoute = ['/search', '/listings', '/contact'].some(route => 
+      pathname.includes(route)
+    );
+    
+    const isDashboardRoute = pathname.includes('/dashboard');
+    const hasComplexAuth = isDashboardRoute || pathname.includes('/saved') || pathname.includes('/favorites');
+
+    if (isSimplePublicRoute && !hasComplexAuth) {
+      // Use SPA routing for simple public pages
+      try {
+        router.push(newPath);
+      } catch (error) {
+        console.warn('SPA navigation failed, falling back to full reload:', error);
+        window.location.href = newPath;
+      }
+    } else {
+      // Use full reload for complex authenticated routes
+      // This prevents auth race conditions and session conflicts
+      window.location.href = newPath;
+    }
   };
 
   /**

@@ -2,19 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { usePathname } from 'next/navigation';
-import { isValidLocale } from '@/app/i18n/config';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 export default function SettingsPage() {
   const { t } = useTranslation('dashboard');
-  const pathname = usePathname();
-
-  // Extract current locale from URL path instead of relying on i18n.language
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
-    ? pathSegments[0] 
-    : 'en';
+  const { currentLang, switchLanguage } = useLanguageSwitching();
 
   const [accountSettings, setAccountSettings] = useState({
     language: currentLang, // Initialize with current language from URL
@@ -57,21 +50,8 @@ export default function SettingsPage() {
       if (newLanguage !== currentLang) { // Only proceed if the language is actually different
         setIsChangingLanguage(true);
         try {
-          // Extract current path without locale (reuse already parsed pathSegments)
-          let pathWithoutLocale = '/';
-          
-          // If first segment is a locale, remove it
-          if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
-            pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
-          } else {
-            pathWithoutLocale = pathname;
-          }
-          
-          // Navigate to new locale path
-          const newPath = `/${newLanguage}${pathWithoutLocale}`;
-          console.log(`🔄 Settings language switch: ${pathname} -> ${newPath}`);
-          // Use window.location.href for reliable navigation in protected routes
-          window.location.href = newPath;
+          // Use our smart language switching hook
+          switchLanguage(newLanguage);
         } catch (error: unknown) {
           console.error("Failed to change language:", error);
         } finally {

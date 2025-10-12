@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useEffect, Suspense } from "react";
 import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -16,8 +17,9 @@ const SignupForm = dynamic(() => import('@/components/auth/SignupForm'), {
 });
 
 export default function SignUpPage() {
-  const { t, i18n } = useTranslation('auth');
-  const { isRTL, dir, flexDirection, textAlign, marginStart, spaceX } = useRTL();
+  const { t } = useTranslation('auth');
+  const { currentLang, isRTL } = useLanguageSwitching();
+  const { dir, flexDirection, textAlign, marginStart, spaceX } = useRTL();
   const searchParams = useSearchParams();
 
   // Get callback URL and clean it if it's nested
@@ -46,7 +48,7 @@ export default function SignUpPage() {
   }, []);
 
   return (
-    <div className={`min-h-screen flex flex-col md:${flexDirection} bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 animate-fade-in`} dir={dir} data-rtl={isRTL ? 'true' : 'false'} data-lang={i18n.language}>
+    <div className={`min-h-screen flex flex-col md:${flexDirection} bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 animate-fade-in`} dir={dir} data-rtl={isRTL ? 'true' : 'false'} data-lang={currentLang}>
       {/* Left section - Enhanced Brand/imagery */}
       <div className={`hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white flex-col justify-between relative overflow-hidden shadow-2xl ${isRTL ? 'md:order-2' : 'md:order-1'}`}>
         {/* Enhanced Background pattern with animation */}

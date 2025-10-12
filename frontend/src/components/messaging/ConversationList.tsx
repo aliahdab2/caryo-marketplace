@@ -23,7 +23,7 @@ export default function ConversationList({
   loading
 }: ConversationListProps) {
   const { t } = useTranslation('messages');
-  const { locale, isRTL } = useLanguageSwitching();
+  const { isRTL } = useLanguageSwitching();
 
   if (loading) {
     return (
@@ -80,7 +80,7 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: ConversationItemProps) {
-  const { i18n } = useTranslation('messages');
+  const { currentLang } = useLanguageSwitching();
   
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -146,7 +146,7 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
           {/* Price Display */}
           <div className="mb-1">
             <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-              {formatNumber(parseFloat(conversation.listingPrice), locale, { 
+              {formatNumber(parseFloat(conversation.listingPrice), currentLang, { 
                 style: 'currency', 
                 currency: conversation.listingCurrency || 'USD',
                 minimumFractionDigits: 0,

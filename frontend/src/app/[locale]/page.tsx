@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useDirection } from "@/utils/direction";
 import HomeSearchBar from "@/components/search/HomeSearchBar";
 import HomeCarListings from "@/components/home/HomeCarListings";
@@ -15,7 +16,8 @@ import { CarListing } from "@/services/publicApi";
 const HOME_NAMESPACES = ['home', 'common'];
 
 export default function Home() {
-  const { t, i18n, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const { t, ready } = useLazyTranslation(HOME_NAMESPACES);
+  const { currentLang } = useLanguageSwitching();
   const { isRTL } = useDirection();
   const searchParams = useSearchParams();
   const _router = useRouter();
@@ -72,7 +74,7 @@ export default function Home() {
     try {
       const response = await subscribeToNewsletter({
         email: newsletterEmail.trim(),
-        preferredLanguage: i18n.language === 'ar' ? 'ar' : 'en',
+        preferredLanguage: currentLang === 'ar' ? 'ar' : 'en',
         source: 'homepage'
       });
 

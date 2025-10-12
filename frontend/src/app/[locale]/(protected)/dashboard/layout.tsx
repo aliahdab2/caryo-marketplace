@@ -6,6 +6,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
+import { useAuthAwareNavigation } from '@/hooks/useAuthAwareNavigation';
 import { 
   MdDashboard, 
   MdDirectionsCar, 
@@ -39,21 +41,22 @@ type NavItem = {
 const SidebarItem = memo(function SidebarItem({ 
   item, 
   isActive, 
-  onClick 
+  onClick,
+  navigate
 }: { 
   item: NavItem; 
   isActive: boolean; 
   onClick?: () => void;
+  navigate: (href: string) => void;
 }) {
   
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     onClick?.();
     
-    // Use direct navigation to avoid Next.js router conflicts with multiple auth layers
-    // This bypasses the infinite loading issue in protected routes
-    window.location.href = item.href;
-  }, [item.href, onClick]);
+    // Use auth-aware navigation for better reliability
+    navigate(item.href);
+  }, [item.href, onClick, navigate]);
 
   return (
   <li>
@@ -124,14 +127,10 @@ export default function DashboardLayout({
   const { user, status } = useOptimizedSession();
   const router = useRouter();
   const { t } = useTranslation('dashboard');
+  const { currentLang } = useLanguageSwitching();
+  const { navigate } = useAuthAwareNavigation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  
-  // Extract current locale from URL path instead of relying on i18n.language
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLocale = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
-    ? pathSegments[0] 
-    : 'en';
   // Focused pages: hide the sidebar to emulate the Saved Alerts experience
   const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings', '/dashboard/messages'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
@@ -172,31 +171,31 @@ export default function DashboardLayout({
     // Main navigation
     {
       name: t('overview'),
-      href: `/${currentLocale}/dashboard`,
+      href: `/${currentLang}/dashboard`,
       icon: <MdDashboard className="text-xl" />,
       tooltip: t('overviewTooltip') || 'Dashboard overview'
     },
     {
       name: t('myListings'),
-      href: `/${currentLocale}/dashboard/listings`,
+      href: `/${currentLang}/dashboard/listings`,
       icon: <MdDirectionsCar className="text-xl" />,
       tooltip: t('myListingsTooltip') || 'Manage your vehicle listings'
     },
     {
       name: t('favorites'),
-      href: `/${currentLocale}/favorites`,
+      href: `/${currentLang}/favorites`,
       icon: <MdFavorite className="text-xl" />,
       tooltip: t('favoritesTooltip') || 'Your saved vehicles'
     },
     { 
       name: t('headerSavedSearches', { ns: 'common' }), 
-      href: `/${currentLocale}/saved/alerts`, 
+      href: `/${currentLang}/saved/alerts`, 
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
     {
       name: t('messages'),
-      href: `/${currentLocale}/dashboard/messages`,
+      href: `/${currentLang}/dashboard/messages`,
       icon: <MdEmail className="text-xl" />,
       tooltip: t('messagesTooltip') || 'Your messages'
     },
@@ -204,26 +203,26 @@ export default function DashboardLayout({
     ...(isAdmin() ? [
       {
         name: t('adminPanel', 'Admin Panel'),
-        href: `/${currentLocale}/dashboard/admin`,
+        href: `/${currentLang}/dashboard/admin`,
         icon: <MdAdminPanelSettings className="text-xl" />,
         tooltip: t('adminPanelTooltip', 'Manage listings and users')
       },
       {
         name: t('dataManagement', 'Data Management'),
-        href: `/${currentLocale}/dashboard/admin/data-management`,
+        href: `/${currentLang}/dashboard/admin/data-management`,
         icon: <MdStorage className="text-xl" />,
         tooltip: t('dataManagementTooltip', 'Manage car brands and models data')
       }
     ] : []),
     {
       name: t('profile'),
-      href: `/${currentLocale}/dashboard/profile`,
+      href: `/${currentLang}/dashboard/profile`,
       icon: <MdPerson className="text-xl" />,
       tooltip: t('profileTooltip') || 'Manage your profile'
     },
     {
       name: t('settings'),
-      href: `/${currentLocale}/dashboard/settings`,
+      href: `/${currentLang}/dashboard/settings`,
       icon: <MdSettings className="text-xl" />,
       tooltip: t('settingsTooltip') || 'Account settings'
     },
@@ -233,13 +232,13 @@ export default function DashboardLayout({
   const quickActionItems: NavItem[] = [
     {
       name: t('addListing'),
-      href: `/${currentLocale}/dashboard/listings/new`,
+      href: `/${currentLang}/dashboard/listings/new`,
       icon: <MdAdd className="text-xl" />,
       tooltip: t('createListing') || 'Create a new listing'
     },
     {
       name: t('support'),
-      href: `/${currentLocale}/dashboard/support`,
+      href: `/${currentLang}/dashboard/support`,
       icon: <MdSupportAgent className="text-xl" />,
       tooltip: t('helpCenter') || 'Get support'
     }
@@ -308,6 +307,7 @@ export default function DashboardLayout({
                   key={item.href}
                   item={item}
                   isActive={isActive}
+                  navigate={navigate}
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
               );
@@ -326,6 +326,7 @@ export default function DashboardLayout({
                       key={item.href}
                       item={item}
                       isActive={isActive}
+                      navigate={navigate}
                       onClick={() => setIsMobileMenuOpen(false)}
                     />
                   );
@@ -375,6 +376,7 @@ export default function DashboardLayout({
                   key={item.href}
                   item={item}
                   isActive={isActive}
+                  navigate={navigate}
                 />
               );
             })}
@@ -393,6 +395,7 @@ export default function DashboardLayout({
                     key={item.href}
                     item={item}
                     isActive={isActive}
+                    navigate={navigate}
                   />
                 );
               })}

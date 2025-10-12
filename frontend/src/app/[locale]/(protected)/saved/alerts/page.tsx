@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 
 
@@ -17,7 +18,8 @@ import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function SavedAlertsPage() {
-  const { t, i18n } = useTranslation(['search', 'common']);
+  const { t } = useTranslation(['search', 'common']);
+  const { currentLang, isRTL } = useLanguageSwitching();
   const { user, status } = useOptimizedSession();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
@@ -29,7 +31,6 @@ export default function SavedAlertsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<SavedSearchResponse | null>(null);
   const hasAutoSelectedRef = useRef(false);
-  const isRTL = i18n.language === 'ar';
 
 
 

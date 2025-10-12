@@ -137,7 +137,7 @@ export default function ListingsView({
       return formatDate(dateToFormat, locale, { dateStyle: 'medium' });
     }
     return null;
-  }, [isArabic]);
+  }, [locale]);
 
   const getStatusStyle = useCallback((status: string) => {
     const statusStyles = {
@@ -165,7 +165,7 @@ export default function ListingsView({
     });
     
     return `${formattedNumber} ${currency}`;
-  }, [isArabic]);
+  }, [locale]);
 
   // Handle delete
   const handleDelete = (id: string) => {

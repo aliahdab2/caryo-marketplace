@@ -6,6 +6,7 @@ import { MdNotificationsNone, MdNotifications } from 'react-icons/md';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
 import { CarMake, CarModel } from '@/types/car';
@@ -52,13 +53,14 @@ import Pagination from '@/components/ui/Pagination';
 const SEARCH_NAMESPACES = ['common', 'search'];
 
 export default function AdvancedSearchPage() {
-  const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
+  const { t } = useLazyTranslation(SEARCH_NAMESPACES);
+  const { currentLang } = useLanguageSwitching();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { dirClass, isRTL } = useLanguageDirection();
   
   // Extract language to prevent i18n object recreation causing re-renders
-  const currentLanguage = i18n.language;
+  const currentLanguage = currentLang;
 
 
 
@@ -1150,7 +1152,7 @@ export default function AdvancedSearchPage() {
   const handleToggleAlert = useCallback(async () => {
     if (!user) {
       // Redirect to login if not authenticated
-      router.push(`/${i18n.language}/auth/signin`);
+      router.push(`/${currentLang}/auth/signin`);
       return;
     }
 
@@ -1228,7 +1230,7 @@ export default function AdvancedSearchPage() {
     } finally {
       setIsSavingAlert(false);
     }
-  }, [user, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId, i18n.language]);
+  }, [user, filters, searchQuery, router, hasActiveFilters, generateAlertName, isMonitoring, savedSearchId, currentLang]);
 
   // Scroll behavior is now handled directly in onPageChange
 
@@ -1416,14 +1418,14 @@ export default function AdvancedSearchPage() {
             <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
               <span>Want to contact sellers?</span>
               <Link 
-                href={`/${i18n.language}/auth/signup`}
+                href={`/${currentLang}/auth/signup`}
                 className="text-blue-600 hover:text-blue-700 font-medium underline"
               >
                 Sign up free
               </Link>
               <span>•</span>
               <Link 
-                href={`/${i18n.language}/auth/signin`}
+                href={`/${currentLang}/auth/signin`}
                 className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
               >
                 Sign in

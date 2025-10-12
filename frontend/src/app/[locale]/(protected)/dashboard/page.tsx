@@ -22,6 +22,7 @@ import {
 import { getMyListings, deleteListingById } from "@/services/listings";
 
 import { Listing } from "@/types/listings";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { ListingsView } from '@/components/listings';
 
 // Move namespaces outside component to prevent recreation on every render
@@ -29,7 +30,8 @@ const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 
 export default function Dashboard() {
   const user = useOptimizedUser();
-  const { t, i18n, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
+  const { t, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
+  const { currentLang } = useLanguageSwitching();
   const [favoritesCount, setFavoritesCount] = useState<number>(0);
   const [alertsCount, setAlertsCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,7 +195,7 @@ export default function Dashboard() {
     },
     {
       title: t('messages'),
-      value: formatNumber(12, i18n.language),
+      value: formatNumber(12, currentLang),
       icon: <MdEmail className="w-5 h-5 lg:w-6 lg:h-6" />,
       color: 'purple',
       link: '/dashboard/messages'
@@ -330,7 +332,7 @@ export default function Dashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <Link 
-            href={`/${i18n.language}/dashboard/listings/new`}
+            href={`/${currentLang}/dashboard/listings/new`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700
                      hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-center group"
           >
@@ -347,7 +349,7 @@ export default function Dashboard() {
           </Link>
           
           <Link 
-            href={`/${i18n.language}/dashboard/profile`}
+            href={`/${currentLang}/dashboard/profile`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-purple-300 dark:border-purple-700
                      hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-center group"
           >

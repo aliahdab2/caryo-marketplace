@@ -4,6 +4,7 @@ import React from 'react';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import ListingWizard from '@/components/listings/ListingWizard';
  
 
@@ -14,11 +15,12 @@ import ListingWizard from '@/components/listings/ListingWizard';
  */
 export default function NewListingPage() {
   const router = useRouter();
-  const { t, i18n } = useTranslation(['listings', 'common']);
+  const { t } = useTranslation(['listings', 'common']);
+  const { currentLang } = useLanguageSwitching();
 
   const handleSuccess = (_listingId: string) => {
     // Navigate to the newly created listing or back to listings dashboard
-    router.push(`/${i18n.language}/dashboard/listings`);
+    router.push(`/${currentLang}/dashboard/listings`);
   };
 
   const handleCancel = () => {
@@ -33,7 +35,7 @@ export default function NewListingPage() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back();
     } else {
-      router.push(`/${i18n.language}/dashboard/listings`);
+      router.push(`/${currentLang}/dashboard/listings`);
     }
   };
 

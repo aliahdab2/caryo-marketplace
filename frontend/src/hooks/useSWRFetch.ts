@@ -16,7 +16,27 @@ const fetcher = async <T>(url: string): Promise<T> => {
     throw error;
   }
 
-  return res.json();
+  // Check if response has content before parsing JSON
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      return {} as T; // Return empty object for empty responses
+    }
+    throw new Error('Response is not JSON');
+  }
+
+  const text = await res.text();
+  if (!text || text.trim() === '') {
+    return {} as T; // Return empty object for empty JSON responses
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (parseError) {
+    console.error('JSON parse error:', parseError, 'Response text:', text);
+    throw new Error('Invalid JSON response');
+  }
 };
 
 export function useSWRFetch<Data = unknown, Err = FetchError>(
@@ -64,7 +84,27 @@ export const authenticatedFetcher = async <T>(url: string): Promise<T> => {
     throw error;
   }
 
-  return res.json();
+  // Check if response has content before parsing JSON
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      return {} as T; // Return empty object for empty responses
+    }
+    throw new Error('Response is not JSON');
+  }
+
+  const text = await res.text();
+  if (!text || text.trim() === '') {
+    return {} as T; // Return empty object for empty JSON responses
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (parseError) {
+    console.error('Authenticated JSON parse error:', parseError, 'Response text:', text);
+    throw new Error('Invalid JSON response');
+  }
 };
 
 export function useAuthenticatedSWR<Data = unknown, Err = FetchError>(
