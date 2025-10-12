@@ -3,8 +3,9 @@
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useMemo } from 'react';
 
-// Debug flag to control logging verbosity
-const DEBUG = (process.env.NEXT_PUBLIC_DEBUG_SESSION || '').toLowerCase() === 'true';
+// Debug flag to control logging verbosity - only in development
+const DEBUG = process.env.NODE_ENV === 'development' && 
+             (process.env.NEXT_PUBLIC_DEBUG_SESSION || '').toLowerCase() === 'true';
 
 // Module-level log deduplication across all hook instances
 const loggedStatusSignatures = new Set<string>();

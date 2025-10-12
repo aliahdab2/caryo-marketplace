@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import i18n from '@/utils/i18nExports';
 import { I18nextProvider } from 'react-i18next';
@@ -14,6 +14,7 @@ export default function I18nProvider({ children }: I18nProviderProps) {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
+  const currentLocaleRef = useRef<string>('');
 
   useEffect(() => {
     const initializeI18n = async () => {
@@ -28,6 +29,14 @@ export default function I18nProvider({ children }: I18nProviderProps) {
           currentLocale = pathSegments[0];
         }
         
+        // Only re-initialize if locale actually changed
+        if (currentLocaleRef.current === currentLocale && mounted) {
+          setIsLoading(false);
+          return;
+        }
+        
+        currentLocaleRef.current = currentLocale;
+        
         // Set the document attributes based on language
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
@@ -39,11 +48,15 @@ export default function I18nProvider({ children }: I18nProviderProps) {
           });
         }
         
-        // Change language and load resources
-        await i18n.changeLanguage(currentLocale);
+        // Change language and load resources only if needed
+        if (i18n.language !== currentLocale) {
+          await i18n.changeLanguage(currentLocale);
+        }
         
-        // Explicitly load all namespaces
-        await i18n.loadNamespaces(['common', 'listings', 'errors']);
+        // Explicitly load all namespaces (only once)
+        if (!mounted) {
+          await i18n.loadNamespaces(['common', 'listings', 'errors']);
+        }
         
         setMounted(true);
       } catch (error) {
@@ -54,7 +67,7 @@ export default function I18nProvider({ children }: I18nProviderProps) {
     };
 
     initializeI18n();
-  }, [pathname]); // Re-run when pathname changes
+  }, [pathname, mounted]); // Added mounted dependency for optimization
 
   if (!mounted || isLoading) {
     // Return a lightweight loading indicator that doesn't block rendering
