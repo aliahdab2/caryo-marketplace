@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter, usePathname } from 'next/navigation';
-import { isValidLocale } from '@/app/i18n/config';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import type { ComponentProps } from '@/types/components';
 
 type LanguageSwitcherProps = ComponentProps;
@@ -14,18 +13,11 @@ const LANGUAGES = {
 } as const;
 
 export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
-  const { t, i18n } = useTranslation('common');
+  const { t } = useTranslation('common');
+  const { currentLang, switchLanguage, isCurrentLanguage } = useLanguageSwitching();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-  
-  // Extract current locale from URL path instead of relying on i18n.language
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLang = (pathSegments.length > 0 && isValidLocale(pathSegments[0])) 
-    ? pathSegments[0] 
-    : 'en';
   
   // Handle clicks outside the dropdown
   useEffect(() => {
@@ -52,31 +44,14 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     }
   };
   
-  const handleLanguageChange = async (language: string) => {
-    if (language === currentLang) {
+  const handleLanguageChange = (language: string) => {
+    if (isCurrentLanguage(language)) {
       setIsOpen(false);
       return;
     }
 
-    try {
-      // Extract current path without locale (reuse already parsed pathSegments)
-      let pathWithoutLocale = '/';
-      
-      // If first segment is a locale, remove it
-      if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
-        pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
-      } else {
-        pathWithoutLocale = pathname;
-      }
-      
-      // Navigate to new locale path
-      const newPath = `/${language}${pathWithoutLocale}`;
-      console.log(`Language switch: ${pathname} -> ${newPath}`);
-      router.push(newPath);
-      setIsOpen(false);
-    } catch (error) {
-      console.error('Failed to switch language:', error);
-    }
+    switchLanguage(language);
+    setIsOpen(false);
   };
   
   return (
@@ -117,7 +92,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                   key={code}
                   onClick={() => handleLanguageChange(code)}
                   className={`${
-                    currentLang === code
+                    isCurrentLanguage(code)
                       ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                       : 'text-gray-700 dark:text-gray-300'
                   } group flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
@@ -125,7 +100,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                 >
                   <span className="mr-3 text-lg">{lang.flag}</span>
                   <span>{lang.name}</span>
-                  {currentLang === code && (
+                  {isCurrentLanguage(code) && (
                     <svg className="ml-auto h-4 w-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
