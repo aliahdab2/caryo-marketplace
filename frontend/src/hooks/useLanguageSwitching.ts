@@ -4,8 +4,8 @@ import { usePathname } from 'next/navigation';
 import { isValidLocale } from '@/app/i18n/config';
 
 /**
- * Custom hook for language switching logic
- * Consolidates common language switching functionality across components
+ * Custom hook for comprehensive language switching and locale detection
+ * Provides URL-based locale detection and related utilities
  */
 export function useLanguageSwitching() {
   const pathname = usePathname();
@@ -16,8 +16,11 @@ export function useLanguageSwitching() {
     ? pathSegments[0] 
     : 'en';
 
-  // Get the opposite language
+  // Derived properties
   const oppositeLanguage = currentLang === 'en' ? 'ar' : 'en';
+  const isRTL = currentLang === 'ar';
+  const isArabic = currentLang === 'ar';
+  const isEnglish = currentLang === 'en';
 
   /**
    * Build URL for language switching
@@ -63,11 +66,50 @@ export function useLanguageSwitching() {
     window.location.href = newPath;
   };
 
+  /**
+   * Get localized text based on current language
+   * @param arabicText - Arabic version of text
+   * @param englishText - English version of text
+   * @returns Appropriate text for current language
+   */
+  const getLocalizedText = (arabicText: string | null | undefined, englishText: string | null | undefined): string => {
+    if (isArabic) {
+      return arabicText || englishText || '';
+    }
+    return englishText || arabicText || '';
+  };
+
+  /**
+   * Get navigation URL with current locale
+   * @param path - Path without locale (e.g., '/dashboard')
+   * @returns Localized path (e.g., '/ar/dashboard')
+   */
+  const getLocalizedPath = (path: string): string => {
+    // Remove leading slash if present
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return `/${currentLang}/${cleanPath}`;
+  };
+
   return {
+    // Core locale info
     currentLang,
     oppositeLanguage,
+    
+    // Boolean helpers
+    isRTL,
+    isArabic,
+    isEnglish,
+    isCurrentLanguage: (lang: string) => lang === currentLang,
+    
+    // Navigation functions
     buildLanguageUrl,
     switchLanguage,
-    isCurrentLanguage: (lang: string) => lang === currentLang
+    getLocalizedPath,
+    
+    // Content helpers
+    getLocalizedText,
+    
+    // For compatibility with existing formatDate/formatNumber calls
+    locale: currentLang
   };
 }

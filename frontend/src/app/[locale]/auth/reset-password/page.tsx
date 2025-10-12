@@ -3,14 +3,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import Link from 'next/link';
 import { PasswordValidation, usePasswordValidation } from '@/components/auth/PasswordValidation';
 
 export default function ResetPasswordPage() {
-  const { t, i18n } = useTranslation(['auth', 'errors']);
+  const { t } = useTranslation(['auth', 'errors']);
+  const { isRTL } = useLanguageSwitching();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isRTL = i18n.language === 'ar';
 
   const [token, setToken] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');

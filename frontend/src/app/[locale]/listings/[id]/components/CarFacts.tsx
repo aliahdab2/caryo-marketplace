@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { CarListing } from '@/services/publicApi';
 import { 
   CalendarDays, 
@@ -19,7 +20,8 @@ interface CarFactsProps {
 }
 
 const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
-  const { t, i18n } = useTranslation('listings');
+  const { t } = useTranslation('listings');
+  const { isRTL, getLocalizedText } = useLanguageSwitching();
   const [showAllFacts, setShowAllFacts] = useState(false);
 
   // Helper function to get translated transmission text
@@ -28,10 +30,7 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     
     // Use bilingual fields directly from backend if available
     if (listing.transmissionNameEn || listing.transmissionNameAr) {
-      const isRTL = i18n.language === 'ar';
-      return isRTL ? 
-        (listing.transmissionNameAr || listing.transmissionNameEn || transmission) :
-        (listing.transmissionNameEn || listing.transmissionNameAr || transmission);
+      return getLocalizedText(listing.transmissionNameAr, listing.transmissionNameEn) || transmission;
     }
     
     // Fallback to original value
@@ -44,10 +43,7 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     
     // Use bilingual fields directly from backend if available
     if (listing.fuelTypeNameEn || listing.fuelTypeNameAr) {
-      const isRTL = i18n.language === 'ar';
-      return isRTL ? 
-        (listing.fuelTypeNameAr || listing.fuelTypeNameEn || fuelType) :
-        (listing.fuelTypeNameEn || listing.fuelTypeNameAr || fuelType);
+      return getLocalizedText(listing.fuelTypeNameAr, listing.fuelTypeNameEn) || fuelType;
     }
     
     // Fallback to original value
@@ -109,14 +105,14 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
     // Brand - from API
     ...(listing.brandNameEn ? [{
       label: t('brand'),
-      value: i18n.language === 'ar' ? (listing.brandNameAr || listing.brandNameEn) : (listing.brandNameEn || listing.brandNameAr),
+      value: getLocalizedText(listing.brandNameAr, listing.brandNameEn),
       icon: <Tag className="w-4 h-4 text-gray-600" />
     }] : []),
     
     // Model - from API
     ...(listing.modelNameEn ? [{
       label: t('model'),
-      value: i18n.language === 'ar' ? (listing.modelNameAr || listing.modelNameEn) : (listing.modelNameEn || listing.modelNameAr),
+      value: getLocalizedText(listing.modelNameAr, listing.modelNameEn),
       icon: <Car className="w-4 h-4 text-gray-600" />
     }] : [])
     
