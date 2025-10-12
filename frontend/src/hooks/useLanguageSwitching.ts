@@ -73,7 +73,8 @@ export function useLanguageSwitching() {
     }
 
     // Smart navigation based on route complexity
-    const isSimplePublicRoute = ['/search', '/listings', '/contact'].some(route => 
+    const isHomeRoute = pathSegments.length === 1 && isValidLocale(pathSegments[0]);
+    const isSimplePublicRoute = isHomeRoute || ['/search', '/listings', '/contact'].some(route => 
       pathname.includes(route)
     );
     
