@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter, usePathname } from 'next/navigation';
+import { isValidLocale } from '@/app/i18n/config';
 import type { ComponentProps } from '@/types/components';
 
 type LanguageSwitcherProps = ComponentProps;
@@ -16,6 +18,8 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   
   // Handle clicks outside the dropdown
   useEffect(() => {
@@ -49,7 +53,20 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     }
 
     try {
-      await i18n.changeLanguage(language);
+      // Extract current path without locale
+      const pathSegments = pathname.split('/').filter(Boolean);
+      let pathWithoutLocale = '/';
+      
+      // If first segment is a locale, remove it
+      if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
+        pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
+      } else {
+        pathWithoutLocale = pathname;
+      }
+      
+      // Navigate to new locale path
+      const newPath = `/${language}${pathWithoutLocale}`;
+      router.push(newPath);
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to switch language:', error);

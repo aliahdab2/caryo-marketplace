@@ -2,22 +2,38 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter, usePathname } from 'next/navigation';
+import { isValidLocale } from '@/app/i18n/config';
 import type { ComponentProps } from '@/types/components';
 
 type ToggleLanguageSwitcherProps = ComponentProps;
 
 export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwitcherProps) {
   const { i18n } = useTranslation();
+  const router = useRouter();
+  const pathname = usePathname();
   
-  // Handle language change using i18next directly
+  // Handle language change using URL navigation
   const handleLanguageChange = async (lang: string) => {
     if (lang === i18n.language) {
       return; // Already selected
     }
 
     try {
-      // i18next handles persistence automatically via its detection config
-      await i18n.changeLanguage(lang);
+      // Extract current path without locale
+      const pathSegments = pathname.split('/').filter(Boolean);
+      let pathWithoutLocale = '/';
+      
+      // If first segment is a locale, remove it
+      if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
+        pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
+      } else {
+        pathWithoutLocale = pathname;
+      }
+      
+      // Navigate to new locale path
+      const newPath = `/${lang}${pathWithoutLocale}`;
+      router.push(newPath);
     } catch (error) {
       console.error('Failed to switch language:', error);
     }
