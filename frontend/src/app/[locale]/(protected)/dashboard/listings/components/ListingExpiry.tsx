@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate } from "@/utils/localization";
 
 type ListingStatus = 'active' | 'expired' | 'pending';
@@ -23,10 +24,8 @@ export default function ListingExpiry({
   status, 
   onRenew 
 }: ListingExpiryProps) {
-  const { t, i18n } = useTranslation('common');
-  
-  // Extract language to prevent i18n object recreation causing re-renders
-  const currentLanguage = i18n.language;
+  const { t } = useTranslation('common');
+  const { currentLang: currentLanguage } = useLanguageSwitching();
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [renewalDuration, setRenewalDuration] = useState(30); // Default 30 days
   

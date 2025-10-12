@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
 import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
@@ -15,7 +16,8 @@ import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function DashboardSavedSearchesPage() {
-  const { t, i18n } = useTranslation(['search', 'common']);
+  const { t } = useTranslation(['search', 'common']);
+  const { currentLang, isRTL } = useLanguageSwitching();
   const { user, status } = useOptimizedSession();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
@@ -27,7 +29,6 @@ export default function DashboardSavedSearchesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<SavedSearchResponse | null>(null);
   const hasAutoSelectedRef = useRef(false);
-  const isRTL = i18n.language === 'ar';
 
   useEffect(() => {
     setMounted(true);
@@ -247,7 +248,7 @@ export default function DashboardSavedSearchesPage() {
       <nav className="mb-6">
         <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
           <li>
-            <Link href={`/${i18n.language}/dashboard`} className="hover:text-blue-600 dark:hover:text-blue-400">
+            <Link href={`/${currentLang}/dashboard`} className="hover:text-blue-600 dark:hover:text-blue-400">
               {t('dashboard', { ns: 'dashboard' })}
             </Link>
           </li>
