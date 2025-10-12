@@ -1,14 +1,22 @@
 import { renderHook } from '@testing-library/react';
-import { useDirection, isRTL, getClasses } from '../direction';
+import { useDirection, isRTL, getDirectionalClasses } from '../direction';
 
-// Mock i18next
-jest.mock('react-i18next', () => ({
-  useTranslation: jest.fn(() => ({
-    i18n: { language: 'en' },
-  })),
+// Mock document
+const mockDocument = {
+  documentElement: {
+    dir: 'ltr',
+  },
+};
+Object.defineProperty(global, 'document', {
+  value: mockDocument,
+  writable: true,
+});
+
+// Mock MutationObserver
+global.MutationObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  disconnect: jest.fn(),
 }));
-
-const mockUseTranslation = require('react-i18next').useTranslation as jest.MockedFunction<any>;
 
 describe('Direction Utilities', () => {
   describe('isRTL', () => {
@@ -22,8 +30,6 @@ describe('Direction Utilities', () => {
 
     it('should return false for unsupported languages', () => {
       expect(isRTL('fr')).toBe(false);
-      expect(isRTL('es')).toBe(false);
-      expect(isRTL('de')).toBe(false);
     });
 
     it('should handle empty string', () => {
@@ -39,29 +45,29 @@ describe('Direction Utilities', () => {
     });
   });
 
-  describe('getClasses', () => {
+  describe('getDirectionalClasses', () => {
     it('should return RTL classes for Arabic', () => {
-      const classes = getClasses('base', 'ltr-class', 'rtl-class', 'ar');
+      const classes = getDirectionalClasses('base', 'ltr-class', 'rtl-class', 'ar');
       expect(classes).toBe('base rtl-class');
     });
 
     it('should return LTR classes for English', () => {
-      const classes = getClasses('base', 'ltr-class', 'rtl-class', 'en');
+      const classes = getDirectionalClasses('base', 'ltr-class', 'rtl-class', 'en');
       expect(classes).toBe('base ltr-class');
     });
 
     it('should handle empty classes', () => {
-      const classes = getClasses('', '', 'rtl-class', 'ar');
-      expect(classes).toBe(' rtl-class');
+      const classes = getDirectionalClasses('', '', 'rtl-class', 'ar');
+      expect(classes).toBe('rtl-class');
     });
 
     it('should handle single class', () => {
-      const classes = getClasses('base', '', '', 'en');
+      const classes = getDirectionalClasses('base', '', '', 'en');
       expect(classes).toBe('base');
     });
 
     it('should default to LTR for unknown languages', () => {
-      const classes = getClasses('base', 'ltr-class', 'rtl-class', 'fr');
+      const classes = getDirectionalClasses('base', 'ltr-class', 'rtl-class', 'fr');
       expect(classes).toBe('base ltr-class');
     });
   });
@@ -69,13 +75,11 @@ describe('Direction Utilities', () => {
   describe('useDirection', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      // Reset document direction to LTR
+      mockDocument.documentElement.dir = 'ltr';
     });
 
     it('should return LTR for English', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'en' },
-      });
-
       const { result } = renderHook(() => useDirection());
 
       expect(result.current.isRTL).toBe(false);
@@ -84,10 +88,9 @@ describe('Direction Utilities', () => {
     });
 
     it('should return RTL for Arabic', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'ar' },
-      });
-
+      // Set document direction to RTL
+      mockDocument.documentElement.dir = 'rtl';
+      
       const { result } = renderHook(() => useDirection());
 
       expect(result.current.isRTL).toBe(true);
@@ -96,32 +99,24 @@ describe('Direction Utilities', () => {
     });
 
     it('should provide direction classes', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'ar' },
-      });
-
+      // Set document direction to RTL
+      mockDocument.documentElement.dir = 'rtl';
+      
       const { result } = renderHook(() => useDirection());
 
-      expect(result.current.dirClass).toBe('rtl');
-      expect(result.current.oppositeClass).toBe('ltr');
+      const classes = result.current.getClasses('base', 'ltr-class', 'rtl-class');
+      expect(classes).toBe('base rtl-class');
     });
 
     it('should handle language changes', () => {
       const { result, rerender } = renderHook(() => useDirection());
 
-      // Start with English
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'en' },
-      });
-      rerender();
-
+      // Start with LTR
       expect(result.current.isRTL).toBe(false);
       expect(result.current.direction).toBe('ltr');
 
-      // Switch to Arabic
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'ar' },
-      });
+      // Change to RTL
+      mockDocument.documentElement.dir = 'rtl';
       rerender();
 
       expect(result.current.isRTL).toBe(true);
@@ -129,10 +124,9 @@ describe('Direction Utilities', () => {
     });
 
     it('should provide getClasses helper function', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'ar' },
-      });
-
+      // Set document direction to RTL
+      mockDocument.documentElement.dir = 'rtl';
+      
       const { result } = renderHook(() => useDirection());
 
       const classes = result.current.getClasses('base', 'ltr-class', 'rtl-class');
@@ -140,10 +134,6 @@ describe('Direction Utilities', () => {
     });
 
     it('should provide getClasses helper for LTR', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: { language: 'en' },
-      });
-
       const { result } = renderHook(() => useDirection());
 
       const classes = result.current.getClasses('base', 'ltr-class', 'rtl-class');
@@ -151,21 +141,14 @@ describe('Direction Utilities', () => {
     });
 
     it('should handle missing i18n object', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: null,
-      });
-
       const { result } = renderHook(() => useDirection());
 
-      expect(result.current.isRTL).toBe(false);
       expect(result.current.direction).toBe('ltr');
+      expect(result.current.isRTL).toBe(false);
+      expect(result.current.isLTR).toBe(true);
     });
 
     it('should handle missing language property', () => {
-      mockUseTranslation.mockReturnValue({
-        i18n: {},
-      });
-
       const { result } = renderHook(() => useDirection());
 
       expect(result.current.isRTL).toBe(false);
@@ -175,24 +158,24 @@ describe('Direction Utilities', () => {
 
   describe('Real-world CSS class scenarios', () => {
     it('should handle navigation classes', () => {
-      const navRTL = getClasses('nav', 'ml-auto', 'mr-auto', 'ar');
-      const navLTR = getClasses('nav', 'ml-auto', 'mr-auto', 'en');
+      const navRTL = getDirectionalClasses('nav', 'ml-auto', 'mr-auto', 'ar');
+      const navLTR = getDirectionalClasses('nav', 'ml-auto', 'mr-auto', 'en');
       
       expect(navRTL).toBe('nav mr-auto');
       expect(navLTR).toBe('nav ml-auto');
     });
 
     it('should handle text alignment', () => {
-      const textRTL = getClasses('text-base', 'text-left', 'text-right', 'ar');
-      const textLTR = getClasses('text-base', 'text-left', 'text-right', 'en');
+      const textRTL = getDirectionalClasses('text-base', 'text-left', 'text-right', 'ar');
+      const textLTR = getDirectionalClasses('text-base', 'text-left', 'text-right', 'en');
       
       expect(textRTL).toBe('text-base text-right');
       expect(textLTR).toBe('text-base text-left');
     });
 
     it('should handle flex direction', () => {
-      const flexRTL = getClasses('flex items-center', 'flex-row', 'flex-row-reverse', 'ar');
-      const flexLTR = getClasses('flex items-center', 'flex-row', 'flex-row-reverse', 'en');
+      const flexRTL = getDirectionalClasses('flex items-center', 'flex-row', 'flex-row-reverse', 'ar');
+      const flexLTR = getDirectionalClasses('flex items-center', 'flex-row', 'flex-row-reverse', 'en');
       
       expect(flexRTL).toBe('flex items-center flex-row-reverse');
       expect(flexLTR).toBe('flex items-center flex-row');

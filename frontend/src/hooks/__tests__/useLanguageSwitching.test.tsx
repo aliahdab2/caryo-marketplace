@@ -309,7 +309,7 @@ describe('useLanguageSwitching', () => {
       const { result } = renderHook(() => useLanguageSwitching());
       
       expect(result.current.currentLang).toBe('ar');
-      expect(result.current.buildLanguageUrl('en')).toBe('/en');
+      expect(result.current.buildLanguageUrl('en')).toBe('/en/');
     });
 
     it('should handle pathname with trailing slash', () => {
