@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { Check, CheckCheck } from 'lucide-react';
 import { ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
@@ -21,7 +22,8 @@ export default function ConversationList({
   onConversationSelect,
   loading
 }: ConversationListProps) {
-  const { t, i18n } = useTranslation('messages');
+  const { t } = useTranslation('messages');
+  const { locale } = useLanguageSwitching();
   const isRTL = i18n.language === 'ar';
 
   if (loading) {
@@ -145,7 +147,7 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
           {/* Price Display */}
           <div className="mb-1">
             <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-              {formatNumber(parseFloat(conversation.listingPrice), i18n.language, { 
+              {formatNumber(parseFloat(conversation.listingPrice), locale, { 
                 style: 'currency', 
                 currency: conversation.listingCurrency || 'USD',
                 minimumFractionDigits: 0,

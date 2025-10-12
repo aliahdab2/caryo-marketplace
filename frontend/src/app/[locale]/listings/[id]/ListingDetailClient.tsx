@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate, formatNumber } from '@/utils/localization';
 import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl, processVideoForGallery, isVideoMedia } from '@/utils/mediaUtils';
@@ -22,7 +23,8 @@ interface ListingDetailClientProps {
 }
 
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
-  const { t, i18n } = useTranslation('listings');
+  const { t } = useTranslation('listings');
+  const { locale } = useLanguageSwitching();
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
@@ -88,7 +90,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>
-                      {t('posted')}: {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : t('recently')}
+                      {t('posted')}: {listing.createdAt ? formatDate(listing.createdAt, locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : t('recently')}
                     </span>
                   </div>
                   <div className="flex items-center">
@@ -129,7 +131,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
               <div className="mb-6">
                 <div className="flex items-baseline gap-4 mb-2">
                   <div className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-                    {listing.price && formatNumber(listing.price, i18n.language, { currency: 'SYP', style: 'currency' })}
+                    {listing.price && formatNumber(listing.price, locale, { currency: 'SYP', style: 'currency' })}
                   </div>
                 </div>
               </div>

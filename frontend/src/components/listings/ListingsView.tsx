@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate, formatNumber } from "../../utils/localization";
 import { Listing } from "../../types/listings";
 import { 
@@ -78,7 +79,8 @@ export default function ListingsView({
   onSort, // eslint-disable-line @typescript-eslint/no-unused-vars
   className = ""
 }: ListingsViewProps) {
-  const { t, i18n } = useTranslation(LISTINGS_NAMESPACES);
+  const { t } = useTranslation(LISTINGS_NAMESPACES);
+  const { locale } = useLanguageSwitching();
   
   // Helper function to get bilingual transmission display name from backend data
   const getTransmissionText = (listing: Listing) => {
@@ -133,7 +135,7 @@ export default function ListingsView({
   const formatListingDate = useCallback((listing: Listing) => {
     const dateToFormat = listing.createdAt || listing.listingDate;
     if (dateToFormat) {
-      return formatDate(dateToFormat, i18n.language, { dateStyle: 'medium' });
+      return formatDate(dateToFormat, locale, { dateStyle: 'medium' });
     }
     return null;
   }, [i18n.language]);
@@ -150,7 +152,7 @@ export default function ListingsView({
   const formatCurrencyDisplay = useCallback((price: number, currency: string) => {
     // For USD, show $ + number
     if (currency === 'USD') {
-      const formattedNumber = formatNumber(price, i18n.language, { 
+      const formattedNumber = formatNumber(price, locale, { 
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
@@ -158,7 +160,7 @@ export default function ListingsView({
     }
     
     // For other currencies, show number + currency code
-    const formattedNumber = formatNumber(price, i18n.language, { 
+    const formattedNumber = formatNumber(price, locale, { 
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });

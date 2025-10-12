@@ -21,7 +21,7 @@ interface CarFactsProps {
 
 const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
   const { t } = useTranslation('listings');
-  const { isRTL, getLocalizedText } = useLanguageSwitching();
+  const { getLocalizedText } = useLanguageSwitching();
   const [showAllFacts, setShowAllFacts] = useState(false);
 
   // Helper function to get translated transmission text

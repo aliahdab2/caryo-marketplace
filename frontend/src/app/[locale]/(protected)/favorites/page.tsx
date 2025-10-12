@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 import Image from 'next/image';
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedAuthStatus, useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -22,7 +23,8 @@ import Breadcrumb from '@/components/ui/Breadcrumb';
 type FilterTab = 'all' | 'available' | 'removed';
 
 export default function FavoritesPage() {
-  const { t, i18n } = useTranslation(['favorites', 'common']);
+  const { t } = useTranslation(['favorites', 'common']);
+  const { locale } = useLanguageSwitching();
   const { isAuthenticated, isLoading: isAuthLoading } = useOptimizedAuthStatus();
   const user = useOptimizedUser();
   const router = useRouter();
@@ -302,11 +304,11 @@ export default function FavoritesPage() {
                         {listing.location?.city || t('locationNotSpecified', { ns: 'listings' })}
                       </p>
                       <h4 className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                        {formatNumber(listing.price, i18n.language, { style: 'currency', currency: listing.currency || 'SYP' })}
+                        {formatNumber(listing.price, locale, { style: 'currency', currency: listing.currency || 'SYP' })}
                       </h4>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         <p>
-                          {t('posted', { ns: 'listings' })}: {formatDate(new Date(listing.createdAt), i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {t('posted', { ns: 'listings' })}: {formatDate(new Date(listing.createdAt), locale, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>

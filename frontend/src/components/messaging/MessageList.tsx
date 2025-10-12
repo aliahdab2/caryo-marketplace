@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { MessageResponse, ConversationResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import { formatNumber } from '@/utils/localization';

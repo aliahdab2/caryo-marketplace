@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate } from '@/utils/localization';
 import { Listing } from '@/types/listings';
 
@@ -10,7 +11,8 @@ interface SellerInfoProps {
 }
 
 const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
-  const { t, i18n } = useTranslation('listings');
+  const { t } = useTranslation('listings');
+  const { locale } = useLanguageSwitching();
 
   const isDealer = listing.seller?.type === 'dealer';
 
@@ -61,7 +63,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>
-                {t('memberSince')} {listing.createdAt ? formatDate(listing.createdAt, i18n.language, { year: 'numeric', month: 'long' }) : t('recently')}
+                {t('memberSince')} {listing.createdAt ? formatDate(listing.createdAt, locale, { year: 'numeric', month: 'long' }) : t('recently')}
               </span>
             </div>
 

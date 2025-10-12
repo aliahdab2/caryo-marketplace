@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatNumber } from '@/utils/localization';
 import { Listing } from '@/types/listings';
 
@@ -10,7 +11,8 @@ interface FinancingCalculatorProps {
 }
 
 const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) => {
-  const { t, i18n } = useTranslation('listings');
+  const { t } = useTranslation('listings');
+  const { locale } = useLanguageSwitching();
   const [downPayment, setDownPayment] = useState(listing.price * 0.2); // 20% default
   const [loanTerm, setLoanTerm] = useState(60); // 5 years default
   const [interestRate, setInterestRate] = useState(5); // 5% default
@@ -60,7 +62,7 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
         {!isExpanded && (
           <div className="mt-3">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {formatNumber(monthlyPayment, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}
+              {formatNumber(monthlyPayment, locale, { currency: listing.currency || 'USD', style: 'currency' })}
               <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-1">
                 /{t('month')}
               </span>
@@ -76,7 +78,7 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
         <div className="px-4 pb-6 sm:px-6 space-y-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-              {formatNumber(monthlyPayment, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}
+              {formatNumber(monthlyPayment, locale, { currency: listing.currency || 'USD', style: 'currency' })}
               <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-1">
                 /{t('month')}
               </span>
@@ -90,7 +92,7 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
           <div className="space-y-2">
             <label className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
               <span>{t('downPayment')}</span>
-              <span>{formatNumber(downPayment, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}</span>
+              <span>{formatNumber(downPayment, locale, { currency: listing.currency || 'USD', style: 'currency' })}</span>
             </label>
             <input
               type="range"
@@ -154,19 +156,19 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">{t('vehiclePrice')}</span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatNumber(listing.price, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}
+                {formatNumber(listing.price, locale, { currency: listing.currency || 'USD', style: 'currency' })}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">{t('totalInterest')}</span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatNumber(totalInterest, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}
+                {formatNumber(totalInterest, locale, { currency: listing.currency || 'USD', style: 'currency' })}
               </span>
             </div>
             <div className="flex justify-between text-sm font-semibold">
               <span className="text-gray-900 dark:text-white">{t('totalCost')}</span>
               <span className="text-gray-900 dark:text-white">
-                {formatNumber(totalCost, i18n.language, { currency: listing.currency || 'USD', style: 'currency' })}
+                {formatNumber(totalCost, locale, { currency: listing.currency || 'USD', style: 'currency' })}
               </span>
             </div>
           </div>
