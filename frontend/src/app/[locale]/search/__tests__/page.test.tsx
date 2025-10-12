@@ -12,6 +12,7 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+  usePathname: () => '/en/search',
   useSearchParams: jest.fn(),
 }));
 

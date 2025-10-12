@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { usePathname } from 'next/navigation';
 
 // Mock Next.js navigation
@@ -20,8 +20,8 @@ jest.mock('@/utils/i18nExports', () => ({
   default: {
     isInitialized: true,
     language: 'en',
-    changeLanguage: jest.fn(),
-    loadNamespaces: jest.fn(),
+    changeLanguage: jest.fn().mockResolvedValue(undefined),
+    loadNamespaces: jest.fn().mockResolvedValue(undefined),
     on: jest.fn(),
     off: jest.fn(),
   },
@@ -45,29 +45,33 @@ describe('I18nProvider', () => {
     jest.clearAllMocks();
   });
 
-  it('should render and initialize correctly', () => {
+  it('should render and initialize correctly', async () => {
     mockUsePathname.mockReturnValue('/en/test');
-    
+
     render(
       <I18nProvider>
         <TestComponent />
       </I18nProvider>
     );
 
-    // Should render the provider wrapper
-    expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    // Wait for initialization to complete and provider to render
+    await waitFor(() => {
+      expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    });
   });
 
-  it('should handle different locales', () => {
+  it('should handle different locales', async () => {
     mockUsePathname.mockReturnValue('/ar/dashboard');
-    
+
     render(
       <I18nProvider>
         <TestComponent />
       </I18nProvider>
     );
 
-    expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    });
   });
 
   it('should call loadNamespaces on mount', () => {
@@ -83,27 +87,31 @@ describe('I18nProvider', () => {
     expect(mockI18n.loadNamespaces).toHaveBeenCalled();
   });
 
-  it('should handle invalid locales', () => {
+  it('should handle invalid locales', async () => {
     mockUsePathname.mockReturnValue('/invalid/test');
-    
+
     render(
       <I18nProvider>
         <TestComponent />
       </I18nProvider>
     );
 
-    expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    });
   });
 
-  it('should handle root path', () => {
+  it('should handle root path', async () => {
     mockUsePathname.mockReturnValue('/');
-    
+
     render(
       <I18nProvider>
         <TestComponent />
       </I18nProvider>
     );
 
-    expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('i18next-provider')).toBeInTheDocument();
+    });
   });
 });
