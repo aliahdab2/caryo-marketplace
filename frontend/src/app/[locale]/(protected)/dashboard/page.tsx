@@ -330,7 +330,7 @@ export default function Dashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <Link 
-            href="/dashboard/listings/new"
+            href={`/${i18n.language}/dashboard/listings/new`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700
                      hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-center group"
           >
@@ -347,7 +347,7 @@ export default function Dashboard() {
           </Link>
           
           <Link 
-            href="/dashboard/profile"
+            href={`/${i18n.language}/dashboard/profile`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-purple-300 dark:border-purple-700
                      hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-center group"
           >

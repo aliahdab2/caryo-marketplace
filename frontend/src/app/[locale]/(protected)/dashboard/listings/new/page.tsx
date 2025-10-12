@@ -14,11 +14,11 @@ import ListingWizard from '@/components/listings/ListingWizard';
  */
 export default function NewListingPage() {
   const router = useRouter();
-  const { t } = useTranslation(['listings', 'common']);
+  const { t, i18n } = useTranslation(['listings', 'common']);
 
   const handleSuccess = (_listingId: string) => {
     // Navigate to the newly created listing or back to listings dashboard
-    router.push(`/dashboard/listings`);
+    router.push(`/${i18n.language}/dashboard/listings`);
   };
 
   const handleCancel = () => {
@@ -33,7 +33,7 @@ export default function NewListingPage() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back();
     } else {
-      router.push('/dashboard/listings');
+      router.push(`/${i18n.language}/dashboard/listings`);
     }
   };
 

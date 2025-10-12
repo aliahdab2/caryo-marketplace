@@ -112,7 +112,7 @@ export default function DashboardLayout({
 }) {
   const { user, status } = useOptimizedSession();
   const router = useRouter();
-  const { t } = useTranslation('dashboard');
+  const { t, i18n } = useTranslation('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   // Focused pages: hide the sidebar to emulate the Saved Alerts experience
@@ -155,31 +155,31 @@ export default function DashboardLayout({
     // Main navigation
     {
       name: t('overview'),
-      href: "/dashboard",
+      href: `/${i18n.language}/dashboard`,
       icon: <MdDashboard className="text-xl" />,
       tooltip: t('overviewTooltip') || 'Dashboard overview'
     },
     {
       name: t('myListings'),
-      href: "/dashboard/listings",
+      href: `/${i18n.language}/dashboard/listings`,
       icon: <MdDirectionsCar className="text-xl" />,
       tooltip: t('myListingsTooltip') || 'Manage your vehicle listings'
     },
     {
       name: t('favorites'),
-      href: "/favorites",
+      href: `/${i18n.language}/favorites`,
       icon: <MdFavorite className="text-xl" />,
       tooltip: t('favoritesTooltip') || 'Your saved vehicles'
     },
     { 
       name: t('headerSavedSearches', { ns: 'common' }), 
-      href: "/saved/alerts", 
+      href: `/${i18n.language}/saved/alerts`, 
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
     {
       name: t('messages'),
-      href: "/dashboard/messages",
+      href: `/${i18n.language}/dashboard/messages`,
       icon: <MdEmail className="text-xl" />,
       tooltip: t('messagesTooltip') || 'Your messages'
     },
@@ -187,26 +187,26 @@ export default function DashboardLayout({
     ...(isAdmin() ? [
       {
         name: t('adminPanel', 'Admin Panel'),
-        href: "/dashboard/admin",
+        href: `/${i18n.language}/dashboard/admin`,
         icon: <MdAdminPanelSettings className="text-xl" />,
         tooltip: t('adminPanelTooltip', 'Manage listings and users')
       },
       {
         name: t('dataManagement', 'Data Management'),
-        href: "/dashboard/admin/data-management",
+        href: `/${i18n.language}/dashboard/admin/data-management`,
         icon: <MdStorage className="text-xl" />,
         tooltip: t('dataManagementTooltip', 'Manage car brands and models data')
       }
     ] : []),
     {
       name: t('profile'),
-      href: "/dashboard/profile",
+      href: `/${i18n.language}/dashboard/profile`,
       icon: <MdPerson className="text-xl" />,
       tooltip: t('profileTooltip') || 'Manage your profile'
     },
     {
       name: t('settings'),
-      href: "/dashboard/settings",
+      href: `/${i18n.language}/dashboard/settings`,
       icon: <MdSettings className="text-xl" />,
       tooltip: t('settingsTooltip') || 'Account settings'
     },
@@ -216,13 +216,13 @@ export default function DashboardLayout({
   const quickActionItems: NavItem[] = [
     {
       name: t('addListing'),
-      href: "/dashboard/listings/new",
+      href: `/${i18n.language}/dashboard/listings/new`,
       icon: <MdAdd className="text-xl" />,
       tooltip: t('createListing') || 'Create a new listing'
     },
     {
       name: t('support'),
-      href: "/dashboard/support",
+      href: `/${i18n.language}/dashboard/support`,
       icon: <MdSupportAgent className="text-xl" />,
       tooltip: t('helpCenter') || 'Get support'
     }

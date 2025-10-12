@@ -247,7 +247,7 @@ export default function DashboardSavedSearchesPage() {
       <nav className="mb-6">
         <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
           <li>
-            <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400">
+            <Link href={`/${i18n.language}/dashboard`} className="hover:text-blue-600 dark:hover:text-blue-400">
               {t('dashboard', { ns: 'dashboard' })}
             </Link>
           </li>

@@ -32,7 +32,7 @@ interface FAQItem {
 }
 
 export default function SupportPage() {
-  const { t } = useTranslation('dashboard');
+  const { t, i18n } = useTranslation('dashboard');
   const { user } = useOptimizedSession();
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -302,7 +302,7 @@ export default function SupportPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
-              href="/dashboard/listings/new"
+              href={`/${i18n.language}/dashboard/listings/new`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
             >
               <div className="flex items-center">
@@ -328,7 +328,7 @@ export default function SupportPage() {
             </Link>
             
             <Link
-              href="/dashboard/settings"
+              href={`/${i18n.language}/dashboard/settings`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
             >
               <div className="flex items-center">
@@ -341,7 +341,7 @@ export default function SupportPage() {
             </Link>
             
             <Link
-              href="/dashboard/profile"
+              href={`/${i18n.language}/dashboard/profile`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
             >
               <div className="flex items-center">
