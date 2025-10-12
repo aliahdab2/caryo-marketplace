@@ -4,7 +4,6 @@ import { signOut } from "next-auth/react";
 
 // Force dynamic rendering for protected pages
 export const dynamic = 'force-dynamic';
-import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { formatNumber } from "@/utils/localization";
@@ -43,25 +42,12 @@ export default function Dashboard() {
 
   // Fetch favorites and alerts count when component mounts or user changes
   useEffect(() => {
-    // Guard to prevent duplicate fetches in React Strict Mode for the same user
-    type SignatureRef = { current: string | null };
-    const signatureRef: SignatureRef = (Dashboard as unknown as { _countsSignatureRef?: SignatureRef })._countsSignatureRef || ((Dashboard as unknown as { _countsSignatureRef: SignatureRef })._countsSignatureRef = { current: null });
-    const signature = `${user?.id || 'none'}-${user?.accessToken ? 'token' : 'no-token'}`;
-    if (signatureRef.current === signature) {
-      return;
-    }
-    signatureRef.current = signature;
+    // Server layout ensures authentication, no need for user signature checks
 
     let mounted = true;
 
     const loadCounts = async () => {
-      if (!user) {
-        setFavoritesCount(0);
-        setAlertsCount(0);
-        setIsLoading(false);
-        return;
-      }
-
+      // Server layout ensures user is authenticated, fetch data directly
       try {
         // Import required services
         const { apiRequest } = await import('@/services/auth/session-manager');
@@ -97,22 +83,14 @@ export default function Dashboard() {
           }
         }
 
-        // Fetch alerts count - only if we have a user with access token
-        if (user?.accessToken) {
-          try {
-            const token = user.accessToken;
-            const savedSearches = await getUserSavedSearches(token);
-            if (mounted) {
-              setAlertsCount(savedSearches.length);
-            }
-          } catch (error) {
-            console.error('[DASHBOARD] Error fetching alerts:', error);
-            if (mounted) {
-              setAlertsCount(0);
-            }
+        // Fetch alerts count - server auth ensures access is available
+        try {
+          const savedSearches = await getUserSavedSearches();
+          if (mounted) {
+            setAlertsCount(savedSearches.length);
           }
-        } else {
-          console.log('[DASHBOARD] No user or access token available for alerts');
+        } catch (error) {
+          console.error('[DASHBOARD] Error fetching alerts:', error);
           if (mounted) {
             setAlertsCount(0);
           }
@@ -136,21 +114,15 @@ export default function Dashboard() {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, []); // No dependency on user since server auth ensures it's available
 
   // Load recent listings using real data
   useEffect(() => {
     const loadRecentListings = async () => {
-      if (!user) {
-        setRecentListings([]);
-        setListingsLoading(false);
-        return;
-      }
-
       try {
         setListingsLoading(true);
         
-        // Fetch real listings from the API
+        // Server layout ensures user is authenticated, fetch listings directly
         const myListings = await getMyListings();
         
         // Sort by creation date (newest first) and take the first 5
@@ -171,7 +143,7 @@ export default function Dashboard() {
     };
 
     loadRecentListings();
-  }, [user]);
+  }, []); // No dependency on user since server auth ensures it's available
 
   if (!ready) {
     return <div>Loading translations...</div>;
@@ -254,8 +226,7 @@ export default function Dashboard() {
       {/* Page Header with welcome message */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white mb-2">
-          {t('welcome')}
-          {user?.name ? `, ${user.name}` : ''}!
+          {t('welcome')}!
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-base">
           {t('overviewSubtitle')}

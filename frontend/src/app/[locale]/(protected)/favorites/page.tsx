@@ -7,7 +7,6 @@ import Image from 'next/image';
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
-import { useOptimizedAuthStatus, useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
@@ -25,8 +24,6 @@ type FilterTab = 'all' | 'available' | 'removed';
 export default function FavoritesPage() {
   const { t } = useTranslation(['favorites', 'common']);
   const { locale } = useLanguageSwitching();
-  const { isAuthenticated, isLoading: isAuthLoading } = useOptimizedAuthStatus();
-  const user = useOptimizedUser();
   const router = useRouter();
   const fetchedSignatureRef = useRef<string | null>(null);
   
@@ -39,23 +36,15 @@ export default function FavoritesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirect to login if user is not authenticated
-    if (!isAuthenticated && !isAuthLoading) {
-      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname));
+    // Server layout ensures user is authenticated, fetch favorites directly
+    const signature = 'authenticated-user';
+    if (fetchedSignatureRef.current === signature) {
       return;
     }
-
-    // Fetch favorites when auth status is confirmed
-    if (isAuthenticated) {
-      const signature = String(user?.id || 'none');
-      if (fetchedSignatureRef.current === signature) {
-        return;
-      }
-      fetchedSignatureRef.current = signature;
-      fetchFavorites();
-    }
+    fetchedSignatureRef.current = signature;
+    fetchFavorites();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isAuthLoading, router]);
+  }, []); // No dependency on user since server auth ensures it's available
 
   // Filter favorites based on active tab
   useEffect(() => {
@@ -292,7 +281,6 @@ export default function FavoritesPage() {
                           className="shadow-md hover:shadow-lg z-10"
                           initialFavorite={true}
                           onToggle={(isFavorite) => handleFavoriteToggle(listing.id.toString(), isFavorite)}
-                          user={user}
                         />
                       </div>
                     </div>

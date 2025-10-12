@@ -6,7 +6,6 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
-import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 
 
 import Breadcrumb, { createSavedAlertsBreadcrumb } from '@/components/ui/Breadcrumb';
@@ -20,7 +19,6 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 export default function SavedAlertsPage() {
   const { t } = useTranslation(['search', 'common']);
   const { currentLang, isRTL } = useLanguageSwitching();
-  const { user, status } = useOptimizedSession();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,14 +41,13 @@ export default function SavedAlertsPage() {
 
   const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
     try {
-      const token = user?.accessToken;
-      const listings = await getCarListingsForSavedSearch(savedSearch, token);
+      const listings = await getCarListingsForSavedSearch(savedSearch);
       setMatchingListings(listings);
     } catch (error) {
       console.error('Error loading matching listings:', error);
       setMatchingListings([]);
     }
-  }, [user?.accessToken]);
+  }, []); // Server layout ensures authentication
 
   const handleSelectSearch = useCallback((search: SavedSearchResponse) => {
     // Only proceed if switching to a different search or if no search is selected
@@ -72,8 +69,7 @@ export default function SavedAlertsPage() {
     
     try {
       setIsDeleting(true);
-      const token = user?.accessToken as string;
-      await deleteSavedSearch(alertToDelete.id, token);
+      await deleteSavedSearch(alertToDelete.id);
       
       // Remove from local state
       setSavedSearches(prev => prev.filter(search => search.id !== alertToDelete.id));
@@ -161,15 +157,13 @@ export default function SavedAlertsPage() {
     }
 
     try {
-      const token = user?.accessToken;
-      // Update the name based on current language
       const updatedSearch = await updateSavedSearch(selectedSearch.id, {
         nameEn: isRTL ? selectedSearch.nameEn : editingName.trim(),
         nameAr: isRTL ? editingName.trim() : selectedSearch.nameAr || editingName.trim(),
         filters: selectedSearch.filters,
         notificationPreferences: selectedSearch.notificationPreferences,
         isActive: selectedSearch.isActive
-      }, token);
+      });
       
       // Update the search in the list
       setSavedSearches(prev => prev.map(search => 
@@ -185,7 +179,7 @@ export default function SavedAlertsPage() {
       console.error('Error updating alert name:', error);
       alert(t('search:alertUpdateError', 'Failed to update alert name. Please try again.'));
     }
-  }, [selectedSearch, editingName, user, t, isRTL]);
+  }, [selectedSearch, editingName, t, isRTL]);
 
   const handleCancelEditName = useCallback(() => {
     setIsEditingName(false);
@@ -193,19 +187,16 @@ export default function SavedAlertsPage() {
   }, []);
 
   const loadSavedSearches = useCallback(async () => {
-    if (!user?.accessToken) return;
-    
     try {
       setIsLoading(true);
-      const token = user?.accessToken;
-      const searches = await getUserSavedSearches(token);
+      const searches = await getUserSavedSearches();
       setSavedSearches(searches);
     } catch (error) {
       console.error('Error loading saved searches:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.accessToken]);
+  }, []); // Server layout ensures authentication
 
   // Auto-select first search when searches are loaded and no search is selected
   useEffect(() => {
@@ -223,22 +214,11 @@ export default function SavedAlertsPage() {
   }, [selectedSearch, loadMatchingListings]);
 
   useEffect(() => {
-    if (status === 'loading') {
-      return; // Don't do anything while user is loading
-    }
-    
-    if (user?.accessToken) {
-      loadSavedSearches();
-    } else {
-      // Reset auto-selection flag when user changes
-      hasAutoSelectedRef.current = false;
-      setSelectedSearch(null);
-      setSavedSearches([]);
-      setIsLoading(false);
-    }
-  }, [user?.accessToken, status, loadSavedSearches]);
+    // Server layout ensures user is authenticated, load searches directly
+    loadSavedSearches();
+  }, [loadSavedSearches]);
 
-  if (!mounted || status === 'loading') {
+  if (!mounted) {
     return (
       <div className="flex justify-center items-center min-h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
