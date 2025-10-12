@@ -72,26 +72,11 @@ export function useLanguageSwitching() {
       return;
     }
 
-    // Smart navigation based on route complexity
-    const isHomeRoute = pathSegments.length === 1 && isValidLocale(pathSegments[0]);
-    const isSimplePublicRoute = isHomeRoute || ['/search', '/listings', '/contact'].some(route => 
-      pathname.includes(route)
-    );
-    
-    const isDashboardRoute = pathname.includes('/dashboard');
-    const hasComplexAuth = isDashboardRoute || pathname.includes('/saved') || pathname.includes('/favorites');
-
-    if (isSimplePublicRoute && !hasComplexAuth) {
-      // Use SPA routing for simple public pages
-      try {
-        router.push(newPath);
-      } catch (error) {
-        console.warn('SPA navigation failed, falling back to full reload:', error);
-        window.location.href = newPath;
-      }
-    } else {
-      // Use full reload for complex authenticated routes
-      // This prevents auth race conditions and session conflicts
+    // Use SPA navigation for all routes now that auth is server-side
+    try {
+      router.push(newPath);
+    } catch (error) {
+      console.warn('SPA navigation failed, falling back to full reload:', error);
       window.location.href = newPath;
     }
   };

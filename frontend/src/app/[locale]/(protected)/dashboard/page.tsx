@@ -29,7 +29,7 @@ import { ListingsView } from '@/components/listings';
 const DASHBOARD_NAMESPACES = ['dashboard', 'common', 'listings', 'search'];
 
 export default function Dashboard() {
-  const user = useOptimizedUser();
+  // Server layout ensures user is authenticated, no need for client auth check
   const { t, ready } = useLazyTranslation(DASHBOARD_NAMESPACES);
   const { currentLang } = useLanguageSwitching();
   const [favoritesCount, setFavoritesCount] = useState<number>(0);

@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useOptimizedUser } from "@/hooks/useOptimizedSession";
 import { getMyListings, deleteListingById, deleteMultipleListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
 import { ListingsView } from "@/components/listings";
@@ -22,7 +21,7 @@ import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 
 export default function ListingsPage() {
-  const user = useOptimizedUser();
+  // Server layout ensures user is authenticated, no need for client auth check
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [sortBy, setSortBy] = useState("newest");
@@ -57,32 +56,19 @@ export default function ListingsPage() {
   
   // Load user's listings from API with optimizations
   useEffect(() => {
-    // Guard duplicate fetches for same user in Strict Mode
-    type SignatureRef = { current: string | null };
-    const signatureRef: SignatureRef = (ListingsPage as unknown as { _listingsSignatureRef?: SignatureRef })._listingsSignatureRef || ((ListingsPage as unknown as { _listingsSignatureRef: SignatureRef })._listingsSignatureRef = { current: null });
-    const signature = `${user?.id || 'none'}-${user?.accessToken ? 'token' : 'no-token'}`;
-    if (signatureRef.current === signature) {
-      return;
-    }
-    signatureRef.current = signature;
-
     const loadListings = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Check if user is authenticated and fetch listings
-        if (user && user.accessToken) {
-          const userListings = await getMyListings().catch(() => null);
-          if (userListings) {
-            setListings(userListings);
-          } else {
-            // Retry listings fetch if it failed but user is valid
-            const retryListings = await getMyListings();
-            setListings(retryListings);
-          }
+        // Server layout ensures user is authenticated, fetch listings directly
+        const userListings = await getMyListings().catch(() => null);
+        if (userListings) {
+          setListings(userListings);
         } else {
-          throw new Error('You need to log in to view your listings');
+          // Retry listings fetch if it failed
+          const retryListings = await getMyListings();
+          setListings(retryListings);
         }
       } catch (err) {
         console.error('Failed to load listings:', err);
@@ -93,7 +79,7 @@ export default function ListingsPage() {
     };
 
     loadListings();
-  }, [user]);
+  }, []); // No dependency on user since server auth ensures it's available
   
   // Hook for the sticky header effect
   useEffect(() => {
