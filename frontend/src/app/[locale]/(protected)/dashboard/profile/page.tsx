@@ -3,9 +3,9 @@
 // Disable static generation for this page since it uses session data
 export const dynamic = 'force-dynamic';
 
-import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 import { usePasswordValidation } from '@/components/auth/PasswordValidation';
 
@@ -49,7 +49,7 @@ const formatRole = (role: string) => {
 };
 
 export default function ProfilePage() {
-  // Use optimized auth hook instead of direct useSession
+  // Server layout ensures user is authenticated, get user data for profile display
   const { user } = useOptimizedSession();
   const { t } = useTranslation(['profile', 'common', 'listings']);
   const [isEditing, setIsEditing] = useState(false);
