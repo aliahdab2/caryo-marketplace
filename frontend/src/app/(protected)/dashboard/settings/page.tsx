@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter, usePathname } from 'next/navigation';
+import { isValidLocale } from '@/app/i18n/config';
 
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 export default function SettingsPage() {
   const { t, i18n } = useTranslation('dashboard');
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [accountSettings, setAccountSettings] = useState({
     language: i18n.language, // Initialize with current language
@@ -48,8 +52,20 @@ export default function SettingsPage() {
       if (newLanguage !== i18n.language) { // Only proceed if the language is actually different
         setIsChangingLanguage(true);
         try {
-          // Use i18next to change language - it handles persistence automatically
-          await i18n.changeLanguage(newLanguage);
+          // Extract current path without locale
+          const pathSegments = pathname.split('/').filter(Boolean);
+          let pathWithoutLocale = '/';
+          
+          // If first segment is a locale, remove it
+          if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
+            pathWithoutLocale = '/' + pathSegments.slice(1).join('/');
+          } else {
+            pathWithoutLocale = pathname;
+          }
+          
+          // Navigate to new locale path
+          const newPath = `/${newLanguage}${pathWithoutLocale}`;
+          router.push(newPath);
         } catch (error: unknown) {
           console.error("Failed to change language:", error);
         } finally {

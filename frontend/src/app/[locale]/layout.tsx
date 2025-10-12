@@ -9,6 +9,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 import ClientProviders from "@/providers/ClientProviders";
 import AuthDataHandler from "@/components/auth/AuthDataHandler";
+import LocaleHtmlAttributes from "@/components/LocaleHtmlAttributes";
 // Import secure logging to prevent sensitive data exposure
 import "@/lib/secure-logging";
 
@@ -107,20 +108,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const direction = localeDirections[locale];
 
   return (
-    <html lang={locale} dir={direction} suppressHydrationWarning>
-      <head>
-        <ClientRTLStylesLoader />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClientProviders>
-          <AuthDataHandler />
-          <I18nProvider>
-            <SimpleLanguageProvider>
-              <MainLayout>{children}</MainLayout>
-            </SimpleLanguageProvider>
-          </I18nProvider>
-        </ClientProviders>
-      </body>
-    </html>
+    <ClientProviders>
+      <LocaleHtmlAttributes />
+      <AuthDataHandler />
+      <I18nProvider>
+        <SimpleLanguageProvider>
+          <MainLayout>{children}</MainLayout>
+        </SimpleLanguageProvider>
+      </I18nProvider>
+    </ClientProviders>
   );
 }

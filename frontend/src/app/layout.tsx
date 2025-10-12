@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ClientRTLStylesLoader from "@/components/layout/ClientRTLStylesLoader";
 // Import secure logging to prevent sensitive data exposure
 import "@/lib/secure-logging";
 
@@ -27,6 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning>
+      <head>
+        <ClientRTLStylesLoader />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
