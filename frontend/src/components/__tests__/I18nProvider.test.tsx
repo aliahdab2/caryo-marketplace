@@ -34,6 +34,7 @@ jest.mock('react-i18next', () => ({
 
 // Import after mocks
 import I18nProvider from '../I18nProvider';
+import i18nExports from '@/utils/i18nExports';
 
 const mockUsePathname = usePathname as jest.MockedFunction<typeof usePathname>;
 
@@ -75,9 +76,9 @@ describe('I18nProvider', () => {
   });
 
   it('should call loadNamespaces on mount', () => {
-    const mockI18n = require('@/utils/i18nExports').default;
+    const mockI18n = jest.mocked(i18nExports);
     mockUsePathname.mockReturnValue('/en/test');
-    
+
     render(
       <I18nProvider>
         <TestComponent />

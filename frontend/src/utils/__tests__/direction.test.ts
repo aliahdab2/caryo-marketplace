@@ -44,7 +44,7 @@ describe('Direction Utilities', () => {
     });
 
     it('should handle null', () => {
-      expect(isRTL(null as any)).toBe(false);
+      expect(isRTL(null as unknown as string)).toBe(false);
     });
   });
 

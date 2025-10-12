@@ -24,7 +24,12 @@ describe('useLanguageSwitching', () => {
     jest.clearAllMocks();
     mockUseRouter.mockReturnValue({
       push: mockPush,
-    } as any);
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      prefetch: jest.fn(),
+      refresh: jest.fn(),
+    });
     
     // Mock window.location
     Object.defineProperty(window, 'location', {
