@@ -1,8 +1,10 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import i18n from '@/utils/i18nExports';
 import { I18nextProvider } from 'react-i18next';
+import { isValidLocale } from '@/app/i18n/config';
 
 interface I18nProviderProps {
   children: ReactNode;
@@ -11,27 +13,33 @@ interface I18nProviderProps {
 export default function I18nProvider({ children }: I18nProviderProps) {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const currentLocaleRef = useRef<string>('');
 
   useEffect(() => {
     const initializeI18n = async () => {
       try {
         setIsLoading(true);
         
-        // Get the saved locale from cookie or localStorage
-        const savedLocale = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('NEXT_LOCALE='))
-          ?.split('=')[1] || 
-          localStorage.getItem('NEXT_LOCALE');
+        // Extract locale from URL path (first segment)
+        const pathSegments = pathname.split('/').filter(Boolean);
+        let currentLocale = 'en'; // default
         
-        // Use the detected language or default to 'ar'
-        const initialLocale = savedLocale || 
-          (navigator.language.startsWith('ar') ? 'ar' : 
-           navigator.language.startsWith('en') ? 'en' : 'ar');
+        if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
+          currentLocale = pathSegments[0];
+        }
+        
+        // Only re-initialize if locale actually changed
+        if (currentLocaleRef.current === currentLocale && mounted) {
+          setIsLoading(false);
+          return;
+        }
+        
+        currentLocaleRef.current = currentLocale;
         
         // Set the document attributes based on language
-        document.documentElement.lang = initialLocale;
-        document.documentElement.dir = initialLocale === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = currentLocale;
+        document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
         
         // Make sure i18next is initialized
         if (!i18n.isInitialized) {
@@ -40,11 +48,15 @@ export default function I18nProvider({ children }: I18nProviderProps) {
           });
         }
         
-        // Change language and load resources
-        await i18n.changeLanguage(initialLocale);
+        // Change language and load resources only if needed
+        if (i18n.language !== currentLocale) {
+          await i18n.changeLanguage(currentLocale);
+        }
         
-        // Explicitly load all namespaces
-        await i18n.loadNamespaces(['common', 'listings', 'errors']);
+        // Explicitly load all namespaces (only once)
+        if (!mounted) {
+          await i18n.loadNamespaces(['common', 'listings', 'errors']);
+        }
         
         setMounted(true);
       } catch (error) {
@@ -55,11 +67,11 @@ export default function I18nProvider({ children }: I18nProviderProps) {
     };
 
     initializeI18n();
-  }, []);
+  }, [pathname, mounted]); // Added mounted dependency for optimization
 
   if (!mounted || isLoading) {
     // Return a lightweight loading indicator that doesn't block rendering
-    return <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
+    return <div data-testid="loading-bar" className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
   }
 
   return (

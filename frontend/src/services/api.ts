@@ -311,7 +311,17 @@ async function apiRequest<T>(
     const contentType = response.headers.get('content-type');
     
     if (contentType && contentType.includes('application/json')) {
-      responseData = await response.json();
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        responseData = {}; // Return empty object for empty JSON responses
+      } else {
+        try {
+          responseData = JSON.parse(text);
+        } catch (parseError) {
+          console.error('API JSON parse error:', parseError, 'Response text:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+      }
     } else {
       responseData = await response.text();
     }

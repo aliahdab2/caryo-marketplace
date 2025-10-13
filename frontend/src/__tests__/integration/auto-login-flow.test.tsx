@@ -8,13 +8,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { getSession } from 'next-auth/react';
 import useLazyTranslation from '@/hooks/useLazyTranslation';
-import VerifyEmailPage from '@/app/auth/verify-email/page';
+import VerifyEmailPage from '@/app/[locale]/auth/verify-email/page';
 import { getAuthUrl } from '@/utils/constants/api';
 import { TEMP_AUTH_KEYS, AUTO_LOGIN_CONFIG } from '@/types/auto-login';
 
 // Mock all dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+  usePathname: () => '/en/auth/verify-email', // Add missing usePathname mock
   useSearchParams: jest.fn(),
 }));
 jest.mock('react-i18next', () => ({

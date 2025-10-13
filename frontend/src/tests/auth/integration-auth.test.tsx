@@ -3,9 +3,21 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { SessionProvider } from 'next-auth/react';
-import SignInPage from '@/app/auth/signin/page';
+import SignInPage from '@/app/[locale]/auth/signin/page';
 import Navbar from '@/components/layout/Navbar';
 import '../mocks/i18n-mock';
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+  usePathname: () => '/en/auth/signin',
+  useSearchParams: () => ({
+    get: jest.fn().mockReturnValue(null),
+  }),
+}));
 
 // Mock NextAuth properly - we'll override useSession per test
 jest.mock('next-auth/react', () => ({

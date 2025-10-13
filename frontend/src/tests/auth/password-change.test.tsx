@@ -3,9 +3,21 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useSession } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ProfilePage from '@/app/(protected)/dashboard/profile/page';
+import ProfilePage from '@/app/[locale]/(protected)/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+  usePathname: () => '/en/dashboard/profile',
+  useSearchParams: () => ({
+    get: jest.fn().mockReturnValue(null),
+  }),
+}));
 
 // Mock next-auth
 jest.mock('next-auth/react');

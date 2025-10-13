@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useSearchParams } from 'next/navigation';
 import { MessagingService, ConversationResponse, MessageResponse } from '@/services/messaging';
 import { sanitizeInput } from '@/utils/sanitization';
@@ -20,9 +21,9 @@ type Message = MessageResponse;
 
 export default function MessagesPage() {
   const { data: session } = useSession();
-  const { t, i18n } = useTranslation('messages');
+  const { t } = useTranslation('messages');
+  const { isRTL } = useLanguageSwitching();
   const searchParams = useSearchParams();
-  const isRTL = i18n.language === 'ar';
 
   // State declarations
   const [conversations, setConversations] = useState<Conversation[]>([]);

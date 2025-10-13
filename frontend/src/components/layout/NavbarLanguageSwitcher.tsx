@@ -1,23 +1,14 @@
 "use client";
 
-import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { MdLanguage } from "react-icons/md";
 
 export default function NavbarLanguageSwitcher() {
-  const { i18n } = useTranslation();
-  
-  // Get the opposite language
-  const currentLang = i18n.language;
-  const oppositeLanguage = currentLang === 'en' ? 'ar' : 'en';
+  const { oppositeLanguage, switchLanguage } = useLanguageSwitching();
   const oppositeLanguageLabel = oppositeLanguage === 'en' ? 'EN' : 'AR';
 
-  const handleLanguageSwitch = async () => {
-    try {
-      // Use i18next's built-in changeLanguage - it handles persistence automatically
-      await i18n.changeLanguage(oppositeLanguage);
-    } catch (error) {
-      console.error('Failed to switch language:', error);
-    }
+  const handleLanguageSwitch = () => {
+    switchLanguage(oppositeLanguage);
   };
 
   return (

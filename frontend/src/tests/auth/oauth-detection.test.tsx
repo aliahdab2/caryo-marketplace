@@ -2,9 +2,21 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
-import ProfilePage from '@/app/(protected)/dashboard/profile/page';
+import ProfilePage from '@/app/[locale]/(protected)/dashboard/profile/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+  usePathname: () => '/en/dashboard/profile',
+  useSearchParams: () => ({
+    get: jest.fn().mockReturnValue(null),
+  }),
+}));
 
 // Mock the session context
 jest.mock('@/hooks/useOptimizedSession');

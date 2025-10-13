@@ -106,10 +106,13 @@ runs:
           echo "⚠️ WARNING: Cannot connect to MinIO on localhost:9000"
         fi
 
+        # Set Spring profile via environment variable (cleaner than Gradle args)
+        export SPRING_PROFILES_ACTIVE="${{ inputs.spring-profiles }}"
+        
         # Start with increased memory and proper options for CI environments
         echo "Starting Spring Boot with bootRun and enhanced logging..."
+        echo "Active Spring Profile: $SPRING_PROFILES_ACTIVE"
         nohup ./gradlew bootRun \
-          -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.org.springframework=DEBUG --logging.level.com.autotrader=DEBUG" \
           -Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError" \
           ${DEBUG_ARGS} > spring-boot.log 2>&1 &
         
@@ -156,9 +159,12 @@ runs:
             free -h
             df -h
             
+            # Set environment variables for restart as well
+            export SPRING_PROFILES_ACTIVE="${{ inputs.spring-profiles }}"
+            
             # Try one more time with additional JVM args
+            echo "Restarting with Spring Profile: $SPRING_PROFILES_ACTIVE"
             nohup ./gradlew bootRun \
-              -Pargs="--spring.profiles.active=${{ inputs.spring-profiles }} --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG" \
               -Dorg.gradle.jvmargs="-Xmx512m -XX:+HeapDumpOnOutOfMemoryError -verbose:gc" \
               > spring-boot-restart.log 2>&1 &
             

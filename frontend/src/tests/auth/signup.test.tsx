@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import SignUpPage from '@/app/auth/signup/page';
+import SignUpPage from '@/app/[locale]/auth/signup/page';
 // Import our i18n mock
 import '../mocks/i18n-mock';
 
@@ -32,6 +32,7 @@ const mockRouter = {
 
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
+  usePathname: () => '/en/auth/signup', // Add missing usePathname mock
   useSearchParams: () => ({
     get: jest.fn().mockReturnValue(null),
   }),

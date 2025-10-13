@@ -2,7 +2,7 @@ import React from 'react';
 import { act as rtlAct, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
-import SignInPage from '@/app/auth/signin/page';
+import SignInPage from '@/app/[locale]/auth/signin/page';
 import { signIn, useSession } from 'next-auth/react';
 // Import our i18n mock
 import '../mocks/i18n-mock';
@@ -95,6 +95,7 @@ jest.mock('next/navigation', () => ({
     back: mockRouterBack,
     forward: mockRouterForward,
   })),
+  usePathname: () => '/en/auth/signin', // Add missing usePathname mock
   useSearchParams: () => ({
     get: jest.fn(key => {
       if (key === 'error') {

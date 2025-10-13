@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate, formatNumber } from "../../utils/localization";
 import { Listing } from "../../types/listings";
 import { 
@@ -78,11 +79,12 @@ export default function ListingsView({
   onSort, // eslint-disable-line @typescript-eslint/no-unused-vars
   className = ""
 }: ListingsViewProps) {
-  const { t, i18n } = useTranslation(LISTINGS_NAMESPACES);
+  const { t } = useTranslation(LISTINGS_NAMESPACES);
+  const { locale, isArabic } = useLanguageSwitching();
   
   // Helper function to get bilingual transmission display name from backend data
   const getTransmissionText = (listing: Listing) => {
-    if (i18n.language === 'ar') {
+    if (isArabic) {
       return listing.transmissionNameAr || listing.transmissionNameEn || '';
     }
     return listing.transmissionNameEn || listing.transmissionNameAr || '';
@@ -90,7 +92,7 @@ export default function ListingsView({
 
   // Helper function to get bilingual fuel type display name from backend data
   const getFuelTypeText = (listing: Listing) => {
-    if (i18n.language === 'ar') {
+    if (isArabic) {
       return listing.fuelTypeNameAr || listing.fuelTypeNameEn || '';
     }
     return listing.fuelTypeNameEn || listing.fuelTypeNameAr || '';
@@ -115,7 +117,6 @@ export default function ListingsView({
 
   // Memoized helper functions for performance
   const formatLocation = useCallback((listing: Listing) => {
-    const isArabic = i18n.language === 'ar';
     const city = isArabic ? listing.location?.cityAr : listing.location?.city;
     const governorate = isArabic ? listing.governorate?.nameAr : listing.governorate?.nameEn;
     
@@ -128,15 +129,15 @@ export default function ListingsView({
     } else {
       return listing.location?.country || '';
     }
-  }, [i18n.language]);
+  }, [isArabic]);
 
   const formatListingDate = useCallback((listing: Listing) => {
     const dateToFormat = listing.createdAt || listing.listingDate;
     if (dateToFormat) {
-      return formatDate(dateToFormat, i18n.language, { dateStyle: 'medium' });
+      return formatDate(dateToFormat, locale, { dateStyle: 'medium' });
     }
     return null;
-  }, [i18n.language]);
+  }, [locale]);
 
   const getStatusStyle = useCallback((status: string) => {
     const statusStyles = {
@@ -150,7 +151,7 @@ export default function ListingsView({
   const formatCurrencyDisplay = useCallback((price: number, currency: string) => {
     // For USD, show $ + number
     if (currency === 'USD') {
-      const formattedNumber = formatNumber(price, i18n.language, { 
+      const formattedNumber = formatNumber(price, locale, { 
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
@@ -158,13 +159,13 @@ export default function ListingsView({
     }
     
     // For other currencies, show number + currency code
-    const formattedNumber = formatNumber(price, i18n.language, { 
+    const formattedNumber = formatNumber(price, locale, { 
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
     
     return `${formattedNumber} ${currency}`;
-  }, [i18n.language]);
+  }, [locale]);
 
   // Handle delete
   const handleDelete = (id: string) => {
@@ -489,7 +490,7 @@ export default function ListingsView({
                             <MdDirectionsCar className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold">
-                                {i18n.language === 'ar'
+                                {isArabic
                                   ? (listing.brand?.displayNameAr || listing.brandNameAr || listing.make)
                                   : (listing.brand?.displayNameEn || listing.brandNameEn || listing.make)}
                               </span>
@@ -497,7 +498,7 @@ export default function ListingsView({
                                 <>
                                   <span className="text-blue-400 dark:text-blue-300">•</span>
                                   <span className="font-medium opacity-90">
-                                    {i18n.language === 'ar' 
+                                    {isArabic 
                                       ? (listing.model?.displayNameAr || listing.modelNameAr) 
                                       : (listing.model?.displayNameEn || listing.modelNameEn)}
                                   </span>
