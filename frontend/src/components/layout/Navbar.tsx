@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
-import ToggleLanguageSwitcher from "@/components/ToggleLanguageSwitcher";
 import SignInButton from "@/components/auth/SignInButton";
 import NavbarLanguageSwitcher from "@/components/layout/NavbarLanguageSwitcher";
 import { useOptimizedUser } from "@/hooks/useOptimizedSession";
@@ -264,11 +263,6 @@ export default function Navbar({ className }: ComponentProps) {
                       <MdSettings className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       {t("accountSettings")}
                     </Link>
-                    
-                    {/* Language Switcher in user menu */}
-                    <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
-                      <ToggleLanguageSwitcher />
-                    </div>
                   </div>
                   
                   <div className="py-1 border-t dark:border-gray-700">
@@ -467,11 +461,6 @@ export default function Navbar({ className }: ComponentProps) {
                   <MdSettings className="mr-3 h-5 w-5" />
                   {t("accountSettings")}
                 </Link>
-                
-                {/* Language Switcher in mobile menu for logged-in users */}
-                <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700">
-                  <ToggleLanguageSwitcher />
-                </div>
                 
                 <button
                   onClick={async () => {
