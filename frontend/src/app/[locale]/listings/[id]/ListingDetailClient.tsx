@@ -23,7 +23,7 @@ interface ListingDetailClientProps {
 }
 
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
-  const { t } = useTranslation('listings');
+  const { t } = useTranslation(['listings', 'messages']);
   const { locale } = useLanguageSwitching();
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -304,7 +304,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
       <SignInPromptModal
         isOpen={showSignInPrompt}
         onClose={() => setShowSignInPrompt(false)}
-        action={t('contactSeller')}
+        action={t('messages:contactSeller')}
       />
     </div>
   );
