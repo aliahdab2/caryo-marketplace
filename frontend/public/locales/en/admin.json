@@ -1,5 +1,5 @@
 {
-  "title": "Admin Panel",
+  "title": "Title",
   "subtitle": "Manage listings, users, and platform content",
   "accessDenied": "Access Denied",
   "adminOnly": "This page is only accessible to administrators.",
@@ -18,7 +18,6 @@
   "approvedOnly": "Approved Only",
   "sortBy": "Sort By",
   "dateCreated": "Date Created",
-  "title": "Title",
   "price": "Price",
   "views": "Views",
   "order": "Order",
@@ -84,8 +83,5 @@
   "approvingListings": "Approving...",
   "rejectingListings": "Rejecting...",
   "approveSuccess": "Listing approved successfully",
-  "rejectSuccess": "Listing rejected successfully",
-  "bulkActionError": "Bulk action failed",
-  "bulkApproveSuccess": "{{count}} listings approved successfully",
-  "bulkRejectSuccess": "{{count}} listings rejected successfully"
+  "rejectSuccess": "Listing rejected successfully"
 }

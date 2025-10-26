@@ -20,7 +20,6 @@
   "cityRequired": "المدينة مطلوبة",
   "contactEmailRequired": "البريد الإلكتروني للتواصل مطلوب",
   "contactPhoneRequired": "رقم الهاتف للتواصل مطلوب",
-  "phoneRequired": "رقم الهاتف مطلوب",
   "invalidSyrianOperator": "مشغل سوري غير صحيح. استخدم سيرياتيل (91، 98، 99) أو إم تي إن (92، 93، 94، 95، 96)",
   "lowConfidenceValidation": "تنسيق رقم الهاتف يبدو غير صحيح",
   "validationError": "غير قادر على التحقق من رقم الهاتف",

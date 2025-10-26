@@ -104,10 +104,6 @@
   "sortBy": "Sort by",
   "tryAgain": "Try again",
   "used": "Used",
-  "filters": {
-    "sellerType": "Seller Type",
-    "noSellerTypes": "No seller types available"
-  },
   "removeFromFavorites": "Remove from Favorites",
   "expiresIn": "Expires in {{days}} days",
   "confirmDelete": "Delete Item?",

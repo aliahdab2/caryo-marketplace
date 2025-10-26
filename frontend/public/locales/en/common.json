@@ -87,10 +87,8 @@
   "equipmentComingSoon": "Coming soon: Actual vehicle equipment and accessories will be displayed here.",
   "facts": "Facts",
   "leatherSeats": "Leather seats",
-  "listings": {
-    "expiresIn": "Expires in {{days}} days",
-    "removeFromFavorites": "Remove from Favorites"
-  },
+  "listings.expiresIn": "Expires in {{days}} days",
+  "listings.removeFromFavorites": "Remove from Favorites",
   "modelYear": "Manufacture Year",
   "motorHeater": "Engine Heater",
   "newest": "Newest",

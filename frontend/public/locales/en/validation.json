@@ -20,7 +20,6 @@
   "cityRequired": "City is required",
   "contactEmailRequired": "Contact email is required",
   "contactPhoneRequired": "Contact phone number is required",
-  "phoneRequired": "Phone number is required",
   "invalidSyrianOperator": "Invalid Syrian operator. Use Syriatel (91, 98, 99) or MTN (92, 93, 94, 95, 96)",
   "lowConfidenceValidation": "Phone number format appears incorrect",
   "validationError": "Unable to validate phone number",
