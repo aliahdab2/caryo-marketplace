@@ -121,20 +121,11 @@ export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormPro
     // Mark that user has attempted validation
     updateUIState({ hasAttemptedValidation: true });
 
-    // Age validation based on context (signup vs selling vs dealer)
-    if (uiState.currentStep === 2 && !isDealerType) {
-      // For private sellers, validate for selling context
+    // Age validation only for private sellers (dealers don't provide DOB)
+    // Dealers are businesses, so age validation doesn't apply
+    if (!isDealerType && formData.dateOfBirth && uiState.currentStep === 2) {
+      // For private sellers, validate for selling context (must be 18+)
       const ageValidation = validateAge(formData.dateOfBirth, 'selling');
-      if (!ageValidation.isValid) {
-        setUserAge(ageValidation.age);
-        setShowAgeRestrictionModal(true);
-        return;
-      }
-    }
-
-    if (uiState.currentStep === 1 && uiState.dealerIntent) {
-      // For dealers, validate for dealer context
-      const ageValidation = validateAge(formData.dateOfBirth, 'dealer');
       if (!ageValidation.isValid) {
         setUserAge(ageValidation.age);
         setShowAgeRestrictionModal(true);
