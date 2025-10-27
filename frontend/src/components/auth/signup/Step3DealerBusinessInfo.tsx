@@ -1,5 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { 
+  getBusinessRegistrationConfig,
+  validateBusinessRegistration 
+} from '@/config/businessRegistration';
+import { api } from '@/services/api';
+
+interface Governorate {
+  id: number;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+}
 
 interface Step3DealerBusinessInfoProps {
   businessName: string;
@@ -8,6 +20,10 @@ interface Step3DealerBusinessInfoProps {
   setVatNumber: (value: string) => void;
   tradingAddress: string;
   setTradingAddress: (value: string) => void;
+  dealerGovernorateSlug: string;
+  setDealerGovernorateSlug: (value: string) => void;
+  dealerLocationSlug?: string;  // Not used yet (cities not populated)
+  setDealerLocationSlug?: (value: string) => void;  // Not used yet
   businessNameError: string;
   setBusinessNameError: (value: string) => void;
   vatError: string;
@@ -25,6 +41,10 @@ export default function Step3DealerBusinessInfo({
   setVatNumber,
   tradingAddress,
   setTradingAddress,
+  dealerGovernorateSlug,
+  setDealerGovernorateSlug,
+  dealerLocationSlug: _dealerLocationSlug,
+  setDealerLocationSlug: _setDealerLocationSlug,
   businessNameError,
   setBusinessNameError,
   vatError,
@@ -34,16 +54,33 @@ export default function Step3DealerBusinessInfo({
   loading,
   hasAttemptedValidation
 }: Step3DealerBusinessInfoProps) {
-  const { t } = useTranslation('auth');
-
-  const validateVatNumber = (vat: string) => {
-    // Basic VAT validation - can be enhanced based on country requirements
-    const vatRegex = /^[A-Z]{2}\d{8,12}$/;
-    return vatRegex.test(vat.toUpperCase());
-  };
+  const { t, i18n } = useTranslation('auth');
+  
+  // Get country-specific configuration
+  const businessRegConfig = getBusinessRegistrationConfig();
+  const currentLocale = (i18n.language || 'en').startsWith('ar') ? 'ar' : 'en';
+  
+  // Load governorates
+  const [governorates, setGovernorates] = useState<Governorate[]>([]);
+  const [loadingGovernorates, setLoadingGovernorates] = useState(false);
+  
+  useEffect(() => {
+    const loadGovernorates = async () => {
+      try {
+        setLoadingGovernorates(true);
+        const data = await api.get<Governorate[]>('/api/reference-data/governorates');
+        setGovernorates(data || []);
+      } catch (error) {
+        console.error('Failed to load governorates:', error);
+      } finally {
+        setLoadingGovernorates(false);
+      }
+    };
+    loadGovernorates();
+  }, []);
 
   const handleVatChange = (value: string) => {
-    setVatNumber(value.toUpperCase());
+    setVatNumber(value);
     if (vatError) {
       setVatError("");
     }
@@ -53,8 +90,9 @@ export default function Step3DealerBusinessInfo({
     // Only validate on blur if user has attempted validation (clicked Next/Submit)
     if (!hasAttemptedValidation) return;
 
-    if (vatNumber && !validateVatNumber(vatNumber)) {
-      setVatError(t('invalidVatFormat', 'Invalid VAT number format (e.g., GB123456789)'));
+    const validation = validateBusinessRegistration(vatNumber);
+    if (!validation.isValid && validation.error) {
+      setVatError(currentLocale === 'ar' ? businessRegConfig.errorMessageAr : validation.error);
     }
   };
 
@@ -109,11 +147,17 @@ export default function Step3DealerBusinessInfo({
         )}
       </div>
 
-      {/* VAT Number */}
+      {/* Business Registration Number (country-specific) */}
       <div className="mb-5">
         <label htmlFor="vatNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          {t('vatNumber', 'VAT Number')}
-          <span className="ml-1 text-gray-400 cursor-help" title={t('vatTooltip', 'Value Added Tax identification number for your business')}>
+          {currentLocale === 'ar' ? businessRegConfig.labelAr : businessRegConfig.labelEn}
+          {!businessRegConfig.required && (
+            <span className="text-gray-400 text-xs ml-1 rtl:mr-1">({t('optional', 'Optional')})</span>
+          )}
+          {businessRegConfig.required && (
+            <span className="text-red-500 ml-1 rtl:mr-1">*</span>
+          )}
+          <span className="ml-1 rtl:mr-1 text-gray-400 cursor-help" title={currentLocale === 'ar' ? businessRegConfig.tooltipAr : businessRegConfig.tooltipEn}>
             <svg className="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
@@ -137,7 +181,7 @@ export default function Step3DealerBusinessInfo({
                 ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
                 : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
             }`}
-            placeholder={t('vatPlaceholder', 'e.g., GB123456789')}
+            placeholder={currentLocale === 'ar' ? businessRegConfig.placeholderAr : businessRegConfig.placeholderEn}
           />
         </div>
         {vatError && (
@@ -152,10 +196,10 @@ export default function Step3DealerBusinessInfo({
         )}
       </div>
 
-      {/* Trading Address */}
+      {/* Governorate Selection */}
       <div className="mb-5">
-        <label htmlFor="tradingAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          {t('tradingAddress', 'Trading Address')}
+        <label htmlFor="dealerGovernorate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          {t('governorate', 'Governorate')} <span className="text-red-500">*</span>
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -164,20 +208,27 @@ export default function Step3DealerBusinessInfo({
               <path d="M15 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
             </svg>
           </div>
-          <textarea
-            id="tradingAddress"
-            value={tradingAddress}
+          <select
+            id="dealerGovernorate"
+            value={dealerGovernorateSlug}
             onChange={(e) => {
-              setTradingAddress(e.target.value);
-              if (addressError) {
-                setAddressError("");
-              }
+              setDealerGovernorateSlug(e.target.value);
+              if (addressError) setAddressError("");
             }}
-            rows={3}
-            disabled={loading}
-            className="block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 resize-vertical"
-            placeholder={t('tradingAddressPlaceholder', 'Enter your business trading address')}
-          />
+            disabled={loading || loadingGovernorates}
+            className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+              addressError
+                ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
+                : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+            }`}
+          >
+            <option value="">{loadingGovernorates ? t('loading', 'Loading...') : t('selectGovernorate', 'Select Governorate')}</option>
+            {governorates.map((gov) => (
+              <option key={gov.id} value={gov.slug}>
+                {currentLocale === 'ar' ? gov.displayNameAr : gov.displayNameEn}
+              </option>
+            ))}
+          </select>
         </div>
         {addressError && (
           <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
@@ -189,6 +240,27 @@ export default function Step3DealerBusinessInfo({
             {addressError}
           </p>
         )}
+      </div>
+
+      {/* Street Address (Optional) */}
+      <div className="mb-5">
+        <label htmlFor="tradingAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          {t('streetAddress', 'Street Address')}
+          <span className="text-gray-400 text-xs ml-1 rtl:mr-1">({t('optional', 'Optional')})</span>
+        </label>
+        <div className="relative group">
+          <input
+            id="tradingAddress"
+            type="text"
+            value={tradingAddress}
+            onChange={(e) => {
+              setTradingAddress(e.target.value);
+            }}
+            disabled={loading}
+            className="block w-full px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+            placeholder={t('streetAddressPlaceholder', 'e.g., Al-Mazzeh Highway, Shop 15')}
+          />
+        </div>
       </div>
     </>
   );

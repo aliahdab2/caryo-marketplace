@@ -61,15 +61,48 @@ public class UserDetailsServiceImplTest {
     void loadUserByUsername_WithNonExistentUsername_ShouldThrowException() {
         // Arrange
         when(userRepository.findByUsername("nonexistentuser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("nonexistentuser")).thenReturn(Optional.empty()); // Also mock email lookup
 
         // Act & Assert
         Exception exception = assertThrows(UsernameNotFoundException.class, () -> {
             userDetailsService.loadUserByUsername("nonexistentuser");
         });
         
-        String expectedMessage = "User Not Found with username: nonexistentuser";
+        String expectedMessage = "User Not Found with username or email: nonexistentuser";
         String actualMessage = exception.getMessage();
         
         assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    void loadUserByUsername_WithEmail_ShouldReturnUserDetails() {
+        // Arrange - simulate dealer login with email
+        User user = new User();
+        user.setUsername("dealer_12345");
+        user.setEmail("dealer@example.com");
+        user.setPassword("password");
+        
+        Set<Role> roles = new HashSet<>();
+        Role dealerRole = new Role("ROLE_DEALER");
+        roles.add(dealerRole);
+        user.setRoles(roles);
+        
+        // Username not found, but email found
+        when(userRepository.findByUsername("dealer@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("dealer@example.com")).thenReturn(Optional.of(user));
+
+        // Act
+        UserDetails userDetails = userDetailsService.loadUserByUsername("dealer@example.com");
+
+        // Assert
+        assertNotNull(userDetails);
+        assertEquals("dealer_12345", userDetails.getUsername()); // Returns actual username
+        assertEquals("password", userDetails.getPassword());
+        
+        boolean hasDealerRole = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(authority -> authority.equals("ROLE_DEALER"));
+        
+        assertTrue(hasDealerRole);
     }
 }

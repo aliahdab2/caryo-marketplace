@@ -16,6 +16,8 @@ export interface SignupFormData {
   businessName: string;
   vatNumber: string;
   tradingAddress: string;
+  dealerGovernorateSlug: string;
+  dealerLocationSlug: string;
   businessEmail: string;
   businessPhone: string;
   logoUrl: string;
@@ -52,6 +54,8 @@ const initialFormData: SignupFormData = {
   businessName: '',
   vatNumber: '',
   tradingAddress: '',
+  dealerGovernorateSlug: '',
+  dealerLocationSlug: '',
   businessEmail: '',
   businessPhone: '',
   logoUrl: '',

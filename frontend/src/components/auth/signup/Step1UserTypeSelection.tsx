@@ -76,14 +76,11 @@ export default function Step1UserTypeSelection({
 
   return (
     <div className="h-full flex flex-col space-y-8">
-      {/* Clean title and description */}
-      <div className="text-center space-y-3">
+      {/* Clean title only */}
+      <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center" dir={isArabic ? 'rtl' : 'ltr'}>
           {t('chooseAccountType', 'Choose Your Account Type')}
         </h2>
-        <p className="text-lg text-gray-600 dark:text-gray-400 text-center max-w-2xl mx-auto" dir={isArabic ? 'rtl' : 'ltr'}>
-          {t('accountTypeDescription', 'Select the type of account that best fits your needs')}
-        </p>
       </div>
 
       {/* Prominent Seller Type Cards - Equal Heights */}
