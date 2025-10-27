@@ -213,9 +213,9 @@ export function validateFormField(
   if (required && (!stringValue || stringValue.trim().length === 0)) {
     // Use translation if available, otherwise provide contextual message
     if (t) {
-      // Try to get field-specific required message
-      const fieldKey = `validation${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}Required`;
-      const genericKey = 'validationFieldRequired';
+      // Try to get field-specific required message (using validation namespace)
+      const fieldKey = `validation:${fieldName}Required`;
+      const genericKey = 'validation:fieldRequired';
       return {
         isValid: false,
         error: t(fieldKey, t(genericKey, `${fieldName} is required`))

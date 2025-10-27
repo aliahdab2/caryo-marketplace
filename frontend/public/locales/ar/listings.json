@@ -244,5 +244,10 @@
   "newListingContactPhonePlaceholder": "+963 XXX XXX XXX",
   "newListingContactPhoneHint": "رقم الهاتف للاستفسارات",
   "discardChangesTitle": "تجاهل التغييرات؟",
-  "discardChangesMessage": "لن يتم حفظ تغييراتك"
+  "discardChangesMessage": "لن يتم حفظ تغييراتك",
+  "editListingTitle": "تعديل الإعلان",
+  "total": "الإجمالي",
+  "date": "التاريخ",
+  "ascending": "تصاعدي",
+  "descending": "تنازلي"
 }

@@ -244,5 +244,10 @@
   "newListingContactPhonePlaceholder": "+963 XXX XXX XXX",
   "newListingContactPhoneHint": "Phone number for inquiries",
   "discardChangesTitle": "Discard changes?",
-  "discardChangesMessage": "Your changes will not be saved."
+  "discardChangesMessage": "Your changes will not be saved.",
+  "editListingTitle": "Edit Listing",
+  "total": "Total",
+  "date": "Date",
+  "ascending": "Ascending",
+  "descending": "Descending"
 }
