@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { SignupFormData, SignupUIState } from './useSignupForm';
+import { validateBusinessRegistration } from '@/config/businessRegistration';
 
 export function useSignupValidation(
   formData: SignupFormData,
@@ -20,11 +21,7 @@ export function useSignupValidation(
     return password.length >= 6;
   }, []);
 
-  const validateVatNumber = (vat: string) => {
-    // Basic VAT validation - can be enhanced based on country requirements
-    const vatRegex = /^[A-Z]{2}\d{8,12}$/;
-    return vatRegex.test(vat.toUpperCase());
-  };
+  // Note: validateVatNumber was removed - using validateBusinessRegistration directly
 
   const validateStep1 = useMemo(() => {
     // Step 1 validation - seller type selection (we have a default, so be more lenient)
@@ -135,9 +132,10 @@ export function useSignupValidation(
       errors.businessName = t ? t('businessNameRequired') : 'businessNameRequired';
     }
 
-    // VAT validation (optional but if provided, must be valid)
-    if (formData.vatNumber && !validateVatNumber(formData.vatNumber)) {
-      errors.vatNumber = t ? t('invalidVatFormat') : 'invalidVatFormat';
+    // Business registration number validation (country-specific)
+    const vatValidation = validateBusinessRegistration(formData.vatNumber);
+    if (!vatValidation.isValid) {
+      errors.vatNumber = t ? t('invalidBusinessNumberFormat') : (vatValidation.error || 'Invalid business registration number');
     }
 
     return {

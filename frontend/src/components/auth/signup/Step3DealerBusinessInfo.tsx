@@ -1,5 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { 
+  getBusinessRegistrationConfig,
+  validateBusinessRegistration 
+} from '@/config/businessRegistration';
 
 interface Step3DealerBusinessInfoProps {
   businessName: string;
@@ -34,16 +38,14 @@ export default function Step3DealerBusinessInfo({
   loading,
   hasAttemptedValidation
 }: Step3DealerBusinessInfoProps) {
-  const { t } = useTranslation('auth');
-
-  const validateVatNumber = (vat: string) => {
-    // Basic VAT validation - can be enhanced based on country requirements
-    const vatRegex = /^[A-Z]{2}\d{8,12}$/;
-    return vatRegex.test(vat.toUpperCase());
-  };
+  const { t, i18n } = useTranslation('auth');
+  
+  // Get country-specific configuration
+  const businessRegConfig = getBusinessRegistrationConfig();
+  const currentLocale = (i18n.language || 'en').startsWith('ar') ? 'ar' : 'en';
 
   const handleVatChange = (value: string) => {
-    setVatNumber(value.toUpperCase());
+    setVatNumber(value);
     if (vatError) {
       setVatError("");
     }
@@ -53,8 +55,9 @@ export default function Step3DealerBusinessInfo({
     // Only validate on blur if user has attempted validation (clicked Next/Submit)
     if (!hasAttemptedValidation) return;
 
-    if (vatNumber && !validateVatNumber(vatNumber)) {
-      setVatError(t('invalidVatFormat', 'Invalid VAT number format (e.g., GB123456789)'));
+    const validation = validateBusinessRegistration(vatNumber);
+    if (!validation.isValid && validation.error) {
+      setVatError(currentLocale === 'ar' ? businessRegConfig.errorMessageAr : validation.error);
     }
   };
 
@@ -109,11 +112,17 @@ export default function Step3DealerBusinessInfo({
         )}
       </div>
 
-      {/* VAT Number */}
+      {/* Business Registration Number (country-specific) */}
       <div className="mb-5">
         <label htmlFor="vatNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          {t('vatNumber', 'VAT Number')}
-          <span className="ml-1 text-gray-400 cursor-help" title={t('vatTooltip', 'Value Added Tax identification number for your business')}>
+          {currentLocale === 'ar' ? businessRegConfig.labelAr : businessRegConfig.labelEn}
+          {!businessRegConfig.required && (
+            <span className="text-gray-400 text-xs ml-1 rtl:mr-1">({t('optional', 'Optional')})</span>
+          )}
+          {businessRegConfig.required && (
+            <span className="text-red-500 ml-1 rtl:mr-1">*</span>
+          )}
+          <span className="ml-1 rtl:mr-1 text-gray-400 cursor-help" title={currentLocale === 'ar' ? businessRegConfig.tooltipAr : businessRegConfig.tooltipEn}>
             <svg className="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
@@ -137,7 +146,7 @@ export default function Step3DealerBusinessInfo({
                 ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
                 : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
             }`}
-            placeholder={t('vatPlaceholder', 'e.g., GB123456789')}
+            placeholder={currentLocale === 'ar' ? businessRegConfig.placeholderAr : businessRegConfig.placeholderEn}
           />
         </div>
         {vatError && (

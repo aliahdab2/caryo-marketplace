@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { authService } from '@/services/auth';
+import { getCurrentMarket } from '@/config/businessRegistration';
 import { SignupFormData, SignupUIState } from './useSignupForm';
 
 interface UseSignupSubmissionProps {
@@ -118,6 +119,36 @@ export function useSignupSubmission({
       const signupData = prepareSignupData();
 
       const result = await authService.signup(signupData);
+
+      // Fire lightweight analytics (non-blocking)
+      try {
+        const market = getCurrentMarket();
+        if (typeof window !== 'undefined') {
+          // Defer to next tick to avoid blocking UI
+          setTimeout(() => {
+            // Prefer a global analytics handler if available
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const anyWindow = window as any;
+            if (anyWindow?.analytics?.track) {
+              anyWindow.analytics.track('dealer_signup_submitted', {
+                market,
+                sellerType,
+                providedBusinessRegistration: !!formData.vatNumber,
+                businessRegistrationLength: formData.vatNumber?.length || 0,
+              });
+            } else if (process.env.NODE_ENV === 'development') {
+              console.debug('analytics(track) dealer_signup_submitted', {
+                market,
+                sellerType,
+                providedBusinessRegistration: !!formData.vatNumber,
+                businessRegistrationLength: formData.vatNumber?.length || 0,
+              });
+            }
+          }, 0);
+        }
+      } catch {
+        // Swallow analytics failures silently
+      }
 
       // Store user data for verification flow
       if (typeof window !== 'undefined') {
