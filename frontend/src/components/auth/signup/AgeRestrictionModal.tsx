@@ -79,7 +79,6 @@ export default function AgeRestrictionModal({
                     <p className="text-sm text-blue-800 dark:text-blue-200">
                       <strong>{t('ageRestrictionWhatCanYouDo')}</strong><br />
                       • {t('ageRestrictionCheckBackAt18')}<br />
-                      • {t('ageRestrictionTeenFeatures')}<br />
                       • {t('ageRestrictionContactSupport')}
                     </p>
                   </div>
