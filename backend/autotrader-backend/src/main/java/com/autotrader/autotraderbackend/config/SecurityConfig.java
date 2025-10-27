@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/images/upload").permitAll() // Allow logo upload during signup
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/images/**").permitAll() // Allow viewing uploaded images
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reference-data/**").permitAll()  // This covers all reference data including governorates
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/seller-types").permitAll()  // Allow public access to seller types for signup form
