@@ -38,10 +38,13 @@ export default function SyrianPhoneInput({
   placeholder = '9XX XXX XXX',
   className = ''
 }: SyrianPhoneInputProps) {
-  const { t } = useTranslation(['validation', 'common']);
+  const { t, i18n } = useTranslation(['validation', 'common']);
   const [localValue, setLocalValue] = useState(formatPhoneForDisplay(value));
   const [validationResult, setValidationResult] = useState<PhoneValidationResult | null>(null);
   const previousValueRef = useRef(value);
+  
+  // Detect RTL
+  const isRTL = i18n.language.startsWith('ar');
 
   // Sync local value with prop value
   useEffect(() => {
@@ -94,34 +97,41 @@ export default function SyrianPhoneInput({
   const hasError = error || (validationResult && !validationResult.isValid && hasAttemptedValidation);
   const isValid = validationResult?.isValid && localValue.trim() !== '';
 
-  // Get operator info
-  const operator = validationResult?.operator;
+  // Get operator info with localization
+  const getLocalizedOperator = (operatorName: string | undefined): string | undefined => {
+    if (!operatorName) return undefined;
+    
+    const isArabic = i18n.language.startsWith('ar');
+    
+    if (operatorName === 'MTN Syria') {
+      return isArabic ? 'إم تي إن سوريا' : 'MTN Syria';
+    }
+    
+    if (operatorName === 'Syriatel') {
+      return isArabic ? 'سيرياتيل' : 'Syriatel';
+    }
+    
+    return operatorName;
+  };
+  
+  const operator = getLocalizedOperator(validationResult?.operator);
 
   return (
     <div className={`group ${className}`}>
       {/* Label */}
       {label && (
-        <div className="flex items-center justify-between mb-2">
-          <label
-            htmlFor={id}
-            className="block text-sm font-semibold text-gray-800 dark:text-gray-200 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400"
-          >
-            {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
-          </label>
-
-          {/* Operator info */}
-          {showOperatorInfo && operator && isValid && (
-            <div className="text-xs text-green-600 dark:text-green-400 font-medium">
-              {operator}
-            </div>
-          )}
-        </div>
+        <label
+          htmlFor={id}
+          className="block text-sm font-semibold text-gray-800 dark:text-gray-200 transition-colors group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 mb-2"
+        >
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
       )}
 
       {/* Input container */}
       <div className="relative">
-        {/* Country code prefix */}
+        {/* Country code prefix - always on the left for phone numbers */}
         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
           <div className={`flex items-center justify-center w-12 h-10 rounded-lg border transition-all duration-200 ${
             hasError
@@ -140,7 +150,7 @@ export default function SyrianPhoneInput({
           </div>
         </div>
 
-        {/* Phone input */}
+        {/* Phone input - always LTR for numbers */}
         <input
           id={id}
           type="tel"
@@ -148,6 +158,7 @@ export default function SyrianPhoneInput({
           onChange={handleInputChange}
           disabled={disabled}
           required={required}
+          dir="ltr"
           className={`block w-full pl-20 pr-4 py-3.5 border-2 rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 hover:shadow-md focus:shadow-lg focus:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed ${
             hasError
               ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500'
@@ -158,7 +169,7 @@ export default function SyrianPhoneInput({
           placeholder={placeholder}
         />
 
-        {/* Validation indicator */}
+        {/* Validation indicator - always on the right */}
         {localValue && (
           <div className="absolute inset-y-0 right-4 flex items-center">
             {hasError ? (
@@ -195,7 +206,7 @@ export default function SyrianPhoneInput({
       {/* Success message */}
       {isValid && showOperatorInfo && operator && (
         <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-          ✓ {t('validPhoneWithOperator', 'Valid {{operator}} number', { operator: operator })}
+          ✓ {t('common:validPhoneWithOperator', 'Valid {{operator}} number', { operator: operator })}
         </p>
       )}
     </div>

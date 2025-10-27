@@ -337,6 +337,10 @@ export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormPro
                 setVatNumber={(value) => updateFormData({ vatNumber: value })}
                 tradingAddress={formData.tradingAddress}
                 setTradingAddress={(value) => updateFormData({ tradingAddress: value })}
+                dealerGovernorateSlug={formData.dealerGovernorateSlug}
+                setDealerGovernorateSlug={(value) => updateFormData({ dealerGovernorateSlug: value })}
+                dealerLocationSlug={formData.dealerLocationSlug}
+                setDealerLocationSlug={(value) => updateFormData({ dealerLocationSlug: value })}
                 businessNameError={uiState.businessNameError}
                 setBusinessNameError={(error) => updateUIState({ businessNameError: error })}
                 vatError={uiState.vatError}
@@ -394,10 +398,16 @@ export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormPro
                 setBusinessPhone={(value) => updateFormData({ businessPhone: value })}
                 logoUrl={formData.logoUrl}
                 setLogoUrl={(value) => updateFormData({ logoUrl: value })}
+                password={formData.password}
+                setPassword={(value) => updateFormData({ password: value })}
+                confirmPassword={formData.confirmPassword}
+                setConfirmPassword={(value) => updateFormData({ confirmPassword: value })}
                 businessEmailError={uiState.businessEmailError}
                 setBusinessEmailError={(error) => updateUIState({ businessEmailError: error })}
                 businessPhoneError={uiState.businessPhoneError}
                 setBusinessPhoneError={(error) => updateUIState({ businessPhoneError: error })}
+                passwordError={uiState.passwordError}
+                setPasswordError={(error) => updateUIState({ passwordError: error })}
                 loading={uiState.loading}
                 hasAttemptedValidation={uiState.hasAttemptedValidation}
               />

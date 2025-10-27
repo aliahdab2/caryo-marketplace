@@ -342,7 +342,7 @@ const SignInPage: React.FC = () => {
             <form onSubmit={handleSubmit} className={`responsive-fade-in ${redirecting ? 'opacity-70 transition-opacity' : ''}`}>
               <div className="mb-5">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('username')}
+                  {t('usernameOrEmail', 'Username or Email')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
@@ -377,7 +377,7 @@ const SignInPage: React.FC = () => {
                         ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
                     }`}
-                    placeholder={t('usernamePlaceholder')}
+                    placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
                     onInvalid={(e) => {
                       e.preventDefault();
                       const target = e.target as HTMLInputElement;
