@@ -56,6 +56,13 @@ public class DealerService {
     }
 
     /**
+     * Get dealer by dealer ID
+     */
+    public Optional<Dealer> getDealerById(Long dealerId) {
+        return dealerRepository.findById(dealerId);
+    }
+
+    /**
      * Check if user is a dealer
      */
     public boolean isDealer(User user) {

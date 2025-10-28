@@ -1,0 +1,369 @@
+package com.autotrader.autotraderbackend.controller;
+
+import com.autotrader.autotraderbackend.model.Dealer;
+import com.autotrader.autotraderbackend.model.Role;
+import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.DealerRepository;
+import com.autotrader.autotraderbackend.repository.RoleRepository;
+import com.autotrader.autotraderbackend.repository.UserRepository;
+import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Integration tests for DealerController.
+ * Tests the complete flow from HTTP request to database and back.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
+@DisplayName("DealerController Integration Tests")
+class DealerControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private DealerRepository dealerRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    private User dealerUser;
+    private User adminUser;
+    private Dealer testDealer;
+    private String dealerToken;
+    private String adminToken;
+
+    @BeforeEach
+    void setUp() {
+        // Clean up
+        dealerRepository.deleteAll();
+        userRepository.deleteAll();
+
+        // Create roles
+        Role userRole = roleRepository.findByName("ROLE_USER")
+            .orElseGet(() -> roleRepository.save(new Role("ROLE_USER")));
+        Role dealerRole = roleRepository.findByName("ROLE_DEALER")
+            .orElseGet(() -> roleRepository.save(new Role("ROLE_DEALER")));
+        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+            .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
+
+        // Create dealer user
+        dealerUser = new User("testdealer", "dealer@test.sy", passwordEncoder.encode("Password123!"));
+        dealerUser.markEmailVerifiedByOAuth("test", "test-setup");
+        Set<Role> dealerRoles = new HashSet<>();
+        dealerRoles.add(userRole);
+        dealerRoles.add(dealerRole);
+        dealerUser.setRoles(dealerRoles);
+        dealerUser = userRepository.save(dealerUser);
+
+        // Create dealer profile
+        testDealer = Dealer.builder()
+            .user(dealerUser)
+            .businessName("Test Dealership")
+            .businessEmail("business@test.sy")
+            .businessPhone("+963-11-1234567")
+            .trialStartedAt(ZonedDateTime.now().minusDays(10))
+            .trialListingsCount(5)
+            .trialExpired(false)
+            .subscriptionStatus("trial")
+            .subscriptionTier("trial")
+            .timezone("Asia/Damascus")
+            .canCreateListings(true)
+            .paymentWarning(false)
+            .build();
+        testDealer = dealerRepository.save(testDealer);
+
+        // Create admin user
+        adminUser = new User("testadmin", "admin@test.sy", passwordEncoder.encode("Admin123!"));
+        adminUser.markEmailVerifiedByOAuth("test", "test-setup");
+        Set<Role> adminRoles = new HashSet<>();
+        adminRoles.add(userRole);
+        adminRoles.add(adminRole);
+        adminUser.setRoles(adminRoles);
+        adminUser = userRepository.save(adminUser);
+
+        // Generate tokens using UserDetailsImpl (same pattern as MessagingSystemIntegrationTest)
+        UserDetailsImpl dealerUserDetails = UserDetailsImpl.build(dealerUser);
+        Authentication dealerAuth = new UsernamePasswordAuthenticationToken(
+            dealerUserDetails,
+            null,
+            dealerUserDetails.getAuthorities()
+        );
+        dealerToken = jwtUtils.generateJwtToken(dealerAuth);
+
+        UserDetailsImpl adminUserDetails = UserDetailsImpl.build(adminUser);
+        Authentication adminAuth = new UsernamePasswordAuthenticationToken(
+            adminUserDetails,
+            null,
+            adminUserDetails.getAuthorities()
+        );
+        adminToken = jwtUtils.generateJwtToken(adminAuth);
+    }
+
+    @Nested
+    @DisplayName("GET /api/dealer/trial-status")
+    class GetTrialStatusTests {
+
+        @Test
+        @DisplayName("Should return trial status for authenticated dealer")
+        void shouldReturnTrialStatusForAuthenticatedDealer() throws Exception {
+            mockMvc.perform(get("/api/dealer/trial-status")
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.listingsUsed").value(5))
+                .andExpect(jsonPath("$.listingsLimit").value(15))
+                .andExpect(jsonPath("$.listingsRemaining").value(10))
+                .andExpect(jsonPath("$.daysRemaining").isNumber())
+                .andExpect(jsonPath("$.expiresAt").exists()); // Field is expiresAt, not expiryDate
+        }
+
+        @Test
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/dealer/trial-status")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("Should return 403 when user is not a dealer")
+        void shouldReturn403WhenUserIsNotDealer() throws Exception {
+            // Create user without dealer profile (no ROLE_DEALER)
+            User regularUser = new User("regular", "regular@test.sy", passwordEncoder.encode("Password123!"));
+            regularUser.markEmailVerifiedByOAuth("test", "test-setup");
+            Set<Role> roles = new HashSet<>();
+            roles.add(roleRepository.findByName("ROLE_USER").orElseThrow());
+            regularUser.setRoles(roles);
+            regularUser = userRepository.save(regularUser);
+
+            UserDetailsImpl regularUserDetails = UserDetailsImpl.build(regularUser);
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                regularUserDetails,
+                null,
+                regularUserDetails.getAuthorities()
+            );
+            String token = jwtUtils.generateJwtToken(auth);
+
+            // Should return 403 because endpoint requires ROLE_DEALER or ROLE_ADMIN
+            mockMvc.perform(get("/api/dealer/trial-status")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/dealer/can-create-listing")
+    class CanCreateListingTests {
+
+        @Test
+        @DisplayName("Should return true when dealer can create listings")
+        void shouldReturnTrueWhenCanCreateListings() throws Exception {
+            mockMvc.perform(get("/api/dealer/can-create-listing")
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.canCreate").value(true))
+                .andExpect(jsonPath("$.reason").value("Trial active"))
+                .andExpect(jsonPath("$.trialStatus.active").value(true))
+                .andExpect(jsonPath("$.trialStatus.listingsUsed").value(5))
+                .andExpect(jsonPath("$.trialStatus.listingsRemaining").value(10));
+        }
+
+        @Test
+        @DisplayName("Should return false when trial expired")
+        void shouldReturnFalseWhenTrialExpired() throws Exception {
+            // Expire the trial by setting trial start date to 3 months ago
+            testDealer.setTrialStartedAt(ZonedDateTime.now().minusMonths(3));
+            testDealer.setTrialExpired(true);
+            // Don't set canCreateListings to false - let business logic determine it
+            dealerRepository.save(testDealer);
+
+            mockMvc.perform(get("/api/dealer/can-create-listing")
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.canCreate").value(false))
+                .andExpect(jsonPath("$.reason").value("Trial expired")) // Matches CanCreateListingResponse.trialExpired()
+                .andExpect(jsonPath("$.trialStatus.active").value(false));
+        }
+
+        @Test
+        @DisplayName("Should return false when listing limit reached")
+        void shouldReturnFalseWhenListingLimitReached() throws Exception {
+            // Reach the listing limit
+            testDealer.setTrialListingsCount(15);
+            // Don't set canCreateListings to false - let business logic determine it
+            dealerRepository.save(testDealer);
+
+            mockMvc.perform(get("/api/dealer/can-create-listing")
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.canCreate").value(false))
+                .andExpect(jsonPath("$.reason").value("Listing limit reached")) // Actual response from CanCreateListingResponse.limitReached()
+                .andExpect(jsonPath("$.trialStatus.listingsRemaining").value(0));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/dealer/extend-trial/{dealerId}")
+    class ExtendTrialTests {
+
+        @Test
+        @DisplayName("Should extend trial when admin requests")
+        void shouldExtendTrialWhenAdminRequests() throws Exception {
+            mockMvc.perform(post("/api/dealer/extend-trial/" + testDealer.getId())
+                    .header("Authorization", "Bearer " + adminToken)
+                    .param("additionalDays", "30")
+                    .param("reason", "Customer requested extension")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Trial extended successfully by 30 days"));
+
+            // Verify the trial was actually extended
+            Dealer updatedDealer = dealerRepository.findById(testDealer.getId()).orElseThrow();
+            assert updatedDealer.getTrialExtendedUntil() != null;
+        }
+
+        @Test
+        @DisplayName("Should return 403 when non-admin tries to extend trial")
+        void shouldReturn403WhenNonAdminTriesToExtend() throws Exception {
+            mockMvc.perform(post("/api/dealer/extend-trial/" + testDealer.getId())
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .param("additionalDays", "30")
+                    .param("reason", "Trying to extend own trial")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("Should return 404 when dealer not found")
+        void shouldReturn404WhenDealerNotFound() throws Exception {
+            mockMvc.perform(post("/api/dealer/extend-trial/99999")
+                    .header("Authorization", "Bearer " + adminToken)
+                    .param("additionalDays", "30")
+                    .param("reason", "Test extension for non-existent dealer")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should reactivate expired trial when extended")
+        void shouldReactivateExpiredTrialWhenExtended() throws Exception {
+            // Expire the trial first
+            testDealer.setTrialExpired(true);
+            testDealer.setSubscriptionStatus("suspended");
+            testDealer = dealerRepository.save(testDealer);
+
+            mockMvc.perform(post("/api/dealer/extend-trial/" + testDealer.getId())
+                    .header("Authorization", "Bearer " + adminToken)
+                    .param("additionalDays", "15")
+                    .param("reason", "Reactivating expired trial for customer satisfaction")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+            // Verify the trial was reactivated
+            Dealer updatedDealer = dealerRepository.findById(testDealer.getId()).orElseThrow();
+            assert !updatedDealer.getTrialExpired() : "Trial should not be expired after extension";
+            assert updatedDealer.getTrialExtendedUntil() != null : "Trial extension date should be set";
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/dealer/profile")
+    class GetDealerProfileTests {
+
+        @Test
+        @DisplayName("Should return dealer profile for authenticated dealer")
+        void shouldReturnDealerProfileForAuthenticatedDealer() throws Exception {
+            mockMvc.perform(get("/api/dealer/profile")
+                    .header("Authorization", "Bearer " + dealerToken)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(testDealer.getId()))
+                // userId is not exposed due to @JsonBackReference on user field
+                .andExpect(jsonPath("$.businessName").value("Test Dealership"))
+                .andExpect(jsonPath("$.businessEmail").value("business@test.sy"))
+                .andExpect(jsonPath("$.businessPhone").value("+963-11-1234567"))
+                .andExpect(jsonPath("$.subscriptionStatus").value("trial"))
+                .andExpect(jsonPath("$.subscriptionTier").value("trial"));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/dealer/profile")
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("Should return 403 when user is not a dealer")
+        void shouldReturn403WhenUserIsNotDealer() throws Exception {
+            // Create regular user without dealer profile (no ROLE_DEALER)
+            User regularUser = new User("regular2", "regular2@test.sy", passwordEncoder.encode("Password123!"));
+            regularUser.markEmailVerifiedByOAuth("test", "test-setup");
+            Set<Role> roles = new HashSet<>();
+            roles.add(roleRepository.findByName("ROLE_USER").orElseThrow());
+            regularUser.setRoles(roles);
+            regularUser = userRepository.save(regularUser);
+
+            UserDetailsImpl regularUserDetails = UserDetailsImpl.build(regularUser);
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                regularUserDetails,
+                null,
+                regularUserDetails.getAuthorities()
+            );
+            String token = jwtUtils.generateJwtToken(auth);
+
+            // Endpoint requires DEALER or ADMIN role, so regular user gets 403
+            mockMvc.perform(get("/api/dealer/profile")
+                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+        }
+    }
+}
+

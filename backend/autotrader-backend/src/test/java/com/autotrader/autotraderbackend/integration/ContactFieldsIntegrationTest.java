@@ -83,10 +83,10 @@ public class ContactFieldsIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Create test user (seller)
+        // Create test user (seller) with unique email to avoid conflicts
         testUser = new User();
-        testUser.setUsername("testdealer");
-        testUser.setEmail("dealer@caryo.sy");
+        testUser.setUsername("testdealer"); // Must match @WithMockUser username
+        testUser.setEmail("contactfields@test.caryo.sy");
         testUser.setPassword("password123");
         // Mark user as email verified for testing
         testUser.markEmailAsVerified();
@@ -195,7 +195,7 @@ public class ContactFieldsIntegrationTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.contactName").value("testdealer")) // Fallback to username
-                    .andExpect(jsonPath("$.contactEmail").value("dealer@caryo.sy")) // Fallback to user email
+                    .andExpect(jsonPath("$.contactEmail").value("contactfields@test.caryo.sy")) // Fallback to user email
                     .andExpect(jsonPath("$.contactPhone").isEmpty()) // No fallback for phone
                     .andExpect(jsonPath("$.contactPreference").value("email")); // Default preference
         }
@@ -226,7 +226,7 @@ public class ContactFieldsIntegrationTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.contactName").value("Service Department")) // Custom
-                    .andExpect(jsonPath("$.contactEmail").value("dealer@caryo.sy")) // Fallback
+                    .andExpect(jsonPath("$.contactEmail").value("contactfields@test.caryo.sy")) // Fallback
                     .andExpect(jsonPath("$.contactPhone").value("+966509876543")) // Custom
                     .andExpect(jsonPath("$.contactPreference").value("email")); // Fallback
         }
@@ -305,7 +305,7 @@ public class ContactFieldsIntegrationTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.contactName").value("testdealer")) // Fallback
-                    .andExpect(jsonPath("$.contactEmail").value("dealer@caryo.sy")) // Fallback
+                    .andExpect(jsonPath("$.contactEmail").value("contactfields@test.caryo.sy")) // Fallback
                     .andExpect(jsonPath("$.contactPhone").isEmpty()) // No fallback
                     .andExpect(jsonPath("$.contactPreference").value("email")); // Fallback
         }
@@ -352,7 +352,7 @@ public class ContactFieldsIntegrationTest {
                     .andExpect(jsonPath("$[0].contactPreference").value("both"))
                     // Should also include seller info separately
                     .andExpect(jsonPath("$[0].sellerUsername").value("testdealer"))
-                    .andExpect(jsonPath("$[0].sellerEmail").value("dealer@caryo.sy"));
+                    .andExpect(jsonPath("$[0].sellerEmail").value("contactfields@test.caryo.sy"));
         }
     }
 
