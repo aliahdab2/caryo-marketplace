@@ -35,7 +35,27 @@ export interface DealerProfile {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /**
+ * Custom error for when dealer features are not available
+ * This is expected for non-dealer users and should be handled gracefully
+ */
+export class DealerFeatureNotAvailableError extends Error {
+  constructor(message = 'Dealer features not available') {
+    super(message);
+    this.name = 'DealerFeatureNotAvailableError';
+  }
+}
+
+/**
+ * Check if error indicates user is not a dealer (expected, not an error)
+ */
+function isNonDealerResponse(status: number): boolean {
+  return status === 403 || status === 404;
+}
+
+/**
  * Get current dealer's trial status
+ * @throws {DealerFeatureNotAvailableError} If user is not a dealer (403/404)
+ * @throws {Error} For other errors
  */
 export async function getDealerTrialStatus(): Promise<TrialStatus> {
   try {
@@ -44,31 +64,35 @@ export async function getDealerTrialStatus(): Promise<TrialStatus> {
     });
 
     if (!response.ok) {
-      // If 404 or 403, user is not a dealer or doesn't have access
-      if (response.status === 404 || response.status === 403) {
-        // This is expected for non-dealer users
-        // 404: Endpoint not found or no dealer profile
-        // 403: User is authenticated but not authorized (not a dealer)
-        throw new Error('TRIAL_NOT_AVAILABLE');
+      // 403: User is authenticated but not a dealer (Forbidden)
+      // 404: Dealer profile not found or endpoint doesn't exist
+      if (isNonDealerResponse(response.status)) {
+        throw new DealerFeatureNotAvailableError(
+          'User does not have dealer access'
+        );
       }
+      
+      // Actual errors (500, 401, etc.)
       throw new Error(`Failed to fetch trial status: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    // Only log actual errors, not expected "not available" scenarios
-    if (error instanceof Error && error.message === 'TRIAL_NOT_AVAILABLE') {
-      // Silent - this is normal for non-dealer users
+    // Don't log expected "not a dealer" errors
+    if (error instanceof DealerFeatureNotAvailableError) {
       throw error;
     }
-    console.error('Error fetching dealer trial status:', error);
+    
+    // Log unexpected errors only
+    console.error('[DealerAPI] Error fetching trial status:', error);
     throw error;
   }
 }
 
 /**
  * Check if dealer can create a new listing
+ * @throws {DealerFeatureNotAvailableError} If user is not a dealer
+ * @throws {Error} For other errors
  */
 export async function canCreateListing(): Promise<CanCreateListingResponse> {
   try {
@@ -77,19 +101,28 @@ export async function canCreateListing(): Promise<CanCreateListingResponse> {
     });
 
     if (!response.ok) {
+      if (isNonDealerResponse(response.status)) {
+        throw new DealerFeatureNotAvailableError(
+          'User does not have dealer access'
+        );
+      }
       throw new Error(`Failed to check listing permission: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Error checking listing permission:', error);
+    if (error instanceof DealerFeatureNotAvailableError) {
+      throw error;
+    }
+    console.error('[DealerAPI] Error checking listing permission:', error);
     throw error;
   }
 }
 
 /**
  * Get dealer profile information
+ * @throws {DealerFeatureNotAvailableError} If user is not a dealer
+ * @throws {Error} For other errors
  */
 export async function getDealerProfile(): Promise<DealerProfile> {
   try {
@@ -98,13 +131,20 @@ export async function getDealerProfile(): Promise<DealerProfile> {
     });
 
     if (!response.ok) {
+      if (isNonDealerResponse(response.status)) {
+        throw new DealerFeatureNotAvailableError(
+          'User does not have dealer access'
+        );
+      }
       throw new Error(`Failed to fetch dealer profile: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Error fetching dealer profile:', error);
+    if (error instanceof DealerFeatureNotAvailableError) {
+      throw error;
+    }
+    console.error('[DealerAPI] Error fetching dealer profile:', error);
     throw error;
   }
 }

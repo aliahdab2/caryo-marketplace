@@ -28,6 +28,7 @@ import UpgradeModal from './UpgradeModal';
 // Import API services
 import { 
   getDealerTrialStatus, 
+  DealerFeatureNotAvailableError,
   createSubscription,
   type TrialStatus 
 } from '@/services/dealerApi';
@@ -77,12 +78,14 @@ export default function DealerDashboard() {
       try {
         const trialData = await getDealerTrialStatus();
         setTrialStatus(trialData);
-      } catch {
+      } catch (err) {
         // Expected: User may not be a dealer, or trial not set up yet
         // Dashboard works perfectly without trial features
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[DASHBOARD] Trial features not available - this is OK');
+        if (!(err instanceof DealerFeatureNotAvailableError)) {
+          // Only log unexpected errors
+          console.error('[DASHBOARD] Unexpected error loading trial status:', err);
         }
+        // Silent fallback for DealerFeatureNotAvailableError
       }
 
       // Load real data from APIs (keeping original functionality)
