@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.service;
 
+import com.autotrader.autotraderbackend.exception.RegularUserListingLimitException;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.model.CarListing;
@@ -14,6 +15,7 @@ import com.autotrader.autotraderbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,9 @@ public class CarListingService {
     private final CarListingQueryService queryService;
     private final DealerService dealerService;
     private final DealerTrialService dealerTrialService;
+
+    @Value("${user.regular.listing_limit:5}")
+    private int regularUserListingLimit;
 
     /**
      * Check if user can create listings (email verified and account active).
@@ -106,8 +111,7 @@ public class CarListingService {
     }
 
     /**
-     * Validate that dealer can create a listing (checks trial/subscription limits).
-     * For private sellers, this currently only checks email verification.
+     * Validate that user can create a listing (checks both dealer and regular user limits).
      */
     private void validateDealerCanCreateListing(String username) {
         User user = userRepository.findByUsername(username)
@@ -115,6 +119,7 @@ public class CarListingService {
 
         // Check if user is a dealer
         if (dealerService.isDealer(user)) {
+            // Dealer validation - check trial/subscription limits
             Dealer dealer = dealerService.getDealerByUserId(user.getId())
                 .orElseThrow(() -> new com.autotrader.autotraderbackend.exception.dealer.DealerNotFoundException(user.getId()));
 
@@ -135,8 +140,17 @@ public class CarListingService {
             log.debug("Dealer {} validated - can create listing. Trial: {}, Used: {}",
                 dealer.getId(), dealer.isOnTrial(), dealer.getTrialListingsCount());
         } else {
-            // Private seller - no special validation needed here (email verification checked elsewhere)
-            log.debug("Private seller {} - no trial limits apply", username);
+            // Regular user validation - check listing limit
+            long activeListings = carListingRepository.countActiveListingsByUser(user);
+            
+            if (activeListings >= regularUserListingLimit) {
+                log.warn("Regular user {} hit listing limit: {}/{}", 
+                    username, activeListings, regularUserListingLimit);
+                throw new RegularUserListingLimitException(username, (int) activeListings, regularUserListingLimit);
+            }
+            
+            log.debug("Regular user {} validated - can create listing. Active: {}/{}",
+                username, activeListings, regularUserListingLimit);
         }
     }
 

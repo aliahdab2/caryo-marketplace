@@ -1,17 +1,33 @@
 # 📊 Listing Limits by User Type
 
-## 🎯 Current Implementation Summary
+## 🎯 **UPDATED** Implementation Summary
 
 ### **TL;DR - Who Can Post How Many Ads:**
 
 | User Type | Listing Limit | Duration | Cost |
 |-----------|---------------|----------|------|
-| **Regular User** | ❌ **UNLIMITED** | Forever | **FREE** |
+| **Regular User** | ✅ **5 listings** | Forever | **FREE** |
 | **Admin** | ❌ **UNLIMITED** | Forever | **FREE** |
 | **Dealer (Trial)** | ✅ **15 listings** | 60 days | **FREE** |
 | **Dealer (Basic)** | ✅ **100 listings** | Monthly | **$50/month** |
 | **Dealer (Advanced)** | ✅ **250 listings** | Monthly | **$100/month** |
 | **Dealer (Professional)** | ❌ **UNLIMITED** | Monthly | **$200/month** |
+
+---
+
+## ✅ **IMPLEMENTATION COMPLETE**
+
+**Status:** ✅ **Fully Implemented & Tested**  
+**Date:** October 29, 2025  
+**Tests:** 10/10 passing
+
+### **What Was Implemented:**
+
+1. ✅ **Configuration** - `user.regular.listing_limit=5` in `application.properties`
+2. ✅ **Exception Class** - `RegularUserListingLimitException` with Lombok
+3. ✅ **Repository Method** - `countActiveListingsByUser()` to count only active listings
+4. ✅ **Service Validation** - Updated `CarListingService` to enforce limits
+5. ✅ **Comprehensive Tests** - 10 unit tests covering all scenarios
 
 ---
 
@@ -26,24 +42,35 @@ Role:     ROLE_USER
 ```
 
 **Current Limits:**
-- ❌ **NO LIMITS** - Can create unlimited listings
+- ✅ **5 ACTIVE LISTINGS MAXIMUM** ✨ (IMPLEMENTED!)
 - ✅ **FREE** - No charges ever
 - ✅ **Forever** - No expiration
+- ✅ Counts only active listings (approved, not sold, not archived)
 
 **Code Reference:**
 ```java
-// From CarListingService.java line 137-140
+// From application.properties
+user.regular.listing_limit=5
+
+// From CarListingService.java line 143-154
 } else {
-    // Private seller - no special validation needed here
-    log.debug("Private seller {} - no trial limits apply", username);
+    // Regular user validation - check listing limit
+    long activeListings = carListingRepository.countActiveListingsByUser(user);
+    
+    if (activeListings >= regularUserListingLimit) {
+        log.warn("Regular user {} hit listing limit: {}/{}", 
+            username, activeListings, regularUserListingLimit);
+        throw new RegularUserListingLimitException(username, (int) activeListings, regularUserListingLimit);
+    }
 }
 ```
 
 **What This Means:**
-- Any regular user can post as many cars as they want
-- No subscription required
-- No payment required
-- Perfect for individuals selling their personal vehicles
+- Regular users can post up to 5 active cars at once
+- If they sell/archive a listing, they can post another
+- Prevents spam and abuse
+- Encourages dealer signups for power users
+- Perfect for individuals selling 1-2 personal vehicles
 
 ---
 

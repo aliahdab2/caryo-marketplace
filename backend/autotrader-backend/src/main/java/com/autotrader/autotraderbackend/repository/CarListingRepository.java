@@ -147,4 +147,15 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     @Modifying
     @Query("UPDATE CarListing cl SET cl.isUserActive = false WHERE cl.model.id IN :modelIds AND cl.isUserActive = true")
     int deactivateByModelIds(@Param("modelIds") List<Long> modelIds);
+
+    /**
+     * Count active (approved, not sold, not archived) listings by user
+     * Used to enforce listing limits for regular users
+     */
+    @Query("SELECT COUNT(cl) FROM CarListing cl " +
+           "WHERE cl.seller = :user " +
+           "AND cl.approved = true " +
+           "AND cl.sold = false " +
+           "AND cl.archived = false")
+    long countActiveListingsByUser(@Param("user") User user);
 }
