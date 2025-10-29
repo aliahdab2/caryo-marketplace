@@ -5,7 +5,7 @@ package com.autotrader.autotraderbackend.exception.dealer;
  * Provides detailed context for the frontend to display appropriate upgrade prompts.
  */
 public class TrialExpiredException extends RuntimeException {
-
+    
     private final int listingsUsed;
     private final int listingsLimit;
     private final String subscriptionTier;
@@ -83,4 +83,3 @@ public class TrialExpiredException extends RuntimeException {
         return listingLimitReached;
     }
 }
-

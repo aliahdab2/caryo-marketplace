@@ -5,7 +5,7 @@ package com.autotrader.autotraderbackend.exception.dealer;
  * Used for paid subscriptions (Basic, Advanced, Professional).
  */
 public class SubscriptionLimitExceededException extends RuntimeException {
-
+    
     private final String subscriptionTier;
     private final int currentListings;
     private final int limit;
@@ -45,4 +45,3 @@ public class SubscriptionLimitExceededException extends RuntimeException {
         return limit;
     }
 }
-
