@@ -160,7 +160,7 @@ export async function createSubscription(tier: string): Promise<{ success: boole
 /**
  * Get payment history for the dealer
  */
-export async function getPaymentHistory(): Promise<any[]> {
+export async function getPaymentHistory(): Promise<unknown[]> {
   try {
     const response = await apiRequest(`${API_BASE_URL}/api/payments/history`, {
       method: 'GET',
@@ -181,7 +181,7 @@ export async function getPaymentHistory(): Promise<any[]> {
 /**
  * Check payment status
  */
-export async function getPaymentStatus(transactionId: string): Promise<any> {
+export async function getPaymentStatus(transactionId: string): Promise<unknown> {
   try {
     const response = await apiRequest(`${API_BASE_URL}/api/payments/${transactionId}/status`, {
       method: 'GET',

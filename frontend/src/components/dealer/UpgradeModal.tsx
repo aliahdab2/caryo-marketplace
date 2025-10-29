@@ -86,12 +86,11 @@ const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
 export default function UpgradeModal({ 
   isOpen, 
   onClose, 
-  currentTier = 'trial',
+  currentTier: _currentTier = 'trial',
   onSelectTier,
   className = '' 
 }: UpgradeModalProps) {
   const { t } = useTranslation(['dashboard', 'common']);
-  const { isRTL } = useDirection();
   const [selectedTier, setSelectedTier] = useState<string>('advanced');
   const [isProcessing, setIsProcessing] = useState(false);
 

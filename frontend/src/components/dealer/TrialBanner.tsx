@@ -36,7 +36,6 @@ export default function TrialBanner({
   className = '' 
 }: TrialBannerProps) {
   const { t } = useTranslation(['dashboard', 'common']);
-  const { isRTL } = useDirection();
 
   // Don't show banner for paid subscribers
   if (trialStatus.subscriptionTier !== 'trial') {
