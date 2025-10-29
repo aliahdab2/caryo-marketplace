@@ -84,7 +84,7 @@ public class SavedSearchMatchingService {
             return true;
 
         } catch (Exception e) {
-            log.error("Error matching listing {} against saved search {}: {}", 
+            log.error("Error matching listing {} against saved search {}: {}",
                      listing.getId(), savedSearch.getId(), e.getMessage(), e);
             return false;
         }
@@ -101,7 +101,7 @@ public class SavedSearchMatchingService {
             if (listing.getModel() == null || listing.getModel().getBrand() == null) {
                 return false;
             }
-            
+
             String listingBrandSlug = listing.getModel().getBrand().getSlug();
             return brandList.contains(listingBrandSlug);
         }
@@ -120,7 +120,7 @@ public class SavedSearchMatchingService {
             if (listing.getModel() == null) {
                 return false;
             }
-            
+
             String listingModelSlug = listing.getModel().getSlug();
             return modelList.contains(listingModelSlug);
         }
@@ -202,12 +202,12 @@ public class SavedSearchMatchingService {
             if (listing.getGovernorate() == null) {
                 return false;
             }
-            
+
             // The frontend sends location names, so we need to match against governorate names
             String listingGovernorateName = listing.getGovernorate().getDisplayNameEn();
             String listingGovernorateNameAr = listing.getGovernorate().getDisplayNameAr();
-            
-            return locationList.contains(listingGovernorateName) || 
+
+            return locationList.contains(listingGovernorateName) ||
                    locationList.contains(listingGovernorateNameAr);
         }
 
@@ -225,7 +225,7 @@ public class SavedSearchMatchingService {
             if (listing.getBodyStyle() == null) {
                 return false;
             }
-            
+
             String listingBodyType = listing.getBodyStyle().getSlug(); // Use slug for matching
             return bodyTypeList.contains(listingBodyType);
         }
@@ -244,7 +244,7 @@ public class SavedSearchMatchingService {
             if (listing.getFuelType() == null) {
                 return false;
             }
-            
+
             String listingFuelType = listing.getFuelType().getSlug(); // Use slug for matching
             return fuelTypeList.contains(listingFuelType);
         }

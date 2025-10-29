@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const { id } = await params;
     const listing = await fetchCarListingPublic(Number(id));
-    
+
     if (!listing) {
       return {
         title: 'Listing Not Found | Caryo Marketplace',
@@ -54,7 +54,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
   try {
     const { id } = await params;
     const listing = await fetchCarListingPublic(Number(id));
-    
+
     if (!listing) {
       notFound();
     }

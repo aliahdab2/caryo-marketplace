@@ -42,7 +42,7 @@ public class EmailTemplateManagementController {
     @GetMapping("/{templateName}")
     public ResponseEntity<?> getTemplateMetadata(@PathVariable String templateName) {
         Optional<Map<String, Object>> metadata = emailTemplateService.getTemplateMetadata(templateName);
-        
+
         if (metadata.isPresent()) {
             return ResponseEntity.ok(metadata.get());
         } else {
@@ -75,7 +75,7 @@ public class EmailTemplateManagementController {
     public ResponseEntity<ValidationResult> validateTemplate(
             @PathVariable String templateName,
             @RequestBody Map<String, Object> variables) {
-        
+
         ValidationResult result = validationService.validateTemplate(templateName, variables);
         return ResponseEntity.ok(result);
     }
@@ -114,7 +114,7 @@ public class EmailTemplateManagementController {
     public ResponseEntity<Boolean> supportsLanguage(
             @PathVariable String templateName,
             @PathVariable String language) {
-        
+
         boolean supports = emailTemplateService.supportsLanguage(templateName, language);
         return ResponseEntity.ok(supports);
     }
@@ -125,7 +125,7 @@ public class EmailTemplateManagementController {
     @GetMapping("/{templateName}/path")
     public ResponseEntity<?> getTemplatePath(@PathVariable String templateName) {
         Optional<String> path = emailTemplateService.getTemplatePath(templateName);
-        
+
         if (path.isPresent()) {
             return ResponseEntity.ok(Map.of("path", path.get()));
         } else {

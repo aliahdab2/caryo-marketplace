@@ -27,10 +27,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Arrays.asList("toyota"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).containsExactly("toyota");
@@ -42,10 +42,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Arrays.asList("toyota", "honda", "bmw"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).containsExactlyInAnyOrder("toyota", "honda", "bmw");
@@ -57,10 +57,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Collections.emptyList());
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).isEmpty();
@@ -72,10 +72,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Arrays.asList("  TOYOTA  ", "honda", "TOYOTA", "BMW ", null, ""));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).containsExactlyInAnyOrder("toyota", "honda", "bmw");
@@ -92,10 +92,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setModelSlugs(Arrays.asList("camry"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedModelSlugs()).containsExactly("camry");
@@ -107,10 +107,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setModelSlugs(Arrays.asList("camry", "corolla", "civic", "accord"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedModelSlugs()).containsExactlyInAnyOrder("camry", "corolla", "civic", "accord");
@@ -122,10 +122,10 @@ class SlugBasedFilteringTest {
             // Given
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setModelSlugs(Arrays.asList("  CAMRY  ", "corolla", "CAMRY", "Civic ", null, ""));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedModelSlugs()).containsExactlyInAnyOrder("camry", "corolla", "civic");
@@ -143,10 +143,10 @@ class SlugBasedFilteringTest {
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Arrays.asList("toyota", "honda"));
             filter.setModelSlugs(Arrays.asList("camry", "civic"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).containsExactlyInAnyOrder("toyota", "honda");
@@ -161,10 +161,10 @@ class SlugBasedFilteringTest {
             ListingFilterRequest filter = new ListingFilterRequest();
             filter.setBrandSlugs(Arrays.asList("toyota", "honda"));
             filter.setModelSlugs(Arrays.asList("camry", "civic", "accord"));
-            
+
             // When
             Specification<CarListing> spec = CarListingSpecification.fromFilter(filter, (Governorate) null);
-            
+
             // Then
             assertThat(spec).isNotNull();
             assertThat(filter.getNormalizedBrandSlugs()).containsExactlyInAnyOrder("toyota", "honda");
@@ -187,7 +187,7 @@ class SlugBasedFilteringTest {
                 manyBrands[i] = "brand" + i;
             }
             filter.setBrandSlugs(Arrays.asList(manyBrands));
-            
+
             // When & Then
             assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, (Governorate) null))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -205,7 +205,7 @@ class SlugBasedFilteringTest {
                 manyModels[i] = "model" + i;
             }
             filter.setModelSlugs(Arrays.asList(manyModels));
-            
+
             // When & Then
             assertThatThrownBy(() -> CarListingSpecification.fromFilter(filter, (Governorate) null))
                     .isInstanceOf(IllegalArgumentException.class)

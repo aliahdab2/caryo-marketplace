@@ -24,7 +24,7 @@ export default function FavoritesPage() {
   const { t } = useTranslation(['favorites', 'common']);
   const { locale } = useLanguageSwitching();
   const fetchedSignatureRef = useRef<string | null>(null);
-  
+
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [filteredFavorites, setFilteredFavorites] = useState<Listing[]>([]);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
@@ -47,12 +47,12 @@ export default function FavoritesPage() {
   // Filter favorites based on active tab
   useEffect(() => {
     let filtered = favorites;
-    
+
     switch (activeTab) {
       case 'available':
         // Show listings that are not explicitly sold or expired
-        filtered = favorites.filter(listing => 
-          !listing.status || 
+        filtered = favorites.filter(listing =>
+          !listing.status ||
           (listing.status !== 'sold' && listing.status !== 'expired')
         );
         break;
@@ -62,7 +62,7 @@ export default function FavoritesPage() {
       default:
         filtered = favorites;
     }
-    
+
     setFilteredFavorites(filtered);
   }, [favorites, activeTab]);
 
@@ -71,7 +71,7 @@ export default function FavoritesPage() {
       setIsLoading(true);
       setError(null);
       const data = await getUserFavorites();
-      
+
       // Ensure we have valid data
       if (Array.isArray(data)) {
         setFavorites(data);
@@ -105,7 +105,7 @@ export default function FavoritesPage() {
   const confirmRemoveAll = async () => {
     setIsRemovingAll(true);
     try {
-      const removePromises = favorites.map(listing => 
+      const removePromises = favorites.map(listing =>
         removeFromFavorites(listing.id.toString())
       );
       await Promise.all(removePromises);
@@ -126,8 +126,8 @@ export default function FavoritesPage() {
   const getTabCount = (tab: FilterTab) => {
     switch (tab) {
       case 'available':
-        return favorites.filter(listing => 
-          !listing.status || 
+        return favorites.filter(listing =>
+          !listing.status ||
           (listing.status !== 'sold' && listing.status !== 'expired')
         ).length;
       case 'removed':
@@ -190,14 +190,14 @@ export default function FavoritesPage() {
         )}
 
 
-        
+
         {isLoading && (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">{t('loadingFavorites')}</p>
           </div>
         )}
-        
+
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 my-4 rounded-md">
             <div className="flex justify-between items-center">
@@ -211,7 +211,7 @@ export default function FavoritesPage() {
                   <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={fetchFavorites}
                 className="px-3 py-1 bg-red-100 dark:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700 text-red-700 dark:text-red-400 rounded text-sm"
               >
@@ -220,7 +220,7 @@ export default function FavoritesPage() {
             </div>
           </div>
         )}
-        
+
         {!isLoading && !error && filteredFavorites.length === 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <EmptyState
@@ -235,7 +235,7 @@ export default function FavoritesPage() {
             />
           </div>
         )}
-        
+
                 {!isLoading && !error && filteredFavorites.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -302,7 +302,7 @@ export default function FavoritesPage() {
                 </div>
               ))}
             </div>
-            
+
             {/* Remove All Button - Now at the bottom */}
             <div className="mt-8 text-center">
               <button

@@ -50,13 +50,13 @@ jest.mock('@/hooks/useApiData');
 
 // Mock components that might not be available in test environment
 jest.mock('@/components/ui/SmoothTransition', () => {
-  return function MockSmoothTransition({ 
-    children, 
-    isLoading, 
-    loadingComponent 
-  }: { 
-    children: React.ReactNode; 
-    isLoading: boolean; 
+  return function MockSmoothTransition({
+    children,
+    isLoading,
+    loadingComponent
+  }: {
+    children: React.ReactNode;
+    isLoading: boolean;
     loadingComponent?: React.ReactNode;
   }) {
     return isLoading ? (loadingComponent || <div>Loading...</div>) : children;
@@ -66,7 +66,7 @@ jest.mock('@/components/ui/SmoothTransition', () => {
 describe('AdvancedSearchPage', () => {
   const mockPush = jest.fn();
   const mockReplace = jest.fn();
-  
+
   // Setup mocks before all tests
   beforeEach(() => {
     // Mock useApiData hook to return test data
@@ -107,14 +107,14 @@ describe('AdvancedSearchPage', () => {
     if (typeof key !== 'string') {
       return typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : 'translation';
     }
-    
+
     // Handle namespace:key format
     if (key.includes(':')) {
       const parts = key.split(':');
       const actualKey = parts[1] || key;
       return typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : actualKey;
     }
-    
+
     // Handle common translation keys
     const commonTranslations: Record<string, string> = {
       'makeAndModel': 'Make and model',
@@ -148,7 +148,7 @@ describe('AdvancedSearchPage', () => {
       'fuelTypesPetrol': 'Petrol',
       'listing.km': 'km',
     };
-    
+
     // Return the common translation if it exists, otherwise return the key or default value
     return commonTranslations[key] || (typeof defaultValueOrOptions === 'string' ? defaultValueOrOptions : key);
   });
@@ -465,9 +465,9 @@ describe('AdvancedSearchPage', () => {
       // The modal functionality requires complex state management that's difficult to test
       const searchContainer = screen.getByLabelText('Search for cars by make, model, or location');
       expect(searchContainer).toBeInTheDocument();
-      
+
       // Check that filter buttons are rendered
-      const filterButtons = screen.getAllByRole('button').filter(button => 
+      const filterButtons = screen.getAllByRole('button').filter(button =>
         button.getAttribute('aria-label')?.includes('Filter by')
       );
       expect(filterButtons.length).toBeGreaterThan(0);
@@ -479,7 +479,7 @@ describe('AdvancedSearchPage', () => {
       // Simplified test: verify component renders and search functionality works
       const searchInput = screen.getByLabelText('Search for cars by make, model, or location');
       expect(searchInput).toBeInTheDocument();
-      
+
       // Verify that the search results section is rendered
       // Look for either car listings, loading state, or no results message
       const resultsSection = screen.getByText(/Toyota Camry|Loading|No cars found/);
@@ -741,11 +741,11 @@ describe('AdvancedSearchPage', () => {
 
       // Test that the search input has proper ARIA attributes
       expect(searchInput).toHaveAttribute('aria-describedby', 'search-help');
-      
+
       // Verify help text exists
       const helpText = screen.getByText(/Enter car make, model, or location/);
       expect(helpText).toBeInTheDocument();
-      
+
       // Test keyboard navigation by focusing on the search input
       searchInput.focus();
       expect(document.activeElement).toBe(searchInput);

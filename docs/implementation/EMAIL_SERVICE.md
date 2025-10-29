@@ -44,7 +44,7 @@ void sendContactFormConfirmation(String name, String email, String language);
 
 Templates are organized by category:
 - `auth/` - Authentication-related emails
-- `listing/` - Car listing lifecycle emails  
+- `listing/` - Car listing lifecycle emails
 - `contact/` - Contact form emails
 - `admin/` - Administrative notifications
 
@@ -55,7 +55,7 @@ Each template supports both English and Arabic with proper RTL formatting.
 Email sending is triggered by domain events:
 
 - `ListingApprovedEvent` → Approval confirmation email
-- `ListingExpiredEvent` → Expiration notification email  
+- `ListingExpiredEvent` → Expiration notification email
 - `ListingMarkedAsSoldEvent` → Sold confirmation + feedback request
 - `ListingArchivedEvent` → Admin archival notification
 

@@ -27,7 +27,7 @@ public class TransmissionService {
     public List<Transmission> getAllTransmissions() {
         return transmissionRepository.findAll();
     }
-    
+
     /**
      * Get a transmission by its ID
      * @param id Transmission ID
@@ -38,7 +38,7 @@ public class TransmissionService {
         return transmissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transmission", "id", id));
     }
-    
+
     /**
      * Get a transmission by its name
      * @param name Transmission name
@@ -49,7 +49,7 @@ public class TransmissionService {
         return transmissionRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("Transmission", "name", name));
     }
-    
+
     /**
      * Search for transmissions by name (in English or Arabic)
      * @param query Search query
@@ -61,7 +61,7 @@ public class TransmissionService {
         }
         return transmissionRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new transmission
      * @param transmission Transmission to create
@@ -72,7 +72,7 @@ public class TransmissionService {
         log.info("Creating new transmission: {}", transmission.getName());
         return transmissionRepository.save(transmission);
     }
-    
+
     /**
      * Update an existing transmission
      * @param id Transmission ID
@@ -83,15 +83,15 @@ public class TransmissionService {
     @Transactional
     public Transmission updateTransmission(Long id, Transmission transmissionDetails) {
         Transmission transmission = getTransmissionById(id);
-        
+
         transmission.setName(transmissionDetails.getName());
         transmission.setDisplayNameEn(transmissionDetails.getDisplayNameEn());
         transmission.setDisplayNameAr(transmissionDetails.getDisplayNameAr());
-        
+
         log.info("Updated transmission with id: {}", id);
         return transmissionRepository.save(transmission);
     }
-    
+
     /**
      * Delete a transmission
      * @param id Transmission ID

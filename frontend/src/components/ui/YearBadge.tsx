@@ -21,7 +21,7 @@ interface YearBadgeProps {
 
 /**
  * YearBadge component for displaying year information with consistent styling
- * 
+ *
  * @example
  * ```tsx
  * <div className="relative">

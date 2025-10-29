@@ -23,9 +23,9 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         String serverPort = env.getProperty("server.port", "8080");
         String contextPath = env.getProperty("server.servlet.context-path", "");
-        String profileInfo = env.getActiveProfiles().length > 0 ? 
+        String profileInfo = env.getActiveProfiles().length > 0 ?
             String.join(", ", env.getActiveProfiles()) : "default";
-            
+
         log.info("\n----------------------------------------------------------\n\t" +
                 "Application '{}' is running! Access URLs:\n\t" +
                 "Local: \t\thttp://127.0.0.1:{}{}\n\t" +

@@ -48,7 +48,7 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
       <div className="sr-only" aria-live="polite" role="status">
         {Object.values(formErrors).filter(Boolean).join('. ')}
       </div>
-      
+
       <StepHeader
         title={t('listings:vehicleIdentityTitle', 'Vehicle Identity')}
         subtitle={t('listings:vehicleIdentitySubtitle', "Start by telling us what vehicle you're selling")}
@@ -56,8 +56,8 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
 
       {/* Car Make */}
       <div className="space-y-3">
-        <label 
-          htmlFor="make" 
+        <label
+          htmlFor="make"
           className="block text-sm font-bold text-gray-700 dark:text-gray-300"
         >
           {t('listings:newListingMake', 'Make')} <span className="text-red-500">*</span>
@@ -78,8 +78,8 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
             aria-describedby={formErrors.make ? 'make-error' : 'make-hint'}
           >
             <option value="">
-              {isLoadingMakes 
-                ? t('listings:newListingLoadingMakes', 'Loading makes...') 
+              {isLoadingMakes
+                ? t('listings:newListingLoadingMakes', 'Loading makes...')
                 : t('listings:newListingSelectMake', 'Select a make')
               }
             </option>
@@ -99,8 +99,8 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
 
       {/* Car Model */}
       <div className="space-y-3">
-        <label 
-          htmlFor="model" 
+        <label
+          htmlFor="model"
           className="block text-sm font-bold text-gray-700 dark:text-gray-300"
         >
           {t('listings:newListingModel', 'Model')} <span className="text-red-500">*</span>
@@ -121,10 +121,10 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
             aria-describedby={formErrors.model ? 'model-error' : 'model-hint'}
           >
             <option value="">
-              {!formData.make 
+              {!formData.make
                 ? t('listings:newListingSelectMakeFirst', 'Select a make first')
-                : isLoadingModels 
-                ? t('listings:newListingLoadingModels', 'Loading models...') 
+                : isLoadingModels
+                ? t('listings:newListingLoadingModels', 'Loading models...')
                 : t('listings:newListingSelectModel', 'Select a model')
               }
             </option>
@@ -185,7 +185,7 @@ const Step1VehicleIdentity: React.FC<Step1VehicleIdentityProps> = ({
           {t('listings:newListingYearHint', 'Enter manufacturing year (1990-{{currentYear}})', { currentYear: new Date().getFullYear() })}
         </p>
       </div>
-      
+
       {/* Bottom spacing to separate from navigation buttons */}
       <div className="pb-8"></div>
     </div>

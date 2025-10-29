@@ -23,11 +23,11 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
   const { t } = useTranslation(['datamanagement', 'common']);
   const [form, setForm] = useState<AddForm>({});
   const [saving, setSaving] = useState(false);
-  
-  const { 
-    validateBrandForm, 
-    validateModelFormForNewBrand, 
-    checkBrandDuplicate 
+
+  const {
+    validateBrandForm,
+    validateModelFormForNewBrand,
+    checkBrandDuplicate
   } = useValidation(brands, models);
 
   const handleSave = async () => {
@@ -53,7 +53,7 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
     }
 
     setSaving(true);
-    
+
     const brandData: CreateBrandData = {
       name: form.name!,
       displayNameEn: form.displayNameEn!,
@@ -68,7 +68,7 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
 
     const success = await onSave(brandData, modelData);
     setSaving(false);
-    
+
     if (success) {
       setForm({});
       onClose();

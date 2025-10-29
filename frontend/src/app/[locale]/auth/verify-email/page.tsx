@@ -7,12 +7,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 import { getAuthUrl } from "@/utils/constants/api";
-import { 
-  EmailVerificationResponse, 
-  isJwtResponse, 
+import {
+  EmailVerificationResponse,
+  isJwtResponse,
   isMessageResponse,
   TEMP_AUTH_KEYS,
-  AUTO_LOGIN_CONFIG 
+  AUTO_LOGIN_CONFIG
 } from "@/types/auto-login";
 
 // Move namespaces outside component to prevent recreation on every render
@@ -95,7 +95,7 @@ const VerifyEmailPage: React.FC = () => {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
+
     if (!token) {
       setVerificationStatus('error');
       setMessage(t('invalidVerificationToken'));
@@ -109,18 +109,18 @@ const VerifyEmailPage: React.FC = () => {
     const verifyEmail = async () => {
       try {
         const response = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`);
-        
+
         // Check if the response is JSON, otherwise show a generic error
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new Error("Received non-JSON response from server");
         }
-        
+
         const data: EmailVerificationResponse = await response.json();
 
         if (response.ok) {
           setVerificationStatus('success');
-          
+
           if (isJwtResponse(data)) {
             handleAutoLogin(data);
           } else if (isMessageResponse(data)) {
@@ -140,7 +140,7 @@ const VerifyEmailPage: React.FC = () => {
             // For already verified users, we need to get a fresh JWT token for auto-login
             // This ensures they get logged in automatically like new verifications
 
-            
+
             // Try to get a fresh JWT token by making another verification request
             // This should return a JWT response for already verified users
             setTimeout(async () => {
@@ -148,7 +148,7 @@ const VerifyEmailPage: React.FC = () => {
                 const token = searchParams.get('token');
                 if (token) {
 
-                  
+
                   const freshResponse = await fetch(`${getAuthUrl('VERIFY_EMAIL')}?token=${encodeURIComponent(token)}`, {
                     method: 'GET',
                     headers: {
@@ -161,7 +161,7 @@ const VerifyEmailPage: React.FC = () => {
                   if (freshResponse.ok) {
                     const freshData = await freshResponse.json();
 
-                    
+
                     // Check if we now get a JWT response
                     if (isJwtResponse(freshData)) {
 
@@ -169,15 +169,15 @@ const VerifyEmailPage: React.FC = () => {
                       return;
                     } else if (isMessageResponse(freshData)) {
 
-                      
+
                       // For already verified users, we can't get a JWT from verification endpoint
                       // But we know the user is verified, so redirect with a special parameter
                       // The user can then be prompted to sign in automatically
 
-                      
+
                       // Get user email from the response or localStorage
                       const userEmail = freshData.email || (typeof window !== 'undefined' ? localStorage.getItem('signup-email') : null);
-                      
+
                       if (userEmail) {
                         // Redirect to signin with pre-filled email and verified flag
                         router.push(`/auth/signin?verified=true&email=${encodeURIComponent(userEmail)}&auto=true`);
@@ -195,11 +195,11 @@ const VerifyEmailPage: React.FC = () => {
                 } else {
 
                 }
-                
+
                 // If we can't get a fresh JWT, just redirect to home page
 
                 router.push('/');
-                
+
               } catch (error) {
                 console.error('❌ Error getting fresh JWT:', error);
                 router.push('/');
@@ -295,15 +295,15 @@ const VerifyEmailPage: React.FC = () => {
             <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#verifyEmailGradient)" opacity="0.5" />
           </svg>
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
           <div className="flex items-center mb-6">
-            <Image 
-              src="/images/logo.svg" 
+            <Image
+              src="/images/logo.svg"
               alt={t('logo')}
-              width={40} 
-              height={40} 
-              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+              width={40}
+              height={40}
+              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
@@ -312,13 +312,13 @@ const VerifyEmailPage: React.FC = () => {
             {t('secureAccountVerification')}
           </p>
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
           <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
         </div>
       </div>
-      
+
       {/* Right section - Verification result */}
       <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10">
         <div className="w-full max-w-md md:max-w-lg lg:max-w-xl">
@@ -354,7 +354,7 @@ const VerifyEmailPage: React.FC = () => {
 
             {/* Actions */}
             <div className="space-y-3">
-              
+
               {verificationStatus === 'error' && (
                 <Link
                   href="/auth/check-email"
@@ -363,7 +363,7 @@ const VerifyEmailPage: React.FC = () => {
                   {t('requestNewVerification')}
                 </Link>
               )}
-              
+
               <Link
                 href="/"
                 className="w-full flex justify-center py-2.5 px-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"

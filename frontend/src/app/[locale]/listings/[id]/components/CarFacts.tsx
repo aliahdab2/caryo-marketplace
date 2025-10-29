@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { CarListing } from '@/services/publicApi';
-import { 
-  CalendarDays, 
-  Fuel, 
-  Cog, 
-  Gauge, 
+import {
+  CalendarDays,
+  Fuel,
+  Cog,
+  Gauge,
   ChevronUp,
   ChevronDown,
   Tag,
@@ -27,12 +27,12 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
     if (!transmission) return '';
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.transmissionNameEn || listing.transmissionNameAr) {
       return getLocalizedText(listing.transmissionNameAr, listing.transmissionNameEn) || transmission;
     }
-    
+
     // Fallback to original value
     return transmission;
   };
@@ -40,12 +40,12 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
   // Helper function to get translated fuel type text
   const getFuelTypeText = (fuelType?: string) => {
     if (!fuelType) return '';
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.fuelTypeNameEn || listing.fuelTypeNameAr) {
       return getLocalizedText(listing.fuelTypeNameAr, listing.fuelTypeNameEn) || fuelType;
     }
-    
+
     // Fallback to original value
     return fuelType;
   };
@@ -57,65 +57,65 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
       value: getFuelTypeText(listing.fuelType),
       icon: <Fuel className="w-4 h-4 text-gray-600" />
     }] : []),
-    
+
     // Transmission - from API (if available) - "Växellåda"
     ...(listing.transmission ? [{
       label: t('transmission'),
       value: getTransmissionText(listing.transmission),
       icon: <Cog className="w-4 h-4 text-gray-600" />
     }] : []),
-    
+
     // Mileage - from API - "Miltal"
     ...(listing.mileage ? [{
       label: t('mileage'),
       value: `${listing.mileage.toLocaleString()}`,
       icon: <Gauge className="w-4 h-4 text-gray-600" />
     }] : []),
-    
+
     // Model Year - from API - "Modellår"
     ...(listing.modelYear ? [{
       label: t('modelYear'),
       value: listing.modelYear.toString(),
       icon: <CalendarDays className="w-4 h-4 text-gray-600" />
     }] : []),
-    
+
     // Car Type - commented out as condition doesn't exist in CarListing
     // ...(listing.condition ? [{
     //   label: t('carType'),
     //   value: listing.condition === 'new' ? t('new') : listing.condition === 'used' ? t('used') : listing.condition,
     //   icon: <Car className="w-4 h-4 text-gray-600" />
     // }] : []),
-    
+
     // Engine Size - "Motorstorlek" (if available from API)
     // Note: This field might not be available in current API
-    
+
     // Registration Date - "Datum i trafik" (if available from API)
     // Note: This field might not be available in current API
-    
+
     // Power/Horsepower - "Hästkrafter" (if available from API)
     // Note: This field might not be available in current API
-    
+
     // Exterior Color - commented out as exteriorColor doesn't exist in CarListing
     // ...(listing.exteriorColor ? [{
     //   label: t('color'),
     //   value: listing.exteriorColor,
     //   icon: <Palette className="w-4 h-4 text-gray-600" />
     // }] : []),
-    
+
     // Brand - from API
     ...(listing.brandNameEn ? [{
       label: t('brand'),
       value: getLocalizedText(listing.brandNameAr, listing.brandNameEn),
       icon: <Tag className="w-4 h-4 text-gray-600" />
     }] : []),
-    
+
     // Model - from API
     ...(listing.modelNameEn ? [{
       label: t('model'),
       value: getLocalizedText(listing.modelNameAr, listing.modelNameEn),
       icon: <Car className="w-4 h-4 text-gray-600" />
     }] : [])
-    
+
     // Location removed - not a car fact, should be displayed elsewhere
   ];
 
@@ -127,7 +127,7 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
       <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">
         {t('facts')}
       </h2>
-      
+
       {allFacts.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p className="text-sm">{t('noFactsAvailable')}</p>
@@ -136,7 +136,7 @@ const CarFacts: React.FC<CarFactsProps> = ({ listing }) => {
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-6 mb-6">
             {displayedFacts.map((fact, index) => (
-              <div 
+              <div
                 key={index}
                 className="flex items-start gap-3"
               >

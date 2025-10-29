@@ -81,8 +81,8 @@ const ImagePreviewGrid = memo(function ImagePreviewGrid({
           >
             {/* Image Container */}
             <div className={`aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 relative border-2 transition-all duration-300 ${
-              index === 0 
-                ? 'border-blue-400 dark:border-blue-500 shadow-lg' 
+              index === 0
+                ? 'border-blue-400 dark:border-blue-500 shadow-lg'
                 : 'border-gray-200 dark:border-gray-600 group-hover:border-gray-300 dark:group-hover:border-gray-500'
             }`}>
               <Image
@@ -94,7 +94,7 @@ const ImagePreviewGrid = memo(function ImagePreviewGrid({
                 draggable={false}
                 priority={index === 0} // Prioritize main image
               />
-              
+
               {/* Drag Handle Overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">

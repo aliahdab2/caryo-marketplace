@@ -18,7 +18,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  
+
   // Handle clicks outside the dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -26,16 +26,16 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
-  
+
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -43,7 +43,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       buttonRef.current?.focus();
     }
   };
-  
+
   const handleLanguageChange = (language: string) => {
     if (isCurrentLanguage(language)) {
       setIsOpen(false);
@@ -53,13 +53,13 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
     switchLanguage(language);
     setIsOpen(false);
   };
-  
+
   return (
-    <div 
-      className={`relative inline-block ${className || ''}`} 
+    <div
+      className={`relative inline-block ${className || ''}`}
       ref={dropdownRef}
     >
-      <button 
+      <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
@@ -78,12 +78,12 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
           </span>
         </div>
       </button>
-      
+
       {isOpen && (
         <>
           {/* Backdrop for mobile */}
           <div className="fixed inset-0 z-40 bg-black bg-opacity-25 sm:hidden" onClick={() => setIsOpen(false)} />
-          
+
           {/* Dropdown menu */}
           <div className="absolute right-0 z-50 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="py-1" role="menu">

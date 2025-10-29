@@ -8,7 +8,7 @@ type ToggleLanguageSwitcherProps = ComponentProps;
 
 export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwitcherProps) {
   const { switchLanguage, isCurrentLanguage } = useLanguageSwitching();
-  
+
   // Handle language change using URL navigation
   const handleLanguageChange = (lang: string) => {
     if (isCurrentLanguage(lang)) {
@@ -36,7 +36,7 @@ export default function ToggleLanguageSwitcher({ className }: ToggleLanguageSwit
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transform transition-all duration-300 ease-in-out" />
           )}
         </button>
-        
+
         <button
           onClick={() => handleLanguageChange('ar')}
           className={`relative pb-1 text-sm font-medium transition-colors duration-200 px-2 ${

@@ -43,7 +43,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(({
 }, ref) => {
   const { dir } = useLanguageDirection();
   const isRTL = dir === 'rtl';
-  
+
   return (
     <div className="relative">
       <input
@@ -74,7 +74,7 @@ CurrencyInput.displayName = 'CurrencyInput';
 /**
  * Price-specific implementation of RangeSlider
  * Handles currency formatting and price-specific defaults
- * 
+ *
  * @component
  * @example
  * <PriceSlider
@@ -118,9 +118,9 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   // Format currency values
   const formatValue = React.useCallback((value: number) => {
     const formattingLocale = getOptimalLocale(currentLocale);
-    
-    return formatNumber(value, formattingLocale, { 
-      style: 'currency', 
+
+    return formatNumber(value, formattingLocale, {
+      style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
@@ -131,11 +131,11 @@ const PriceSlider: React.FC<PriceSliderProps> = React.memo(({
   const minLabel = t ? t('search:lowestPrice', 'Lowest price') : 'Lowest price';
   const maxLabel = t ? t('search:highestPrice', 'Highest price') : 'Highest price';
   const anyPlaceholder = t ? t('search:any', 'Any') : 'Any';
-  
+
   // Placeholders: "0" for min, highest price for max
   const minPlaceholder = "0";
   const maxPlaceholder = maxRange.toLocaleString();
-  
+
   const ariaLabelMin = t ? t('search:minimumPrice', 'Minimum price') : 'Minimum price';
   const ariaLabelMax = t ? t('search:maximumPrice', 'Maximum price') : 'Maximum price';
 

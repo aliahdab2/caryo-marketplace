@@ -22,7 +22,7 @@ const CheckEmailPage: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
-  
+
   // RTL support
   const isRTL = i18n.language?.startsWith('ar');
   const dir = isRTL ? 'rtl' : 'ltr';
@@ -101,27 +101,27 @@ const CheckEmailPage: React.FC = () => {
             <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#checkEmailGradient)" opacity="0.5" />
           </svg>
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
           <div className={`flex items-center mb-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Image 
-              src="/images/logo.svg" 
+            <Image
+              src="/images/logo.svg"
               alt={t('logo')}
-              width={40} 
-              height={40} 
+              width={40}
+              height={40}
               className={`${isRTL ? 'ml-2 md:ml-3' : 'mr-2 md:mr-3'} w-8 h-8 md:w-10 md:h-10 object-contain filter invert`}
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
           {/* Left panel keeps branding only to avoid duplicating the main title */}
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
           <p className="opacity-60">{t('privacyPolicy', 'Privacy Policy')} • {t('termsOfService', 'Terms of Service')}</p>
         </div>
       </div>
-      
+
       {/* Right section - Check email content */}
       <div className={`flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 ${isRTL ? 'md:order-1' : 'md:order-2'}`}>
         <div className="w-full max-w-md md:max-w-lg lg:max-w-xl">
@@ -228,7 +228,7 @@ const CheckEmailPage: React.FC = () => {
                   </svg>
                   {t('signIn', 'Sign In')}
                 </Link>
-                
+
                 <Link
                   href={`/${i18n.language}`}
                   className={`flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all ${isRTL ? 'flex-row-reverse' : ''}`}

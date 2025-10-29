@@ -35,21 +35,21 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  
+
   // File attachment states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [_uploadErrors, setUploadErrors] = useState<{[key: string]: string}>({});
-  
+
   // Typing indicator state (for other person typing)
   const [otherPersonTyping, _setOtherPersonTyping] = useState(false);
-  
+
   // Modal states
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  
+
   // Toast states
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -67,7 +67,7 @@ export default function MessagesPage() {
   const extractErrorMessage = useCallback((error: unknown): string => {
     // Try to get translated error message from backend
     const apiError = error as { response?: { data?: { message?: string; error?: string } }; message?: string };
-    
+
     if (apiError?.response?.data?.message) {
       return apiError.response.data.message;
     }
@@ -201,7 +201,7 @@ export default function MessagesPage() {
     try {
       // Transform the MinIO URL for download
       const downloadUrl = transformMinioUrl(fileKey);
-      
+
       // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -256,21 +256,21 @@ export default function MessagesPage() {
   const markConversationAsRead = useCallback(async (conversationId: number) => {
     try {
       await MessagingService.markAllMessagesAsRead(conversationId);
-      
+
       // Update the conversation's unread count in the local state
-      setConversations(prev => 
-        prev.map(conv => 
-          conv.id === conversationId 
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === conversationId
             ? { ...conv, unreadCount: 0 }
             : conv
         )
       );
-      
+
       // Update messages to show as read - ONLY for messages NOT sent by current user
       const currentUserId = session?.user?.id ? Number(session.user.id) : 0;
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.sender.id !== currentUserId 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.sender.id !== currentUserId
             ? { ...msg, isRead: true, readAt: new Date().toISOString() }
             : msg // Keep user's own messages unchanged
         )
@@ -284,7 +284,7 @@ export default function MessagesPage() {
     try {
       const response = await MessagingService.getConversationMessages(conversationId);
       setMessages(response.content || []);
-      
+
       // Mark all messages in this conversation as read
       await markConversationAsRead(conversationId);
     } catch (error) {
@@ -374,12 +374,12 @@ export default function MessagesPage() {
       setUploadErrors({});
 
       // Update conversation list to reflect new message
-      setConversations(prev => prev.map(conv => 
-        conv.id === selectedConversation.id 
-          ? { 
-              ...conv, 
+      setConversations(prev => prev.map(conv =>
+        conv.id === selectedConversation.id
+          ? {
+              ...conv,
               lastMessageAt: messageResponse.createdAt,
-              recentMessages: [{ 
+              recentMessages: [{
                 id: messageResponse.id,
                 content: messageResponse.content,
                 messageType: messageResponse.messageType,
@@ -417,15 +417,15 @@ export default function MessagesPage() {
   // Modal handlers
   const confirmBlockUser = async () => {
     if (!selectedConversation) return;
-    
+
     try {
       setIsActionLoading(true);
       // TODO: Implement block user API call
       console.warn('Block user feature not yet implemented for conversation:', selectedConversation.id);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setShowBlockModal(false);
       alert('User has been blocked successfully.');
     } catch (error) {
@@ -438,15 +438,15 @@ export default function MessagesPage() {
 
   const confirmReportUser = async () => {
     if (!selectedConversation) return;
-    
+
     try {
       setIsActionLoading(true);
       // TODO: Implement report user API call
       console.warn('Report user feature not yet implemented for conversation:', selectedConversation.id);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setShowReportModal(false);
       alert('User has been reported successfully.');
     } catch (error) {
@@ -459,18 +459,18 @@ export default function MessagesPage() {
 
   const confirmDeleteConversation = async () => {
     if (!selectedConversation) return;
-    
+
     try {
       setIsActionLoading(true);
       // Archive conversation instead of delete (safer approach)
       await MessagingService.archiveConversation(selectedConversation.id);
-      
+
       // Remove from conversations list
       setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id));
       setSelectedConversation(null);
       setMessages([]);
       setShowDeleteModal(false);
-      
+
       alert('Conversation archived successfully.');
     } catch (error) {
       console.error('Error archiving conversation:', error);
@@ -494,7 +494,7 @@ export default function MessagesPage() {
             {t('title')}
           </h1>
         </div>
-        
+
         {/* Conversations List */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <ConversationList
@@ -519,7 +519,7 @@ export default function MessagesPage() {
               onDownloadDocument={downloadDocument}
             />
           </div>
-          
+
           <div className="flex-shrink-0">
             <MessageInput
               newMessage={newMessage}
@@ -546,11 +546,11 @@ export default function MessagesPage() {
           </div>
         </div>
       )}
-      
+
       {/* Click outside to close dropdown */}
       {showDropdown && (
-        <div 
-          className="fixed inset-0 z-0" 
+        <div
+          className="fixed inset-0 z-0"
           onClick={() => setShowDropdown(false)}
         />
       )}

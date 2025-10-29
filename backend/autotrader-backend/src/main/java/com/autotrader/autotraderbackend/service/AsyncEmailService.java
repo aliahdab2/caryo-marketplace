@@ -16,15 +16,15 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class AsyncEmailService {
-    
+
     private final EmailService emailService;
-    
+
     /**
      * Send templated email asynchronously.
      */
     @Async("emailTaskExecutor")
-    public CompletableFuture<Void> sendTemplatedEmailAsync(String to, String subject, 
-                                                          String templateName, Map<String, Object> variables, 
+    public CompletableFuture<Void> sendTemplatedEmailAsync(String to, String subject,
+                                                          String templateName, Map<String, Object> variables,
                                                           String language) {
         try {
             emailService.sendTemplatedEmail(to, subject, templateName, variables, language);
@@ -35,7 +35,7 @@ public class AsyncEmailService {
             return CompletableFuture.failedFuture(e);
         }
     }
-    
+
     /**
      * Send simple email asynchronously.
      */
@@ -50,24 +50,24 @@ public class AsyncEmailService {
             return CompletableFuture.failedFuture(e);
         }
     }
-    
+
     /**
      * Send contact form emails asynchronously (both notification and confirmation).
      */
     @Async("emailTaskExecutor")
-    public CompletableFuture<Void> sendContactFormEmailsAsync(String name, String email, 
+    public CompletableFuture<Void> sendContactFormEmailsAsync(String name, String email,
                                                              String message, String language) {
         try {
             // Send both emails in parallel
-            CompletableFuture<Void> notificationFuture = CompletableFuture.runAsync(() -> 
+            CompletableFuture<Void> notificationFuture = CompletableFuture.runAsync(() ->
                 emailService.sendContactFormEmail(name, email, message, language));
-            
-            CompletableFuture<Void> confirmationFuture = CompletableFuture.runAsync(() -> 
+
+            CompletableFuture<Void> confirmationFuture = CompletableFuture.runAsync(() ->
                 emailService.sendContactFormConfirmation(name, email, language));
-            
+
             // Wait for both to complete
             CompletableFuture.allOf(notificationFuture, confirmationFuture).join();
-            
+
             log.debug("Async contact form emails sent successfully for: {}", email);
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {

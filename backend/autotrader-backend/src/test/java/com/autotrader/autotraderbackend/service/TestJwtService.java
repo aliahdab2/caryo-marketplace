@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 @Service
 public class TestJwtService {
-    
+
     private String jwtSecret = "defaultsecretkey123456789012345678901234567890";
     private long jwtExpiration = 86400000; // 24 hours
 

@@ -27,7 +27,7 @@ public class DriveTypeService {
     public List<DriveType> getAllDriveTypes() {
         return driveTypeRepository.findAll();
     }
-    
+
     /**
      * Get a drive type by its ID
      * @param id Drive type ID
@@ -38,7 +38,7 @@ public class DriveTypeService {
         return driveTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DriveType", "id", id));
     }
-    
+
     /**
      * Get a drive type by its name
      * @param name Drive type name
@@ -49,7 +49,7 @@ public class DriveTypeService {
         return driveTypeRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("DriveType", "name", name));
     }
-    
+
     /**
      * Search for drive types by name (in English or Arabic)
      * @param query Search query
@@ -61,7 +61,7 @@ public class DriveTypeService {
         }
         return driveTypeRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new drive type
      * @param driveType Drive type to create
@@ -72,7 +72,7 @@ public class DriveTypeService {
         log.info("Creating new drive type: {}", driveType.getName());
         return driveTypeRepository.save(driveType);
     }
-    
+
     /**
      * Update an existing drive type
      * @param id Drive type ID
@@ -83,15 +83,15 @@ public class DriveTypeService {
     @Transactional
     public DriveType updateDriveType(Long id, DriveType driveTypeDetails) {
         DriveType driveType = getDriveTypeById(id);
-        
+
         driveType.setName(driveTypeDetails.getName());
         driveType.setDisplayNameEn(driveTypeDetails.getDisplayNameEn());
         driveType.setDisplayNameAr(driveTypeDetails.getDisplayNameAr());
-        
+
         log.info("Updated drive type with id: {}", id);
         return driveTypeRepository.save(driveType);
     }
-    
+
     /**
      * Delete a drive type
      * @param id Drive type ID

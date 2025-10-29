@@ -58,14 +58,14 @@ public class CarReferenceDataController {
     )
     public ResponseEntity<CarReferenceDataResponse> getAllReferenceData() {
         log.debug("Request received to get all car reference data");
-        
+
         List<CarCondition> carConditions = carConditionService.getAllConditions();
         List<DriveType> driveTypes = driveTypeService.getAllDriveTypes();
         List<BodyStyle> bodyStyles = bodyStyleService.getAllBodyStyles();
         List<FuelType> fuelTypes = fuelTypeService.getAllFuelTypes();
         List<Transmission> transmissions = transmissionService.getAllTransmissions();
         List<SellerTypeResponse> sellerTypes = sellerTypeService.getAllSellerTypes();
-        
+
         CarReferenceDataResponse referenceData = new CarReferenceDataResponse(
             carConditions,
             driveTypes,
@@ -74,11 +74,11 @@ public class CarReferenceDataController {
             transmissions,
             sellerTypes
         );
-        
+
         log.debug("Returning all car reference data");
         return ResponseEntity.ok(referenceData);
     }
-    
+
     @GetMapping("/brands")
     @Operation(
         summary = "Get all active car brands",
@@ -90,16 +90,16 @@ public class CarReferenceDataController {
     public ResponseEntity<List<CarBrandResponse>> getAllActiveBrands() {
         log.debug("Request received to get all active car brands");
         List<CarBrand> brands = carBrandService.getActiveBrands();
-        
+
         // Convert entities to DTOs to prevent lazy initialization issues
         List<CarBrandResponse> brandResponses = brands.stream()
             .map(CarBrandResponse::fromEntity)
             .collect(Collectors.toList());
-            
+
         log.debug("Returning {} active car brands", brandResponses.size());
         return ResponseEntity.ok(brandResponses);
     }
-    
+
     @GetMapping("/models")
     @Operation(
         summary = "Get all car models",
@@ -111,13 +111,13 @@ public class CarReferenceDataController {
     public ResponseEntity<List<CarModelResponse>> getAllModels() {
         log.debug("Request received to get all car models");
         List<CarModel> models = carModelService.getAllModels();
-        
+
         // Convert entities to DTOs and filter out models without valid brand relationships
         List<CarModelResponse> modelResponses = models.stream()
             .filter(model -> model.getBrand() != null) // Only include models with valid brands
             .map(CarModelResponse::fromEntity)
             .collect(Collectors.toList());
-            
+
         log.debug("Returning {} car models (filtered from {} total)", modelResponses.size(), models.size());
         return ResponseEntity.ok(modelResponses);
     }
@@ -132,16 +132,16 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<List<CarModelResponse>> getActiveModelsByBrand(
-            @Parameter(description = "ID of the car brand", required = true) 
+            @Parameter(description = "ID of the car brand", required = true)
             @PathVariable Long brandId) {
         log.debug("Request received to get active car models for brand ID: {}", brandId);
         List<CarModel> models = carModelService.getActiveModelsByBrandId(brandId);
-        
+
         // Convert entities to DTOs to prevent lazy initialization issues
         List<CarModelResponse> modelResponses = models.stream()
             .map(CarModelResponse::fromEntity)
             .collect(Collectors.toList());
-            
+
         log.debug("Returning {} active car models for brand ID: {}", modelResponses.size(), brandId);
         return ResponseEntity.ok(modelResponses);
     }
@@ -160,10 +160,10 @@ public class CarReferenceDataController {
     public ResponseEntity<CarBrandResponse> createBrand(
             @Valid @RequestBody CreateBrandRequest createRequest) {
         log.debug("Request received to create new brand: {}", createRequest);
-        
+
         CarBrand createdBrand = carBrandService.createBrand(createRequest);
         CarBrandResponse response = CarBrandResponse.fromEntity(createdBrand);
-        
+
         log.debug("Brand created successfully: {}", response);
         return ResponseEntity.status(201).body(response);
     }
@@ -182,11 +182,11 @@ public class CarReferenceDataController {
     public ResponseEntity<CarDataManagementService.BrandWithModelResponse> createBrandWithModel(
             @Valid @RequestBody CreateBrandWithModelRequest createRequest) {
         log.debug("Request received to create new brand with model: {}", createRequest);
-        
-        CarDataManagementService.BrandWithModelResponse response = 
+
+        CarDataManagementService.BrandWithModelResponse response =
             carDataManagementService.createBrandWithModel(createRequest);
-        
-        log.debug("Brand with model created successfully: brand={}, model={}", 
+
+        log.debug("Brand with model created successfully: brand={}, model={}",
                 response.getBrand().getName(), response.getModel().getName());
         return ResponseEntity.status(201).body(response);
     }
@@ -204,10 +204,10 @@ public class CarReferenceDataController {
     public ResponseEntity<CarModelResponse> createModel(
             @Valid @RequestBody CreateModelRequest createRequest) {
         log.debug("Request received to create new model: {}", createRequest);
-        
+
         CarModel createdModel = carModelService.createModel(createRequest);
         CarModelResponse response = CarModelResponse.fromEntity(createdModel);
-        
+
         log.debug("Model created successfully: {}", response);
         return ResponseEntity.status(201).body(response);
     }
@@ -223,14 +223,14 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<CarBrandResponse> updateBrand(
-            @Parameter(description = "ID of the car brand", required = true) 
+            @Parameter(description = "ID of the car brand", required = true)
             @PathVariable Long brandId,
             @Valid @RequestBody UpdateBrandRequest updateRequest) {
         log.debug("Request received to update brand ID: {} with data: {}", brandId, updateRequest);
-        
+
         CarBrand updatedBrand = carBrandService.updateBrand(brandId, updateRequest);
         CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
-        
+
         log.debug("Brand updated successfully: {}", response);
         return ResponseEntity.ok(response);
     }
@@ -246,14 +246,14 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<CarModelResponse> updateModel(
-            @Parameter(description = "ID of the car model", required = true) 
+            @Parameter(description = "ID of the car model", required = true)
             @PathVariable Long modelId,
             @Valid @RequestBody UpdateModelRequest updateRequest) {
         log.debug("Request received to update model ID: {} with data: {}", modelId, updateRequest);
-        
+
         CarModel updatedModel = carModelService.updateModel(modelId, updateRequest);
         CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
-        
+
         log.debug("Model updated successfully: {}", response);
         return ResponseEntity.ok(response);
     }
@@ -270,13 +270,13 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<BrandModelStatusService.StatusChangeImpact> checkBrandStatusImpact(
-            @Parameter(description = "ID of the car brand", required = true) 
+            @Parameter(description = "ID of the car brand", required = true)
             @PathVariable Long brandId) {
         log.debug("Request received to check brand deactivation impact: brandId={}", brandId);
-        
+
         BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkBrandDeactivationImpact(brandId);
-        
-        log.debug("Brand impact analysis completed: {} listings affected, severity: {}", 
+
+        log.debug("Brand impact analysis completed: {} listings affected, severity: {}",
                 impact.getAffectedListingsCount(), impact.getSeverityLevel());
         return ResponseEntity.ok(impact);
     }
@@ -292,22 +292,22 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<CarBrandResponse> updateBrandStatus(
-            @Parameter(description = "ID of the car brand", required = true) 
+            @Parameter(description = "ID of the car brand", required = true)
             @PathVariable Long brandId,
             @Parameter(description = "New status for the brand", required = true)
             @RequestParam String status) {
         log.debug("Request received to update brand ID: {} to status: {}", brandId, status);
-        
+
         // Log impact warning for deactivation
         if ("false".equalsIgnoreCase(status) || "inactive".equalsIgnoreCase(status)) {
             BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkBrandDeactivationImpact(brandId);
-            log.warn("BRAND DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}", 
+            log.warn("BRAND DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}",
                     impact.getAffectedListingsCount(), impact.getSeverityLevel());
         }
-        
+
         CarBrand updatedBrand = carBrandService.updateBrandStatus(brandId, status);
         CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
-        
+
         log.debug("Brand status updated successfully: {}", response);
         return ResponseEntity.ok(response);
     }
@@ -324,13 +324,13 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<BrandModelStatusService.StatusChangeImpact> checkModelStatusImpact(
-            @Parameter(description = "ID of the car model", required = true) 
+            @Parameter(description = "ID of the car model", required = true)
             @PathVariable Long modelId) {
         log.debug("Request received to check model deactivation impact: modelId={}", modelId);
-        
+
         BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkModelDeactivationImpact(modelId);
-        
-        log.debug("Model impact analysis completed: {} listings affected, severity: {}", 
+
+        log.debug("Model impact analysis completed: {} listings affected, severity: {}",
                 impact.getAffectedListingsCount(), impact.getSeverityLevel());
         return ResponseEntity.ok(impact);
     }
@@ -346,22 +346,22 @@ public class CarReferenceDataController {
         }
     )
     public ResponseEntity<CarModelResponse> updateModelStatus(
-            @Parameter(description = "ID of the car model", required = true) 
+            @Parameter(description = "ID of the car model", required = true)
             @PathVariable Long modelId,
             @Parameter(description = "New status for the model", required = true)
             @RequestParam String status) {
         log.debug("Request received to update model ID: {} to status: {}", modelId, status);
-        
+
         // Log impact warning for deactivation
         if ("false".equalsIgnoreCase(status) || "inactive".equalsIgnoreCase(status)) {
             BrandModelStatusService.StatusChangeImpact impact = brandModelStatusService.checkModelDeactivationImpact(modelId);
-            log.warn("MODEL DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}", 
+            log.warn("MODEL DEACTIVATION WARNING: {} active listings will be hidden from users. Impact severity: {}",
                     impact.getAffectedListingsCount(), impact.getSeverityLevel());
         }
-        
+
         CarModel updatedModel = carModelService.updateModelStatus(modelId, status);
         CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
-        
+
         log.debug("Model status updated successfully: {}", response);
         return ResponseEntity.ok(response);
     }
@@ -376,12 +376,12 @@ public class CarReferenceDataController {
     )
     public ResponseEntity<List<CarBrandResponse>> getPendingBrands() {
         log.debug("Request received to get pending car brands");
-        
+
         List<CarBrand> pendingBrands = carBrandService.getPendingBrands();
         List<CarBrandResponse> brandResponses = pendingBrands.stream()
                 .map(CarBrandResponse::fromEntity)
                 .toList();
-        
+
         log.debug("Returning {} pending car brands", brandResponses.size());
         return ResponseEntity.ok(brandResponses);
     }
@@ -396,12 +396,12 @@ public class CarReferenceDataController {
     )
     public ResponseEntity<List<CarModelResponse>> getPendingModels() {
         log.debug("Request received to get pending car models");
-        
+
         List<CarModel> pendingModels = carModelService.getPendingModels();
         List<CarModelResponse> modelResponses = pendingModels.stream()
                 .map(CarModelResponse::fromEntity)
                 .toList();
-        
+
         log.debug("Returning {} pending car models", modelResponses.size());
         return ResponseEntity.ok(modelResponses);
     }

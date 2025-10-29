@@ -147,8 +147,8 @@ frontend/
   - ✅ Implemented and refactored user verification component (`SimpleVerification.tsx`) for both sign-in (auto-verify) and sign-up (click-to-verify) flows, including RTL support and i18n.
 - ✅ **Protected Routes**: Set up **middleware** or use `NextAuth.js` helper functions (like `getSession` or `useSession`) to protect pages and API routes based on authentication status.
 - ✅ **Performance Monitoring**: React Query DevTools integration for real-time session cache monitoring and debugging.
-  
-#### 2. Navigation & Layout  
+
+#### 2. Navigation & Layout
 - Implement **responsive navigation** (Header and Sidebar) using **Tailwind CSS**.
 - Ensure **mobile-first design** for seamless mobile experiences.
 - Use semantic HTML and ARIA landmarks (e.g., `<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`) for better accessibility.
@@ -156,7 +156,7 @@ frontend/
 #### 3. Messaging System:
 - ✅ **Real-time Messaging**: Implemented comprehensive messaging system with conversation management
 - ✅ **Message Components**: MessageInput, MessageList, MessageBubble with file upload support
-- ✅ **Contact Seller Modal**: Direct messaging from listing pages        ccc76gfcu7cv  kuj jm 
+- ✅ **Contact Seller Modal**: Direct messaging from listing pages        ccc76gfcu7cv  kuj jm
 - ✅ **RTL Support**: Full right-to-left layout support for Arabic mess          aging interface
 - ✅ **Responsive Design**: Mobile-optimized messaging layout with touch gestures
 - ✅ **File Upload**: Image attachment support with preview and size validation
@@ -289,7 +289,7 @@ frontend/
     ```
   - Configure sourcemaps uploading in CI/CD for accurate stack traces in production.
   - Set up error boundaries to gracefully handle component-level failures.
-  
+
 ### **Phase 4: User Interactions & Alerts**
 
 #### 1. Error Handling & Boundaries:
@@ -494,7 +494,7 @@ frontend/
         useEffect(() => {
           setIsRTL(document.documentElement.dir === "rtl");
         }, [pathname]);
-        
+
         return isRTL ? <link rel="stylesheet" href="/rtl-specific.css" /> : null;
         ```
     - **i18n Analysis & Monitoring**:

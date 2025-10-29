@@ -11,13 +11,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class EmailMetricsService {
-    
+
     private final MeterRegistry meterRegistry;
-    
+
     public EmailMetricsService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
-    
+
     /**
      * Record templated email sent.
      */
@@ -29,7 +29,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record simple email sent.
      */
@@ -39,7 +39,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record contact form email sent.
      */
@@ -50,7 +50,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record welcome email sent.
      */
@@ -61,7 +61,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record listing email sent.
      */
@@ -73,7 +73,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record successful email send.
      */
@@ -84,7 +84,7 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Record failed email send.
      */
@@ -96,14 +96,14 @@ public class EmailMetricsService {
                 .register(meterRegistry)
                 .increment();
     }
-    
+
     /**
      * Get timer for measuring email send duration.
      */
     public Timer.Sample startTimer() {
         return Timer.start(meterRegistry);
     }
-    
+
     /**
      * Stop timer and record duration.
      */

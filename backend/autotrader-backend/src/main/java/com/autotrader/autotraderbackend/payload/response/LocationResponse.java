@@ -18,13 +18,13 @@ public class LocationResponse {
     private String slug;
     private String countryCode; // Derived from governorate.country.countryCode
     private Long governorateId; // Added
-    private String governorateNameEn; // Added 
+    private String governorateNameEn; // Added
     private String governorateNameAr; // Added
     private String region;
     private Double latitude;
     private Double longitude;
     private boolean active; // Added active field
-    
+
     /**
      * Create a LocationResponse from a Location entity
      * @param location The location entity
@@ -34,7 +34,7 @@ public class LocationResponse {
         if (location == null) {
             return null;
         }
-        
+
         LocationResponse response = new LocationResponse();
         response.setId(location.getId());
         response.setDisplayNameEn(location.getDisplayNameEn());
@@ -44,18 +44,18 @@ public class LocationResponse {
         response.setLatitude(location.getLatitude());
         response.setLongitude(location.getLongitude());
         response.setActive(location.getIsActive() != null ? location.getIsActive() : true);
-        
+
         // Set governorate and country information
         if (location.getGovernorate() != null) {
             response.setGovernorateId(location.getGovernorate().getId());
             response.setGovernorateNameEn(location.getGovernorate().getDisplayNameEn());
             response.setGovernorateNameAr(location.getGovernorate().getDisplayNameAr());
-            
+
             if (location.getGovernorate().getCountry() != null) {
                 response.setCountryCode(location.getGovernorate().getCountry().getCountryCode());
             }
         }
-        
+
         return response;
     }
 }

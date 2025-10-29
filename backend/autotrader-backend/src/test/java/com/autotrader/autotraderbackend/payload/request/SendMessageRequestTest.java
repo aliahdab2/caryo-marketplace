@@ -127,7 +127,7 @@ class SendMessageRequestTest {
         SendMessageRequest textRequest = new SendMessageRequest();
         textRequest.setContent("Text message");
         textRequest.setMessageType("text");
-        
+
         Set<ConstraintViolation<SendMessageRequest>> textViolations = validator.validate(textRequest);
         assertTrue(textViolations.isEmpty(), "Should accept text message type");
 
@@ -135,7 +135,7 @@ class SendMessageRequestTest {
         SendMessageRequest imageRequest = new SendMessageRequest();
         imageRequest.setContent("Image message");
         imageRequest.setMessageType("image");
-        
+
         Set<ConstraintViolation<SendMessageRequest>> imageViolations = validator.validate(imageRequest);
         assertTrue(imageViolations.isEmpty(), "Should accept image message type");
 
@@ -143,7 +143,7 @@ class SendMessageRequestTest {
         SendMessageRequest systemRequest = new SendMessageRequest();
         systemRequest.setContent("System message");
         systemRequest.setMessageType("system");
-        
+
         Set<ConstraintViolation<SendMessageRequest>> systemViolations = validator.validate(systemRequest);
         assertTrue(systemViolations.isEmpty(), "Should accept system message type");
     }
@@ -202,7 +202,7 @@ class SendMessageRequestTest {
         SendMessageRequest request1 = new SendMessageRequest();
         request1.setContent("A");
         request1.setMessageType("text");
-        
+
         Set<ConstraintViolation<SendMessageRequest>> violations1 = validator.validate(request1);
         assertTrue(violations1.isEmpty(), "Should accept single character message");
 
@@ -210,7 +210,7 @@ class SendMessageRequestTest {
         SendMessageRequest request2 = new SendMessageRequest();
         request2.setContent("A".repeat(1000));
         request2.setMessageType("text");
-        
+
         Set<ConstraintViolation<SendMessageRequest>> violations2 = validator.validate(request2);
         assertTrue(violations2.isEmpty(), "Should accept exactly 1000 character message");
     }

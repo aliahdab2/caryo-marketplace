@@ -97,24 +97,24 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
-            
+
         // For H2 Console access
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
-        
+
         // Add JWT token filter using the injected parameter
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         // Add authentication exception filter
         http.addFilterBefore(authExceptionFilter, AuthTokenFilter.class);
 
         return http.build();
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

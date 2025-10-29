@@ -34,12 +34,12 @@ public class UserDetailsServiceImplTest {
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
-        
+
         Set<Role> roles = new HashSet<>();
         Role userRole = new Role("ROLE_USER");
         roles.add(userRole);
         user.setRoles(roles);
-        
+
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
         // Act
@@ -49,11 +49,11 @@ public class UserDetailsServiceImplTest {
         assertNotNull(userDetails);
         assertEquals("testuser", userDetails.getUsername());
         assertEquals("password", userDetails.getPassword());
-        
+
         boolean hasUserRole = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(authority -> authority.equals("ROLE_USER"));
-        
+
         assertTrue(hasUserRole);
     }
 
@@ -67,10 +67,10 @@ public class UserDetailsServiceImplTest {
         Exception exception = assertThrows(UsernameNotFoundException.class, () -> {
             userDetailsService.loadUserByUsername("nonexistentuser");
         });
-        
+
         String expectedMessage = "User Not Found with username or email: nonexistentuser";
         String actualMessage = exception.getMessage();
-        
+
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
@@ -81,12 +81,12 @@ public class UserDetailsServiceImplTest {
         user.setUsername("dealer_12345");
         user.setEmail("dealer@example.com");
         user.setPassword("password");
-        
+
         Set<Role> roles = new HashSet<>();
         Role dealerRole = new Role("ROLE_DEALER");
         roles.add(dealerRole);
         user.setRoles(roles);
-        
+
         // Username not found, but email found
         when(userRepository.findByUsername("dealer@example.com")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("dealer@example.com")).thenReturn(Optional.of(user));
@@ -98,11 +98,11 @@ public class UserDetailsServiceImplTest {
         assertNotNull(userDetails);
         assertEquals("dealer_12345", userDetails.getUsername()); // Returns actual username
         assertEquals("password", userDetails.getPassword());
-        
+
         boolean hasDealerRole = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(authority -> authority.equals("ROLE_DEALER"));
-        
+
         assertTrue(hasDealerRole);
     }
 }

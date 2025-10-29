@@ -26,10 +26,10 @@ class CarModelServiceTest {
 
     @Mock
     private CarModelRepository carModelRepository;
-    
+
     @Mock
     private CarBrandService carBrandService;
-    
+
     @Mock
     private CarHierarchyService carHierarchyService;
 
@@ -241,18 +241,18 @@ class CarModelServiceTest {
         // Arrange
         String query = "cam";
         Long brandId = 1L;
-        
+
         // Create a model for a different brand
         CarBrand otherBrand = new CarBrand();
         otherBrand.setId(2L);
-        
+
         CarModel modelForOtherBrand = new CarModel();
         modelForOtherBrand.setId(2L);
         modelForOtherBrand.setBrand(otherBrand);
         modelForOtherBrand.setName("Camera");
-        
+
         List<CarModel> searchResults = Arrays.asList(testModel, modelForOtherBrand);
-        
+
         when(carModelRepository.searchByName(query)).thenReturn(searchResults);
         // We don't need this stub as the filter is done by stream filtering
         // when(carBrandService.getBrandById(brandId)).thenReturn(testBrand);
@@ -272,7 +272,7 @@ class CarModelServiceTest {
         String query = "";
         Long brandId = 1L;
         List<CarModel> expectedModels = Arrays.asList(testModel);
-        
+
         when(carBrandService.getBrandById(brandId)).thenReturn(testBrand);
         when(carModelRepository.findByBrand(testBrand)).thenReturn(expectedModels);
 
@@ -311,7 +311,7 @@ class CarModelServiceTest {
         updatedModel.setDisplayNameAr("كامري محدث");
         updatedModel.setIsActive(false);
         updatedModel.setBrand(testBrand);
-        
+
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
         when(carModelRepository.save(any(CarModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(carHierarchyService.cascadeDeactivateFromModels(any())).thenReturn(new CarHierarchyService.HierarchyOperationResult());
@@ -327,7 +327,7 @@ class CarModelServiceTest {
         assertEquals(updatedModel.getIsActive(), result.getIsActive());
         // Verify slug is not updated
         assertEquals(testModel.getSlug(), result.getSlug());
-        
+
         verify(carModelRepository, times(1)).findById(1L);
         verify(carModelRepository, times(1)).save(any(CarModel.class));
     }
@@ -338,11 +338,11 @@ class CarModelServiceTest {
         CarBrand newBrand = new CarBrand();
         newBrand.setId(2L);
         newBrand.setName("Honda");
-        
+
         CarModel updatedModel = new CarModel();
         updatedModel.setName("Civic");
         updatedModel.setBrand(newBrand);
-        
+
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
         when(carBrandService.getBrandById(2L)).thenReturn(newBrand);
         when(carModelRepository.save(any(CarModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -354,7 +354,7 @@ class CarModelServiceTest {
         assertNotNull(result);
         assertEquals(updatedModel.getName(), result.getName());
         assertEquals(newBrand.getId(), result.getBrand().getId());
-        
+
         verify(carModelRepository, times(1)).findById(1L);
         verify(carBrandService, times(1)).getBrandById(2L);
         verify(carModelRepository, times(1)).save(any(CarModel.class));
@@ -365,10 +365,10 @@ class CarModelServiceTest {
         // Arrange
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
         when(carModelRepository.save(any(CarModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
+
         // Act
         CarModel result = carModelService.updateModelActivation(1L, false);
-        
+
         // Assert
         assertFalse(result.getIsActive());
         verify(carModelRepository, times(1)).findById(1L);
@@ -380,10 +380,10 @@ class CarModelServiceTest {
         // Arrange
         when(carModelRepository.findById(1L)).thenReturn(Optional.of(testModel));
         doNothing().when(carModelRepository).delete(testModel);
-        
+
         // Act
         carModelService.deleteModel(1L);
-        
+
         // Assert
         verify(carModelRepository, times(1)).findById(1L);
         verify(carModelRepository, times(1)).delete(testModel);

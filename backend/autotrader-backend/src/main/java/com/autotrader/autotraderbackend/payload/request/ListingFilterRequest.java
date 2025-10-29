@@ -27,7 +27,7 @@ public class ListingFilterRequest {
     // NEW: Slug-based fields for multiple brands/models (AutoTrader UK pattern)
     @Schema(description = "Brand slugs for filtering (can be repeated)", example = "toyota")
     private List<String> brandSlugs;
-    
+
     @Schema(description = "Model slugs for filtering (can be repeated)", example = "camry")
     private List<String> modelSlugs;
 
@@ -129,12 +129,12 @@ public class ListingFilterRequest {
      */
     @Schema(description = "Filter by body style IDs (e.g., [1, 2] for sedan and SUV)", example = "[1, 2]")
     private List<Long> bodyStyleIds;
-    
+
     @Schema(description = "Filter by body style slugs (e.g., [\"sedan\", \"suv\"] for sedan and SUV)", example = "[\"sedan\", \"suv\"]")
     private List<String> bodyStyleSlugs;
 
     // Helper methods for slug-based filtering
-    
+
     /**
      * Returns normalized brand slugs (lowercase, trimmed, no duplicates).
      */
@@ -149,7 +149,7 @@ public class ListingFilterRequest {
                 .distinct()
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Returns normalized model slugs (lowercase, trimmed, no duplicates).
      */
@@ -164,7 +164,7 @@ public class ListingFilterRequest {
                 .distinct()
                 .collect(Collectors.toList());
     }
-    
+
     @JsonIgnore
     public List<String> getNormalizedBodyStyleSlugs() {
         return bodyStyleSlugs == null ? Collections.emptyList() :

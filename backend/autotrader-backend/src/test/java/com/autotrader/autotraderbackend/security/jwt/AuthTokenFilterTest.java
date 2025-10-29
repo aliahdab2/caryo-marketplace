@@ -48,10 +48,10 @@ public class AuthTokenFilterTest {
     void setUp() {
         // Clear security context before each test
         SecurityContextHolder.clearContext();
-        
+
         // Create AuthTokenFilter instance with mocked dependencies
         authTokenFilter = new AuthTokenFilter(jwtUtils, userDetailsService);
-        
+
         // Setup user details
         userDetails = User.builder()
                 .username("testuser")
@@ -64,15 +64,15 @@ public class AuthTokenFilterTest {
     void doFilterInternal_WithValidJwtToken_ShouldSetAuthentication() throws Exception {
         // Arrange
         String token = "valid.jwt.token";
-        
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtUtils.validateJwtToken(token)).thenReturn(true);
         when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals("testuser", SecurityContextHolder.getContext().getAuthentication().getName());
@@ -83,13 +83,13 @@ public class AuthTokenFilterTest {
     void doFilterInternal_WithInvalidJwtToken_ShouldNotSetAuthentication() throws Exception {
         // Arrange
         String token = "invalid.jwt.token";
-        
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtUtils.validateJwtToken(token)).thenReturn(false);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -100,10 +100,10 @@ public class AuthTokenFilterTest {
     void doFilterInternal_WithNoJwtToken_ShouldNotSetAuthentication() throws Exception {
         // Arrange
         when(request.getHeader("Authorization")).thenReturn(null);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -115,10 +115,10 @@ public class AuthTokenFilterTest {
     void doFilterInternal_WithInvalidAuthorizationFormat_ShouldNotSetAuthentication() throws Exception {
         // Arrange
         when(request.getHeader("Authorization")).thenReturn("Token some-token"); // Not starting with Bearer
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -130,14 +130,14 @@ public class AuthTokenFilterTest {
     void doFilterInternal_WithExceptionDuringProcessing_ShouldContinueFilterChain() throws Exception {
         // Arrange
         String token = "valid.jwt.token";
-        
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtUtils.validateJwtToken(token)).thenReturn(true);
         when(jwtUtils.getUserNameFromJwtToken(token)).thenThrow(new RuntimeException("Test exception"));
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);

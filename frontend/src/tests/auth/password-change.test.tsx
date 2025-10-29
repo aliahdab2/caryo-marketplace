@@ -64,7 +64,7 @@ describe('Password Change Functionality', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
-    
+
     // Setup default fetch mock for the roles API call that happens on mount
     mockFetch.mockImplementation((url: string) => {
       if (typeof url === 'string' && url.includes('/api/auth/social-login')) {

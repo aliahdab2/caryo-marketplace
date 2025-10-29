@@ -63,21 +63,21 @@ export default function DashboardSavedSearchesPage() {
 
   const confirmDeleteAlert = async () => {
     if (!alertToDelete) return;
-    
+
     try {
       setIsDeleting(true);
       // Server layout ensures user is authenticated, no need for token
       await deleteSavedSearch(alertToDelete.id);
-      
+
       // Remove from local state
       setSavedSearches(prev => prev.filter(search => search.id !== alertToDelete.id));
-      
+
       // If this was the selected alert, clear selection and matching listings
       if (selectedSearch?.id === alertToDelete.id) {
         setSelectedSearch(null);
         setMatchingListings([]);
       }
-      
+
       setAlertToDelete(null);
     } catch (error) {
       console.error('Error deleting alert:', error);
@@ -164,17 +164,17 @@ export default function DashboardSavedSearchesPage() {
         notificationPreferences: selectedSearch.notificationPreferences,
         isActive: selectedSearch.isActive
       });
-      
+
       // Update the search in the list
-      setSavedSearches(prev => prev.map(search => 
+      setSavedSearches(prev => prev.map(search =>
         search.id === selectedSearch.id ? updatedSearch : search
       ));
-      
+
       // Update selected search
       setSelectedSearch(updatedSearch);
       setIsEditingName(false);
       setEditingName('');
-      
+
     } catch (error) {
       console.error('Error updating alert name:', error);
       alert(t('search:alertUpdateError', 'Failed to update alert name. Please try again.'));
@@ -188,7 +188,7 @@ export default function DashboardSavedSearchesPage() {
 
   const loadSavedSearches = useCallback(async () => {
     // Server layout ensures user is authenticated, no need for token check
-    
+
     try {
       setIsLoading(true);
       // Server layout ensures user is authenticated, no need for token
@@ -287,8 +287,8 @@ export default function DashboardSavedSearchesPage() {
                     <div
                       key={search.id}
                       className={`p-4 cursor-pointer transition-all duration-200 relative ${
-                        selectedSearch?.id === search.id 
-                          ? 'bg-blue-50 dark:bg-blue-900/20 shadow-sm' 
+                        selectedSearch?.id === search.id
+                          ? 'bg-blue-50 dark:bg-blue-900/20 shadow-sm'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                       } ${isRTL ? 'text-right' : 'text-left'}`}
                       onClick={() => handleSelectSearch(search)}
@@ -315,7 +315,7 @@ export default function DashboardSavedSearchesPage() {
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                       {t('search:alertSettings', 'Settings for my alerts')}
                     </h3>
-                    
+
                     <div className="space-y-3">
                       <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
                         <input
@@ -329,7 +329,7 @@ export default function DashboardSavedSearchesPage() {
                           </div>
                         </div>
                       </label>
-                      
+
                       <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
                         <input
                           type="checkbox"
@@ -399,14 +399,14 @@ export default function DashboardSavedSearchesPage() {
                     </div>
                     {!isEditingName && (
                       <div className="flex gap-2 shrink-0">
-                        <button 
+                        <button
                           onClick={handleStartEditName}
                           className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
                         >
                           <FaSearch className="w-4 h-4" />
                           {t('search:editName', 'Edit name')}
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteAlert(selectedSearch.id)}
                           disabled={isDeleting}
                           className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors disabled:opacity-50 h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
@@ -423,7 +423,7 @@ export default function DashboardSavedSearchesPage() {
                   </div>
                   <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
                     {t('search:searchingFor', 'Searching for:')}{' '}
-                    <a 
+                    <a
                       href={generateSearchUrlWithoutLocation(selectedSearch)}
                       className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                       title={t('search:viewAllLocations', 'View cars in all governorates with current filters')}

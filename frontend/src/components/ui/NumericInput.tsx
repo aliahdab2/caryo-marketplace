@@ -18,13 +18,13 @@ interface NumericInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 }
 
 const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
-  ({ 
-    value, 
-    onChange, 
-    onBlur, 
-    placeholder, 
-    className = '', 
-    error = false, 
+  ({
+    value,
+    onChange,
+    onBlur,
+    placeholder,
+    className = '',
+    error = false,
     disabled = false,
     required = false,
     min,
@@ -32,21 +32,21 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
     step = 1,
     allowDecimal = false,
     maxLength,
-    ...props 
+    ...props
   }, ref) => {
     const [displayValue, setDisplayValue] = useState(value);
 
     // Handle input changes - allow Arabic and English numerals, filter out non-numeric characters
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
-      
+
       // Convert Arabic numerals to English first (e.g., ٢٠٢٠ -> 2020)
       const convertedValue = convertArabicNumerals(inputValue);
-      
+
       // Create regex pattern based on allowDecimal setting
       const numericPattern = allowDecimal ? /[^0-9.]/g : /[^0-9]/g;
       let numericValue = convertedValue.replace(numericPattern, '');
-      
+
       // Handle decimal points for decimal inputs
       if (allowDecimal) {
         // Ensure only one decimal point
@@ -56,12 +56,12 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
           numericValue = parts[0] + '.' + parts.slice(1).join('');
         }
       }
-      
+
       // Apply maxLength if specified
       if (maxLength && numericValue.length > maxLength) {
         numericValue = numericValue.slice(0, maxLength);
       }
-      
+
       setDisplayValue(numericValue);
       onChange(numericValue);
     }, [onChange, allowDecimal, maxLength]);
@@ -69,31 +69,31 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
     // Handle blur to validate and format
     const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
       const numericValue = displayValue;
-      
+
       if (!numericValue) {
         onBlur?.(e);
         return;
       }
-      
+
       let correctedValue = numericValue;
-      
+
       // Validate min/max if provided
       const numValue = allowDecimal ? parseFloat(numericValue) : parseInt(numericValue);
-      
+
       if (!isNaN(numValue)) {
         if (min !== undefined && numValue < min) {
           correctedValue = min.toString();
         } else if (max !== undefined && numValue > max) {
           correctedValue = max.toString();
         }
-        
+
         // Format the value if it changed
         if (correctedValue !== numericValue) {
           setDisplayValue(correctedValue);
           onChange(correctedValue);
         }
       }
-      
+
       onBlur?.(e);
     }, [displayValue, min, max, onChange, onBlur, allowDecimal]);
 
@@ -130,4 +130,4 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(
 
 NumericInput.displayName = 'NumericInput';
 
-export default NumericInput; 
+export default NumericInput;

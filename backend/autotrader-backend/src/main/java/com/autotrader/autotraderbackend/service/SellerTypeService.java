@@ -42,7 +42,7 @@ public class SellerTypeService {
         log.debug("Retrieved {} seller types", responses.size());
         return responses;
     }
-    
+
     /**
      * Get a seller type by its ID
      * @param id Seller type ID
@@ -56,7 +56,7 @@ public class SellerTypeService {
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "id", id));
         return SellerTypeResponse.fromEntity(sellerType);
     }
-    
+
     /**
      * Get a seller type entity by its ID (for internal use)
      * @param id Seller type ID
@@ -69,7 +69,7 @@ public class SellerTypeService {
         return sellerTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "id", id));
     }
-    
+
     /**
      * Get a seller type by its name (case insensitive)
      * @param name Seller type name
@@ -81,13 +81,13 @@ public class SellerTypeService {
         if (!StringUtils.hasText(name)) {
             throw new IllegalArgumentException("Seller type name cannot be null or empty");
         }
-        
+
         log.debug("Fetching seller type by name: {}", name);
         SellerType sellerType = sellerTypeRepository.findByNameIgnoreCase(name.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "name", name));
         return SellerTypeResponse.fromEntity(sellerType);
     }
-    
+
     /**
      * Get a seller type entity by its name (for internal use)
      * @param name Seller type name
@@ -98,12 +98,12 @@ public class SellerTypeService {
         if (!StringUtils.hasText(name)) {
             throw new IllegalArgumentException("Seller type name cannot be null or empty");
         }
-        
+
         log.debug("Fetching seller type entity by name: {}", name);
         return sellerTypeRepository.findByNameIgnoreCase(name.trim())
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "name", name));
     }
-    
+
     /**
      * Search for seller types by name (in English, Arabic, or system name)
      * @param query Search query
@@ -114,7 +114,7 @@ public class SellerTypeService {
             log.debug("Empty search query, returning all seller types");
             return getAllSellerTypes();
         }
-        
+
         log.debug("Searching seller types with query: {}", query);
         List<SellerType> results = sellerTypeRepository.searchByName(query.trim());
         List<SellerTypeResponse> responses = results.stream()
@@ -123,7 +123,7 @@ public class SellerTypeService {
         log.debug("Found {} seller types matching query: {}", responses.size(), query);
         return responses;
     }
-    
+
     /**
      * Create a new seller type
      * @param request Seller type request
@@ -134,19 +134,19 @@ public class SellerTypeService {
     @CacheEvict(value = "sellerTypes", allEntries = true)
     public SellerTypeResponse createSellerType(SellerTypeRequest request) {
         validateSellerTypeRequest(request);
-        
+
         // Check for duplicate name
         if (sellerTypeRepository.existsByNameIgnoreCase(request.getName().trim())) {
             throw new ResourceAlreadyExistsException("SellerType", "name", request.getName());
         }
-        
+
         SellerType sellerType = SellerType.builder()
                 .name(request.getName().trim().toUpperCase())
                 .displayNameEn(request.getDisplayNameEn().trim())
                 .displayNameAr(request.getDisplayNameAr().trim())
                 .slug(request.getSlug().trim().toLowerCase())
                 .build();
-        
+
         try {
             log.info("Creating new seller type: {}", sellerType.getName());
             SellerType savedSellerType = sellerTypeRepository.save(sellerType);
@@ -157,7 +157,7 @@ public class SellerTypeService {
             throw new ResourceAlreadyExistsException("SellerType", "name", request.getName());
         }
     }
-    
+
     /**
      * Update an existing seller type
      * @param id Seller type ID
@@ -170,22 +170,22 @@ public class SellerTypeService {
     @CacheEvict(value = "sellerTypes", allEntries = true)
     public SellerTypeResponse updateSellerType(Long id, SellerTypeRequest request) {
         validateSellerTypeRequest(request);
-        
+
         SellerType sellerType = sellerTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "id", id));
-        
+
         String newName = request.getName().trim().toUpperCase();
-        
+
         // Check for duplicate name (excluding current entity)
-        if (!sellerType.getName().equalsIgnoreCase(newName) && 
+        if (!sellerType.getName().equalsIgnoreCase(newName) &&
             sellerTypeRepository.existsByNameIgnoreCase(newName)) {
             throw new ResourceAlreadyExistsException("SellerType", "name", newName);
         }
-        
+
         sellerType.setName(newName);
         sellerType.setDisplayNameEn(request.getDisplayNameEn().trim());
         sellerType.setDisplayNameAr(request.getDisplayNameAr().trim());
-        
+
         try {
             log.info("Updating seller type with ID: {}", id);
             SellerType updatedSellerType = sellerTypeRepository.save(sellerType);
@@ -196,7 +196,7 @@ public class SellerTypeService {
             throw new ResourceAlreadyExistsException("SellerType", "name", newName);
         }
     }
-    
+
     /**
      * Delete a seller type
      * @param id Seller type ID
@@ -207,12 +207,12 @@ public class SellerTypeService {
     public void deleteSellerType(Long id) {
         SellerType sellerType = sellerTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("SellerType", "id", id));
-        
+
         log.info("Deleting seller type with ID: {}", id);
         sellerTypeRepository.delete(sellerType);
         log.info("Successfully deleted seller type with ID: {}", id);
     }
-    
+
     /**
      * Check if a seller type exists by ID
      * @param id Seller type ID
@@ -221,7 +221,7 @@ public class SellerTypeService {
     public boolean existsById(Long id) {
         return sellerTypeRepository.existsById(id);
     }
-    
+
     /**
      * Validate seller type request
      * @param request Seller type request to validate
@@ -231,15 +231,15 @@ public class SellerTypeService {
         if (request == null) {
             throw new IllegalArgumentException("Seller type request cannot be null");
         }
-        
+
         if (!StringUtils.hasText(request.getName())) {
             throw new IllegalArgumentException("Seller type name is required");
         }
-        
+
         if (!StringUtils.hasText(request.getDisplayNameEn())) {
             throw new IllegalArgumentException("English display name is required");
         }
-        
+
         if (!StringUtils.hasText(request.getDisplayNameAr())) {
             throw new IllegalArgumentException("Arabic display name is required");
         }

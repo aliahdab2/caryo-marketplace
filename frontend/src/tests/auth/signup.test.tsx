@@ -87,7 +87,7 @@ describe('SignUpPage Component', () => {
 
     // Check if the app name is rendered (there are multiple instances)
     expect(screen.getAllByText('Caryo Marketplace').length).toBeGreaterThan(0);
-    
+
     // Note: The SignupForm is inside a responsive layout that may not render in test viewport
     // The core functionality is tested in other test cases
   });

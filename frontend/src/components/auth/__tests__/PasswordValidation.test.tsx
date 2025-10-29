@@ -21,7 +21,7 @@ jest.mock('react-i18next', () => ({
 // Test component to test the hook
 const TestComponent: React.FC<{ password: string }> = ({ password }) => {
   const { isValid, errors, firstError } = usePasswordValidation(password);
-  
+
   return (
     <div>
       <div data-testid="is-valid">{isValid.toString()}</div>
@@ -35,7 +35,7 @@ describe('PasswordValidation Component', () => {
   describe('PasswordValidation', () => {
     it('should render password requirements', () => {
       render(<PasswordValidation password="" />);
-      
+
       expect(screen.getByText('Password Requirements:')).toBeInTheDocument();
       expect(screen.getByText('At least 8 characters')).toBeInTheDocument();
       expect(screen.getByText(/At least 2 character types/)).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('PasswordValidation Component', () => {
 
     it('should show empty requirements for empty password', () => {
       render(<PasswordValidation password="" />);
-      
+
       // Should show bullet points (•) for unmet requirements
       const bullets = screen.getAllByText('•');
       expect(bullets).toHaveLength(2); // Length + character types
@@ -51,7 +51,7 @@ describe('PasswordValidation Component', () => {
 
     it('should show checkmarks for valid password', () => {
       render(<PasswordValidation password="MySecret123" />);
-      
+
       // Should show checkmarks (✓) for met requirements
       const checkmarks = screen.getAllByText('✓');
       expect(checkmarks).toHaveLength(2); // Length + character types both met
@@ -59,7 +59,7 @@ describe('PasswordValidation Component', () => {
 
     it('should show partial validation for password with only length', () => {
       render(<PasswordValidation password="password" />);
-      
+
       // Length requirement met (✓), character types not met (•)
       expect(screen.getByText('✓')).toBeInTheDocument(); // Length checkmark
       expect(screen.getByText('•')).toBeInTheDocument(); // Character types bullet
@@ -67,7 +67,7 @@ describe('PasswordValidation Component', () => {
 
     it('should not render when showRequirements is false', () => {
       render(<PasswordValidation password="test" showRequirements={false} />);
-      
+
       expect(screen.queryByText('Password Requirements:')).not.toBeInTheDocument();
     });
 
@@ -75,13 +75,13 @@ describe('PasswordValidation Component', () => {
       const { container } = render(
         <PasswordValidation password="test" className="custom-class" />
       );
-      
+
       expect(container.firstChild).toHaveClass('custom-class');
     });
 
     it('should show character type count', () => {
       render(<PasswordValidation password="MySecret123" />);
-      
+
       // Should show (3/4) for uppercase + lowercase + digits
       expect(screen.getByText(/\(3\/4\)/)).toBeInTheDocument();
     });
@@ -90,13 +90,13 @@ describe('PasswordValidation Component', () => {
   describe('PasswordRequirementText', () => {
     it('should render requirement text', () => {
       render(<PasswordRequirementText />);
-      
+
       expect(screen.getByText('At least 8 characters with 2 different character types (letters, numbers, symbols)')).toBeInTheDocument();
     });
 
     it('should apply custom className', () => {
       const { container } = render(<PasswordRequirementText className="custom-class" />);
-      
+
       expect(container.firstChild).toHaveClass('custom-class');
     });
   });
@@ -104,7 +104,7 @@ describe('PasswordValidation Component', () => {
   describe('usePasswordValidation Hook', () => {
     it('should validate empty password as invalid', () => {
       render(<TestComponent password="" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('false');
       expect(screen.getByTestId('error-count')).toHaveTextContent('1');
       expect(screen.getByTestId('first-error')).toHaveTextContent('Password cannot be empty');
@@ -112,7 +112,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate short password as invalid', () => {
       render(<TestComponent password="short" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('false');
       expect(screen.getByTestId('error-count')).toHaveTextContent('2'); // length + character types
       expect(screen.getByTestId('first-error')).toHaveTextContent('Password must be at least 8 characters long');
@@ -120,7 +120,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate password with only one character type as invalid', () => {
       render(<TestComponent password="password" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('false');
       expect(screen.getByTestId('error-count')).toHaveTextContent('1'); // character types only
       expect(screen.getByTestId('first-error')).toHaveTextContent('Password must contain at least 2 different character types (lowercase, uppercase, numbers, or special characters)');
@@ -128,7 +128,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate common weak password as invalid', () => {
       render(<TestComponent password="password" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('false');
       // Should have one error: character types (password is not flagged as common since it's 8 chars)
       expect(screen.getByTestId('error-count')).toHaveTextContent('1');
@@ -136,7 +136,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate Ali123123 as valid', () => {
       render(<TestComponent password="Ali123123" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('true');
       expect(screen.getByTestId('error-count')).toHaveTextContent('0');
       expect(screen.getByTestId('first-error')).toHaveTextContent('none');
@@ -144,7 +144,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate password with 2 character types as valid', () => {
       render(<TestComponent password="MySecret" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('true');
       expect(screen.getByTestId('error-count')).toHaveTextContent('0');
       expect(screen.getByTestId('first-error')).toHaveTextContent('none');
@@ -152,7 +152,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate password with 3 character types as valid', () => {
       render(<TestComponent password="MySecret123" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('true');
       expect(screen.getByTestId('error-count')).toHaveTextContent('0');
       expect(screen.getByTestId('first-error')).toHaveTextContent('none');
@@ -160,7 +160,7 @@ describe('PasswordValidation Component', () => {
 
     it('should validate password with all 4 character types as valid', () => {
       render(<TestComponent password="MySecret123!" />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('true');
       expect(screen.getByTestId('error-count')).toHaveTextContent('0');
       expect(screen.getByTestId('first-error')).toHaveTextContent('none');
@@ -169,7 +169,7 @@ describe('PasswordValidation Component', () => {
     it('should validate too long password as invalid', () => {
       const longPassword = 'a'.repeat(129);
       render(<TestComponent password={longPassword} />);
-      
+
       expect(screen.getByTestId('is-valid')).toHaveTextContent('false');
       expect(screen.getByTestId('first-error')).toHaveTextContent('Password must not exceed 128 characters');
     });
@@ -188,7 +188,7 @@ describe('Password Validation Integration', () => {
       { password: 'mysecret456', expected: true, description: 'Lowercase + digits' },
       { password: 'MYSECRET!!!', expected: true, description: 'Uppercase + special' },
       { password: 'MySecret123!', expected: true, description: 'All 4 character types' },
-      
+
       // Invalid passwords
       { password: '', expected: false, description: 'Empty password' },
       { password: 'short', expected: false, description: 'Too short' },
@@ -200,10 +200,10 @@ describe('Password Validation Integration', () => {
 
     testCases.forEach(({ password, expected }, index) => {
       const { unmount } = render(<TestComponent password={password} key={index} />);
-      
+
       const isValid = screen.getByTestId('is-valid').textContent === 'true';
       expect(isValid).toBe(expected);
-      
+
       // Clean up for next test
       unmount();
     });

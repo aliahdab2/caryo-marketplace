@@ -72,14 +72,14 @@ class CarListingMapperTest {
         testCarListing = new CarListing();
         testCarListing.setId(10L);
         testCarListing.setTitle("Test Toyota");
-        
+
         // Set model and denormalized fields
         testCarListing.setModel(testModel);
         testCarListing.setBrandNameEn(testModel.getBrand().getDisplayNameEn());
         testCarListing.setBrandNameAr(testModel.getBrand().getDisplayNameAr());
         testCarListing.setModelNameEn(testModel.getDisplayNameEn());
         testCarListing.setModelNameAr(testModel.getDisplayNameAr());
-        
+
         testCarListing.setModelYear(2021);
         testCarListing.setPrice(new BigDecimal("25000.00"));
         testCarListing.setMileage(15000);
@@ -88,7 +88,7 @@ class CarListingMapperTest {
         testCarListing.setCreatedAt(LocalDateTime.now().minusDays(1));
         testCarListing.setApproved(true);
         testCarListing.setSeller(testSeller);
-        
+
         // Add media instead of imageKey
         ListingMedia primaryImage = new ListingMedia();
         primaryImage.setCarListing(testCarListing);
@@ -113,18 +113,18 @@ class CarListingMapperTest {
         assertNotNull(response);
         assertEquals(testCarListing.getId(), response.getId());
         assertEquals(testCarListing.getTitle(), response.getTitle());
-        
+
         // Test denormalized brand and model name fields
         assertEquals(testCarListing.getBrandNameEn(), response.getBrand().getDisplayNameEn());
         assertEquals(testCarListing.getBrandNameAr(), response.getBrand().getDisplayNameAr());
         assertEquals(testCarListing.getModelNameEn(), response.getModel().getDisplayNameEn());
         assertEquals(testCarListing.getModelNameAr(), response.getModel().getDisplayNameAr());
-        
+
         assertEquals(testCarListing.getModelYear(), response.getModelYear());
         assertEquals(0, testCarListing.getPrice().compareTo(response.getPrice()));
         assertEquals(testCarListing.getMileage(), response.getMileage());
         assertEquals(testCarListing.getDescription(), response.getDescription());
-        
+
         // Assert LocationDetails (new way)
         assertNotNull(response.getLocationDetails());
         assertEquals(testCarListing.getLocation().getId(), response.getLocationDetails().getId());
@@ -135,7 +135,7 @@ class CarListingMapperTest {
         assertEquals(testCarListing.getApproved(), response.getApproved());
         assertEquals(testSeller.getId(), response.getSellerId());
         assertEquals(testSeller.getUsername(), response.getSellerUsername());
-        
+
         // Assert media collection
         assertNotNull(response.getMedia());
         assertEquals(1, response.getMedia().size());
@@ -247,15 +247,15 @@ class CarListingMapperTest {
         assertEquals("listings/10/image.jpg", response.getMedia().get(0).getUrl());
         verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }
-    
+
     @Test
     void toCarListingResponse_WithMultipleMedia_ShouldMapAllMedia() {
         // Arrange - add a second media item
         // No longer using signed URLs - expecting file keys directly
-        
+
         // Clear existing media and add two new items
         testCarListing.getMedia().clear();
-        
+
         ListingMedia primaryImage = new ListingMedia();
         primaryImage.setId(101L);
         primaryImage.setCarListing(testCarListing);
@@ -267,7 +267,7 @@ class CarListingMapperTest {
         primaryImage.setIsPrimary(true);
         primaryImage.setMediaType("image");
         testCarListing.addMedia(primaryImage);
-        
+
         ListingMedia secondaryImage = new ListingMedia();
         secondaryImage.setId(102L);
         secondaryImage.setCarListing(testCarListing);
@@ -279,19 +279,19 @@ class CarListingMapperTest {
         secondaryImage.setIsPrimary(false);
         secondaryImage.setMediaType("image");
         testCarListing.addMedia(secondaryImage);
-        
+
         // No longer using storageService mocking
-        
+
         // Act
         CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
-        
+
         // Assert
         assertNotNull(response);
-        
+
         // Check media collection
         assertNotNull(response.getMedia());
         assertEquals(2, response.getMedia().size());
-        
+
         // Check first media item (should be primary)
         ListingMediaResponse media1 = response.getMedia().get(0);
         assertEquals(101L, media1.getId());
@@ -303,7 +303,7 @@ class CarListingMapperTest {
         assertTrue(media1.getIsPrimary());
         assertEquals("image", media1.getMediaType());
         assertEquals("listings/10/image1.jpg", media1.getUrl());
-        
+
         // Check second media item
         ListingMediaResponse media2 = response.getMedia().get(1);
         assertEquals(102L, media2.getId());
@@ -315,7 +315,7 @@ class CarListingMapperTest {
         assertFalse(media2.getIsPrimary());
         assertEquals("image", media2.getMediaType());
         assertEquals("listings/10/image2.jpg", media2.getUrl());
-        
+
         // No longer using storageService.getSignedUrl - returning file keys directly
         verify(storageService, never()).getSignedUrl(anyString(), anyLong());
     }

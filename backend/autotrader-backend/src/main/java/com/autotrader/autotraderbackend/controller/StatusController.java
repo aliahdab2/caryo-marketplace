@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Tag(name = "Status", description = "Endpoints for service and API status checks")
 public class StatusController {
-    
+
     @GetMapping("/service-status")
     @Operation(
         summary = "Service status",

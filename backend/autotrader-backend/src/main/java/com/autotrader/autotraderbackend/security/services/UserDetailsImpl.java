@@ -21,12 +21,12 @@ public class UserDetailsImpl implements UserDetails {
     private Long id;
     private String username;
     private String email;
-    
+
     @JsonIgnore
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
-    
+
     // Derived flags for account state
     private boolean accountNonExpired = true;
     private boolean accountNonLocked = true;
@@ -53,12 +53,12 @@ public class UserDetailsImpl implements UserDetails {
                 .collect(Collectors.toList());
 
         UserDetailsImpl details = new UserDetailsImpl(
-                user.getId(), 
-                user.getUsername(), 
+                user.getId(),
+                user.getUsername(),
                 user.getEmail(),
-                user.getPassword(), 
+                user.getPassword(),
                 authorities);
-        
+
         // Best practice: disable login for unverified/inactive users
         // Enable only if user can login and has verified email and active status
         boolean isEnabled = Boolean.TRUE.equals(user.getEmailVerified())

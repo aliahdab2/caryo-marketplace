@@ -9,19 +9,19 @@ public class SubscriptionLimitExceededException extends RuntimeException {
     private final String subscriptionTier;
     private final int currentListings;
     private final int limit;
-    
+
     /**
      * Constructor with tier and limits.
      */
     public SubscriptionLimitExceededException(String subscriptionTier, int currentListings, int limit) {
         super(String.format("Subscription listing limit reached for %s tier (%d/%d listings). " +
-            "Please upgrade to a higher tier to create more listings.", 
+            "Please upgrade to a higher tier to create more listings.",
             subscriptionTier, currentListings, limit));
         this.subscriptionTier = subscriptionTier;
         this.currentListings = currentListings;
         this.limit = limit;
     }
-    
+
     /**
      * Constructor with custom message.
      */
@@ -31,18 +31,17 @@ public class SubscriptionLimitExceededException extends RuntimeException {
         this.currentListings = current;
         this.limit = limit;
     }
-    
+
     // Getters for client access
     public String getSubscriptionTier() {
         return subscriptionTier;
     }
-    
+
     public int getCurrentListings() {
         return currentListings;
     }
-    
+
     public int getLimit() {
         return limit;
     }
 }
-

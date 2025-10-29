@@ -26,7 +26,7 @@ export default function SignUpPage() {
   const getCleanCallbackUrl = () => {
     const callbackUrl = searchParams.get('callbackUrl');
     if (!callbackUrl) return '/dashboard';
-    
+
     // If the callback URL is another auth page with a callback, extract the original
     try {
       const decodedUrl = decodeURIComponent(callbackUrl);
@@ -63,7 +63,7 @@ export default function SignUpPage() {
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                <feMerge> 
+                <feMerge>
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="SourceGraphic"/>
                 </feMerge>
@@ -89,7 +89,7 @@ export default function SignUpPage() {
             />
             <h1 className="text-xl md:text-2xl font-bold tracking-wide">{t('appName')}</h1>
           </div>
-          
+
           <div className="space-y-3 mb-6">
             <h2 className={`text-2xl md:text-3xl font-bold leading-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent`}>
               {t('joinUs')}

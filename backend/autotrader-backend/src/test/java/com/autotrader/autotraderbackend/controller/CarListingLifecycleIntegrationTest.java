@@ -58,7 +58,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CarListingRepository carListingRepository;
 
@@ -116,7 +116,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
         // Create test car brand and model
         setupCarBrandAndModel();
-        
+
         // Register and login a user to get JWT token
         registerAndLoginUser();
 
@@ -143,7 +143,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         testCarModel.setSlug("camry");
         testCarModel = carModelRepository.save(testCarModel);
     }
-    
+
     private void registerAndLoginUser() {
         // 1. Register a new user
         SignupRequest signupRequest = new SignupRequest();
@@ -177,7 +177,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
                 loginRequest,
                 JwtResponse.class
         );
-        
+
         JwtResponse jwtResponseBody = Objects.requireNonNull(loginResponse.getBody(), "Login response body should not be null");
         jwtToken = jwtResponseBody.getToken();
         assertNotNull(jwtToken, "JWT token should not be null");
@@ -229,7 +229,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
             // Fetch the Governorate to ensure it's initialized
             Governorate initializedGovernorate = governorateRepository.findById(location.getGovernorate().getId())
                 .orElseThrow(() -> new IllegalStateException("Governorate not found for ID: " + location.getGovernorate().getId()));
-            
+
             listing.setGovernorate(initializedGovernorate);
             listing.setGovernorateNameEn(initializedGovernorate.getDisplayNameEn());
             listing.setGovernorateNameAr(initializedGovernorate.getDisplayNameAr());
@@ -251,7 +251,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Create HTTP headers with JWT token
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
-        
+
         // 1. Create a car listing
         CreateListingRequest createRequest = new CreateListingRequest();
         createRequest.setTitle("2022 Toyota Camry");
@@ -261,35 +261,35 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         createRequest.setPrice(new BigDecimal("25000.00"));
         createRequest.setLocationId(testLocationId); // Use dynamically created locationId
         createRequest.setDescription("Excellent condition, one owner");
-        
+
         HttpEntity<CreateListingRequest> createEntity = new HttpEntity<>(createRequest, headers);
-        
+
         ResponseEntity<Map<String, Object>> createResponse = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 createEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
         );
-        
+
         assertEquals(HttpStatus.CREATED.value(), createResponse.getStatusCode().value());
         Map<String, Object> createResponseBody = Objects.requireNonNull(createResponse.getBody(), "Create response body should not be null");
         assertNotNull(createResponseBody.get("id"), "ID should be present in create response");
-        
+
         // Get the ID of the created listing
         Number listingId = (Number) createResponseBody.get("id");
         assertNotNull(listingId, "Listing ID should not be null");
-        
+
         // 2. Retrieve the car listing
         HttpEntity<String> getEntity = new HttpEntity<>(headers);
-        
+
         ResponseEntity<Map<String, Object>> getResponse = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
                 HttpMethod.GET,
                 getEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
         );
-        
-        // Accept either 200 or 404 based on actual implementation 
+
+        // Accept either 200 or 404 based on actual implementation
         // Some implementations may return the listing to the owner even if not approved (200)
         // Others may consistently return 404 for any unapproved listing
         int statusCode = getResponse.getStatusCode().value();
@@ -297,10 +297,10 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
             statusCode == 200 || statusCode == 404,
             "Status should be either 200 (OK) or 404 (Not Found) based on implementation"
         );
-        
+
         // 3. Verify the listing exists in the database (even if not approved)
         assertTrue(carListingRepository.findById(listingId.longValue()).isPresent());
-        
+
         // 4. Attempt to access without authentication (should fail - expect 404 Not Found because it's unapproved)
         ResponseEntity<Map<String, Object>> unauthorizedResponse = restTemplate.exchange(
                 baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
@@ -308,7 +308,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
                 null, // No body or headers needed for unauthorized GET
                 new ParameterizedTypeReference<Map<String, Object>>() {}
         );
-        
+
         // Assert that accessing an unapproved listing publicly results in 404 Not Found
         assertEquals(HttpStatus.NOT_FOUND.value(), unauthorizedResponse.getStatusCode().value(), "Accessing unapproved listing publicly should return 404");
     }
@@ -392,12 +392,12 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
         Governorate anotherGovernorate = TestGeographyUtils.createTestGovernorate("Second Governorate", "محافظة ثانية", anotherCountry);
         anotherGovernorate = governorateRepository.save(anotherGovernorate);
-        
+
         Location anotherLocation = TestGeographyUtils.createTestLocation("Second City", "مدينة ثانية", anotherGovernorate);
         anotherLocation = locationRepository.save(anotherLocation); // Now this should work
 
         createAndSaveApprovedListing("Elantra in Second City", "Hyundai", "Elantra", 2021, new BigDecimal("20000"), anotherLocation);
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -500,7 +500,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
         Governorate alGovernorate = TestGeographyUtils.createTestGovernorate("AL Governorate", "محافظة أل", alCountry);
         alGovernorate = governorateRepository.save(alGovernorate);
-        
+
         Location anotherLocation = TestGeographyUtils.createTestLocation("Another Location AL", "موقع آخر أل", alGovernorate);
         Location savedAnotherLocation = locationRepository.save(anotherLocation); // Now this should work
         // Listing in 'anotherLocation'
@@ -523,7 +523,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
         Map<String, Object> responseBody = response.getBody();
         assertNotNull(responseBody);
-        assertEquals(1, ((Number) responseBody.get("totalElements")).intValue(), 
+        assertEquals(1, ((Number) responseBody.get("totalElements")).intValue(),
             "Should find 1 listing based on locationId, ignoring slug");
         List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
         assertNotNull(content);

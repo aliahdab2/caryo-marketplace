@@ -20,13 +20,13 @@ class ApplicationStartupListenerTest {
         environment.addActiveProfile("test");
         environment.setProperty("server.port", "8080");
         environment.setProperty("spring.application.name", "autotrader-backend");
-        
+
         ApplicationStartupListener listener = new ApplicationStartupListener(environment);
-        
+
         // Act - this method only logs information, so we just verify it doesn't throw exceptions
         listener.onApplicationEvent(event);
-        
-        // No assert needed as the method only logs information, 
+
+        // No assert needed as the method only logs information,
         // and we're just verifying it runs without errors
     }
 }

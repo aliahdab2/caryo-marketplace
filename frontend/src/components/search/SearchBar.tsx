@@ -62,7 +62,7 @@ export default function SearchBar({
                   aria-label={t('searchLabel', 'Search for cars by make, model, or location')}
                   aria-describedby="search-help"
                 />
-                
+
                 {/* Clear button when there's text */}
                 {searchQuery && (
                   <button
@@ -79,7 +79,7 @@ export default function SearchBar({
                   </button>
                 )}
               </div>
-              
+
               {/* Search Button - separate on mobile, inside on desktop */}
               <button
                 type="button"
@@ -111,13 +111,13 @@ export default function SearchBar({
                   </div>
                 )}
               </button>
-              
+
               <div id="search-help" className="sr-only">
                 {t('searchHelp', 'Enter car make, model, or location and press Enter or click Search button')}
               </div>
             </div>
           </div>
-          
+
           {/* Multi-Location Filter */}
           <LocationDropdown
             filters={filters}

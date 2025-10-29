@@ -23,10 +23,10 @@ export const AddModelModal: React.FC<AddModelModalProps> = ({
   const { t } = useTranslation(['datamanagement', 'common']);
   const [form, setForm] = useState<AddForm>({});
   const [saving, setSaving] = useState(false);
-  
-  const { 
-    validateModelForm, 
-    checkModelDuplicate 
+
+  const {
+    validateModelForm,
+    checkModelDuplicate
   } = useValidation(brands, models);
 
   const handleSave = async () => {
@@ -47,17 +47,17 @@ export const AddModelModal: React.FC<AddModelModalProps> = ({
     }
 
     setSaving(true);
-    
+
     const modelData: CreateModelData = {
       name: form.name!,
       displayNameEn: form.displayNameEn!,
       displayNameAr: form.displayNameAr!,
       brandId: form.brandId!
     };
-    
+
     const success = await onSave(modelData);
     setSaving(false);
-    
+
     if (success) {
       setForm({});
       onClose();

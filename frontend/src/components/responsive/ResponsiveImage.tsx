@@ -27,7 +27,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   );
   const [imgError, setImgError] = useState<boolean>(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  
+
   // Determine which image source to use based on screen size
   React.useEffect(() => {
     if (typeof src !== 'string' && !imgError) {
@@ -42,7 +42,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       }
     }
   }, [isMobile, isTablet, isDesktop, src, imgError]);
-  
+
   // Handle image loading error
   const handleError = () => {
     if (!imgError) {
@@ -50,12 +50,12 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       setImgError(true);
     }
   };
-  
+
   // Generate rounded classes
-  const roundedClass = rounded === true 
+  const roundedClass = rounded === true
     ? 'rounded'
     : rounded === 'sm'
-      ? 'rounded-sm' 
+      ? 'rounded-sm'
       : rounded === 'md'
         ? 'rounded-md'
         : rounded === 'lg'
@@ -63,14 +63,14 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
           : rounded === 'full'
             ? 'rounded-full'
             : '';
-  
+
   // Generate object fit classes
   const objectFitClass = objectFit === 'cover'
     ? 'object-cover'
     : objectFit === 'contain'
       ? 'object-contain'
       : 'object-fill';
-  
+
   return (
     <div className={`relative ${aspectRatio} ${containerClassName} overflow-hidden ${roundedClass}`}>
       <Image

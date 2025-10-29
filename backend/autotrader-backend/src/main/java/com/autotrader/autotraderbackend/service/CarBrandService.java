@@ -33,7 +33,7 @@ public class CarBrandService {
     public List<CarBrand> getAllBrands() {
         return carBrandRepository.findAll();
     }
-    
+
     /**
      * Get only active car brands
      * @return List of active car brands
@@ -44,7 +44,7 @@ public class CarBrandService {
         log.debug("Fetching active car brands from database");
         return carBrandRepository.findByIsActiveTrue();
     }
-    
+
     /**
      * Get a car brand by its name
      * @param name Brand name
@@ -70,7 +70,7 @@ public class CarBrandService {
         return carBrandRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarBrand", "id", id));
     }
-    
+
     /**
      * Get a car brand by its slug
      * @param slug Brand slug
@@ -82,7 +82,7 @@ public class CarBrandService {
         return carBrandRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("CarBrand", "slug", slug));
     }
-    
+
     /**
      * Search for brands by name (in English or Arabic)
      * @param query Search query
@@ -95,7 +95,7 @@ public class CarBrandService {
         }
         return carBrandRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new car brand
      * @param brand Brand to create
@@ -107,7 +107,7 @@ public class CarBrandService {
         log.info("Creating new car brand: {}", brand.getName());
         return carBrandRepository.save(brand);
     }
-    
+
     /**
      * Create a new car brand using request DTO
      * @param createRequest Brand creation details from request
@@ -118,20 +118,20 @@ public class CarBrandService {
     public CarBrand createBrand(CreateBrandRequest createRequest) {
         // Validate brand uniqueness
         validateBrandUniqueness(createRequest);
-        
+
         CarBrand brand = new CarBrand();
         brand.setName(createRequest.getName());
         brand.setDisplayNameEn(createRequest.getDisplayNameEn());
         brand.setDisplayNameAr(createRequest.getDisplayNameAr());
         brand.setIsActive(true); // Admin-created brands are active by default
-        
+
         // Generate unique slug from name
         String baseSlug = createRequest.getName().toLowerCase()
                 .replaceAll("[^a-z0-9\\s-]", "")
                 .replaceAll("\\s+", "-")
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", ""); // Remove leading/trailing dashes
-        
+
         String slug = baseSlug;
         int counter = 1;
         while (carBrandRepository.findBySlug(slug).isPresent()) {
@@ -139,11 +139,11 @@ public class CarBrandService {
             counter++;
         }
         brand.setSlug(slug);
-        
+
         log.info("Creating new car brand using request DTO: {}", createRequest.getName());
         return carBrandRepository.save(brand);
     }
-    
+
     /**
      * Update an existing car brand
      * @param id Brand ID
@@ -157,29 +157,29 @@ public class CarBrandService {
         CarBrand brand = getBrandById(id);
         boolean wasActive = brand.getIsActive();
         boolean willBeActive = brandDetails.getIsActive();
-        
+
         // Validate activation status change
         if (willBeActive && !wasActive) {
             // Trying to activate a brand - check if it has models
             carHierarchyService.validateBrandActivation(id, brand.getDisplayNameEn());
         }
-        
+
         brand.setName(brandDetails.getName());
         brand.setDisplayNameEn(brandDetails.getDisplayNameEn());
         brand.setDisplayNameAr(brandDetails.getDisplayNameAr());
         brand.setIsActive(brandDetails.getIsActive());
         // Don't update slug as it should be immutable for URL stability
-        
+
         // If brand is being deactivated, cascade deactivation to all its models
         if (wasActive && !willBeActive) {
             log.info("Cascading deactivation from brand {} to all its models", brand.getDisplayNameEn());
             carHierarchyService.cascadeDeactivateFromBrand(id);
         }
-        
+
         log.info("Updated car brand with id: {}", id);
         return carBrandRepository.save(brand);
     }
-    
+
     /**
      * Update an existing car brand using request DTO
      * @param id Brand ID
@@ -209,7 +209,7 @@ public class CarBrandService {
         log.info("Updated car brand with id: {} using request DTO", id);
         return carBrandRepository.save(brand);
     }
-    
+
     /**
      * Change activation status of a brand
      * @param id Brand ID
@@ -221,11 +221,11 @@ public class CarBrandService {
     public CarBrand updateBrandActivation(Long id, boolean isActive) {
         CarBrand brand = getBrandById(id);
         brand.setIsActive(isActive);
-        
+
         log.info("Updated activation status of brand with id: {} to: {}", id, isActive);
         return carBrandRepository.save(brand);
     }
-    
+
     /**
      * Delete a car brand
      * @param id Brand ID
@@ -237,7 +237,7 @@ public class CarBrandService {
         log.info("Deleting car brand with id: {}", id);
         carBrandRepository.delete(brand);
     }
-    
+
     /**
      * Validate that a brand doesn't already exist
      */
@@ -245,15 +245,15 @@ public class CarBrandService {
         String name = brandRequest.getName().trim();
         String displayNameEn = brandRequest.getDisplayNameEn().trim();
         String displayNameAr = brandRequest.getDisplayNameAr().trim();
-        
+
         if (carBrandRepository.existsByNameIgnoreCase(name)) {
             throw new IllegalArgumentException("Brand with name '" + name + "' already exists");
         }
-        
+
         if (carBrandRepository.existsByDisplayNameEnIgnoreCase(displayNameEn)) {
             throw new IllegalArgumentException("Brand with English name '" + displayNameEn + "' already exists");
         }
-        
+
         if (carBrandRepository.existsByDisplayNameArIgnoreCase(displayNameAr)) {
             throw new IllegalArgumentException("Brand with Arabic name '" + displayNameAr + "' already exists");
         }
@@ -264,15 +264,15 @@ public class CarBrandService {
      */
     public CarBrand updateBrandStatus(Long brandId, String status) {
         CarBrand brand = getBrandById(brandId);
-        
+
         // Validate status
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
         }
-        
+
         boolean isActive = "ACTIVE".equalsIgnoreCase(status);
         brand.setIsActive(isActive);
-        
+
         return carBrandRepository.save(brand);
     }
 
@@ -289,9 +289,9 @@ public class CarBrandService {
      * Validate status value
      */
     private boolean isValidStatus(String status) {
-        return status != null && 
-               (status.equalsIgnoreCase("ACTIVE") || 
-                status.equalsIgnoreCase("INACTIVE") || 
+        return status != null &&
+               (status.equalsIgnoreCase("ACTIVE") ||
+                status.equalsIgnoreCase("INACTIVE") ||
                 status.equalsIgnoreCase("PENDING"));
     }
 
@@ -302,7 +302,7 @@ public class CarBrandService {
     public void validateBrandActiveForNewListing(Long brandId) {
         CarBrand brand = getBrandById(brandId);
         if (!brand.getIsActive()) {
-            throw new IllegalArgumentException("Cannot create new listings with inactive brand: " + brand.getDisplayNameEn() + 
+            throw new IllegalArgumentException("Cannot create new listings with inactive brand: " + brand.getDisplayNameEn() +
                 ". This brand is marked as discontinued or under review. Please contact support if you believe this is an error.");
         }
     }

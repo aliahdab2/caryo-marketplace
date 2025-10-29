@@ -14,7 +14,7 @@ public interface CarDataProvider {
      * Get the priority of this provider (lower number = higher priority)
      * Used for fallback ordering. Default priorities:
      * - Primary APIs: 1-10
-     * - Secondary APIs: 11-50  
+     * - Secondary APIs: 11-50
      * - Local/Manual data: 51-100
      */
     default int getPriority() {

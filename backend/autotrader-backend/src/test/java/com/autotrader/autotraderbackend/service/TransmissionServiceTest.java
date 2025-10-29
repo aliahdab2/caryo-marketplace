@@ -166,7 +166,7 @@ class TransmissionServiceTest {
         updatedTransmission.setName("manual");
         updatedTransmission.setDisplayNameEn("Manual");
         updatedTransmission.setDisplayNameAr("يدوي");
-        
+
         when(transmissionRepository.findById(1L)).thenReturn(Optional.of(testTransmission));
         when(transmissionRepository.save(any(Transmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,7 +178,7 @@ class TransmissionServiceTest {
         assertEquals(updatedTransmission.getName(), result.getName());
         assertEquals(updatedTransmission.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedTransmission.getDisplayNameAr(), result.getDisplayNameAr());
-        
+
         verify(transmissionRepository, times(1)).findById(1L);
         verify(transmissionRepository, times(1)).save(any(Transmission.class));
     }
@@ -188,10 +188,10 @@ class TransmissionServiceTest {
         // Arrange
         when(transmissionRepository.findById(1L)).thenReturn(Optional.of(testTransmission));
         doNothing().when(transmissionRepository).delete(testTransmission);
-        
+
         // Act
         transmissionService.deleteTransmission(1L);
-        
+
         // Assert
         verify(transmissionRepository, times(1)).findById(1L);
         verify(transmissionRepository, times(1)).delete(testTransmission);

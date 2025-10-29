@@ -56,13 +56,13 @@ const TransmissionFilter: React.FC<TransmissionFilterProps> = ({
           const isSelected = selectedTransmissionId === transmission.id;
           const displayName = currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn;
           const count = transmissionCounts[transmission.name.toLowerCase()] || transmissionCounts[transmission.name] || 0;
-          
+
           return (
             <div
               key={transmission.id}
               className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                isSelected 
-                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
                   : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
               }`}
               onClick={() => {
@@ -84,11 +84,11 @@ const TransmissionFilter: React.FC<TransmissionFilterProps> = ({
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
                 <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                  isSelected 
-                    ? 'border-blue-500 bg-blue-500 scale-110' 
+                  isSelected
+                    ? 'border-blue-500 bg-blue-500 scale-110'
                     : 'border-gray-300 group-hover:border-blue-400'
                 }`}>
                   {isSelected && (
@@ -98,7 +98,7 @@ const TransmissionFilter: React.FC<TransmissionFilterProps> = ({
                   )}
                 </div>
               </div>
-              
+
               {/* Selection indicator */}
               {isSelected && (
                 <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
@@ -111,4 +111,4 @@ const TransmissionFilter: React.FC<TransmissionFilterProps> = ({
   );
 };
 
-export default TransmissionFilter; 
+export default TransmissionFilter;

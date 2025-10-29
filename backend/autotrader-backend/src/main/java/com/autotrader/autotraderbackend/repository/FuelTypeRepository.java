@@ -10,9 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface FuelTypeRepository extends JpaRepository<FuelType, Long> {
-    
+
     Optional<FuelType> findByName(String name);
-    
+
     @Query("SELECT f FROM FuelType f WHERE " +
            "LOWER(f.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(f.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

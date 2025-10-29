@@ -10,7 +10,7 @@ The favorites system allows users to save and manage their preferred car listing
 
 ### Core Functionality
 - **Add to Favorites**: Users can favorite listings with one click
-- **Remove from Favorites**: Easy unfavorite functionality  
+- **Remove from Favorites**: Easy unfavorite functionality
 - **Favorites List**: Dedicated page showing all user favorites
 - **Real-time Updates**: Instant UI updates when favoriting/unfavoriting
 - **Persistence**: Favorites saved to database with user association

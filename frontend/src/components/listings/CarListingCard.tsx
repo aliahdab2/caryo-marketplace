@@ -69,15 +69,15 @@ interface CarListingCardProps {
   } | null;
 }
 
-const CarListingCard: React.FC<CarListingCardProps> = ({ 
-  listing, 
+const CarListingCard: React.FC<CarListingCardProps> = ({
+  listing,
   onFavoriteToggle,
   initialFavorite = false,
   user = null
 }) => {
   const { i18n, t } = useLazyTranslation(COMMON_NAMESPACES);
   const { isRTL } = useLanguageDirection();
-  
+
   // Use year or modelYear - prioritize modelYear as it's more specific
   const displayYear = listing.modelYear || listing.year;
 
@@ -92,48 +92,48 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
     if (!transmission) return '';
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.transmissionNameEn || listing.transmissionNameAr) {
       const isRTL = i18n.language === 'ar';
-      return isRTL ? 
+      return isRTL ?
         (listing.transmissionNameAr || listing.transmissionNameEn || transmission) :
         (listing.transmissionNameEn || listing.transmissionNameAr || transmission);
     }
-    
+
     // Fallback to translation lookup for backwards compatibility
     const normalized = transmission.toLowerCase();
     const translatedKey = `transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
     const translated = t(translatedKey, { ns: 'search' });
-    
+
     if (translated && translated !== translatedKey) {
       return translated;
     }
-    
+
     return transmission;
   };
 
   // Helper function to get translated fuel type text
   const getFuelTypeText = (fuelType?: string) => {
     if (!fuelType) return '';
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.fuelTypeNameEn || listing.fuelTypeNameAr) {
       const isRTL = i18n.language === 'ar';
-      return isRTL ? 
+      return isRTL ?
         (listing.fuelTypeNameAr || listing.fuelTypeNameEn || fuelType) :
         (listing.fuelTypeNameEn || listing.fuelTypeNameAr || fuelType);
     }
-    
+
     // Fallback to translation lookup for backwards compatibility
     const normalized = fuelType.toLowerCase();
     const translatedKey = `fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`;
     const translated = t(translatedKey, { ns: 'search' });
-    
+
     if (translated && translated !== translatedKey) {
       return translated;
     }
-    
+
     return fuelType;
   };
 
@@ -168,7 +168,7 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
             }}
             onVideoPlayingChange={handleVideoPlayingChange}
           />
-          
+
           {/* Year Badge - Hidden when video is playing */}
           {!isVideoPlaying && (
             <YearBadge
@@ -185,21 +185,21 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
           <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
             {listing.title}
           </h3>
-          
+
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3">
             {formatNumber(listing.price, i18n.language)}
           </p>
-          
+
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
             {displayYear && <div>{displayYear}</div>}
             <div>{listing.mileage?.toLocaleString()} {t('listing.km', 'km')}</div>
             {listing.transmission && <div>{getTransmissionText(listing.transmission)}</div>}
             {listing.fuelType && <div>{getFuelTypeText(listing.fuelType)}</div>}
           </div>
-          
+
           {/* Spacer to push location info to bottom */}
           <div className="flex-1"></div>
-          
+
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {timeAgo(listing.createdAt, i18n.language)}
             {(listing.governorateNameEn || listing.governorateNameAr || listing.governorateDetails) && (
@@ -212,8 +212,8 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
                   }
                   // Fallback to governorateDetails
                   if (listing.governorateDetails) {
-                    return i18n.language === 'ar' ? 
-                      (listing.governorateDetails.displayNameAr || listing.governorateDetails.displayNameEn) : 
+                    return i18n.language === 'ar' ?
+                      (listing.governorateDetails.displayNameAr || listing.governorateDetails.displayNameEn) :
                       (listing.governorateDetails.displayNameEn || listing.governorateDetails.displayNameAr);
                   }
                   return '';

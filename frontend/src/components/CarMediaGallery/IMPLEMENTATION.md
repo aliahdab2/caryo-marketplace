@@ -40,7 +40,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Main gallery slider instance
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: initialIndex,
@@ -55,7 +55,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     drag: true,
     rubberband: true,
   });
-  
+
   // Modal slider instance (separate instance for the modal)
   const [modalSliderRef, modalInstanceRef] = useKeenSlider<HTMLDivElement>({
     initial: currentIndex,
@@ -81,14 +81,14 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     instanceRef.current?.prev();
     modalInstanceRef.current?.prev();
   }, [instanceRef, modalInstanceRef]);
-  
+
   // Update modal slider when current index changes
   useEffect(() => {
     if (isModalOpen && modalInstanceRef.current) {
       modalInstanceRef.current.moveToIdx(currentIndex);
     }
   }, [currentIndex, isModalOpen, modalInstanceRef]);
-  
+
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -117,13 +117,13 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   return (
     <div className={`car-media-gallery ${className}`}>
       {/* Main slider */}
-      <div 
+      <div
         className="relative h-80 md:h-96 lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden"
       >
         <div ref={sliderRef} className="keen-slider h-full">
           {media.map((item, idx) => (
-            <div 
-              key={`slide-${idx}`} 
+            <div
+              key={`slide-${idx}`}
               className="keen-slider__slide cursor-pointer"
               onClick={() => setIsModalOpen(true)}
             >
@@ -131,7 +131,7 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             </div>
           ))}
         </div>
-        
+
         {/* Navigation arrows for main view */}
         {media.length > 1 && (
           <>
@@ -180,8 +180,8 @@ export const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             <div className="h-[80vh] flex items-center justify-center">
               <div ref={modalSliderRef} className="keen-slider h-full w-full">
                 {media.map((item, idx) => (
-                  <div 
-                    key={`modal-slide-${idx}`} 
+                  <div
+                    key={`modal-slide-${idx}`}
                     className="keen-slider__slide"
                   >
                     {renderMediaContent(item, true)}
@@ -252,27 +252,27 @@ You can customize the slider behavior by adjusting the keen-slider options:
 const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
   // Start with a specific slide
   initial: initialIndex,
-  
+
   // Event handling
   slideChanged(slider) {
     setCurrentIndex(slider.track.details.rel);
   },
-  
+
   // Slide settings
   slides: {
     perView: 1,     // Show one slide at a time
     spacing: 0,     // No spacing between slides
   },
-  
+
   // Navigation options
   loop: true,       // Enable infinite looping
   drag: true,       // Enable drag to navigate
   rubberband: true, // Elastic feel at boundaries
-  
+
   // Animation settings
   mode: "snap",     // Snap to slide after dragging
   duration: 500,    // Transition duration in ms
-  
+
   // Responsive options
   breakpoints: {
     "(min-width: 768px)": {
@@ -291,8 +291,8 @@ When dealing with video content, you might want to disable dragging on the video
 if (item.type === 'video') {
   return (
     <div className="keen-slider__slide">
-      <div 
-        className="video-container" 
+      <div
+        className="video-container"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >

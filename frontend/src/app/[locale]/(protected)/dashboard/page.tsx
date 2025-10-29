@@ -8,11 +8,11 @@ import Link from "next/link";
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { formatNumber } from "@/utils/localization";
 import { useEffect, useState } from "react";
-import { 
-  MdStarBorder, 
-  MdEmail, 
-  MdNotifications, 
-  MdDirectionsCar, 
+import {
+  MdStarBorder,
+  MdEmail,
+  MdNotifications,
+  MdDirectionsCar,
   MdAddCircleOutline,
   MdEditNote,
   MdLogout,
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
 
-  
+
 
 
   // Fetch favorites and alerts count when component mounts or user changes
@@ -52,10 +52,10 @@ export default function Dashboard() {
         // Import required services
         const { apiRequest } = await import('@/services/auth/session-manager');
         const { getUserSavedSearches } = await import('@/services/savedSearches');
-        
+
         // Fetch favorites count
         const favoritesUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
-        const favoritesResponse = await apiRequest(favoritesUrl, { 
+        const favoritesResponse = await apiRequest(favoritesUrl, {
           method: 'GET'
         });
 
@@ -121,15 +121,15 @@ export default function Dashboard() {
     const loadRecentListings = async () => {
       try {
         setListingsLoading(true);
-        
+
         // Server layout ensures user is authenticated, fetch listings directly
         const myListings = await getMyListings();
-        
+
         // Sort by creation date (newest first) and take the first 5
         const sortedListings = myListings
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 5);
-        
+
         setRecentListings(sortedListings);
       } catch (error) {
         // Use proper error logging instead of console.error
@@ -215,7 +215,7 @@ export default function Dashboard() {
         shadow: 'shadow-amber-100 dark:shadow-amber-900/10'
       }
     };
-    
+
     return colorStyles[color as keyof typeof colorStyles] || colorStyles.blue;
   };
 
@@ -232,17 +232,17 @@ export default function Dashboard() {
           {t('overviewSubtitle')}
         </p>
       </div>
-      
+
       {/* Dashboard Stats - Redesigned cards with modern appearance */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
         {stats.map((stat, index) => {
           const colorStyle = getCardColorStyle(stat.color);
-          
+
           return (
-            <Link 
+            <Link
               key={index}
               href={stat.link}
-              className={`${colorStyle.bg} border ${colorStyle.border} rounded-xl p-4 lg:p-5 
+              className={`${colorStyle.bg} border ${colorStyle.border} rounded-xl p-4 lg:p-5
                         transition-all duration-300 hover:shadow-lg ${colorStyle.shadow}
                         hover:translate-y-[-2px] group min-h-[140px]`}
             >
@@ -300,14 +300,14 @@ export default function Dashboard() {
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">
           {t('quickActions')}
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <Link 
+          <Link
             href={`/${currentLang}/dashboard/listings/new`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700
                      hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-center group"
           >
-            <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center mb-4 
+            <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center mb-4
                           group-hover:scale-110 transition-transform">
               <MdAddCircleOutline className="text-blue-600 dark:text-blue-400 text-2xl" />
             </div>
@@ -318,13 +318,13 @@ export default function Dashboard() {
               {t('createListingDesc')}
             </p>
           </Link>
-          
-          <Link 
+
+          <Link
             href={`/${currentLang}/dashboard/profile`}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-purple-300 dark:border-purple-700
                      hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-center group"
           >
-            <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-800/50 flex items-center justify-center mb-4 
+            <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-800/50 flex items-center justify-center mb-4
                           group-hover:scale-110 transition-transform">
               <MdEditNote className="text-purple-600 dark:text-purple-400 text-2xl" />
             </div>
@@ -335,13 +335,13 @@ export default function Dashboard() {
               {t('editProfileDesc')}
             </p>
           </Link>
-          
+
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="flex flex-col items-center p-6 rounded-xl border-2 border-dashed border-red-300 dark:border-red-700
                      hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-center group"
           >
-            <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-800/50 flex items-center justify-center mb-4 
+            <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-800/50 flex items-center justify-center mb-4
                           group-hover:scale-110 transition-transform">
               <MdLogout className="text-red-600 dark:text-red-400 text-2xl" />
             </div>

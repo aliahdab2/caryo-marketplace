@@ -109,7 +109,7 @@ class ArabicTranslationServiceTest {
 
             // Test with whitespace
             assertEquals("تويوتا", arabicTranslationService.translateBrandToArabic("  Toyota  "));
-            
+
             // Verify OpenAI was called with trimmed input
             verify(openAiTranslationService).translateBrandToArabic("Toyota");
         }
@@ -174,11 +174,11 @@ class ArabicTranslationServiceTest {
             when(openAiTranslationService.isAvailable()).thenReturn(true);
 
             String status = arabicTranslationService.getServiceStatus();
-            
+
             assertNotNull(status);
             assertTrue(status.contains("Arabic Translation Service"));
             assertTrue(status.contains("OpenAI: Available"));
-            
+
             verify(openAiTranslationService).isAvailable();
         }
 
@@ -188,11 +188,11 @@ class ArabicTranslationServiceTest {
             when(openAiTranslationService.isAvailable()).thenReturn(false);
 
             String status = arabicTranslationService.getServiceStatus();
-            
+
             assertNotNull(status);
             assertTrue(status.contains("Arabic Translation Service"));
             assertTrue(status.contains("OpenAI: Unavailable"));
-            
+
             verify(openAiTranslationService).isAvailable();
         }
     }
@@ -207,15 +207,15 @@ class ArabicTranslationServiceTest {
             // This tests the integration with the cleaned brand names from SyrianCarsDataService
             // Before the fix: "بيجو - Peugeot (57)" would be sent directly to OpenAI
             // After the fix: Only "Peugeot" should be sent to OpenAI
-            
+
             when(openAiTranslationService.translateBrandToArabic("Peugeot")).thenReturn("بيجو");
 
             // Test that when we get a clean brand name (as would come from cleanBrandNameForTranslation)
             String result = arabicTranslationService.translateBrandToArabic("Peugeot");
-            
+
             assertEquals("بيجو", result);
             verify(openAiTranslationService).translateBrandToArabic("Peugeot");
-            
+
             // Verify that the problematic input would NOT be sent to OpenAI anymore
             // (This would be handled by the cleaning in SyrianCarsDataService)
             verify(openAiTranslationService, never()).translateBrandToArabic("بيجو - Peugeot (57)");

@@ -1,5 +1,5 @@
 import React from 'react';
-import { 
+import {
   GasolineIcon,
   DieselIcon,
   HybridIcon,
@@ -16,7 +16,7 @@ import {
  */
 export const getFuelTypeIcon = (fuelTypeName: string, size: string = "w-12 h-8"): React.ReactNode => {
   const normalizedName = fuelTypeName.toLowerCase();
-  
+
   // Create a new icon map with the specified size
   const sizedIconMap: Record<string, React.ReactNode> = {
     'gasoline': <GasolineIcon className={size} />,
@@ -31,4 +31,4 @@ export const getFuelTypeIcon = (fuelTypeName: string, size: string = "w-12 h-8")
   };
 
   return sizedIconMap[normalizedName] || <GasolineIcon className={size} />;
-}; 
+};

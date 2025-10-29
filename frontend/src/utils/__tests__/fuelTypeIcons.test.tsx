@@ -66,7 +66,7 @@ describe('getFuelTypeIcon', () => {
   it('should handle case insensitive fuel type names', () => {
     const { container: container1 } = render(<div>{getFuelTypeIcon('GASOLINE')}</div>);
     const { container: container2 } = render(<div>{getFuelTypeIcon('gasoline')}</div>);
-    
+
     // Both should render the same icon
     expect(container1.innerHTML).toBe(container2.innerHTML);
   });
@@ -74,7 +74,7 @@ describe('getFuelTypeIcon', () => {
   it('should handle mixed case fuel type names', () => {
     const { container: container1 } = render(<div>{getFuelTypeIcon('Hybrid')}</div>);
     const { container: container2 } = render(<div>{getFuelTypeIcon('hybrid')}</div>);
-    
+
     // Both should render the same icon
     expect(container1.innerHTML).toBe(container2.innerHTML);
   });
@@ -83,10 +83,10 @@ describe('getFuelTypeIcon', () => {
     const { container: gasolineContainer } = render(<div>{getFuelTypeIcon('gasoline')}</div>);
     const { container: dieselContainer } = render(<div>{getFuelTypeIcon('diesel')}</div>);
     const { container: electricContainer } = render(<div>{getFuelTypeIcon('electric')}</div>);
-    
+
     // All should render different icons
     expect(gasolineContainer.innerHTML).not.toBe(dieselContainer.innerHTML);
     expect(dieselContainer.innerHTML).not.toBe(electricContainer.innerHTML);
     expect(gasolineContainer.innerHTML).not.toBe(electricContainer.innerHTML);
   });
-}); 
+});

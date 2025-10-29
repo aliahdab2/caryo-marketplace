@@ -190,7 +190,7 @@ public class User {
             this.accountStatus = AccountStatus.VERIFIED;
         }
     }
-    
+
     /**
      * Clear email verification token for security purposes.
      * This prevents token reuse attacks.

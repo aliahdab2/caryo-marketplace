@@ -166,7 +166,7 @@ class BodyStyleServiceTest {
         updatedBodyStyle.setName("sedan");
         updatedBodyStyle.setDisplayNameEn("Sedan");
         updatedBodyStyle.setDisplayNameAr("سيدان");
-        
+
         when(bodyStyleRepository.findById(1L)).thenReturn(Optional.of(testBodyStyle));
         when(bodyStyleRepository.save(any(BodyStyle.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,7 +178,7 @@ class BodyStyleServiceTest {
         assertEquals(updatedBodyStyle.getName(), result.getName());
         assertEquals(updatedBodyStyle.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedBodyStyle.getDisplayNameAr(), result.getDisplayNameAr());
-        
+
         verify(bodyStyleRepository, times(1)).findById(1L);
         verify(bodyStyleRepository, times(1)).save(any(BodyStyle.class));
     }
@@ -188,10 +188,10 @@ class BodyStyleServiceTest {
         // Arrange
         when(bodyStyleRepository.findById(1L)).thenReturn(Optional.of(testBodyStyle));
         doNothing().when(bodyStyleRepository).delete(testBodyStyle);
-        
+
         // Act
         bodyStyleService.deleteBodyStyle(1L);
-        
+
         // Assert
         verify(bodyStyleRepository, times(1)).findById(1L);
         verify(bodyStyleRepository, times(1)).delete(testBodyStyle);

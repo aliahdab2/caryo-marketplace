@@ -33,15 +33,15 @@ class MessageTypeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("invalid");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("TEXT");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue(null);
         });
@@ -54,11 +54,11 @@ class MessageTypeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("Text");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("TEXT");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("Image");
         });
@@ -69,15 +69,15 @@ class MessageTypeTest {
     void shouldHaveAllExpectedEnumValues() {
         // Act
         MessageType[] values = MessageType.values();
-        
+
         // Assert
         assertEquals(3, values.length);
-        
+
         // Check that all expected values are present
         boolean hasText = false;
         boolean hasImage = false;
         boolean hasSystem = false;
-        
+
         for (MessageType type : values) {
             switch (type) {
                 case TEXT:
@@ -91,7 +91,7 @@ class MessageTypeTest {
                     break;
             }
         }
-        
+
         assertTrue(hasText, "Should have TEXT type");
         assertTrue(hasImage, "Should have IMAGE type");
         assertTrue(hasSystem, "Should have SYSTEM type");
@@ -104,7 +104,7 @@ class MessageTypeTest {
         assertEquals("text", MessageType.TEXT.getValue());
         assertEquals("image", MessageType.IMAGE.getValue());
         assertEquals("system", MessageType.SYSTEM.getValue());
-        
+
         // Test that the same instance is returned
         MessageType text1 = MessageType.fromValue("text");
         MessageType text2 = MessageType.fromValue("text");
@@ -118,12 +118,12 @@ class MessageTypeTest {
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue(" text ");
         });
-        
+
         // Test with numbers (should fail)
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("123");
         });
-        
+
         // Test with special characters (should fail)
         assertThrows(IllegalArgumentException.class, () -> {
             MessageType.fromValue("text!");
@@ -136,10 +136,10 @@ class MessageTypeTest {
         // Test that each type has a meaningful value
         assertNotNull(MessageType.TEXT.getValue());
         assertFalse(MessageType.TEXT.getValue().isEmpty());
-        
+
         assertNotNull(MessageType.IMAGE.getValue());
         assertFalse(MessageType.IMAGE.getValue().isEmpty());
-        
+
         assertNotNull(MessageType.SYSTEM.getValue());
         assertFalse(MessageType.SYSTEM.getValue().isEmpty());
     }
@@ -186,7 +186,7 @@ class MessageTypeTest {
         assertNotEquals(MessageType.TEXT, MessageType.IMAGE);
         assertNotEquals(MessageType.TEXT, MessageType.SYSTEM);
         assertNotEquals(MessageType.IMAGE, MessageType.SYSTEM);
-        
+
         // Test that values are distinct
         assertNotEquals(MessageType.TEXT.getValue(), MessageType.IMAGE.getValue());
         assertNotEquals(MessageType.TEXT.getValue(), MessageType.SYSTEM.getValue());

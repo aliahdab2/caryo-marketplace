@@ -12,7 +12,7 @@ INSERT INTO car_listings (
     condition_id, body_style_id, transmission_id, fuel_type_id, drive_type_id,
     transmission, approved, sold, archived, created_at, updated_at,
     brand_name_en, brand_name_ar, model_name_en, model_name_ar
-) VALUES 
+) VALUES
 -- Sample listing 1
 ('Toyota Camry 2020 - Test Listing 1',
  'This is a sample description for a Toyota Camry. Well-maintained with regular service history. Features include power windows, cruise control, and backup camera.',
@@ -88,7 +88,7 @@ INSERT INTO listing_media (
     listing_id, file_key, file_name, content_type, size,
     sort_order, is_primary, media_type, created_at
 )
-SELECT 
+SELECT
     cl.id,
     'sample/car-' || cl.id || '-1.jpg',
     'car-' || cl.id || '-1.jpg',
@@ -98,6 +98,6 @@ SELECT
     true,
     'IMAGE',
     CURRENT_TIMESTAMP
-FROM car_listings cl 
+FROM car_listings cl
 WHERE cl.title LIKE '%Test Listing%'
 LIMIT 5;

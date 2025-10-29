@@ -19,13 +19,13 @@ public class TransmissionResponse {
     private String slug;
     private String displayNameEn;
     private String displayNameAr;
-    
+
     // Static factory method to create from entity
     public static TransmissionResponse fromEntity(com.autotrader.autotraderbackend.model.Transmission transmission) {
         if (transmission == null) {
             return null;
         }
-        
+
         return new TransmissionResponse(
             transmission.getId(),
             transmission.getName(),

@@ -60,7 +60,7 @@ class CarListingTest {
         image1.setMediaType("image");
         image1.setIsPrimary(false);
         carListing.addMedia(image1);
-        
+
         ListingMedia image2 = new ListingMedia();
         image2.setFileKey("image2.jpg");
         image2.setMediaType("image");
@@ -75,7 +75,7 @@ class CarListingTest {
         assertNotNull(result);
         assertEquals("image1.jpg", result.getFileKey(), "Should return the first image when a video is incorrectly marked primary");
     }
-    
+
     @Test
     void getPrimaryMedia_WhenNoPrimaryImageSet_ShouldReturnFirstImage() {
         // Arrange
@@ -90,7 +90,7 @@ class CarListingTest {
         image2.setMediaType("image");
         image2.setIsPrimary(false);
         carListing.addMedia(image2);
-        
+
         ListingMedia video1 = new ListingMedia();
         video1.setFileKey("video1.mp4");
         video1.setMediaType("video");
@@ -135,7 +135,7 @@ class CarListingTest {
         // Assert
         assertNull(result);
     }
-    
+
     @Test
     void getPrimaryMedia_WhenPrimaryImageIsAlsoFirstImage_ShouldReturnPrimaryImage() {
         // Arrange

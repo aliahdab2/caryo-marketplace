@@ -53,10 +53,10 @@ export default function LocationDropdown({
                 ? (() => {
                     // Find the governorate that matches the selected location
                     const selectedLocationSlug = filters.locations[0];
-                    const selectedGov = governorates?.find(gov => 
+                    const selectedGov = governorates?.find(gov =>
                       (gov.slug || gov.displayNameEn.toLowerCase().replace(/\s+/g, '-')) === selectedLocationSlug
                     );
-                    return selectedGov 
+                    return selectedGov
                       ? (currentLanguage === 'ar' ? selectedGov.displayNameAr : selectedGov.displayNameEn)
                       : selectedLocationSlug;
                   })()
@@ -64,17 +64,17 @@ export default function LocationDropdown({
               : t('allLocations', 'All Governorates')
             }
           </span>
-          <MdKeyboardArrowDown 
+          <MdKeyboardArrowDown
             className={`h-5 w-5 transition-all duration-300 group-hover:scale-105 ${
               showLocationDropdown ? 'rotate-180 text-blue-500' : 'text-gray-400 group-hover:text-blue-500'
-            }`} 
+            }`}
             aria-hidden="true"
           />
         </button>
-        
+
         {/* Dropdown */}
         {showLocationDropdown && (
-          <div 
+          <div
             className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-50 max-h-80 flex flex-col backdrop-blur-sm animate-in slide-in-from-top-2 duration-300"
             role="listbox"
             aria-labelledby="location-filter-button"
@@ -87,12 +87,12 @@ export default function LocationDropdown({
                 const isSelected = filters.locations?.includes(gov.slug) || false;
                 const locationValue = gov.slug;
                 const locationDisplayName = currentLanguage === 'ar' ? gov.displayNameAr : gov.displayNameEn;
-                
+
                 return (
                   <label
                     key={gov.id}
                     className={`group flex items-center px-3 py-3 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] mb-1 last:mb-0 ${
-                      isSelected 
+                      isSelected
                         ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 shadow-sm'
                         : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 text-gray-700 dark:text-gray-300 border border-transparent hover:border-gray-200 dark:hover:border-gray-600'
                     }`}
@@ -105,7 +105,7 @@ export default function LocationDropdown({
                         checked={isSelected}
                         onChange={(e) => {
                           const updatedFilters = { ...filters };
-                          
+
                           if (e.target.checked) {
                             // Add location
                             updatedFilters.locations = [...(filters.locations || []), locationValue];
@@ -118,7 +118,7 @@ export default function LocationDropdown({
                             }
 
                           }
-                          
+
                           setFilters(updatedFilters);
                           // Don't update URL or search immediately - wait for "Show" button
                         }}
@@ -126,8 +126,8 @@ export default function LocationDropdown({
                         aria-describedby={`location-${gov.id}-label`}
                       />
                       <div className={`w-5 h-5 border-2 rounded-md flex items-center justify-center transition-all duration-200 mr-3 rtl:mr-0 rtl:ml-3 flex-shrink-0 group-hover:scale-105 ${
-                        isSelected 
-                          ? 'bg-blue-600 border-blue-600 shadow-md' 
+                        isSelected
+                          ? 'bg-blue-600 border-blue-600 shadow-md'
                           : 'border-gray-300 dark:border-gray-500 group-hover:border-blue-400'
                       }`}>
                         {isSelected && (
@@ -137,7 +137,7 @@ export default function LocationDropdown({
                         )}
                       </div>
                     </div>
-                    <span 
+                    <span
                       className={`text-sm font-medium transition-colors flex-1 ${
                         isSelected ? 'text-blue-700 dark:text-blue-300' : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
                       }`}
@@ -154,7 +154,7 @@ export default function LocationDropdown({
                 );
               })}
             </div>
-            
+
             {/* Bottom buttons - Enhanced */}
             <div className="border-t-2 border-gray-100 dark:border-gray-700 p-4 flex gap-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50 rounded-b-xl">
               <button
@@ -171,7 +171,7 @@ export default function LocationDropdown({
                 onClick={() => {
                   // Close the dropdown
                   setShowLocationDropdown(false);
-                  
+
                   // The filters are already set by the checkboxes above
                   // The useEffect will handle updating the URL and triggering the search
                 }}

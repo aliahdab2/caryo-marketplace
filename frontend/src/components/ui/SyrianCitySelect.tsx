@@ -53,13 +53,13 @@ export default function SyrianCitySelect({
         setLoading(true);
         const syrianCities = await getLocationsByCountry('SY');
         const activeCities = syrianCities.filter(city => city.active);
-        
+
         // Remove duplicates based on displayNameEn (case-insensitive)
         const uniqueCities = activeCities.filter((city, index, array) => {
           return array.findIndex(c => c.displayNameEn.toLowerCase() === city.displayNameEn.toLowerCase()) === index;
         });
-        
-        
+
+
         setCities(uniqueCities);
       } catch (error) {
         console.error('Failed to load Syrian cities:', error);
@@ -101,8 +101,8 @@ export default function SyrianCitySelect({
 
     filteredCities.forEach(city => {
       // Use governorate name from backend, fallback to region or 'Other'
-      const governorate = (i18n.language === 'ar' ? city.governorateNameAr : city.governorateNameEn) 
-        || city.region 
+      const governorate = (i18n.language === 'ar' ? city.governorateNameAr : city.governorateNameEn)
+        || city.region
         || 'Other';
       if (!groups[governorate]) {
         groups[governorate] = [];
@@ -235,7 +235,7 @@ export default function SyrianCitySelect({
             Object.entries(groupedCities).map(([governorate, governorateCities]) => {
               // Don't show governorate header if there's only one city and it has the same name as the governorate
               const shouldShowHeader = !(
-                governorateCities.length === 1 && 
+                governorateCities.length === 1 &&
                 governorateCities[0].displayNameEn.toLowerCase() === governorate.toLowerCase()
               );
 

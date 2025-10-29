@@ -37,29 +37,29 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const handleSend = useCallback(() => {
     if ((!value.trim() && selectedFiles.length === 0) || disabled) return;
-    
+
     onSend(value, selectedFiles);
     onChange('');
     setSelectedFiles([]);
   }, [value, selectedFiles, disabled, onSend, onChange]);
-  
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   }, [handleSend]);
-  
+
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Validate files
     const validFiles: File[] = [];
     let hasError = false;
-    
+
     for (const file of files) {
       if (file.size > maxFileSize) {
         // Show error via parent component's error handling
@@ -70,24 +70,24 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
         validFiles.push(file);
       }
     }
-    
+
     if (selectedFiles.length + validFiles.length > maxFiles) {
       console.error(t('maxFilesExceeded', { maxFiles }));
       hasError = true;
     }
-    
+
     if (hasError) {
       return;
     }
-    
+
     setSelectedFiles(prev => [...prev, ...validFiles]);
-    
+
     // Clear input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }, [selectedFiles.length, maxFileSize, maxFiles, t]);
-  
+
   const removeFile = useCallback((index: number) => {
     setSelectedFiles(prev => {
       const newFiles = prev.filter((_, i) => i !== index);
@@ -99,27 +99,27 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
       return newFiles;
     });
   }, []);
-  
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(true);
   }, []);
-  
+
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
   }, []);
-  
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
-    
+
     // Validate files directly instead of creating synthetic event
     const validFiles: File[] = [];
     let hasError = false;
-    
+
     for (const file of files) {
       if (file.size > maxFileSize) {
         console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 1024 / 1024 }));
@@ -129,29 +129,29 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
         validFiles.push(file);
       }
     }
-    
+
     if (selectedFiles.length + validFiles.length > maxFiles) {
       console.error(t('maxFilesExceeded', { maxFiles }));
       hasError = true;
     }
-    
+
     if (hasError) {
       return;
     }
-    
+
     setSelectedFiles(prev => [...prev, ...validFiles]);
   }, [selectedFiles.length, maxFileSize, maxFiles, t]);
-  
+
   const characterCount = value.length;
   const isNearLimit = characterCount > maxLength * 0.8;
   const isOverLimit = characterCount > maxLength;
   const shouldShowSendButton = value.trim() || selectedFiles.length > 0;
-  
+
   return (
     <div className="space-y-3">
       {/* File Previews */}
       {selectedFiles.length > 0 && (
-        <div 
+        <div
           className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
           role="region"
           aria-label={t('selectedFiles', { count: selectedFiles.length })}
@@ -208,12 +208,12 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
           ))}
         </div>
       )}
-      
+
       {/* Input Area */}
-      <div 
+      <div
         className={`flex items-end gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-200 ${
-          dragOver 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+          dragOver
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
             : 'border-gray-200 dark:border-gray-600 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20'
         }`}
         onDragOver={handleDragOver}
@@ -247,7 +247,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
             </div>
           </div>
         )}
-        
+
         {/* Text Input */}
         <div className="flex-1 relative">
           <textarea
@@ -264,10 +264,10 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
             aria-label={t('messageInput')}
             aria-describedby="character-count"
           />
-          
+
           {/* Character Count */}
           {(isNearLimit || isOverLimit) && (
-            <div 
+            <div
               id="character-count"
               className={`absolute -bottom-5 right-0 text-xs ${
                 isOverLimit ? 'text-red-500' : 'text-yellow-500'
@@ -278,7 +278,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
             </div>
           )}
         </div>
-        
+
         {/* Send Button */}
         {shouldShowSendButton && (
           <button
@@ -292,7 +292,7 @@ export const AccessibleMessageInput: React.FC<AccessibleMessageInputProps> = ({
           </button>
         )}
       </div>
-      
+
       {/* Drag and Drop Overlay */}
       {dragOver && (
         <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 rounded-xl flex items-center justify-center z-10">

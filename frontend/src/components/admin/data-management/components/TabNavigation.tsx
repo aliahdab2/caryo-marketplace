@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageDirection } from '@/utils/languageDirection';
-import { 
+import {
   MdDirectionsCar,
   MdRateReview,
   MdSync,
@@ -74,7 +74,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
           })}
         </nav>
       </div>
-      
+
       {/* Tab Description */}
       <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50">
         <p className="text-sm text-gray-600 dark:text-gray-400">

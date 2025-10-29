@@ -55,21 +55,21 @@ public class SyrianCarsDataService implements CarDataProvider {
     @PostConstruct
     public void validateConfiguration() {
         log.info("Initializing SyrianCars data service...");
-        
+
         if (syrianCarsUrl == null || syrianCarsUrl.trim().isEmpty()) {
             throw new IllegalStateException("SyrianCars website URL is not configured. Please set 'syriacars.website.url' property.");
         }
-        
+
         if (scrapingTimeout <= 0) {
             throw new IllegalStateException("SyrianCars scraping timeout must be positive. Current value: " + scrapingTimeout);
         }
-        
+
         log.info("SyrianCars data service configured successfully:");
         log.info("  - Enabled: {}", enabled);
         log.info("  - Website URL: {}", syrianCarsUrl);
         log.info("  - Scraping Enabled: {}", scrapingEnabled);
         log.info("  - Scraping Timeout: {}ms", scrapingTimeout);
-        
+
         if (enabled) {
             log.info("✅ SyrianCars data service: CONFIGURED - Connection testing will be done on-demand");
         } else {
@@ -117,7 +117,7 @@ public class SyrianCarsDataService implements CarDataProvider {
                             .timeout(10000) // Shorter timeout for connection test
                             .followRedirects(true)
                             .get();
-                    
+
                     log.info("✅ SyrianCars.net scraping connection successful - page title: {}", doc.title());
                     return true;
                 } catch (IOException e) {
@@ -135,7 +135,7 @@ public class SyrianCarsDataService implements CarDataProvider {
                 log.warn("❌ No Syrian market data available");
             }
             return hasLocalData;
-            
+
         } catch (Exception e) {
             log.error("Syrian data availability test failed: {}", e.getMessage());
             return false;
@@ -197,7 +197,7 @@ public class SyrianCarsDataService implements CarDataProvider {
         log.info("Loading complete Syrian car dataset from SyrianCars.net");
 
         DataLoadResult result = new DataLoadResult();
-        
+
         // Start sync status
         syncStatusService.startSync(getProviderName());
 
@@ -221,9 +221,9 @@ public class SyrianCarsDataService implements CarDataProvider {
 
             log.info("✅ Syrian car dataset loaded successfully from SyrianCars.net");
             result.setSuccess(true);
-            
+
             // Complete sync status
-            syncStatusService.completeSync(getProviderName(), 
+            syncStatusService.completeSync(getProviderName(),
                 String.format("Sync completed: %d records synced, %d failed.", totalSynced, totalFailed),
                 totalSynced, totalFailed);
 
@@ -231,7 +231,7 @@ public class SyrianCarsDataService implements CarDataProvider {
             log.error("❌ Error loading Syrian car dataset: {}", e.getMessage(), e);
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
-            
+
             // Fail sync status
             syncStatusService.failSync(getProviderName(), "Sync failed: " + e.getMessage());
         }
@@ -445,7 +445,7 @@ public class SyrianCarsDataService implements CarDataProvider {
                 log.warn("No brands found with standard selectors, trying text extraction");
                 String pageText = doc.text();
                 log.debug("Page text sample: {}", pageText.length() > 200 ? pageText.substring(0, 200) + "..." : pageText);
-                
+
                 // This is a fallback - in a real scenario, you'd analyze the actual page structure
                 // For now, we'll use our fallback data
                 log.info("Scraping failed to find brands, using fallback data");
@@ -466,19 +466,19 @@ public class SyrianCarsDataService implements CarDataProvider {
      * Clean brand name for translation by removing counts, extra text, and extracting the English brand name
      * Examples:
      * "بيجو - Peugeot (57)" -> "Peugeot"
-     * "تويوتا - Toyota (258)" -> "Toyota" 
+     * "تويوتا - Toyota (258)" -> "Toyota"
      * "BMW (712)" -> "BMW"
      */
     private String cleanBrandNameForTranslation(String brandName) {
         if (brandName == null || brandName.trim().isEmpty()) {
             return brandName;
         }
-        
+
         String cleaned = brandName.trim();
-        
+
         // Remove count numbers in parentheses (e.g., "(57)", "(258)")
         cleaned = cleaned.replaceAll("\\s*\\(\\d+\\)\\s*$", "");
-        
+
         // If the text contains both Arabic and English (e.g., "بيجو - Peugeot"), extract English part
         if (cleaned.contains(" - ")) {
             String[] parts = cleaned.split(" - ");
@@ -491,10 +491,10 @@ public class SyrianCarsDataService implements CarDataProvider {
                 }
             }
         }
-        
+
         // Remove any remaining parentheses and extra whitespace
         cleaned = cleaned.replaceAll("[\\(\\)]", "").trim();
-        
+
         log.debug("Cleaned brand name: '{}' -> '{}'", brandName, cleaned);
         return cleaned;
     }
@@ -687,7 +687,7 @@ public class SyrianCarsDataService implements CarDataProvider {
         try {
             // Find the brand for this model
             CarBrand brand = carBrandService.getBrandBySlug(syrianModel.getBrandSlug());
-            
+
             String modelName = syrianModel.getName();
 
             // Check if model already exists for this brand by name or slug
@@ -695,7 +695,7 @@ public class SyrianCarsDataService implements CarDataProvider {
 
             // Generate expected slug for comparison
             String expectedSlug = (brand.getName() + "-" + modelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
-            
+
             boolean modelExists = existingModels.stream()
                 .anyMatch(model -> model.getName().equals(modelName) || model.getSlug().equals(expectedSlug));
 
@@ -801,7 +801,7 @@ public class SyrianCarsDataService implements CarDataProvider {
             brand.setIsActive(false); // External API data requires admin review
 
             CarBrand savedBrand = carBrandService.createBrand(brand);
-            log.info("✅ SYRIAN BRAND CREATED: '{}' -> '{}' (ID: {}, slug: {})", 
+            log.info("✅ SYRIAN BRAND CREATED: '{}' -> '{}' (ID: {}, slug: {})",
                     englishName, arabicName, savedBrand.getId(), brandSlug);
 
         } catch (Exception e) {
@@ -816,37 +816,37 @@ public class SyrianCarsDataService implements CarDataProvider {
     private void importSyrianModelsForExistingBrand(CarBrand existingBrand, String brandSlug) {
         try {
             log.debug("Checking for new Syrian models for existing brand: {}", existingBrand.getName());
-            
+
             List<SyrianModel> availableModels = loadSyrianMarketModels().stream()
                 .filter(model -> model.getBrandSlug().equals(brandSlug))
                 .collect(java.util.stream.Collectors.toList());
-            
+
             int newModelsCount = 0;
             for (SyrianModel modelData : availableModels) {
                 try {
                     // Check if this model already exists
                     List<CarModel> existingModels = carModelService.getModelsByBrandId(existingBrand.getId());
                     String expectedSlug = (existingBrand.getName() + "-" + modelData.getName()).toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                    
+
                     boolean modelExists = existingModels.stream()
                         .anyMatch(model -> model.getName().equals(modelData.getName()) || model.getSlug().equals(expectedSlug));
-                    
+
                     if (!modelExists) {
                         createSyrianModelDirectly(existingBrand, modelData);
                         newModelsCount++;
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to process Syrian model '{}' for brand '{}': {}", 
+                    log.warn("Failed to process Syrian model '{}' for brand '{}': {}",
                             modelData.getName(), existingBrand.getName(), e.getMessage());
                 }
             }
-            
+
             if (newModelsCount > 0) {
                 log.info("✅ Imported {} new Syrian models for existing brand '{}'", newModelsCount, existingBrand.getName());
             } else {
                 log.debug("No new Syrian models found for existing brand '{}'", existingBrand.getName());
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to import Syrian models for existing brand '{}': {}", existingBrand.getName(), e.getMessage());
         }
@@ -879,7 +879,7 @@ public class SyrianCarsDataService implements CarDataProvider {
             return false;
         }
 
-        log.debug("✅ SYRIAN MODEL DATA QUALITY PASSED: '{}' -> '{}' for brand '{}'", 
+        log.debug("✅ SYRIAN MODEL DATA QUALITY PASSED: '{}' -> '{}' for brand '{}'",
                 englishModelName, arabicModelName, brand.getDisplayNameEn());
         return true;
     }
@@ -898,14 +898,14 @@ public class SyrianCarsDataService implements CarDataProvider {
 
             String englishModelName = syrianModel.getName();
             String arabicModelName = syrianModel.getArabicName();
-            
+
             // Skip model creation if Arabic translation is not available
             if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
-                log.warn("⚠️ SKIPPING SYRIAN MODEL CREATION: '{}' for brand '{}' - Arabic name not available", 
+                log.warn("⚠️ SKIPPING SYRIAN MODEL CREATION: '{}' for brand '{}' - Arabic name not available",
                         englishModelName, brand.getDisplayNameEn());
                 return;
             }
-            
+
             // Generate slug with brand-model format for proper filtering (same as CarQuery)
             String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 
@@ -918,11 +918,11 @@ public class SyrianCarsDataService implements CarDataProvider {
             model.setIsActive(false); // External API data requires admin review
 
             CarModel savedModel = carModelService.createModel(model);
-            log.info("✅ SYRIAN MODEL CREATED: '{}' -> '{}' for brand '{}' (ID: {}, slug: {})", 
+            log.info("✅ SYRIAN MODEL CREATED: '{}' -> '{}' for brand '{}' (ID: {}, slug: {})",
                     englishModelName, arabicModelName, brand.getDisplayNameEn(), savedModel.getId(), modelSlug);
 
         } catch (Exception e) {
-            log.error("❌ CRITICAL ERROR creating Syrian model '{}' for brand '{}': {}", 
+            log.error("❌ CRITICAL ERROR creating Syrian model '{}' for brand '{}': {}",
                     syrianModel.getName(), brand.getDisplayNameEn(), e.getMessage());
             throw e;
         }

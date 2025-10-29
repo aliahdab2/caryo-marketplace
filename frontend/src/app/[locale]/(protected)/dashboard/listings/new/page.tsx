@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import ListingWizard from '@/components/listings/ListingWizard';
- 
+
 
 /**
  * New Listing Page - Now using unified ListingWizard component
- * This replaces the previous 2,500+ line implementation with a clean, 
+ * This replaces the previous 2,500+ line implementation with a clean,
  * reusable component approach following React best practices.
  */
 export default function NewListingPage() {
@@ -42,7 +42,7 @@ export default function NewListingPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
-        
+
 
         {/* Page Header */}
         <div className="mb-6 flex items-start justify-between gap-3">
@@ -64,7 +64,7 @@ export default function NewListingPage() {
         </div>
 
         {/* Unified Listing Wizard with Auto-Save */}
-        <ListingWizard 
+        <ListingWizard
           mode="create"
           autoSave={true}
           onSuccess={handleSuccess}

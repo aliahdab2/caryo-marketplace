@@ -65,7 +65,7 @@ const ModalHeader: React.FC<ModalHeaderProps> = React.memo(({ title, iconCompone
     <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${iconBg} mb-6 animate-icon-bounce`}>
       {iconComponent}
     </div>
-    <h3 
+    <h3
       id="modal-title"
       className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 animate-modal-slide-up"
     >
@@ -174,7 +174,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
       const timer = setTimeout(() => {
         confirmButtonRef.current?.focus();
       }, ANIMATION_DELAYS.FOCUS);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -182,21 +182,21 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   // Optimized keyboard event handler
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!isOpen) return;
-    
+
     if (event.key === 'Escape' && !isLoading) {
       onClose();
       return;
     }
-    
+
     // Tab trapping within modal
     if (event.key === 'Tab') {
       const modal = modalRef.current;
       if (!modal) return;
-      
+
       const focusableElements = modal.querySelectorAll(FOCUSABLE_SELECTOR);
       const firstElement = focusableElements[0] as HTMLElement;
       const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-      
+
       if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement?.focus();
@@ -223,7 +223,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 delete-modal-backdrop flex items-center justify-center z-50 p-4 animate-modal-fade-in"
       onClick={handleBackdropClick}
       role="dialog"
@@ -231,21 +231,21 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
-      <div 
+      <div
         ref={modalRef}
-        className={`relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full mx-4 animate-modal-zoom-in ${isRTL ? 'rtl' : 'ltr'} ${className} border border-gray-200 dark:border-gray-700 overflow-hidden`} 
+        className={`relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full mx-4 animate-modal-zoom-in ${isRTL ? 'rtl' : 'ltr'} ${className} border border-gray-200 dark:border-gray-700 overflow-hidden`}
         dir={isRTL ? 'rtl' : 'ltr'}
         onClick={(e) => e.stopPropagation()}
       >
         <CloseButton onClose={onClose} isLoading={isLoading} isRTL={isRTL} />
 
         <div className="p-8">
-          <ModalHeader 
-            title={title} 
-            iconComponent={IconComponent} 
-            iconBg={styles.iconBg} 
+          <ModalHeader
+            title={title}
+            iconComponent={IconComponent}
+            iconBg={styles.iconBg}
           />
-          
+
           <ModalContent message={message} itemName={itemName} />
 
           {/* Action Buttons */}
@@ -300,4 +300,4 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   );
 };
 
-export default DeleteConfirmationModal; 
+export default DeleteConfirmationModal;

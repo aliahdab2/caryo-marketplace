@@ -60,7 +60,7 @@ public class VideoController {
      */
     @PostMapping("/external")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Add external video URL", 
+    @Operation(summary = "Add external video URL",
                description = "Add YouTube, Vimeo, or other external video URL to a car listing",
                security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Map<String, Object>> addExternalVideo(
@@ -93,7 +93,7 @@ public class VideoController {
 
         // Validate and determine video source type
         String videoSource = determineVideoSource(request.getUrl());
-        
+
         // Create new media entity for external video
         ListingMedia videoMedia = new ListingMedia();
         videoMedia.setCarListing(listing);
@@ -104,7 +104,7 @@ public class VideoController {
         videoMedia.setFileName(request.getTitle() != null ? request.getTitle() : videoSource.substring(0, 1).toUpperCase() + videoSource.substring(1) + " Video");
         videoMedia.setContentType("video/external");
         videoMedia.setSize(0L); // External videos don't have file size
-        
+
         // Set duration if provided (AutoTrader limit: 3 minutes)
         if (request.getDurationSeconds() != null) {
             if (request.getDurationSeconds() > 180) {
@@ -116,7 +116,7 @@ public class VideoController {
         // Calculate sort order (videos typically come after images)
         int nextSortOrder = listing.getMedia().size();
         videoMedia.setSortOrder(nextSortOrder);
-        
+
         // External videos are typically not primary unless it's the only media
         videoMedia.setIsPrimary(listing.getMedia().isEmpty());
 
@@ -143,7 +143,7 @@ public class VideoController {
      */
     @DeleteMapping("/external/{mediaId}")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Remove external video", 
+    @Operation(summary = "Remove external video",
                description = "Remove an external video URL from a car listing")
     public ResponseEntity<Map<String, String>> removeExternalVideo(
             @PathVariable Long listingId,
@@ -166,8 +166,8 @@ public class VideoController {
         }
 
         // Find and remove the media
-        boolean removed = listing.getMedia().removeIf(media -> 
-            Objects.equals(media.getId(), mediaId) && 
+        boolean removed = listing.getMedia().removeIf(media ->
+            Objects.equals(media.getId(), mediaId) &&
             "video".equals(media.getMediaType()) &&
             media.isExternalVideo()
         );
@@ -192,7 +192,7 @@ public class VideoController {
         long uploadedVideos = listing.getMedia().stream()
             .filter(media -> "video".equals(media.getMediaType()) && "upload".equals(media.getVideoSource()))
             .count();
-        
+
         long externalVideos = listing.getMedia().stream()
             .filter(media -> "video".equals(media.getMediaType()) && media.isExternalVideo())
             .count();
@@ -200,7 +200,7 @@ public class VideoController {
         if ("upload".equals(newVideoType) && uploadedVideos >= 1) {
             throw new RuntimeException("Maximum 1 uploaded video per listing allowed");
         }
-        
+
         if ("external".equals(newVideoType) && externalVideos >= 1) {
             throw new RuntimeException("Maximum 1 external video URL per listing allowed");
         }
@@ -215,7 +215,7 @@ public class VideoController {
         }
 
         String normalizedUrl = url.trim().toLowerCase();
-        
+
         if (YOUTUBE_URL_PATTERN.matcher(url).matches()) {
             return "youtube";
         } else if (VIMEO_URL_PATTERN.matcher(url).matches()) {
@@ -238,10 +238,10 @@ public class VideoController {
         // Getters and setters
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }
-        
+
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
-        
+
         public Integer getDurationSeconds() { return durationSeconds; }
         public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
     }

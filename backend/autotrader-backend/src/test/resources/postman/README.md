@@ -58,7 +58,7 @@ The run-collections.sh script requires a running backend instance to succeed. If
    ```bash
    curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/test/public
    ```
-   
+
    If this returns 200, the backend is running.
 
 2. **Starting the Backend**
@@ -70,13 +70,13 @@ The run-collections.sh script requires a running backend instance to succeed. If
    cd ../../../..
    ./start-dev.sh
    ```
-   
+
    Wait for the backend to fully initialize before running the tests.
 
 3. **Using a Different Environment**
 
    If you need to test against a different environment:
-   
+
    1. Modify the `environment.json` file and update the `baseUrl` value
    2. Run the tests as usual
 

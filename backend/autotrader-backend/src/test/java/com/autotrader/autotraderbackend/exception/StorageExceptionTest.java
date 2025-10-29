@@ -9,7 +9,7 @@ class StorageExceptionTest {
     void testConstructorWithMessage() {
         String message = "Failed to store file.";
         StorageException exception = new StorageException(message);
-        
+
         assertEquals(message, exception.getMessage());
         assertNull(exception.getCause());
     }
@@ -19,7 +19,7 @@ class StorageExceptionTest {
         String message = "Failed to store file due to underlying issue.";
         Throwable cause = new RuntimeException("Disk full");
         StorageException exception = new StorageException(message, cause);
-        
+
         assertEquals(message, exception.getMessage());
         assertEquals(cause, exception.getCause());
     }

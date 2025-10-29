@@ -27,7 +27,7 @@ public class CarConditionService {
     public List<CarCondition> getAllConditions() {
         return carConditionRepository.findAll();
     }
-    
+
     /**
      * Get a car condition by its ID
      * @param id Condition ID
@@ -38,7 +38,7 @@ public class CarConditionService {
         return carConditionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarCondition", "id", id));
     }
-    
+
     /**
      * Get a car condition by its name
      * @param name Condition name
@@ -49,7 +49,7 @@ public class CarConditionService {
         return carConditionRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("CarCondition", "name", name));
     }
-    
+
     /**
      * Search for car conditions by name (in English or Arabic)
      * @param query Search query
@@ -61,7 +61,7 @@ public class CarConditionService {
         }
         return carConditionRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new car condition
      * @param condition Condition to create
@@ -72,7 +72,7 @@ public class CarConditionService {
         log.info("Creating new car condition: {}", condition.getName());
         return carConditionRepository.save(condition);
     }
-    
+
     /**
      * Update an existing car condition
      * @param id Condition ID
@@ -83,15 +83,15 @@ public class CarConditionService {
     @Transactional
     public CarCondition updateCondition(Long id, CarCondition conditionDetails) {
         CarCondition condition = getConditionById(id);
-        
+
         condition.setName(conditionDetails.getName());
         condition.setDisplayNameEn(conditionDetails.getDisplayNameEn());
         condition.setDisplayNameAr(conditionDetails.getDisplayNameAr());
-        
+
         log.info("Updated car condition with id: {}", id);
         return carConditionRepository.save(condition);
     }
-    
+
     /**
      * Delete a car condition
      * @param id Condition ID

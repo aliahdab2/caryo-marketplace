@@ -50,28 +50,28 @@ class CarListingContactFieldsServiceTest {
 
     @Mock
     private CarListingMapper carListingMapper;
-    
+
     @Mock
     private GovernorateRepository governorateRepository;
-    
+
     @Mock
     private StorageService storageService;
-    
+
     @Mock
     private StorageKeyGenerator storageKeyGenerator;
-    
+
     @Mock
     private CarModelService carModelService;
-    
+
     @Mock
     private TransmissionService transmissionService;
-    
+
     @Mock
     private FuelTypeService fuelTypeService;
-    
+
     @Mock
     private BodyStyleService bodyStyleService;
-    
+
     @Mock
     private SavedSearchService savedSearchService;
 
@@ -108,7 +108,7 @@ class CarListingContactFieldsServiceTest {
         CarBrand testBrand = new CarBrand();
         testBrand.setId(1L);
         testBrand.setName("BMW");
-        
+
         testModel = new CarModel();
         testModel.setId(1L);
         testModel.setName("X5");
@@ -157,7 +157,7 @@ class CarListingContactFieldsServiceTest {
             request.setPrice(new BigDecimal("75000.00"));
             request.setCurrency("USD");
             request.setDescription("Luxury SUV");
-            
+
             // AutoTrader pattern: Custom contact fields
             request.setContactName("BMW Sales Team");
             request.setContactEmail("bmw-sales@dealer.com");

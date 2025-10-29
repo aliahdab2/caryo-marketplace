@@ -180,14 +180,14 @@ test('my test', () => {
 test('my test', () => {
   // Save the original implementation
   const originalMock = jest.requireMock('@/components/MyComponent').default;
-  
+
   // Override the mock implementation temporarily
   jest.requireMock('@/components/MyComponent').default = function(props) {
     return <div>Mocked specifically for this test</div>;
   };
-  
+
   // Test your component...
-  
+
   // Restore the original mock implementation for other tests
   jest.requireMock('@/components/MyComponent').default = originalMock;
 });
@@ -249,10 +249,10 @@ Example of fixing timing issues by switching from userEvent to fireEvent:
 test('calls handler when clicked', async () => {
   const handler = jest.fn();
   render(<Button onClick={handler}>Click me</Button>);
-  
+
   // This can sometimes fail with timeout errors
   await userEvent.click(screen.getByRole('button'));
-  
+
   // This might not execute if the previous line times out
   expect(handler).toHaveBeenCalled();
 }, 10000); // Even with timeout, might be unreliable
@@ -261,10 +261,10 @@ test('calls handler when clicked', async () => {
 test('calls handler when clicked', () => {
   const handler = jest.fn();
   render(<Button onClick={handler}>Click me</Button>);
-  
+
   // Direct event triggering - synchronous and reliable
   fireEvent.click(screen.getByRole('button'));
-  
+
   expect(handler).toHaveBeenCalled();
 });
 ```

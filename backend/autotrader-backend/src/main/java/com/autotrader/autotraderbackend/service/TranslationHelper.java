@@ -8,15 +8,15 @@ import java.util.HashMap;
  * Provides easy access to localized messages from email templates.
  */
 public class TranslationHelper {
-    
+
     private final MessageService messageService;
     private final String language;
-    
+
     public TranslationHelper(MessageService messageService, String language) {
         this.messageService = messageService;
         this.language = language;
     }
-    
+
     /**
      * Get a localized message by key.
      * Usage in template: ${t.get('email.welcome.title')}
@@ -24,7 +24,7 @@ public class TranslationHelper {
     public String get(String key) {
         return messageService.getLocalizedMessage(key, language);
     }
-    
+
     /**
      * Get a localized message with parameters.
      * Usage in template: ${t.get('email.welcome.subject', websiteName)}
@@ -32,7 +32,7 @@ public class TranslationHelper {
     public String get(String key, Object... args) {
         return messageService.getLocalizedMessage(key, language, args);
     }
-    
+
     /**
      * Get a localized message with named parameters.
      * Usage in template: ${t.getWithParams('email.footer.copyright', {'year': currentYear, 'websiteName': websiteName})}
@@ -40,7 +40,7 @@ public class TranslationHelper {
     public String getWithParams(String key, Map<String, Object> params) {
         return messageService.getLocalizedMessage(key, language, params);
     }
-    
+
     /**
      * Convenience method for common website name parameter.
      * Usage in template: ${t.withWebsite('email.welcome.subject')}
@@ -50,7 +50,7 @@ public class TranslationHelper {
         params.put("websiteName", websiteName);
         return getWithParams(key, params);
     }
-    
+
     /**
      * Convenience method for copyright with year and website name.
      * Usage in template: ${t.copyright(currentYear, websiteName)}

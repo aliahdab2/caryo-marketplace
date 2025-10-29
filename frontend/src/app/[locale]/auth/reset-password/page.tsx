@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!token) {
       setError(t('auth:invalidResetToken', 'Invalid or expired reset token. Please request a new password reset.'));
       return;
@@ -150,16 +150,16 @@ export default function ResetPasswordPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             {t('auth:resetPassword', 'Reset Password')}
           </h1>
-          
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
             </div>
           )}
-          
+
           <div className="text-center">
-            <Link 
-              href="/auth/forgot-password" 
+            <Link
+              href="/auth/forgot-password"
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
             >
               {t('auth:forgotPassword', 'Request new password reset')}
@@ -211,7 +211,7 @@ export default function ResetPasswordPage() {
               disabled={submitting}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
-            
+
             {/* Password Requirements */}
             <PasswordValidation password={newPassword} />
           </div>
@@ -243,8 +243,8 @@ export default function ResetPasswordPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <Link 
-            href="/auth/signin" 
+          <Link
+            href="/auth/signin"
             className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
           >
             {t('auth:backToSignIn', 'Back to Sign In')}

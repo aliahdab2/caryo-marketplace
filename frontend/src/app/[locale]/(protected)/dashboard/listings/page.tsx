@@ -8,9 +8,9 @@ import { useTranslation } from "react-i18next";
 import { getMyListings, deleteListingById, deleteMultipleListings } from "@/services/listings";
 import { Listing } from "@/types/listings";
 import { ListingsView } from "@/components/listings";
-import { 
-  MdSearch, 
-  MdDelete, 
+import {
+  MdSearch,
+  MdDelete,
   MdClose,
   MdDirectionsCar
 } from "react-icons/md";
@@ -36,7 +36,7 @@ export default function ListingsPage() {
 
   const { t } = useTranslation(['dashboard', 'listings', 'common']);
   const { isRTL } = useDirection();
-  
+
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation({
     namespace: 'listings',
@@ -53,14 +53,14 @@ export default function ListingsPage() {
       console.error('Failed to delete listing(s):', error);
     }
   });
-  
+
   // Load user's listings from API with optimizations
   useEffect(() => {
     const loadListings = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Server layout ensures user is authenticated, fetch listings directly
         const userListings = await getMyListings().catch(() => null);
         if (userListings) {
@@ -80,14 +80,14 @@ export default function ListingsPage() {
 
     loadListings();
   }, []); // No dependency on user since server auth ensures it's available
-  
+
   // Hook for the sticky header effect
   useEffect(() => {
     const handleScroll = () => {
       if (tableHeaderRef.current) {
         const header = tableHeaderRef.current;
         const tableTop = header.parentElement?.getBoundingClientRect().top || 0;
-        
+
         if (tableTop < 0) {
           header.classList.add('fixed-header');
         } else {
@@ -109,20 +109,20 @@ export default function ListingsPage() {
 	const filteredListings = listings
 		.filter(listing => {
 			// Filter by search - V2: Use enhanced object structure
-			const searchMatch = !search || 
+			const searchMatch = !search ||
 				listing.title?.toLowerCase().includes(search.toLowerCase()) ||
 				listing.brand?.displayNameEn?.toLowerCase().includes(search.toLowerCase()) ||
 				listing.model?.displayNameEn?.toLowerCase().includes(search.toLowerCase());
-			
+
 			// Filter by status
 			const statusMatch = statusFilter === "all" || listing.status === statusFilter;
-			
+
 			return searchMatch && statusMatch;
 		})
 		.sort((a, b) => {
 			// Sort by the selected criteria
 			const multiplier = sortOrder === "asc" ? 1 : -1;
-			
+
 			switch (sortBy) {
 				case "title":
 					return (a.title || "").localeCompare(b.title || "") * multiplier;
@@ -156,7 +156,7 @@ export default function ListingsPage() {
           <div className="mb-6">
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
           </div>
-          
+
           {/* Header Skeleton */}
           <div className="mb-6">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
@@ -258,7 +258,7 @@ export default function ListingsPage() {
           </div>
         )}
 
-        
+
 
 			{/* Compact Filters & Search */}
 			<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4">

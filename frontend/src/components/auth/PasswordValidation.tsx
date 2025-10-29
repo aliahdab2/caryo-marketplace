@@ -18,13 +18,13 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
   className = ''
 }) => {
   const { t } = useTranslation();
-  
+
   if (!showRequirements) {
     return null;
   }
 
   const requirements = getPasswordRequirements(password);
-  
+
   return (
     <div className={`mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg ${className}`}>
       <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-2">
@@ -50,7 +50,7 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
  */
 export const usePasswordValidation = (password: string) => {
   const result = validatePassword(password);
-  
+
   return {
     isValid: result.isValid,
     errors: result.errors,
@@ -63,7 +63,7 @@ export const usePasswordValidation = (password: string) => {
  */
 export const PasswordRequirementText: React.FC<{ className?: string }> = ({ className = '' }) => {
   const { t } = useTranslation();
-  
+
   return (
     <p className={`text-xs text-gray-500 dark:text-gray-400 ${className}`}>
       {t('auth:passwordRequirement', 'At least 8 characters with 2 different character types (letters, numbers, symbols)')}

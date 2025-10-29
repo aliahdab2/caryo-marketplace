@@ -19,44 +19,44 @@ import java.util.Optional;
  */
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, Long> {
-    
+
     /**
      * Find conversations where the user is either buyer or seller
      */
     @Query("SELECT c FROM Conversation c WHERE c.buyer = :user OR c.seller = :user ORDER BY c.lastMessageAt DESC")
     Page<Conversation> findByUser(@Param("user") User user, Pageable pageable);
-    
+
     /**
      * Find conversations where the user is the buyer
      */
     Page<Conversation> findByBuyerOrderByLastMessageAtDesc(User buyer, Pageable pageable);
-    
+
     /**
      * Find conversations where the user is the seller
      */
     Page<Conversation> findBySellerOrderByLastMessageAtDesc(User seller, Pageable pageable);
-    
+
     /**
      * Find active conversations for a user
      */
     @Query("SELECT c FROM Conversation c WHERE (c.buyer = :user OR c.seller = :user) AND c.status = :status ORDER BY c.lastMessageAt DESC")
     Page<Conversation> findActiveConversationsByUser(@Param("user") User user, @Param("status") ConversationStatus status, Pageable pageable);
-    
+
     /**
      * Find conversation by listing and participants
      */
     Optional<Conversation> findByListingIdAndBuyerIdAndSellerId(Long listingId, Long buyerId, Long sellerId);
-    
+
     /**
      * Check if conversation exists between buyer and seller for a listing
      */
     boolean existsByListingIdAndBuyerIdAndSellerId(Long listingId, Long buyerId, Long sellerId);
-    
+
     /**
      * Find conversations by listing ID
      */
     List<Conversation> findByListingId(Long listingId);
-    
+
     /**
      * Count active conversations for a user
      */

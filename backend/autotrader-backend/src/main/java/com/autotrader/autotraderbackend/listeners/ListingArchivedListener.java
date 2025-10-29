@@ -95,7 +95,7 @@ public class ListingArchivedListener {
      */
     @Value("${" + CONFIG_EMAIL_NOTIFICATIONS_ENABLED + ":" + DEFAULT_EMAIL_NOTIFICATIONS_ENABLED + "}")
     private boolean emailNotificationsEnabled;
-    
+
     /**
      * Handle the listing archived event.
      * This method processes listing archival events asynchronously and handles notifications.

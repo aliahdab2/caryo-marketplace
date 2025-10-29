@@ -115,7 +115,7 @@ describe('LocationDropdown', () => {
       })
     };
     render(<LocationDropdown {...propsWithArabic} />);
-    
+
     // Should display Arabic names for all governorates
     expect(screen.getByText('القاهرة')).toBeInTheDocument();
     expect(screen.getByText('الإسكندرية')).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('LocationDropdown', () => {
   it('toggles dropdown when button is clicked', () => {
     render(<LocationDropdown {...mockProps} />);
     const button = screen.getByRole('button', { name: /filter by location/i });
-    
+
     fireEvent.click(button);
     expect(mockProps.setShowLocationDropdown).toHaveBeenCalledWith(true);
   });
@@ -157,11 +157,11 @@ describe('LocationDropdown', () => {
       showLocationDropdown: true
     };
     render(<LocationDropdown {...propsWithDropdownOpen} />);
-    
+
     expect(screen.getByText('Cairo')).toBeInTheDocument();
     expect(screen.getByText('Alexandria')).toBeInTheDocument();
     expect(screen.getByText('Giza')).toBeInTheDocument();
-    
+
     // Check that all checkboxes are present
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes).toHaveLength(3);
@@ -173,11 +173,11 @@ describe('LocationDropdown', () => {
       showLocationDropdown: true
     };
     render(<LocationDropdown {...propsWithDropdownOpen} />);
-    
+
     // Select the Cairo checkbox specifically
     const cairoCheckbox = screen.getByLabelText('Cairo');
     fireEvent.click(cairoCheckbox);
-    
+
     expect(mockProps.setFilters).toHaveBeenCalledWith({
       locations: ['cairo']
     });
@@ -190,11 +190,11 @@ describe('LocationDropdown', () => {
       showLocationDropdown: true
     };
     render(<LocationDropdown {...propsWithSelection} />);
-    
+
     // Deselect the Cairo checkbox specifically
     const cairoCheckbox = screen.getByRole('checkbox', { name: 'Cairo' });
     fireEvent.click(cairoCheckbox);
-    
+
     expect(mockProps.setFilters).toHaveBeenCalledWith({});
   });
 
@@ -204,10 +204,10 @@ describe('LocationDropdown', () => {
       showLocationDropdown: true
     };
     render(<LocationDropdown {...propsWithDropdownOpen} />);
-    
+
     const clearButton = screen.getByText('Clear');
     fireEvent.click(clearButton);
-    
+
     expect(mockProps.setFilters).toHaveBeenCalledWith({});
   });
 
@@ -217,10 +217,10 @@ describe('LocationDropdown', () => {
       showLocationDropdown: true
     };
     render(<LocationDropdown {...propsWithDropdownOpen} />);
-    
+
     const showButton = screen.getByText('Show');
     fireEvent.click(showButton);
-    
+
     expect(mockProps.setShowLocationDropdown).toHaveBeenCalledWith(false);
   });
 

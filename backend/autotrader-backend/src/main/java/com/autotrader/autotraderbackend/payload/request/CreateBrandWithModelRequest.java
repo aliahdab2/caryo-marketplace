@@ -17,15 +17,15 @@ import jakarta.validation.Valid;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateBrandWithModelRequest {
-    
+
     @Valid
     @NotNull(message = "Brand details are required")
     private BrandDetails brand;
-    
+
     @Valid
     @NotNull(message = "Model details are required")
     private ModelDetails model;
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -34,19 +34,19 @@ public class CreateBrandWithModelRequest {
         @NotBlank(message = "Brand name is required")
         @Size(max = 50, message = "Brand name must not exceed 50 characters")
         private String name;
-        
+
         @NotBlank(message = "English display name is required")
         @Size(max = 100, message = "English display name must not exceed 100 characters")
         private String displayNameEn;
-        
+
         @NotBlank(message = "Arabic display name is required")
         @Size(max = 100, message = "Arabic display name must not exceed 100 characters")
         private String displayNameAr;
-        
+
         @NotNull(message = "Active status is required")
         private Boolean isActive = true;
     }
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -55,19 +55,19 @@ public class CreateBrandWithModelRequest {
         @NotBlank(message = "Model name is required")
         @Size(max = 50, message = "Model name must not exceed 50 characters")
         private String name;
-        
+
         @NotBlank(message = "English display name is required")
         @Size(max = 100, message = "English display name must not exceed 100 characters")
         private String displayNameEn;
-        
+
         @NotBlank(message = "Arabic display name is required")
         @Size(max = 100, message = "Arabic display name must not exceed 100 characters")
         private String displayNameAr;
-        
+
         @NotNull(message = "Active status is required")
         private Boolean isActive = true;
     }
-    
+
     @Override
     public String toString() {
         return "CreateBrandWithModelRequest{" +

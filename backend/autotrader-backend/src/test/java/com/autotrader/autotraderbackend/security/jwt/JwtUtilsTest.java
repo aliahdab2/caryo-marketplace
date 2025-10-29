@@ -32,18 +32,18 @@ public class JwtUtilsTest {
     void setUp() {
         // Create JwtUtils instance
         jwtUtils = new JwtUtils();
-        
+
         // Set up the required fields using ReflectionTestUtils
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 60000); // 1 minute
-        
+
         // Set up the UserDetails
         userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username("testuser")
                 .password("password")
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
                 .build();
-        
+
         lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
     }
 
@@ -51,7 +51,7 @@ public class JwtUtilsTest {
     void generateJwtToken_ShouldReturnValidJwtToken() {
         // Act
         String token = jwtUtils.generateJwtToken(authentication);
-        
+
         // Assert
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -61,10 +61,10 @@ public class JwtUtilsTest {
     void getUserNameFromJwtToken_ShouldReturnCorrectUsername() {
         // Arrange
         String token = jwtUtils.generateJwtToken(authentication);
-        
+
         // Act
         String username = jwtUtils.getUserNameFromJwtToken(token);
-        
+
         // Assert
         assertEquals("testuser", username);
     }
@@ -73,7 +73,7 @@ public class JwtUtilsTest {
     void validateJwtToken_WithValidToken_ShouldReturnTrue() {
         // Arrange
         String token = jwtUtils.generateJwtToken(authentication);
-        
+
         // Act & Assert
         assertDoesNotThrow(() -> jwtUtils.validateJwtToken(token));
     }
@@ -82,7 +82,7 @@ public class JwtUtilsTest {
     void validateJwtToken_WithInvalidToken_ShouldThrowMalformedJwtTokenException() {
         // Arrange
         String invalidToken = "invalid.token.here";
-        
+
         // Act & Assert
         assertThrows(MalformedJwtTokenException.class, () -> {
             jwtUtils.validateJwtToken(invalidToken);
@@ -94,14 +94,14 @@ public class JwtUtilsTest {
         // Arrange
         // Set a very short expiration time for the test
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 1); // 1 millisecond
-        
+
         String token = jwtUtils.generateJwtToken(authentication);
-        
+
         // Wait for the token to expire with enhanced retry logic for CI stability
         int maxRetries = 20; // Increased retries for CI environments
         int retryCount = 0;
         boolean tokenExpired = false;
-        
+
         while (retryCount < maxRetries && !tokenExpired) {
             try {
                 Thread.sleep(100); // Slightly longer sleep for CI stability
@@ -114,10 +114,10 @@ public class JwtUtilsTest {
                 break;
             }
         }
-        
+
         // Ensure we actually waited for expiration
         assertTrue(tokenExpired, "Token should have expired within the retry period");
-        
+
         // Act & Assert - Now test that the token is definitely expired
         assertThrows(ExpiredJwtTokenException.class, () -> {
             jwtUtils.validateJwtToken(token);

@@ -188,8 +188,8 @@ Check if user data is correctly stored in the database:
 SELECT * FROM users WHERE email = 'your-google-email@gmail.com';
 
 -- Check role assignments
-SELECT r.name FROM users u 
-JOIN user_roles ur ON u.id = ur.user_id 
+SELECT r.name FROM users u
+JOIN user_roles ur ON u.id = ur.user_id
 JOIN roles r ON ur.role_id = r.id
 WHERE u.email = 'your-google-email@gmail.com';
 ```

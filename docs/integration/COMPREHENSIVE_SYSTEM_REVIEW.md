@@ -75,7 +75,7 @@ public DataLoadResult loadAllBrands() {
     try {
         // Existing logic
     } catch (CarQueryConnectionException e) {
-        log.warn("CarQuery connection failed, attempt {}/3: {}", 
+        log.warn("CarQuery connection failed, attempt {}/3: {}",
                  getCurrentAttempt(), e.getMessage());
         throw e;
     }
@@ -92,7 +92,7 @@ public DataLoadResult loadAllBrands() {
 @Component
 public class IntegrationMetrics {
     private final MeterRegistry meterRegistry;
-    
+
     public void recordImport(String provider, String type, String result) {
         Counter.builder("caryo.data.imports")
             .tag("provider", provider)
@@ -116,7 +116,7 @@ public class DataValidationService {
     public ValidationResult validateBrand(CarBrand brand) {
         List<String> warnings = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        
+
         // Validation rules
         if (brand.getName().length() < 2) {
             errors.add("Brand name too short");
@@ -124,7 +124,7 @@ public class DataValidationService {
         if (brand.getName().matches(".*\\d{4,}.*")) {
             warnings.add("Brand name contains year numbers");
         }
-        
+
         return new ValidationResult(errors.isEmpty(), errors, warnings);
     }
 }
@@ -143,11 +143,11 @@ public class IntegrationConfig {
     @NotNull
     @URL
     private String carQueryApiUrl;
-    
+
     @Min(1000)
     @Max(60000)
     private int timeoutMs = 30000;
-    
+
     @NotEmpty
     private List<String> enabledProviders;
 }
@@ -184,7 +184,7 @@ public CompletableFuture<ImportResult> importBrandsAsync(List<BrandData> brands)
 @Component
 public class RateLimitedApiClient {
     private final RateLimiter rateLimiter = RateLimiter.create(10.0); // 10 requests/second
-    
+
     public <T> T executeWithRateLimit(Supplier<T> apiCall) {
         rateLimiter.acquire();
         return apiCall.get();
@@ -263,16 +263,16 @@ public class ApiSecurityConfig {
 public class DataQualityService {
     public QualityReport analyzeDataQuality() {
         QualityReport report = new QualityReport();
-        
+
         // Check for duplicates
         report.setDuplicateBrands(findDuplicateBrands());
-        
+
         // Check for missing translations
         report.setMissingTranslations(findMissingTranslations());
-        
+
         // Check for suspicious data
         report.setSuspiciousEntries(findSuspiciousEntries());
-        
+
         return report;
     }
 }
@@ -290,14 +290,14 @@ public class DataQualityService {
 public class DataBackupService {
     public BackupResult createBackup(String reason) {
         String backupId = UUID.randomUUID().toString();
-        
+
         // Export current data
         exportBrandsToBackup(backupId);
         exportModelsToBackup(backupId);
-        
+
         return new BackupResult(backupId, LocalDateTime.now());
     }
-    
+
     public void restoreFromBackup(String backupId) {
         // Restore logic
     }

@@ -16,13 +16,13 @@ public class CacheConfig {
         return new ConcurrentMapCacheManager(
             // User-related caches
             "favorites",
-            
+
             // Location caches
             "locations",
             "locationsByCountry",
             "locationsByGovernorate",
             "locationsByGovernorateSlug",
-            
+
             // Car reference data caches
             "carBrands",           // All brands
             "activeBrands",        // Active brands only

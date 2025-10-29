@@ -31,7 +31,7 @@ class CarModelServiceSmartActivationTest {
 
     @Mock
     private CarBrandService carBrandService;
-    
+
     @Mock
     private CarHierarchyService carHierarchyService;
 

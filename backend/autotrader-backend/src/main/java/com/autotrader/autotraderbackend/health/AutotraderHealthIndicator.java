@@ -20,7 +20,7 @@ public class AutotraderHealthIndicator implements HealthIndicator {
         try {
             // You can add actual service checks here
             // For example, check database connectivity, S3 connection, etc.
-            
+
             return Health.up()
                 .withDetail("serviceStatus", "available")
                 .withDetail("description", "Autotrader backend service is running properly")

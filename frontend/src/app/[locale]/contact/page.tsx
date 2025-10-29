@@ -10,7 +10,7 @@ export default function ContactPage() {
   const { t, ready: contactReady } = useLazyTranslation('contact');
   const { t: tCommon, ready: commonReady } = useLazyTranslation('common');
   const router = useRouter();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +22,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  
+
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -30,7 +30,7 @@ export default function ContactPage() {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -39,56 +39,56 @@ export default function ContactPage() {
       }));
     }
   };
-  
+
   // Validate form
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     // Name validation
     if (!formData.name.trim()) {
       newErrors.name = t('form.name.validation.required');
     } else if (formData.name.trim().length < 2) {
       newErrors.name = t('form.name.validation.minLength');
     }
-    
+
     // Email validation with improved regex for better international domain support
     if (!formData.email.trim()) {
       newErrors.email = t('form.email.validation.required');
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
       newErrors.email = t('form.email.validation.invalid');
     }
-    
+
     // Subject validation
     if (!formData.subject.trim()) {
       newErrors.subject = t('form.subject.validation.required');
     }
-    
+
     // Message validation with improved length check
     if (!formData.message.trim()) {
       newErrors.message = t('form.message.validation.required');
     } else if (formData.message.trim().length < 20) {
       newErrors.message = t('form.message.validation.minLength');
     }
-    
+
     // Verification check
     if (!isVerified) {
       newErrors.form = t('form.verification.required');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear any previous errors
     setErrors({});
-    
+
     // Check form validity
     if (!validateForm()) return;
-    
+
     // Check verification status
     if (!isVerified) {
       setErrors({
@@ -96,17 +96,17 @@ export default function ContactPage() {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Here you would typically send the data to your API
       // For now, we'll simulate a successful submission with a delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Show success message
       setSubmitSuccess(true);
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -114,10 +114,10 @@ export default function ContactPage() {
         subject: '',
         message: ''
       });
-      
+
       // Reset verification for next use
       resetVerification();
-      
+
       // No immediate redirect - let user see the success message first
       // They can click the "Back to Home" button if they want to leave
       // This is better UX than auto-redirecting
@@ -130,7 +130,7 @@ export default function ContactPage() {
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle verification status update
   const handleVerification = useCallback((verified: boolean) => {
     setIsVerified(verified);
@@ -153,7 +153,7 @@ export default function ContactPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       )}
-      
+
       {/* Only render the page content when translations are ready */}
       {contactReady && commonReady && (
         <>
@@ -172,24 +172,24 @@ export default function ContactPage() {
             <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#contactGradient)" opacity="0.5" />
           </svg>
         </div>
-        
+
         {/* Content */}
         <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
           <div className="flex items-center mb-6">
             <div className="h-10 w-10 relative flex-shrink-0">
-              <Image 
-                src="/images/logo.svg" 
-                alt={tCommon('logoAlt', 'Caryo Logo')} 
-                width={40} 
-                height={40} 
-                className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+              <Image
+                src="/images/logo.svg"
+                alt={tCommon('logoAlt', 'Caryo Logo')}
+                width={40}
+                height={40}
+                className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
               />
             </div>
             <h1 className="text-lg md:text-xl font-bold">{tCommon('appName', 'Caryo Marketplace')}</h1>
           </div>
           <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('form.title')}</h2>
           <p className="text-sm md:text-base opacity-80">{t('form.description')}</p>
-          
+
           <div className="mt-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
             <div className="flex items-start mb-3">
               <div className="mr-2.5 mt-0.5 text-blue-200 flex-shrink-0">
@@ -215,7 +215,7 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
           <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {tCommon('appName', 'Caryo Marketplace')}</p>
           <p className="opacity-60">{tCommon('privacyPolicy', 'Privacy Policy')} • {tCommon('termsOfService', 'Terms of Service')}</p>
@@ -251,11 +251,11 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.name.label')}</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  id="name" 
-                  autoComplete="name" 
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder={t('form.name.placeholder')}
@@ -269,11 +269,11 @@ export default function ContactPage() {
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.email.label')}</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  id="email" 
-                  autoComplete="email" 
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder={t('form.email.placeholder')}
@@ -288,9 +288,9 @@ export default function ContactPage() {
             {/* Subject Field */}
             <div>
               <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.subject.label')}</label>
-              <select 
-                id="subject" 
-                name="subject" 
+              <select
+                id="subject"
+                name="subject"
                 value={formData.subject}
                 onChange={handleChange}
                 className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.subject ? 'border-red-500' : 'border-gray-300'}`}
@@ -311,10 +311,10 @@ export default function ContactPage() {
             {/* Message Field */}
             <div>
               <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('form.message.label')}</label>
-              <textarea 
-                id="message" 
-                name="message" 
-                rows={6} 
+              <textarea
+                id="message"
+                name="message"
+                rows={6}
                 value={formData.message}
                 onChange={handleChange}
                 placeholder={t('form.message.placeholder')}
@@ -328,18 +328,18 @@ export default function ContactPage() {
 
             {/* Verification Component */}
             <div className="pt-2">
-              <SimpleVerification 
+              <SimpleVerification
                 key={verificationKey}
-                onVerified={handleVerification} 
-                autoHide={true} 
+                onVerified={handleVerification}
+                autoHide={true}
               />
               {errors.form && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errors.form}</p>}
             </div>
 
             {/* Submit Button */}
             <div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSubmitting || !isVerified}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
               >

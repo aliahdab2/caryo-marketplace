@@ -34,7 +34,7 @@ export default function SettingsPage() {
     newsletter: true,
     marketing: false,
   });
-  
+
   // Privacy settings state
   const [privacySettings, setPrivacySettings] = useState({
     showPhone: false,
@@ -88,7 +88,7 @@ export default function SettingsPage() {
       notificationSettings,
       privacySettings
     });
-    
+
     // TODO: If a global notification system exists and is preferred for "Settings Saved",
     // trigger it here. For now, this component will not show its own toast for this action.
     // alert(t('settings.savedSuccessfully')); // Example of a simple browser alert if needed
@@ -105,11 +105,11 @@ export default function SettingsPage() {
         })} />
       </div>
       <h1 className="text-2xl font-semibold mb-6">{t('settings')}</h1>
-      
+
       {/* Account Preferences */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">{t('settings.accountPreferences')}</h2>
-        
+
         <div className="grid grid-cols-1 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -128,11 +128,11 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Notification Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">{t('settings.notificationSettings')}</h2>
-        
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -141,17 +141,17 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="sr-only peer"
                   checked={notificationSettings.emailNotifications}
-                  onChange={() => handleNotificationToggle('emailNotifications')} 
+                  onChange={() => handleNotificationToggle('emailNotifications')}
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
               </label>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.pushNotifications')}</h3>
@@ -159,81 +159,81 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="sr-only peer"
                   checked={notificationSettings.pushNotifications}
-                  onChange={() => handleNotificationToggle('pushNotifications')} 
+                  onChange={() => handleNotificationToggle('pushNotifications')}
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
               </label>
             </div>
           </div>
-          
+
           <div className="pt-4 border-t dark:border-gray-700">
             <h3 className="font-medium text-gray-900 dark:text-white mb-3">{t('settings.notificationsFor')}</h3>
-            
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t('settings.newMessages')}</span>
                 <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={notificationSettings.newMessages}
-                    onChange={() => handleNotificationToggle('newMessages')} 
+                    onChange={() => handleNotificationToggle('newMessages')}
                   />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t('settings.listingExpiry')}</span>
                 <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={notificationSettings.listingExpiry}
-                    onChange={() => handleNotificationToggle('listingExpiry')} 
+                    onChange={() => handleNotificationToggle('listingExpiry')}
                   />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t('settings.priceDrops')}</span>
                 <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={notificationSettings.priceDrops}
-                    onChange={() => handleNotificationToggle('priceDrops')} 
+                    onChange={() => handleNotificationToggle('priceDrops')}
                   />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t('settings.newsletter')}</span>
                 <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={notificationSettings.newsletter}
-                    onChange={() => handleNotificationToggle('newsletter')} 
+                    onChange={() => handleNotificationToggle('newsletter')}
                   />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                 </label>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t('settings.marketing')}</span>
                 <label className="inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="sr-only peer"
                     checked={notificationSettings.marketing}
-                    onChange={() => handleNotificationToggle('marketing')} 
+                    onChange={() => handleNotificationToggle('marketing')}
                   />
                   <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                 </label>
@@ -242,11 +242,11 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Privacy Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">{t('settings.privacySettings')}</h2>
-        
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -255,17 +255,17 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="sr-only peer"
                   checked={privacySettings.showPhone}
-                  onChange={() => handlePrivacyToggle('showPhone')} 
+                  onChange={() => handlePrivacyToggle('showPhone')}
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
               </label>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">{t('settings.showEmail')}</h3>
@@ -273,11 +273,11 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   className="sr-only peer"
                   checked={privacySettings.showEmail}
-                  onChange={() => handlePrivacyToggle('showEmail')} 
+                  onChange={() => handlePrivacyToggle('showEmail')}
                 />
                 <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 dark:peer-focus:ring-primary/25 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
               </label>
@@ -285,7 +285,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Save Button */}
       <div className="flex justify-end">
         <button
@@ -295,11 +295,11 @@ export default function SettingsPage() {
           {t('saveChanges')}
         </button>
       </div>
-      
+
       {/* Danger Zone */}
       <div className="mt-12 border border-red-200 dark:border-red-900 rounded-lg p-6">
         <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-4">{t('settings.dangerZone')}</h2>
-        
+
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-3 md:mb-0">

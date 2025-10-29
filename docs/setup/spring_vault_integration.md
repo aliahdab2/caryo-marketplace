@@ -9,7 +9,7 @@ Add the following dependencies to your `build.gradle`:
 ```gradle
 dependencies {
     // Existing dependencies
-    
+
     // Vault integration
     implementation 'org.springframework.cloud:spring-cloud-starter-vault-config:4.0.1'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap:4.0.1'
@@ -76,10 +76,10 @@ public class DatabaseService {
 
     @Value("${database.postgres.username}")
     private String dbUsername;
-    
+
     @Value("${database.postgres.password}")
     private String dbPassword;
-    
+
     // Use the secrets in your code
 }
 ```
@@ -96,7 +96,7 @@ public class EmailConfig {
     private int port;
     private String username;
     private String password;
-    
+
     // Getters and setters
 }
 ```
@@ -114,7 +114,7 @@ public class YourIntegrationTest {
     @Container
     public static VaultContainer<?> vaultContainer = new VaultContainer<>("vault:1.13")
             .withVaultToken("testvaulttoken")
-            .withSecretInVault("kv/data/database/postgres", 
+            .withSecretInVault("kv/data/database/postgres",
                 "{ \"data\": { \"username\": \"test\", \"password\": \"testpass\" } }");
 
     // Your tests
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Import Secrets from Vault
         uses: hashicorp/vault-action@v2
         with:

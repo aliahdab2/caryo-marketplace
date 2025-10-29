@@ -1,6 +1,6 @@
 /**
  * ListingWizard Basic Tests
- * 
+ *
  * Minimal safety net tests for refactoring protection.
  * These tests focus on ensuring the component doesn't crash and
  * maintains basic functionality during refactoring.
@@ -12,9 +12,9 @@ import ListingWizard from '../ListingWizard';
 
 // Mock NextAuth and session hooks with consistent data
 jest.mock('next-auth/react', () => ({
-  SessionProvider: ({ children }: { children: React.ReactNode }) => ({ 
-    type: 'div', 
-    props: { children } 
+  SessionProvider: ({ children }: { children: React.ReactNode }) => ({
+    type: 'div',
+    props: { children }
   }),
   useSession: () => ({
     data: {
@@ -82,7 +82,7 @@ const createMocks = () => {
   const mockT = jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'step1': 'Step 1',
-      'step2': 'Step 2', 
+      'step2': 'Step 2',
       'step3': 'Step 3',
       'step4': 'Step 4',
       'vehicleIdentity': 'Vehicle Identity',
@@ -231,9 +231,9 @@ jest.mock('@/utils/direction', () => ({
 
 jest.mock('@/utils/rtlHelpers', () => ({
   createRTLHelpers: () => ({
-    spacing: { 
-      ml: (value: string) => `ml-${value}`, 
-      mr: (value: string) => `mr-${value}` 
+    spacing: {
+      ml: (value: string) => `ml-${value}`,
+      mr: (value: string) => `mr-${value}`
     },
     arrows: { rightArrow: 'M9 5l7 7-7 7' }
   })
@@ -251,7 +251,7 @@ describe('ListingWizard Basic Safety Tests', () => {
   describe('Crash Protection', () => {
     it('should render in create mode without crashing', () => {
       const { container } = render(<ListingWizard mode="create" />);
-      
+
       // Component should render something (even if loading)
       expect(container.firstChild).toBeInTheDocument();
       expect(container.firstChild).not.toBeNull();
@@ -259,7 +259,7 @@ describe('ListingWizard Basic Safety Tests', () => {
 
     it('should render in edit mode without crashing', () => {
       const { container } = render(<ListingWizard mode="edit" listingId="123" />);
-      
+
       // Component should render something (even if loading)
       expect(container.firstChild).toBeInTheDocument();
       expect(container.firstChild).not.toBeNull();
@@ -267,12 +267,12 @@ describe('ListingWizard Basic Safety Tests', () => {
 
     it('should handle props changes without crashing', () => {
       const { rerender, container } = render(<ListingWizard mode="create" />);
-      
+
       expect(container.firstChild).toBeInTheDocument();
 
       // Should not crash when changing mode
       rerender(<ListingWizard mode="edit" listingId="456" />);
-      
+
       expect(container.firstChild).toBeInTheDocument();
       expect(container.firstChild).not.toBeNull();
     });
@@ -281,10 +281,10 @@ describe('ListingWizard Basic Safety Tests', () => {
   describe('Essential Functionality', () => {
     it('should have access to mocked services', () => {
       const { container } = render(<ListingWizard mode="create" />);
-      
+
       // Component renders means mocks are working
       expect(container.firstChild).toBeInTheDocument();
-      
+
       // Verify the mocks are accessible
       expect(mockListingData.carMakes).toBeDefined();
       expect(mockListingData.loadCarModels).toBeDefined();
@@ -294,7 +294,7 @@ describe('ListingWizard Basic Safety Tests', () => {
   describe('Critical User Interactions', () => {
     it('should handle basic rendering without crashing', () => {
       const { container } = render(<ListingWizard mode="create" />);
-      
+
       expect(container.firstChild).toBeInTheDocument();
 
       // Try to find any interactive elements that exist
@@ -310,7 +310,7 @@ describe('ListingWizard Basic Safety Tests', () => {
   describe('Service Integration Safety', () => {
     it('should have access to service mocks', () => {
       const { container } = render(<ListingWizard mode="create" />);
-      
+
       expect(container.firstChild).toBeInTheDocument();
 
       // The component should be able to render which means mocked services are accessible
@@ -321,7 +321,7 @@ describe('ListingWizard Basic Safety Tests', () => {
   describe('Contact Fields Safety', () => {
     it('should handle contact field structure without crashing', () => {
       const { container } = render(<ListingWizard mode="create" />);
-      
+
       expect(container.firstChild).toBeInTheDocument();
 
       // Component should handle contact fields in form data structure
@@ -331,7 +331,7 @@ describe('ListingWizard Basic Safety Tests', () => {
         contactPhone: "",
         contactPreference: "email"
       };
-      
+
       expect(mockFormDataFromService.contactName).toBeDefined();
       expect(mockFormDataFromService.contactEmail).toBeDefined();
       expect(mockFormDataFromService.contactPhone).toBeDefined();

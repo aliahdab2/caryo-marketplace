@@ -22,10 +22,10 @@ public class GovernorateResponse {
     private String region;
     private Double latitude;
     private Double longitude;
-    
+
     /**
      * Factory method to create a GovernorateResponse from a Governorate entity
-     * 
+     *
      * @param governorate the Governorate entity
      * @return a new GovernorateResponse, or null if the input is null
      */
@@ -33,7 +33,7 @@ public class GovernorateResponse {
         if (governorate == null) {
             return null;
         }
-        
+
         GovernorateResponse response = new GovernorateResponse();
         response.setId(governorate.getId());
         response.setDisplayNameEn(governorate.getDisplayNameEn());
@@ -42,7 +42,7 @@ public class GovernorateResponse {
         response.setRegion(governorate.getRegion());
         response.setLatitude(governorate.getLatitude());
         response.setLongitude(governorate.getLongitude());
-        
+
         // Set country information
         if (governorate.getCountry() != null) {
             response.setCountryId(governorate.getCountry().getId());
@@ -50,7 +50,7 @@ public class GovernorateResponse {
             response.setCountryNameEn(governorate.getCountry().getDisplayNameEn());
             response.setCountryNameAr(governorate.getCountry().getDisplayNameAr());
         }
-        
+
         return response;
     }
 }

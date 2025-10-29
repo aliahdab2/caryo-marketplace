@@ -89,7 +89,7 @@ export default function ContactSellerModal({
       document.addEventListener('keydown', handleTabKey);
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
-      
+
       // Focus the first focusable element when modal opens
       setTimeout(() => {
         if (firstFocusableRef.current) {
@@ -165,11 +165,11 @@ export default function ContactSellerModal({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div 
+      <div
         ref={modalRef}
         className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
         role="dialog"

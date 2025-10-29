@@ -20,38 +20,38 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
-    
+
     /**
      * The actual response data (null for error responses or operations without return data)
      * Always include this field in JSON even when null, as null data has semantic meaning
      */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     private T data;
-    
+
     /**
      * Localized message for the user (success or error message)
      */
     private String message;
-    
+
     /**
      * Response status using translation keys: response.status.success, response.status.error,
      * response.status.warning, response.status.info
      */
     private String status;
-    
+
     /**
      * Timestamp when the response was generated
      */
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    
+
     /**
      * Additional metadata (pagination info, etc.)
      */
     private Object metadata;
-    
+
     // Convenience factory methods
-    
+
     /**
      * Create a successful response with data and message
      */
@@ -76,7 +76,7 @@ public class ApiResponse<T> {
                 .status(i18nService.getMessage("response.status.success", acceptLanguage))
                 .build();
     }
-    
+
     /**
      * Create a successful response with only data
      */
@@ -122,7 +122,7 @@ public class ApiResponse<T> {
                 .status(i18nService.getMessage("response.status.success", acceptLanguage))
                 .build();
     }
-    
+
     /**
      * Create an error response with message
      */
@@ -170,7 +170,7 @@ public class ApiResponse<T> {
                 .metadata(metadata)
                 .build();
     }
-    
+
     /**
      * Create a warning response
      */

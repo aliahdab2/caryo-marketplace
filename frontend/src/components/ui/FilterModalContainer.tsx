@@ -21,7 +21,7 @@ export const FilterModalContainer: React.FC<FilterModalContainerProps> = ({
     <div className="space-y-4">
       <div>
         {title && (
-          <h3 
+          <h3
             id="filter-modal-title"
             className={`text-base font-medium text-gray-900 mb-3 text-center ${dirClass}`}
           >

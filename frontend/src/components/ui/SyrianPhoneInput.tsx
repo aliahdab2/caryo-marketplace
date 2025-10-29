@@ -97,20 +97,20 @@ export default function SyrianPhoneInput({
   // Get operator info with localization
   const getLocalizedOperator = (operatorName: string | undefined): string | undefined => {
     if (!operatorName) return undefined;
-    
+
     const isArabic = i18n.language.startsWith('ar');
-    
+
     if (operatorName === 'MTN Syria') {
       return isArabic ? 'إم تي إن سوريا' : 'MTN Syria';
     }
-    
+
     if (operatorName === 'Syriatel') {
       return isArabic ? 'سيرياتيل' : 'Syriatel';
     }
-    
+
     return operatorName;
   };
-  
+
   const operator = getLocalizedOperator(validationResult?.operator);
 
   return (

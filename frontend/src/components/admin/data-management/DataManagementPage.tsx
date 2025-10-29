@@ -100,7 +100,7 @@ export const DataManagementPage: React.FC = () => {
   const { t } = useTranslation(['datamanagement', 'common']);
   const router = useRouter();
   const { isRTL } = useLanguageDirection();
-  
+
   // State for pagination and filtering
   const [brandsPage, setBrandsPage] = useState(1);
   const [modelsPage, setModelsPage] = useState(1);
@@ -108,8 +108,8 @@ export const DataManagementPage: React.FC = () => {
   const [modelsSearch, setModelsSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all'); // Default to 'all' to show both active and inactive models
   const [selectedBrandFilter, setSelectedBrandFilter] = useState<string>('');
-  
-  
+
+
   // State for editing
   const [editingBrand, setEditingBrand] = useState<number | null>(null);
   const [editingModel, setEditingModel] = useState<number | null>(null);
@@ -123,7 +123,7 @@ export const DataManagementPage: React.FC = () => {
 
   // State for bulk selection (models only)
   const [selectedModels, setSelectedModels] = useState<Set<number>>(new Set());
-  
+
   // State for bulk operations loading
   const [bulkUpdatingModels, setBulkUpdatingModels] = useState(false);
 
@@ -243,18 +243,18 @@ export const DataManagementPage: React.FC = () => {
 
   const filteredModels = useMemo(() => {
     return models.filter(model => {
-      const matchesSearch = !modelsSearch || 
+      const matchesSearch = !modelsSearch ||
         model.name.toLowerCase().includes(modelsSearch.toLowerCase()) ||
         model.displayNameEn.toLowerCase().includes(modelsSearch.toLowerCase()) ||
         model.displayNameAr.includes(modelsSearch);
-      
-      const matchesStatus = statusFilter === 'all' || 
+
+      const matchesStatus = statusFilter === 'all' ||
         (statusFilter === 'active' && model.isActive) ||
         (statusFilter === 'inactive' && !model.isActive);
-      
-      const matchesBrand = !selectedBrandFilter || 
+
+      const matchesBrand = !selectedBrandFilter ||
         model.brandId.toString() === selectedBrandFilter;
-      
+
       return matchesSearch && matchesStatus && matchesBrand;
     });
   }, [models, modelsSearch, statusFilter, selectedBrandFilter]);
@@ -315,10 +315,10 @@ export const DataManagementPage: React.FC = () => {
 
   const handleAddBrand = async () => {
     if (!newBrand.name || !newBrand.displayNameEn || !newBrand.displayNameAr) return;
-    
+
     const brandData = { ...newBrand };
     const modelData = { name: 'default', displayNameEn: 'Default', displayNameAr: 'افتراضي' };
-    
+
     await createBrandWithModel(brandData, modelData);
     setNewBrand({ name: '', displayNameEn: '', displayNameAr: '' });
     setShowAddBrand(false);
@@ -385,7 +385,7 @@ export const DataManagementPage: React.FC = () => {
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="max-w-7xl mx-auto px-4 py-4">
-        
+
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 p-3 mb-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -402,7 +402,7 @@ export const DataManagementPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            
+
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-3">
               <button
@@ -413,7 +413,7 @@ export const DataManagementPage: React.FC = () => {
                 <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {t('common:refresh')}
               </button>
-              
+
               <button
                 onClick={exportExcel}
                 className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
@@ -421,7 +421,7 @@ export const DataManagementPage: React.FC = () => {
                 <FiDownload className="w-4 h-4" />
                 {t('datamanagement:exportExcel')}
               </button>
-              
+
               <label className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer">
                 <FiUpload className="w-4 h-4" />
                 {t('datamanagement:importExcel')}
@@ -744,7 +744,7 @@ const _SyncOperationsCard: React.FC<{
       <FiRefreshCcw className="w-6 h-6" />
       {t('datamanagement:syncOperations')}
     </h2>
-    
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
         <h3 className="font-medium text-gray-900 dark:text-white mb-2">CarQuery API</h3>
@@ -760,7 +760,7 @@ const _SyncOperationsCard: React.FC<{
           {syncingCarQuery ? t('common:syncing') : t('datamanagement:syncCarQuery')}
         </button>
       </div>
-      
+
       <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
         <h3 className="font-medium text-gray-900 dark:text-white mb-2">SyrianCars</h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -1151,7 +1151,7 @@ const Pagination: React.FC<{
           total: totalItems
         })}
       </div>
-      
+
       <div className="flex items-center gap-2">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -1160,7 +1160,7 @@ const Pagination: React.FC<{
         >
           {isRTL ? <FiChevronRight className="w-4 h-4" /> : <FiChevronLeft className="w-4 h-4" />}
         </button>
-        
+
         {getVisiblePages().map((page, index) => (
           <button
             key={index}
@@ -1175,7 +1175,7 @@ const Pagination: React.FC<{
             {page === '...' ? <FiMoreHorizontal className="w-4 h-4" /> : page}
           </button>
         ))}
-        
+
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -1412,7 +1412,7 @@ const ModelRow: React.FC<ModelRowProps & { t: (key: string) => string; brandsWit
       <td className="py-2 px-3 text-gray-900 dark:text-white text-sm">{model.displayNameAr}</td>
       <td className="py-2 px-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          model.isActive 
+          model.isActive
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
         }`}>

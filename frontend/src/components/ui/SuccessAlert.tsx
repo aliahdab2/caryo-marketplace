@@ -24,7 +24,7 @@ export default function SuccessAlert({
   // Handle visibility changes
   useEffect(() => {
     setIsVisible(visible);
-    
+
     if (visible && autoHideDuration > 0) {
       const timer = setTimeout(handleClose, autoHideDuration);
       return () => clearTimeout(timer);
@@ -58,19 +58,19 @@ export default function SuccessAlert({
     >
       {showIcon && (
         <div className="flex-shrink-0">
-          <MdCheckCircle 
-            className="text-green-500 dark:text-green-400 text-2xl animate-bounce" 
-            aria-hidden="true" 
+          <MdCheckCircle
+            className="text-green-500 dark:text-green-400 text-2xl animate-bounce"
+            aria-hidden="true"
           />
         </div>
       )}
-      
+
       <div className="flex-1 min-w-0">
         <p className="text-base font-semibold text-gray-900 dark:text-gray-100 break-words leading-snug">
           {message}
         </p>
       </div>
-      
+
       {dismissible && (
         <button
           onClick={handleClose}

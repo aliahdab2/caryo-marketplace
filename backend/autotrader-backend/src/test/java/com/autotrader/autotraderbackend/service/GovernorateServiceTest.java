@@ -24,7 +24,7 @@ class GovernorateServiceTest {
 
     @Mock
     private GovernorateRepository governorateRepository;
-    
+
     @Mock
     private CountryRepository countryRepository;
 
@@ -44,7 +44,7 @@ class GovernorateServiceTest {
         syria.setDisplayNameEn("Syria");
         syria.setDisplayNameAr("سوريا");
         syria.setIsActive(true);
-        
+
         // Create first governorate using builder pattern if available, otherwise direct setters
         Long id1 = 1L;
         governorate1 = new Governorate();
@@ -69,7 +69,7 @@ class GovernorateServiceTest {
                 .latitude(33.5138)
                 .longitude(36.2765)
                 .build();
-        
+
         // Create second governorate (inactive)
         Long id2 = 2L;
         governorate2 = new Governorate();
@@ -127,7 +127,7 @@ class GovernorateServiceTest {
         assertTrue(result.isEmpty());
         verify(governorateRepository, times(1)).findByCountry_CountryCodeOrderByDisplayNameEnAsc("XX");
     }
-    
+
     @Test
     void getGovernorateBySlug_shouldReturnGovernorateResponseWhenFound() {
         when(governorateRepository.findBySlug("test-governorate-1")).thenReturn(Optional.of(governorate1));

@@ -10,8 +10,8 @@ jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: { media: unknown[]; initialIndex: number }) {
     return (
       <div data-testid="car-media-gallery">
-        <div 
-          className="cursor-pointer" 
+        <div
+          className="cursor-pointer"
           data-testid="gallery-clickable"
           onClick={() => {
             // Simulate modal opening with keyboard support
@@ -19,14 +19,14 @@ jest.mock('@/components/CarMediaGallery', () => {
             modal.setAttribute('data-testid', 'gallery-modal');
             modal.setAttribute('tabindex', '0');
             modal.textContent = `Gallery Modal - Image ${initialIndex + 1} of ${media.length}`;
-            
+
             // Add keyboard event listener
             modal.addEventListener('keydown', (e) => {
               if (e.key === 'Escape') {
                 modal.remove();
               }
             });
-            
+
             global.document.body.appendChild(modal);
             modal.focus();
           }}
@@ -40,9 +40,9 @@ jest.mock('@/components/CarMediaGallery', () => {
 
 // Mock FileUpload component
 jest.mock('../FileUpload', () => {
-  return function MockFileUpload({ onImageSelect }: { 
-    onImageSelect: (event: React.ChangeEvent<HTMLInputElement>) => void; 
-    onDocumentSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+  return function MockFileUpload({ onImageSelect }: {
+    onImageSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onDocumentSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   }) {
     return (
       <div data-testid="file-upload">
@@ -139,10 +139,10 @@ describe('Messaging Integration Tests', () => {
 
       // Type a message
       const textarea = screen.getByPlaceholderText('writeMessage');
-      
+
       // Simulate typing by directly changing the textarea value and triggering onChange
       fireEvent.change(textarea, { target: { value: 'Hello world!' } });
-      
+
       expect(mockSetMessage).toHaveBeenCalledWith('Hello world!');
 
       // Re-render with the new message to simulate state update
@@ -269,7 +269,7 @@ describe('Messaging Integration Tests', () => {
 
       // Test keyboard navigation (ESC to close)
       fireEvent.keyDown(modal, { key: 'Escape' });
-      
+
       await waitFor(() => {
         expect(screen.queryByTestId('gallery-modal')).not.toBeInTheDocument();
       });
@@ -423,7 +423,7 @@ describe('Messaging Integration Tests', () => {
       // Different message styles should be applied
       const ownMessages = container.querySelectorAll('.bg-gradient-to-r.from-blue-500.to-blue-600');
       const otherMessages = container.querySelectorAll('.bg-gray-100.dark\\:bg-gray-700');
-      
+
       expect(ownMessages.length).toBe(2); // Messages 2 and 4
       expect(otherMessages.length).toBe(2); // Messages 1 and 3
 
@@ -517,7 +517,7 @@ describe('Messaging Integration Tests', () => {
       );
 
       const image = screen.getByAltText('broken-image.jpg');
-      
+
       // Simulate image load error
       fireEvent.error(image);
 
@@ -544,7 +544,7 @@ describe('Messaging Integration Tests', () => {
 
       // Should still render time
       expect(screen.getByText(/\d{1,2}:\d{2}\s?(AM|PM)/)).toBeInTheDocument();
-      
+
       // Should not crash or show broken content
       expect(screen.queryByTestId('car-media-gallery')).not.toBeInTheDocument();
     });

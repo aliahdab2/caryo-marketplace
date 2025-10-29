@@ -17,10 +17,10 @@ import { useTranslation } from 'react-i18next';
 function MyComponent() {
   // Load the 'myNamespace' namespace when the component mounts
   useLazyTranslation('myNamespace');
-  
+
   // Use the translations as usual
   const { t } = useTranslation('myNamespace');
-  
+
   return <div>{t('myNamespace.someKey')}</div>;
 }
 ```
@@ -34,10 +34,10 @@ import { useTranslation } from 'react-i18next';
 function MyComponent() {
   // Load multiple namespaces
   useLazyTranslation(['namespace1', 'namespace2']);
-  
+
   // Use translations from multiple namespaces
   const { t } = useTranslation(['namespace1', 'namespace2']);
-  
+
   return (
     <div>
       <h1>{t('namespace1.title')}</h1>

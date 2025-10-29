@@ -62,7 +62,7 @@ public class CarListingController {
     public ResponseEntity<Void> deleteListingAsAdmin(
             @Parameter(description = "ID of the listing to delete", required = true)
             @PathVariable("id") Long id) {
-        
+
         try {
             log.info("Admin requested to delete listing with ID: {}", id);
             carListingService.deleteListingAsAdmin(id);
@@ -90,13 +90,13 @@ public class CarListingController {
         }
     )
     public ResponseEntity<PageResponse<CarListingResponse>> getAllListingsAsAdmin(
-            @PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC) 
+            @PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC)
             Pageable pageable) {
-        
+
         try {
             log.info("Admin requested to get all listings. Pageable: {}", pageable);
             Page<CarListingResponse> listingPage = carListingService.getAllListingsAsAdmin(pageable);
-            
+
             PageResponse<CarListingResponse> response = new PageResponse<>(
                     listingPage.getContent(),
                     listingPage.getNumber(),
@@ -105,7 +105,7 @@ public class CarListingController {
                     listingPage.getTotalPages(),
                     listingPage.isLast()
             );
-            
+
             log.info("Returning {} total listings to admin", response.getContent().size());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public class CarListingController {
         description = "Approves a car listing, making it visible to the public. Admin access required.",
         security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearer-token"),
         responses = {
-            @ApiResponse(responseCode = "200", description = "Listing approved successfully", 
+            @ApiResponse(responseCode = "200", description = "Listing approved successfully",
                 content = @Content(schema = @Schema(implementation = CarListingResponse.class))),
             @ApiResponse(responseCode = "400", description = "Bad request - Invalid listing state"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -133,7 +133,7 @@ public class CarListingController {
     public ResponseEntity<?> approveListingAsAdmin(
             @Parameter(description = "ID of the listing to approve", required = true)
             @PathVariable("id") Long id) {
-        
+
         try {
             log.info("Admin requested to approve listing with ID: {}", id);
             CarListingResponse approvedListing = carListingService.approveListingAsAdmin(id);
@@ -176,15 +176,15 @@ public class CarListingController {
             @PathVariable("id") Long id,
             @Parameter(description = "Rejection reason")
             @RequestBody(required = false) Map<String, String> rejectionData) {
-        
+
         try {
             log.info("Admin requested to reject listing with ID: {}", id);
             String reason = rejectionData != null ? rejectionData.get("reason") : "Rejected by admin";
-            
+
             // For now, we'll delete the listing when rejected
             // In the future, you might want to add a rejected status instead
             carListingService.deleteListingAsAdmin(id);
-            
+
             log.info("Admin successfully rejected and deleted listing with ID: {} with reason: {}", id, reason);
             return ResponseEntity.ok(Map.of(
                 "message", "Listing rejected and removed successfully",

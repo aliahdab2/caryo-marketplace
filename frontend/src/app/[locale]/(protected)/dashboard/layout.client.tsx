@@ -8,10 +8,10 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useAuthAwareNavigation } from '@/hooks/useAuthAwareNavigation';
-import { 
-  MdDashboard, 
-  MdDirectionsCar, 
-  MdSettings, 
+import {
+  MdDashboard,
+  MdDirectionsCar,
+  MdSettings,
   MdPerson,
   MdMenu,
   MdClose,
@@ -35,14 +35,14 @@ type NavItem = {
   tooltip: string;
 };
 
-const SidebarItem = memo(function SidebarItem({ 
-  item, 
-  isActive, 
+const SidebarItem = memo(function SidebarItem({
+  item,
+  isActive,
   onClick,
   navigate
-}: { 
-  item: NavItem; 
-  isActive: boolean; 
+}: {
+  item: NavItem;
+  isActive: boolean;
   onClick?: () => void;
   navigate: (href: string) => void;
 }) {
@@ -54,12 +54,12 @@ const SidebarItem = memo(function SidebarItem({
 
   return (
   <li>
-    <Link 
+    <Link
       href={item.href}
       onClick={handleClick}
       className={`group flex items-center p-3 rounded-lg transition-all duration-200
-        ${isActive 
-          ? "bg-primary/15 text-primary font-medium shadow-sm" 
+        ${isActive
+          ? "bg-primary/15 text-primary font-medium shadow-sm"
           : "hover:bg-gray-100 dark:hover:bg-gray-700 hover:translate-x-0.5"}`}
       title={item.tooltip}
       aria-current={isActive ? "page" : undefined}
@@ -87,11 +87,11 @@ type UserProfileSession = {
   accessToken?: string;
 } | null;
 
-const UserProfile = memo(function UserProfile({ 
-  user, 
-  t 
-}: { 
-  user: UserProfileSession; 
+const UserProfile = memo(function UserProfile({
+  user,
+  t
+}: {
+  user: UserProfileSession;
   t: (key: string) => string;
 }) {
   return (
@@ -143,7 +143,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       </div>
     );
   }
-  
+
   const sidebarItems: NavItem[] = [
     {
       name: t('overview'),
@@ -163,9 +163,9 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       icon: <MdFavorite className="text-xl" />,
       tooltip: t('favoritesTooltip') || 'Your saved vehicles'
     },
-    { 
-      name: t('headerSavedSearches', { ns: 'common' }), 
-      href: `/${currentLang}/saved/alerts`, 
+    {
+      name: t('headerSavedSearches', { ns: 'common' }),
+      href: `/${currentLang}/saved/alerts`,
       icon: <MdNotifications className="text-xl" />,
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
@@ -223,24 +223,24 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow sticky top-0 z-40">
         <h1 className="text-lg font-semibold flex items-center">
-          <MdDashboard className="mr-2 text-primary" /> 
+          <MdDashboard className="mr-2 text-primary" />
           {t('dashboard')}
         </h1>
         <div className="flex items-center gap-2">
           <button
-            className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200 
-                     focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
+            className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200
+                     focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full
                      hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
             aria-label={t('notifications')}
           >
             <MdNotifications size={22} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          
+
           <button
             onClick={toggleMobileMenu}
-            className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200 
-                     focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
+            className="flex items-center justify-center h-10 w-10 text-gray-700 dark:text-gray-200
+                     focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full
                      hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label={isMobileMenuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={isMobileMenuOpen}
@@ -250,11 +250,11 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         </div>
       </header>
 
-      <div 
-        className={`md:hidden bg-white dark:bg-gray-800 w-full fixed top-14 left-0 right-0 z-30 
+      <div
+        className={`md:hidden bg-white dark:bg-gray-800 w-full fixed top-14 left-0 right-0 z-30
                    shadow-lg transition-all duration-300 ease-in-out ${
-                     isMobileMenuOpen 
-                       ? "opacity-100 translate-y-0 max-h-[80vh] overflow-y-auto" 
+                     isMobileMenuOpen
+                       ? "opacity-100 translate-y-0 max-h-[80vh] overflow-y-auto"
                        : "opacity-0 -translate-y-2 pointer-events-none max-h-0 overflow-hidden"
                    }`}
         aria-hidden={!isMobileMenuOpen}
@@ -265,13 +265,13 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
           <UserProfile user={user} t={t} />
         </div>
-        
+
         <nav className="p-4">
           <ul className="space-y-2">
             {sidebarItems.map((item) => {
               const isActive = !!(pathname && (pathname === item.href || pathname.startsWith(item.href + '/')));
               return (
-                <SidebarItem 
+                <SidebarItem
                   key={item.href}
                   item={item}
                   isActive={isActive}
@@ -280,7 +280,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
                 />
               );
             })}
-            
+
             <li className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <h2 className="px-3 mb-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 {t('quickActions')}
@@ -289,7 +289,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
                 {quickActionItems.map(item => {
                   const isActive = !!(pathname && pathname === item.href);
                   return (
-                    <SidebarItem 
+                    <SidebarItem
                       key={item.href}
                       item={item}
                       isActive={isActive}
@@ -300,12 +300,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
                 })}
               </ul>
             </li>
-            
+
             <li className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button 
+              <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex items-center w-full p-3 text-red-500 rounded-lg 
-                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 
+                className="flex items-center w-full p-3 text-red-500 rounded-lg
+                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200
                          hover:shadow-sm"
                 aria-label={t('headerLogout')}
               >
@@ -318,24 +318,24 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       </div>
 
       {!isFocusedPage && (
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 shadow-sm 
-                      border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0 
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 shadow-sm
+                      border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0
                       transition-all duration-300">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700
                      bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/70">
           <h1 className="text-xl font-semibold flex items-center">
-            <MdDashboard className="mr-2 text-primary" /> 
+            <MdDashboard className="mr-2 text-primary" />
             {t('dashboard')}
           </h1>
         </div>
-        
-        <nav className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" 
+
+        <nav className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
             aria-label={t('mainNavigation')}>
           <ul className="space-y-1.5">
             {sidebarItems.map((item) => {
               const isActive = !!(pathname && (pathname === item.href || pathname.startsWith(item.href + '/')));
               return (
-                <SidebarItem 
+                <SidebarItem
                   key={item.href}
                   item={item}
                   isActive={isActive}
@@ -364,15 +364,15 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             </ul>
           </div>
         </nav>
-        
-        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700 
+
+        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700
                        bg-gray-50/50 dark:bg-gray-800/50">
           <UserProfile user={user} t={t} />
-          
-          <button 
+
+          <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full flex items-center justify-center p-2 mt-2 text-red-500 rounded-lg 
-                     border border-gray-200 dark:border-gray-700 hover:bg-red-50 
+            className="w-full flex items-center justify-center p-2 mt-2 text-red-500 rounded-lg
+                     border border-gray-200 dark:border-gray-700 hover:bg-red-50
                      dark:hover:bg-red-900/20 transition-all duration-200 hover:shadow-sm"
             aria-label={t('headerLogout')}
           >
@@ -387,8 +387,8 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         <div className="hidden md:flex items-center justify-end p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
-              className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
+              className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300
+                       focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full
                        hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
               aria-label={t('notifications')}
               title={t('notifications')}
@@ -397,8 +397,8 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
             <button
-              className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full 
+              className="flex items-center justify-center h-9 w-9 text-gray-700 dark:text-gray-300
+                       focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full
                        hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               aria-label={t('help')}
               title={t('help')}
@@ -407,11 +407,11 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             </button>
           </div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto p-4 md:p-8">
           {children}
         </div>
-        
+
         <footer className="mt-12 border-t border-gray-200 dark:border-gray-700 py-6 px-4 md:px-8">
           <div className="max-w-7xl mx-auto">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center">

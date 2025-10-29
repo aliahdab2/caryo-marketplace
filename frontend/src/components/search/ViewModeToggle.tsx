@@ -25,21 +25,21 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
     if (translated && translated !== key) {
       return translated;
     }
-    
+
     // Try with search namespace prefix
     const searchKey = `search:${key}`;
     translated = t(searchKey, '');
     if (translated && translated !== searchKey) {
       return translated;
     }
-    
+
     // Try with common namespace prefix
     const commonKey = `common:${key}`;
     translated = t(commonKey, '');
     if (translated && translated !== commonKey) {
       return translated;
     }
-    
+
     // Return fallback if no translation found
     return fallback;
   };

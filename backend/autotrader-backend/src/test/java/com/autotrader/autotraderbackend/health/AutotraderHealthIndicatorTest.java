@@ -15,7 +15,7 @@ class AutotraderHealthIndicatorTest {
     void health_whenServiceIsUp_returnsUpStatus() {
         // Act
         Health health = healthIndicator.health();
-        
+
         // Assert
         assertEquals(Status.UP, health.getStatus());
         assertNotNull(health.getDetails().get("serviceStatus"));

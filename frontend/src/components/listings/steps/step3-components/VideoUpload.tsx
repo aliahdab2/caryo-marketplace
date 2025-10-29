@@ -46,7 +46,7 @@ const VideoUpload = memo(function VideoUpload({
         </div>
 
         <div className="flex items-center justify-center w-full" data-testid="video-dropzone">
-          <label 
+          <label
             htmlFor="video-upload"
             data-testid="video-dropzone-label"
             className="group flex flex-col items-center justify-center w-full h-56 border-2 border-blue-300 border-dashed rounded-2xl cursor-pointer bg-white/80 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg focus-within:ring-4 focus-within:ring-blue-200 dark:focus-within:ring-blue-800"

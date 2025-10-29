@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 import debounce from 'lodash/debounce';
 
 import { CarMake, CarModel } from '@/types/car';
-import { 
-  fetchCarBrands, 
-  fetchCarModels, 
-  fetchGovernorates, 
+import {
+  fetchCarBrands,
+  fetchCarModels,
+  fetchGovernorates,
   Governorate
 } from '@/services/api';
 import { useApiData, useFormSelection } from '@/hooks/useApiData';
@@ -29,8 +29,8 @@ const HomeSearchBar = React.memo(() => {
   const [selectedMake, setSelectedMake] = useFormSelection<number | null>(null, []);
   const [selectedModel, setSelectedModel] = useState<number | null>(null);
   const [selectedGovernorateSlug, setSelectedGovernorateSlug] = useState<string>('');
-  
-  
+
+
   // Use API data hooks for fetching data with loading, error handling
   const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
@@ -62,8 +62,8 @@ const HomeSearchBar = React.memo(() => {
   const isLoadingModels: boolean = modelsApi.isLoading ?? false;
   const modelsError: string | null = modelsApi.error ?? null;
   const retryLoadingModels: () => Promise<void> = modelsApi.retry;
-  
-  
+
+
 
 
   // Removed selectedBrandSlug and selectedModelSlug as they're no longer used
@@ -71,7 +71,7 @@ const HomeSearchBar = React.memo(() => {
   // Sort governorates by current language
   const sortedGovernorates = useMemo(() => {
     if (!governorates || governorates.length === 0) return [];
-    
+
     return [...governorates].sort((a, b) => {
       const nameA = currentLanguage === 'ar' ? a.displayNameAr : a.displayNameEn;
       const nameB = currentLanguage === 'ar' ? b.displayNameAr : b.displayNameEn;
@@ -91,14 +91,14 @@ const HomeSearchBar = React.memo(() => {
   // Handle search form submission
   const handleSearch = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
+
     const params = new URLSearchParams();
-    
+
     // Location first for SEO - local relevance is primary
     if (selectedGovernorateSlug) {
       params.append('location', selectedGovernorateSlug);
     }
-    
+
     // NEW: AutoTrader UK style slug-based URLs
     // Add brand slugs if selected
     if (selectedMake !== null) {
@@ -107,7 +107,7 @@ const HomeSearchBar = React.memo(() => {
         params.append('brand', selectedBrand.slug); // Multiple brand support: ?brand=toyota&brand=honda
       }
     }
-    
+
     // Add model slugs if selected
     if (selectedModel !== null) {
       const selectedCarModel = availableModels?.find(model => model.id === selectedModel);
@@ -115,7 +115,7 @@ const HomeSearchBar = React.memo(() => {
         params.append('model', selectedCarModel.slug); // Multiple model support: ?model=camry&model=corolla
       }
     }
-    
+
     // Build location parameters - removed as location is now handled above
 
     // Use replace instead of push to avoid history stacking on quick searches
@@ -181,18 +181,18 @@ const HomeSearchBar = React.memo(() => {
                 className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
                 aria-label={t('searchButton', 'Search Cars')}
               >
-                <svg 
-                  className="w-4 h-4 mr-1.5 rtl:ml-1.5 rtl:mr-0" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  className="w-4 h-4 mr-1.5 rtl:ml-1.5 rtl:mr-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
                 <span className="tabular-nums text-center" aria-live="polite">
@@ -217,7 +217,7 @@ const HomeSearchBar = React.memo(() => {
                   </button>
                 </div>
               )}
-              
+
               {modelsError && (
                 <div className="flex items-center justify-between mb-2">
                   <span>{modelsError}</span>
@@ -230,7 +230,7 @@ const HomeSearchBar = React.memo(() => {
                   </button>
                 </div>
               )}
-              
+
               {governoratesError && (
                 <div className="flex items-center justify-between">
                   <span>{governoratesError}</span>

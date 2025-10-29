@@ -11,7 +11,7 @@ interface CarFeaturesProps {
 const CarFeatures: React.FC<CarFeaturesProps> = ({ listing: _listing }) => {
   const { t } = useTranslation('listings');
   const [showAllFeatures, setShowAllFeatures] = useState(false);
-  
+
   // CarListing doesn't have features property yet, so we'll show a placeholder
   const features: string[] = []; // listing.features || [];
   const hasFeatures = features.length > 0;
@@ -127,7 +127,7 @@ const CarFeatures: React.FC<CarFeaturesProps> = ({ listing: _listing }) => {
           ({features.length})
         </span>
       </h2>
-      
+
       {showAllFeatures ? (
         // Categorized view when showing all features
         <div className="space-y-6">

@@ -28,30 +28,30 @@ public class ListingRenewalInitiatedListener {
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
-    
+
     /**
      * Handle the listing renewal initiated event.
      * This will log the event and trigger any notification processes.
-     * 
+     *
      * Uses transaction management to ensure database operations are consistent.
-     * 
+     *
      * @param event The listing renewal initiated event (must not be null)
      */
     @EventListener
     @Async
     public void handleListingRenewalInitiated(@NonNull ListingRenewalInitiatedEvent event) {
         Objects.requireNonNull(event, "ListingRenewalInitiatedEvent cannot be null");
-        
+
         txService.executeInTransaction(() -> {
             CarListing listing = event.getListing();
             int renewalDays = event.getDurationDays();
-            
-            log.info("Listing renewal initiated event received for {} for {} days", 
+
+            log.info("Listing renewal initiated event received for {} for {} days",
                     eventUtils.getListingInfo(listing), renewalDays);
 
             // Calculate estimated new expiration date for logging purposes
             LocalDateTime estimatedNewExpiration = LocalDateTime.now().plus(renewalDays, ChronoUnit.DAYS);
-            log.debug("Listing ID: {} renewed for {} days, estimated new expiration: {}", 
+            log.debug("Listing ID: {} renewed for {} days, estimated new expiration: {}",
                     listing.getId(), renewalDays, estimatedNewExpiration);
 
             // Send confirmation email to seller

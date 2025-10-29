@@ -21,7 +21,7 @@ export default function GoogleSignInButton({
 }: GoogleSignInButtonProps) {
   // Use the improved useLazyTranslation hook that returns t and ready
   const { t, ready } = useLazyTranslation('auth');
-  
+
   const [isLoading, setIsLoading] = useState(false); // Renamed for clarity from 'loading'
   const [error, setError] = useState<string | null>(null);
   const [providersLoaded, setProvidersLoaded] = useState(false);
@@ -39,7 +39,7 @@ export default function GoogleSignInButton({
         setProvidersLoaded(true);
       }
     };
-    
+
     checkProviders();
   }, []);
 
@@ -51,7 +51,7 @@ export default function GoogleSignInButton({
         const { getProviders } = await import("next-auth/react");
         const providers = await getProviders();
         const googleProvider = providers?.google;
-        
+
         if (!googleProvider) {
           setError("Google Sign-In is not properly configured. Please contact the administrator.");
           return;

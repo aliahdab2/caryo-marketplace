@@ -87,9 +87,9 @@ public class ConversationServiceFileValidationTest {
         // Given: A file that exceeds size limit
         byte[] largeContent = new byte[15 * 1024 * 1024]; // 15MB
         MockMultipartFile largeFile = new MockMultipartFile(
-            "file", 
-            "large-image.jpg", 
-            "image/jpeg", 
+            "file",
+            "large-image.jpg",
+            "image/jpeg",
             largeContent
         );
 
@@ -106,9 +106,9 @@ public class ConversationServiceFileValidationTest {
     void shouldHandleNullAttachmentFromRepository() {
         // Given: Repository returns null (simulating save failure)
         MockMultipartFile validFile = new MockMultipartFile(
-            "file", 
-            "test.jpg", 
-            "image/jpeg", 
+            "file",
+            "test.jpg",
+            "image/jpeg",
             "fake-image-content".getBytes()
         );
 
@@ -130,16 +130,16 @@ public class ConversationServiceFileValidationTest {
         // Test null file
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(testConversation));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        
+
         assertThrows(BadRequestException.class, () -> {
             conversationService.uploadMessageAttachment(1L, null, 1L);
         });
 
         // Test empty file
         MockMultipartFile emptyFile = new MockMultipartFile(
-            "file", 
-            "empty.jpg", 
-            "image/jpeg", 
+            "file",
+            "empty.jpg",
+            "image/jpeg",
             new byte[0]
         );
 
@@ -157,15 +157,15 @@ public class ConversationServiceFileValidationTest {
 
         // Test various image formats
         String[] validImageTypes = {
-            "image/jpeg", "image/jpg", "image/png", "image/gif", 
+            "image/jpeg", "image/jpg", "image/png", "image/gif",
             "image/webp", "image/bmp", "image/tiff"
         };
 
         for (String contentType : validImageTypes) {
             MockMultipartFile imageFile = new MockMultipartFile(
-                "file", 
-                "test." + contentType.split("/")[1], 
-                contentType, 
+                "file",
+                "test." + contentType.split("/")[1],
+                contentType,
                 "fake-image-content".getBytes()
             );
 
@@ -195,9 +195,9 @@ public class ConversationServiceFileValidationTest {
 
         for (String contentType : validDocTypes) {
             MockMultipartFile docFile = new MockMultipartFile(
-                "file", 
-                "test.doc", 
-                contentType, 
+                "file",
+                "test.doc",
+                contentType,
                 "fake-document-content".getBytes()
             );
 

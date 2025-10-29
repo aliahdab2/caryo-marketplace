@@ -1,6 +1,6 @@
 /**
  * 🎯 Priority 3: User Experience Enhancements
- * 
+ *
  * Enhanced loading states with better visual feedback and accessibility
  */
 
@@ -28,7 +28,7 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
 
   const sizeClasses = {
     sm: 'h-4 w-4',
-    md: 'h-8 w-8', 
+    md: 'h-8 w-8',
     lg: 'h-12 w-12'
   };
 
@@ -42,13 +42,13 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
     switch (type) {
       case 'spinner':
         return (
-          <div 
+          <div
             className={`animate-spin rounded-full border-b-2 border-blue-600 ${sizeClasses[size]}`}
             role="status"
             aria-label={t('common.loading', 'Loading')}
           />
         );
-      
+
       case 'dots':
         return (
           <div className="flex space-x-1" role="status" aria-label={t('common.loading', 'Loading')}>
@@ -61,16 +61,16 @@ export const EnhancedLoadingState = React.memo<LoadingStateProps>(({
             ))}
           </div>
         );
-      
+
       case 'pulse':
         return (
-          <div 
+          <div
             className={`bg-blue-600 rounded-full animate-ping ${sizeClasses[size]}`}
             role="status"
             aria-label={t('common.loading', 'Loading')}
           />
         );
-      
+
       case 'skeleton':
       default:
         return (
@@ -159,7 +159,7 @@ export const EnhancedErrorState = React.memo<ErrorStateProps>(({
   };
 
   return (
-    <div 
+    <div
       className={`flex flex-col items-center justify-center p-8 text-center ${className}`}
       role="alert"
       aria-live="polite"
@@ -169,15 +169,15 @@ export const EnhancedErrorState = React.memo<ErrorStateProps>(({
           {getErrorIcon()}
         </div>
       )}
-      
+
       <h3 className="text-lg font-semibold text-gray-900 mb-2">
         {title || getDefaultTitle()}
       </h3>
-      
+
       <p className="text-gray-600 mb-6 max-w-md">
         {message || getDefaultMessage()}
       </p>
-      
+
       {onRetry && (
         <button
           onClick={onRetry}
@@ -188,7 +188,7 @@ export const EnhancedErrorState = React.memo<ErrorStateProps>(({
           {retryLabel || t('common.tryAgain', 'Try Again')}
         </button>
       )}
-      
+
       <span id="retry-description" className="sr-only">
         {t('common.retryDescription', 'Click to retry the failed operation')}
       </span>
@@ -214,7 +214,7 @@ export const ProgressBar = React.memo<ProgressBarProps>(({
   color = 'blue'
 }) => {
   const { t } = useLazyTranslation(['common']);
-  
+
   const colorClasses = {
     blue: 'bg-blue-600',
     green: 'bg-green-600',
@@ -236,8 +236,8 @@ export const ProgressBar = React.memo<ProgressBarProps>(({
           )}
         </div>
       )}
-      
-      <div 
+
+      <div
         className="w-full bg-gray-200 rounded-full h-2"
         role="progressbar"
         aria-valuenow={clampedProgress}
@@ -292,7 +292,7 @@ export const EnhancedToast = React.memo<ToastProps>(({
   if (!isVisible) return null;
 
   return (
-    <div 
+    <div
       className={`fixed top-4 right-4 max-w-sm w-full border rounded-lg p-4 shadow-lg z-50 transition-all duration-300 ${typeStyles[type]}`}
       role="alert"
       aria-live="polite"

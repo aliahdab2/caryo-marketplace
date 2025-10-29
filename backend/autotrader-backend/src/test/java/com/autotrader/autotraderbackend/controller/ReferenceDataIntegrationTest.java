@@ -185,4 +185,4 @@ class ReferenceDataIntegrationTest {
                 .andExpect(jsonPath("$[0].displayNameAr").exists())
                 .andExpect(jsonPath("$[0].slug").exists());
     }
-} 
+}

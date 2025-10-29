@@ -67,8 +67,8 @@ const SearchResults = React.memo<SearchResultsProps>(({
   // Announce view mode changes
   useEffect(() => {
     if (viewMode) {
-      const viewModeText = viewMode === 'grid' 
-        ? t('gridViewSelected', 'Grid view selected') 
+      const viewModeText = viewMode === 'grid'
+        ? t('gridViewSelected', 'Grid view selected')
         : t('listViewSelected', 'List view selected');
       announce(viewModeText);
     }
@@ -92,21 +92,21 @@ const SearchResults = React.memo<SearchResultsProps>(({
     if (translated && translated !== key) {
       return translated;
     }
-    
+
     // Try with search namespace prefix
     const searchKey = `search:${key}`;
     translated = t(searchKey, '');
     if (translated && translated !== searchKey) {
       return translated;
     }
-    
+
     // Try with common namespace prefix
     const commonKey = `common:${key}`;
     translated = t(commonKey, '');
     if (translated && translated !== commonKey) {
       return translated;
     }
-    
+
     // Return fallback if no translation found
     return fallback;
   };
@@ -127,7 +127,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
 
       <div className="flex items-center gap-3">
         {onViewModeChange && (
-          <div 
+          <div
             className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg"
             role="group"
             aria-labelledby="view-mode-label"
@@ -166,8 +166,8 @@ const SearchResults = React.memo<SearchResultsProps>(({
       <SmoothTransition
         isLoading={isLoading}
         className={`
-          ${viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
+          ${viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
             : 'flex flex-col gap-4'
           }
         `}
@@ -175,7 +175,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
         minimumLoadingTime={isManualSearch ? 100 : 200}
         loadingComponent={
           <div className="col-span-full flex items-center justify-center py-8">
-            <EnhancedLoadingState 
+            <EnhancedLoadingState
               type="dots"
               message={t('searching', 'Searching...')}
               size="sm"
@@ -194,8 +194,8 @@ const SearchResults = React.memo<SearchResultsProps>(({
           </div>
         ) : carListings?.content?.length ? (
           carListings.content.map((listing) => (
-            <div 
-              key={listing.id} 
+            <div
+              key={listing.id}
               className={`
                 animate-fadeIn transition-all duration-200 hover:scale-[1.02] hover:shadow-lg
                 ${viewMode === 'list' ? 'max-w-none' : ''}
@@ -233,7 +233,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
             <EmptyState
               type="search"
               title={t('noResultsFound', 'No cars found')}
-              message={searchQuery 
+              message={searchQuery
                 ? t('noResultsMessage', `No cars match your search for "${searchQuery}". Try adjusting your filters or search terms.`)
                 : t('tryDifferentFilters', 'Try adjusting your search filters to see more results.')
               }

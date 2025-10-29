@@ -160,7 +160,7 @@ class CarConditionServiceTest {
         updatedCondition.setName("like_new");
         updatedCondition.setDisplayNameEn("Like New");
         updatedCondition.setDisplayNameAr("شبه جديد");
-        
+
         when(carConditionRepository.findById(1L)).thenReturn(Optional.of(testCondition));
         when(carConditionRepository.save(any(CarCondition.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -172,7 +172,7 @@ class CarConditionServiceTest {
         assertEquals(updatedCondition.getName(), result.getName());
         assertEquals(updatedCondition.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedCondition.getDisplayNameAr(), result.getDisplayNameAr());
-        
+
         verify(carConditionRepository, times(1)).findById(1L);
         verify(carConditionRepository, times(1)).save(any(CarCondition.class));
     }
@@ -182,10 +182,10 @@ class CarConditionServiceTest {
         // Arrange
         when(carConditionRepository.findById(1L)).thenReturn(Optional.of(testCondition));
         doNothing().when(carConditionRepository).delete(testCondition);
-        
+
         // Act
         carConditionService.deleteCondition(1L);
-        
+
         // Assert
         verify(carConditionRepository, times(1)).findById(1L);
         verify(carConditionRepository, times(1)).delete(testCondition);

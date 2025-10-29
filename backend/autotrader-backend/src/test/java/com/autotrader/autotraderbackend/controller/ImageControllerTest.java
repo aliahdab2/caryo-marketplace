@@ -17,17 +17,17 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ImageControllerTest {
-    
+
     private ImageController imageController;
-    
+
     @TempDir
     Path tempDir;
-    
+
     @BeforeEach
     void setUp() {
         // Create the controller with a temp directory
         imageController = new ImageController(tempDir.toString());
-        
+
         // Mock the HTTP request context needed by ServletUriComponentsBuilder
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setContextPath("");
@@ -37,12 +37,12 @@ class ImageControllerTest {
         request.setScheme("http");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
-    
+
     @AfterEach
     void tearDown() {
         RequestContextHolder.resetRequestAttributes();
     }
-    
+
     @Test
     void shouldUploadImage() {
         MockMultipartFile file = new MockMultipartFile(
@@ -71,7 +71,7 @@ class ImageControllerTest {
         // Check that fileDownloadUri exists (this was previously failing)
         assertNotNull(body.get("fileDownloadUri"), "fileDownloadUri should not be null");
     }
-    
+
     @Test
     void shouldRejectInvalidFilePath() {
         // Create a file with path traversal attempt

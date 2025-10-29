@@ -64,7 +64,7 @@ const YearSlider: React.FC<YearSliderProps> = React.memo(({
 
   // Format year values (no decimal places, no thousands separators)
   const formatValue = React.useCallback((value: number) => {
-    return formatNumber(value, currentLocale, { 
+    return formatNumber(value, currentLocale, {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
@@ -76,11 +76,11 @@ const YearSlider: React.FC<YearSliderProps> = React.memo(({
   const minLabel = t ? t('search:from', 'From') : 'From';
   const maxLabel = t ? t('search:to', 'To') : 'To';
   const anyPlaceholder = t ? t('search:any', 'Any') : 'Any';
-  
+
   // Placeholders: min year for min, max year for max
   const minPlaceholder = minRange.toString();
   const maxPlaceholder = maxRange.toString();
-  
+
   const ariaLabelMin = t ? t('search:minimumYear', 'Minimum year') : 'Minimum year';
   const ariaLabelMax = t ? t('search:maximumYear', 'Maximum year') : 'Maximum year';
 

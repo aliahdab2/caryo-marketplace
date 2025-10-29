@@ -17,7 +17,7 @@ db/
 
 ## Migration Types
 
-1. **Versioned Migrations (`V*__`)**: 
+1. **Versioned Migrations (`V*__`)**:
    - These migrations are applied exactly once in order of version number
    - Examples: `V1__Initial_Schema.sql`, `V2__reference_data.sql`
 
@@ -84,9 +84,9 @@ For repeatable migrations:
 
 ```sql
 -- Prefer:
-INSERT INTO brands (name_en, name_ar) 
+INSERT INTO brands (name_en, name_ar)
 VALUES ('Toyota', 'تويوتا')
-ON CONFLICT (name_en) DO UPDATE 
+ON CONFLICT (name_en) DO UPDATE
 SET name_ar = EXCLUDED.name_ar;
 
 -- Not: MERGE statements (PostgreSQL 15+ only)
@@ -131,8 +131,8 @@ ALTER TABLE models ADD COLUMN popular BOOLEAN NOT NULL DEFAULT FALSE;
 DO $$
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
+        SELECT 1
+        FROM information_schema.columns
         WHERE table_name = 'models' AND column_name = 'popular'
     ) THEN
         RAISE EXCEPTION 'Migration failed: "popular" column not added to models table';
@@ -195,7 +195,7 @@ This approach:
 #### H2 MERGE Syntax Benefits
 
 ```sql
-MERGE INTO table_name 
+MERGE INTO table_name
 USING (VALUES (...)) I (columns...)
 ON (table.key = I.key)
 WHEN MATCHED THEN UPDATE SET column = I.column
@@ -204,7 +204,7 @@ WHEN NOT MATCHED THEN INSERT (columns...) VALUES (I.columns...)
 
 **Why MERGE over DELETE/INSERT:**
 - ✅ **Atomic**: Each MERGE operation is indivisible
-- ✅ **Idempotent**: Running multiple times produces same result  
+- ✅ **Idempotent**: Running multiple times produces same result
 - ✅ **Safe**: No risk of empty tables if migration fails partway
 - ✅ **Transactional**: Automatic rollback on any failure
 
@@ -351,8 +351,8 @@ CREATE INDEX idx_car_listings_model_name_ar ON car_listings(model_name_ar);
 DO $$
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
+        SELECT 1
+        FROM information_schema.columns
         WHERE table_name = 'car_listings' AND column_name = 'brand_name_en'
     ) THEN
         RAISE EXCEPTION 'Migration failed: "brand_name_en" column not added to car_listings table';

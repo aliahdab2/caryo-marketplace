@@ -11,9 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(SchedulingConfig.class);
-    
+
     @Autowired
     private PasswordResetService passwordResetService;
 

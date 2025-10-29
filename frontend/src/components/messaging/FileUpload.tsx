@@ -20,7 +20,7 @@ export default function FileUpload({
   const { t, i18n } = useTranslation('messages');
   const imageInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Use RTL from props or detect from language
   const rtl = isRTL || i18n.language === 'ar';
 
@@ -29,7 +29,7 @@ export default function FileUpload({
       {/* File Upload Buttons - RTL Aware */}
       <div className={`flex items-center gap-1 ${rtl ? 'flex-row-reverse' : ''}`}>
         {/* Camera button for images */}
-        <button 
+        <button
           onClick={() => imageInputRef.current?.click()}
           className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all duration-200 group"
           title={t('attachImages')}
@@ -38,9 +38,9 @@ export default function FileUpload({
         >
           <Camera className={`h-5 w-5 ${uploading ? 'animate-pulse' : 'group-hover:scale-110'} transition-transform`} />
         </button>
-        
+
         {/* Paperclip button for documents */}
-        <button 
+        <button
           onClick={() => documentInputRef.current?.click()}
           className="p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all duration-200 group"
           title={t('attachDocuments')}

@@ -331,12 +331,12 @@ describe('CarListingsGrid', () => {
       };
 
       const { container } = render(<CarListingsGrid {...defaultProps} carListings={emptyListings} />);
-      
+
       // Check for the col-span-full container that wraps EmptyState
       const colSpanContainer = container.querySelector('.col-span-full');
       expect(colSpanContainer).toBeInTheDocument();
       expect(colSpanContainer).toHaveClass('col-span-full');
-      
+
       // Check that EmptyState has text-center and py classes
       const emptyStateContainer = container.querySelector('.text-center.py-16');
       expect(emptyStateContainer).toBeInTheDocument();
@@ -347,11 +347,11 @@ describe('CarListingsGrid', () => {
   describe('SmoothTransition Props', () => {
     it('passes correct props to SmoothTransition for manual search', () => {
       const { rerender } = render(<CarListingsGrid {...defaultProps} isManualSearch={true} />);
-      
+
       // Verify grid classes are applied
       const container = screen.getByTestId('smooth-transition');
       expect(container).toBeInTheDocument();
-      
+
       // Test with loading state
       rerender(<CarListingsGrid {...defaultProps} isManualSearch={true} isLoadingListings={true} />);
       expect(screen.getByTestId('loading-component')).toBeInTheDocument();
@@ -359,10 +359,10 @@ describe('CarListingsGrid', () => {
 
     it('passes correct props to SmoothTransition for automatic search', () => {
       const { rerender } = render(<CarListingsGrid {...defaultProps} isManualSearch={false} />);
-      
+
       const container = screen.getByTestId('smooth-transition');
       expect(container).toBeInTheDocument();
-      
+
       // Test with loading state
       rerender(<CarListingsGrid {...defaultProps} isManualSearch={false} isLoadingListings={true} />);
       expect(screen.getByTestId('loading-component')).toBeInTheDocument();

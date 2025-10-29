@@ -53,12 +53,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.resource.not.found", locale, ex.getResourceName());
-        
+
         log.warn("Resource not found: {}", ex.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(message));
     }
@@ -69,12 +69,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadRequestException(
             BadRequestException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.validation.failed", locale, ex.getMessage());
-        
+
         log.warn("Bad request: {}", ex.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message));
     }
@@ -85,12 +85,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.access.denied", locale);
-        
+
         log.warn("Access denied: {}", ex.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(message));
     }
@@ -114,12 +114,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(StorageException.class)
     public ResponseEntity<ApiResponse<Void>> handleStorageException(
             StorageException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.validation.failed", locale, ex.getMessage());
-        
+
         log.warn("Storage error: {}", ex.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message));
     }
@@ -130,20 +130,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(
             MethodArgumentNotValidException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         Map<String, String> errors = new HashMap<>();
-        
+
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         String message = getMessage("error.validation.failed", locale, "Multiple field errors");
-        
+
         log.warn("Validation failed: {}", errors);
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message, errors));
     }
@@ -154,12 +154,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(
             ConstraintViolationException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.validation.failed", locale, ex.getMessage());
-        
+
         log.warn("Constraint violation: {}", ex.getMessage());
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message));
     }
@@ -170,9 +170,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
-        
+
         log.warn("Illegal argument: {}", ex.getMessage());
-        
+
         // Return the specific error message directly for better user experience
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
@@ -184,12 +184,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGlobalException(
             Exception ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.server.internal", locale);
-        
+
         log.error("Unexpected error occurred", ex);
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(message));
     }
@@ -200,12 +200,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(
             RuntimeException ex, WebRequest request) {
-        
+
         Locale locale = getUserLocale(request);
         String message = getMessage("error.server.internal", locale);
-        
+
         log.error("Runtime error occurred: {}", ex.getMessage(), ex);
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(message));
     }

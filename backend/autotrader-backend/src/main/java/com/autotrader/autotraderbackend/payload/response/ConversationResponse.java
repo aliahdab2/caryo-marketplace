@@ -30,7 +30,7 @@ public class ConversationResponse {
     private String listingBrand;
     private String listingModel;
     private Integer listingYear;
-    
+
     private UserSummary buyer;
     private UserSummary seller;
     private String status;
@@ -41,10 +41,10 @@ public class ConversationResponse {
     private boolean isActive;
     private boolean isArchived;
     private boolean isBlocked;
-    
+
     private List<MessageSummary> recentMessages;
     private List<ParticipantSummary> participants;
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -58,7 +58,7 @@ public class ConversationResponse {
         private boolean isOnline;
         private LocalDateTime lastSeenAt;
     }
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -77,7 +77,7 @@ public class ConversationResponse {
         private UserSummary sender;
         private List<AttachmentSummary> attachments;
     }
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -92,7 +92,7 @@ public class ConversationResponse {
         private String uploadStatus;
         private LocalDateTime createdAt;
     }
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -112,34 +112,34 @@ public class ConversationResponse {
         private int unreadCount;
         private String statusDescription;
     }
-    
+
     // Helper methods for frontend
     public boolean hasUnreadMessages() {
         return unreadCount > 0;
     }
-    
+
     public String getStatusDisplay() {
         if (isBlocked) return "Blocked";
         if (isArchived) return "Archived";
         if (isActive) return "Active";
         return status;
     }
-    
+
     public boolean canSendMessages() {
         return isActive && !isBlocked;
     }
-    
+
     public String getLastActivityTime() {
         if (lastMessageAt != null) {
             return lastMessageAt.toString();
         }
         return createdAt.toString();
     }
-    
+
     public boolean isGroupChat() {
         return participants != null && participants.size() > 2;
     }
-    
+
     public int getParticipantCount() {
         return participants != null ? participants.size() : 0;
     }

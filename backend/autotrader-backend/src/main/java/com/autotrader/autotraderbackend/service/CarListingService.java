@@ -122,7 +122,7 @@ public class CarListingService {
             if (!dealerTrialService.canCreateListing(dealer)) {
                 int listingsUsed = dealer.getTrialListingsCount();
                 String tier = dealer.getSubscriptionTier();
-                
+
                 if ("trial".equals(tier)) {
                     throw new com.autotrader.autotraderbackend.exception.dealer.TrialExpiredException(listingsUsed, 15);
                 } else if ("suspended".equals(dealer.getSubscriptionStatus())) {
@@ -131,8 +131,8 @@ public class CarListingService {
                     throw new com.autotrader.autotraderbackend.exception.dealer.SubscriptionLimitExceededException(tier, listingsUsed, 100);
                 }
             }
-            
-            log.debug("Dealer {} validated - can create listing. Trial: {}, Used: {}", 
+
+            log.debug("Dealer {} validated - can create listing. Trial: {}, Used: {}",
                 dealer.getId(), dealer.isOnTrial(), dealer.getTrialListingsCount());
         } else {
             // Private seller - no special validation needed here (email verification checked elsewhere)
@@ -146,14 +146,14 @@ public class CarListingService {
     private void trackListingCreation(String username) {
         User user = userRepository.findByUsername(username)
             .orElse(null);
-        
+
         if (user != null && dealerService.isDealer(user)) {
             Dealer dealer = dealerService.getDealerByUserId(user.getId())
                 .orElse(null);
-            
+
             if (dealer != null && dealer.isOnTrial()) {
                 dealerTrialService.incrementListingCount(dealer);
-                log.info("Incremented trial listing count for dealer {}: {}/15", 
+                log.info("Incremented trial listing count for dealer {}: {}/15",
                     dealer.getId(), dealer.getTrialListingsCount());
             }
         }
@@ -392,7 +392,7 @@ public class CarListingService {
         // Then delete the listing itself
         crudService.deleteListing(id, username);
     }
-    
+
     /**
      * Admin-only method to delete any car listing.
      *

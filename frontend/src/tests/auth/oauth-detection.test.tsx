@@ -56,7 +56,7 @@ describe('OAuth User Detection in Profile Page', () => {
   it('should hide change password for Google OAuth users (provider field)', () => {
     // Set up localStorage to indicate OAuth
     localStorage.setItem('authMethod', 'oauth');
-    
+
     mockUseOptimizedSession.mockReturnValue({
       user: {
         id: '1',
@@ -75,7 +75,7 @@ describe('OAuth User Detection in Profile Page', () => {
 
     // Should not show change password section for OAuth users
     expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
-    
+
     // Should show the green OAuth authentication section
     expect(screen.getByText(/Google Authentication/)).toBeInTheDocument();
     expect(screen.getByText(/Active/)).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('OAuth User Detection in Profile Page', () => {
 
     // Should not show change password section for OAuth users
     expect(screen.queryByText(/Change Password/i)).not.toBeInTheDocument();
-    
+
     // Should show OAuth authentication section
     expect(screen.getByText(/Google Authentication/)).toBeInTheDocument();
   });
@@ -124,10 +124,10 @@ describe('OAuth User Detection in Profile Page', () => {
 
     // Should show change password section for regular users
     expect(screen.getByText(/Change Password/)).toBeInTheDocument();
-    
+
     // Should not show OAuth authentication section
     expect(screen.queryByText(/Google Authentication/)).not.toBeInTheDocument();
-    
+
     // Should show two-factor authentication setup for regular users
     expect(screen.getByText(/Two-Factor Authentication/)).toBeInTheDocument();
   });

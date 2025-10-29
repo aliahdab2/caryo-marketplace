@@ -45,65 +45,65 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final MessageService messageService;
-    
+
     @Value("${app.email.from}")
     private String fromEmail;
-    
+
     @Value("${app.email.support}")
     private String supportEmail;
-    
+
     @Value("${app.website.name}")
     private String websiteName;
-    
+
     @Value("${app.website.name.ar}")
     private String websiteNameAr;
-    
+
     @Value("${app.website.url}")
     private String websiteUrl;
-    
+
     @Value("${app.website.support-email}")
     private String websiteSupportEmail;
-    
+
     @Value("${app.website.support-phone}")
     private String websiteSupportPhone;
-    
+
     @Value("${app.email.default-language:en}")
     private String defaultLanguage;
-    
+
     @Value("${app.email.supported-languages:en,ar}")
     private String supportedLanguages;
-    
+
     private static final List<String> SUPPORTED_LANGUAGES = Arrays.asList("en", "ar");
-    
+
     // Rate limiting configuration
     private static final int MAX_EMAILS_PER_MINUTE = 5;
     private static final int MAX_EMAILS_PER_HOUR = 20;
     private static final Duration RATE_LIMIT_WINDOW = Duration.ofMinutes(1);
     private static final Duration HOURLY_RATE_LIMIT_WINDOW = Duration.ofHours(1);
-    
+
     // Rate limiting storage
     private final Map<String, List<LocalDateTime>> userEmailTimestamps = new ConcurrentHashMap<>();
     private final Map<String, List<LocalDateTime>> globalEmailTimestamps = new ConcurrentHashMap<>();
-    
+
     /**
      * Check if user is rate limited for emails.
      */
     private boolean isRateLimited(String userIdentifier) {
         LocalDateTime now = LocalDateTime.now();
-        
+
         // Clean old timestamps
         userEmailTimestamps.computeIfPresent(userIdentifier, (key, timestamps) -> {
             timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
             return timestamps;
         });
-        
+
         // Check minute limit
         List<LocalDateTime> userTimestamps = userEmailTimestamps.computeIfAbsent(userIdentifier, k -> new ArrayList<>());
         if (userTimestamps.size() >= MAX_EMAILS_PER_MINUTE) {
             log.warn("Rate limit exceeded for user: {} - {} emails in last minute", userIdentifier, userTimestamps.size());
             return true;
         }
-        
+
         // Check hourly limit (excluding the current timestamp that's about to be added)
         long hourlyCount = userTimestamps.stream()
             .filter(timestamp -> Duration.between(timestamp, now).compareTo(HOURLY_RATE_LIMIT_WINDOW) <= 0)
@@ -112,31 +112,31 @@ public class EmailServiceImpl implements EmailService {
             log.warn("Hourly rate limit exceeded for user: {} - {} emails in last hour", userIdentifier, hourlyCount);
             return true;
         }
-        
+
         // Add current timestamp
         userTimestamps.add(now);
         return false;
     }
-    
+
     /**
      * Check if global rate limit is exceeded.
      */
     private boolean isGlobalRateLimited() {
         LocalDateTime now = LocalDateTime.now();
         String globalKey = "global";
-        
+
         // Clean old timestamps
         globalEmailTimestamps.computeIfPresent(globalKey, (key, timestamps) -> {
             timestamps.removeIf(timestamp -> Duration.between(timestamp, now).compareTo(RATE_LIMIT_WINDOW) > 0);
             return timestamps;
         });
-        
+
         List<LocalDateTime> globalTimestamps = globalEmailTimestamps.computeIfAbsent(globalKey, k -> new ArrayList<>());
         if (globalTimestamps.size() >= MAX_EMAILS_PER_MINUTE * 10) { // 10x user limit
             log.warn("Global rate limit exceeded - {} emails in last minute", globalTimestamps.size());
             return true;
         }
-        
+
         globalTimestamps.add(now);
         return false;
     }
@@ -168,39 +168,39 @@ public class EmailServiceImpl implements EmailService {
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables, String language) {
         // Validate inputs
         validateEmailInputs(to, subject, templateName, language);
-        
+
         // For templated emails, we skip content validation since templates are predefined and safe
         // Content validation is more appropriate for user-generated content in simple emails
         log.debug("Skipping content validation for templated email to: {} (template: {})", to, templateName);
-        
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
-            
+
             helper.setFrom(fromEmail);
             helper.setTo(to);
-            
+
             // Use centralized Arabic text encoding utility
             helper.setSubject(ArabicTextUtils.encodeForEmailSubject(subject));
-            
+
             // Let MimeMessageHelper handle encoding properly - don't override headers
             // The helper with UTF-8 charset should handle Arabic text correctly
-            
+
             Context context = new Context();
             // Set UTF-8 locale for proper character handling using centralized utility
             context.setLocale(java.util.Locale.forLanguageTag(ArabicTextUtils.getLocaleForLanguage(language)));
-            
+
             // Add website configuration variables with proper Arabic text normalization
             context.setVariable("websiteName", getWebsiteName(language));
             context.setVariable("websiteUrl", websiteUrl);
             context.setVariable("supportEmail", websiteSupportEmail);
             context.setVariable("supportPhone", websiteSupportPhone);
             context.setVariable("language", language);
-            
+
             // Add translation function to context for use in templates
             context.setVariable("t", new TranslationHelper(messageService, language));
             context.setVariable("currentYear", java.time.Year.now().getValue());
-            
+
             // Add and normalize all Arabic text in variables if present
             if (variables != null) {
                 variables.entrySet().forEach(entry -> {
@@ -212,15 +212,15 @@ public class EmailServiceImpl implements EmailService {
                     }
                 });
             }
-            
+
             String htmlContent = templateEngine.process(templateName, context);
-            
+
             // Ensure HTML content is properly encoded
             helper.setText(htmlContent, true);
-            
+
             mailSender.send(message);
             log.info("Templated email sent successfully to: {} (language: {}, template: {})", to, language, templateName);
-            
+
         } catch (MessagingException e) {
             log.error("Failed to send templated email to: {} (language: {}, template: {})", to, language, templateName, e);
             throw new EmailSendException("Failed to send email", e);
@@ -234,17 +234,17 @@ public class EmailServiceImpl implements EmailService {
     public void sendSimpleEmail(String to, String subject, String text) {
         // Validate inputs
         validateSimpleEmailInputs(to, subject, text);
-        
+
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
-            
+
             mailSender.send(message);
             log.info("Simple email sent successfully to: {}", to);
-            
+
         } catch (Exception e) {
             log.error("Failed to send simple email to: {}", to, e);
             throw new EmailSendException("Failed to send simple email", e);
@@ -261,15 +261,15 @@ public class EmailServiceImpl implements EmailService {
         if (!validateListingEmailInputs(seller, listing, language)) {
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_approved.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -289,15 +289,15 @@ public class EmailServiceImpl implements EmailService {
         if (!validateListingEmailInputs(seller, listing, language)) {
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_expired.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -318,16 +318,16 @@ public class EmailServiceImpl implements EmailService {
             return;
         }
         validateRenewalDays(renewalDays);
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         variables.put("renewalDays", renewalDays);
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_renewal.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -347,26 +347,26 @@ public class EmailServiceImpl implements EmailService {
         if (!validateUserEmailInputs(user, language)) {
             return;
         }
-        
+
         // Check rate limiting
         if (isGlobalRateLimited()) {
             log.warn("Global rate limit exceeded, skipping welcome email for user: {}", user.getEmail());
             return;
         }
-        
+
         if (isRateLimited(user.getEmail())) {
             log.warn("Rate limit exceeded for user: {}, skipping welcome email", user.getEmail());
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", user.getUsername());
         variables.put("userEmail", user.getEmail());
-        
+
         Map<String, Object> subjectParams = new HashMap<>();
         subjectParams.put("websiteName", getWebsiteName(language));
         String subject = messageService.getLocalizedMessage("email.welcome.subject", language, subjectParams);
-        
+
         sendTemplatedEmailAsync(
             user.getEmail(),
             subject,
@@ -386,12 +386,12 @@ public class EmailServiceImpl implements EmailService {
         if (!validateUserEmailInputs(user, language)) {
             return;
         }
-        
+
         if (verificationToken == null || verificationToken.trim().isEmpty()) {
             log.error("Cannot send email verification: verification token is null or empty for user: {}", user.getEmail());
             return;
         }
-        
+
         // Check rate limiting
         if (isGlobalRateLimited()) {
             log.warn("Global rate limit exceeded, skipping email verification for user: {}", user.getEmail());
@@ -401,7 +401,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Build verification URL
             String verificationUrl = websiteUrl + "/auth/verify-email?token=" + verificationToken;
-            
+
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", user.getUsername());
             variables.put("userEmail", user.getEmail());
@@ -411,15 +411,15 @@ public class EmailServiceImpl implements EmailService {
             variables.put("websiteUrl", websiteUrl);
             variables.put("supportEmail", websiteSupportEmail);
             variables.put("language", language);
-            
+
             // Add translation helper
             variables.put("t", new TranslationHelper(messageService, language));
             variables.put("currentYear", java.time.Year.now().getValue());
-            
+
             Map<String, Object> subjectParams = new HashMap<>();
             subjectParams.put("websiteName", getWebsiteName(language));
             String subject = messageService.getLocalizedMessage("email.account_verification.subject", language, subjectParams);
-            
+
             sendTemplatedEmail(
                 user.getEmail(),
                 subject,
@@ -427,11 +427,11 @@ public class EmailServiceImpl implements EmailService {
                 variables,
                 language
             );
-            
+
             log.info("Email verification sent successfully to user: {} ({})", user.getUsername(), user.getEmail());
-            
+
         } catch (Exception e) {
-            log.error("Failed to send email verification to user: {} ({}). Error: {}", 
+            log.error("Failed to send email verification to user: {} ({}). Error: {}",
                      user.getUsername(), user.getEmail(), e.getMessage());
             throw new EmailSendException("Failed to send email verification email", e);
         }
@@ -445,17 +445,17 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendContactFormEmail(String name, String email, String message, String language) {
         validateContactFormInputs(name, email, message, language);
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("senderName", name);
         variables.put("senderEmail", email);
         variables.put("message", message);
         variables.put("timestamp", java.time.LocalDateTime.now());
-        
+
         Map<String, Object> subjectParams = new HashMap<>();
         subjectParams.put("name", name);
         String subject = messageService.getLocalizedMessage("email.contact_form.subject", language, subjectParams);
-        
+
         sendTemplatedEmail(
             websiteSupportEmail,
             subject,
@@ -473,13 +473,13 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendContactFormConfirmation(String name, String email, String language) {
         validateContactFormConfirmationInputs(name, email, language);
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", name);
         variables.put("supportEmail", websiteSupportEmail);
-        
+
         String subject = messageService.getLocalizedMessage("email.contact_confirmation.subject", language);
-        
+
         sendTemplatedEmail(
             email,
             subject,
@@ -502,7 +502,7 @@ public class EmailServiceImpl implements EmailService {
         // We'll use the message parameter and ignore the separate subject for now
         sendContactFormEmail(name, email, message, language);
     }
-    
+
     @Override
     public void sendListingSoldEmail(User seller, CarListing listing) {
         sendListingSoldEmail(seller, listing, defaultLanguage);
@@ -513,15 +513,15 @@ public class EmailServiceImpl implements EmailService {
         if (!validateListingEmailInputs(seller, listing, language)) {
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_sold.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -530,7 +530,7 @@ public class EmailServiceImpl implements EmailService {
             language
         );
     }
-    
+
     @Override
     public void sendListingArchivedByAdminEmail(User seller, CarListing listing, String reason) {
         sendListingArchivedByAdminEmail(seller, listing, reason, defaultLanguage);
@@ -541,16 +541,16 @@ public class EmailServiceImpl implements EmailService {
         if (!validateListingEmailInputs(seller, listing, language)) {
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("listingUrl", websiteUrl + "/listings/" + listing.getId());
         variables.put("reason", reason != null ? reason : (language.equals("ar") ? "غير محدد" : "No specific reason provided"));
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_archived.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -559,7 +559,7 @@ public class EmailServiceImpl implements EmailService {
             language
         );
     }
-    
+
     @Override
     public void sendListingFeedbackRequestEmail(User seller, CarListing listing) {
         sendListingFeedbackRequestEmail(seller, listing, defaultLanguage);
@@ -570,15 +570,15 @@ public class EmailServiceImpl implements EmailService {
         if (!validateListingEmailInputs(seller, listing, language)) {
             return;
         }
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put("userName", seller.getUsername());
         variables.put("listingTitle", getListingTitle(listing, language));
         variables.put("listingId", listing.getId());
         variables.put("feedbackUrl", websiteUrl + "/feedback?listing=" + listing.getId());
-        
+
         String subject = messageService.getLocalizedMessage("email.listing_feedback.subject", language);
-        
+
         sendTemplatedEmail(
             seller.getEmail(),
             subject,
@@ -587,21 +587,21 @@ public class EmailServiceImpl implements EmailService {
             language
         );
     }
-    
+
     /**
      * Get website name based on language with proper Arabic text normalization.
      */
     private String getWebsiteName(String language) {
         String name = language.equals("ar") ? websiteNameAr : websiteName;
-        
+
         if (name == null) {
             return language.equals("ar") ? "كاريو" : "Caryo Marketplace";
         }
-        
+
         // Use centralized Arabic text normalization
         return ArabicTextUtils.normalizeArabicText(name);
     }
-    
+
     /**
      * Health check method to verify email service is working
      */
@@ -613,17 +613,17 @@ public class EmailServiceImpl implements EmailService {
                 log.warn("Email service health check failed: Cannot create MimeMessage");
                 return false;
             }
-            
+
             // Test template engine with a simple context
             Context context = new Context();
             context.setVariable("testVariable", "test");
-            
+
             // Test basic template processing (this will work with existing templates)
             if (templateEngine == null) {
                 log.warn("Email service health check failed: Template engine is null");
                 return false;
             }
-            
+
             log.debug("Email service health check passed - mail sender and template engine are available");
             return true;
         } catch (Exception e) {
@@ -639,32 +639,32 @@ public class EmailServiceImpl implements EmailService {
         if (listing == null) {
             return language.equals("ar") ? "إعلان غير معروف" : "Unknown Listing";
         }
-        
+
         StringBuilder title = new StringBuilder();
-        
+
         if (listing.getBrandNameEn() != null) {
             title.append(listing.getBrandNameEn());
         }
-        
+
         if (listing.getModelNameEn() != null) {
             if (title.length() > 0) title.append(" ");
             title.append(listing.getModelNameEn());
         }
-        
+
         if (listing.getModelYear() != null) {
             if (title.length() > 0) title.append(" ");
             title.append(listing.getModelYear());
         }
-        
+
         if (listing.getPrice() != null) {
             if (title.length() > 0) title.append(" - ");
             title.append("$").append(listing.getPrice());
         }
-        
-        return title.length() > 0 ? title.toString() : 
+
+        return title.length() > 0 ? title.toString() :
             (language.equals("ar") ? "إعلان سيارة" : "Car Listing");
     }
-    
+
     /**
      * Validate email inputs for templated emails.
      */
@@ -682,7 +682,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Unsupported language: " + language + ". Supported languages: " + SUPPORTED_LANGUAGES);
         }
     }
-    
+
     /**
      * Validate inputs for simple emails.
      */
@@ -697,7 +697,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Email text cannot be null or empty");
         }
     }
-    
+
     /**
      * Validate inputs for listing emails.
      * @return true if inputs are valid, false otherwise
@@ -720,7 +720,7 @@ public class EmailServiceImpl implements EmailService {
         }
         return true;
     }
-    
+
     /**
      * Validate inputs for user emails.
      * @return true if inputs are valid, false otherwise
@@ -739,7 +739,7 @@ public class EmailServiceImpl implements EmailService {
         }
         return true;
     }
-    
+
     /**
      * Validate inputs for contact form emails.
      */
@@ -757,7 +757,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
     }
-    
+
     /**
      * Validate inputs for contact form confirmation emails.
      */
@@ -772,7 +772,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
     }
-    
+
     /**
      * Validate renewal days.
      */
@@ -784,7 +784,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Renewal days cannot exceed 365, got: " + renewalDays);
         }
     }
-    
+
     /**
      * Send newsletter confirmation email.
      */
@@ -792,7 +792,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl) {
         sendNewsletterConfirmationEmail(email, confirmationUrl, unsubscribeUrl, "en");
     }
-    
+
     /**
      * Send newsletter confirmation email with specified language.
      */
@@ -800,7 +800,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendNewsletterConfirmationEmail(String email, String confirmationUrl, String unsubscribeUrl, String language) {
         try {
             validateNewsletterEmailInputs(email, language);
-            
+
             Map<String, Object> variables = new HashMap<>();
             variables.put("email", email);
             variables.put("confirmationUrl", confirmationUrl);
@@ -808,20 +808,20 @@ public class EmailServiceImpl implements EmailService {
             variables.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
             variables.put("websiteUrl", websiteUrl);
             variables.put("supportEmail", supportEmail);
-            
+
             Map<String, Object> subjectParams = new HashMap<>();
             subjectParams.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
             String subject = messageService.getLocalizedMessage("email.newsletter_confirmation.subject", language, subjectParams);
-            
+
             sendTemplatedEmail(email, subject, "newsletter-confirmation", variables, language);
             log.info("Newsletter confirmation email sent to: {} in language: {}", email, language);
-            
+
         } catch (Exception e) {
             log.error("Failed to send newsletter confirmation email to: {} in language: {}", email, language, e);
             throw new EmailSendException("Failed to send newsletter confirmation email", e);
         }
     }
-    
+
     /**
      * Send newsletter welcome email after confirmation.
      */
@@ -829,7 +829,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl) {
         sendNewsletterWelcomeEmail(email, unsubscribeUrl, "en");
     }
-    
+
     /**
      * Send newsletter welcome email after confirmation with specified language.
      */
@@ -837,27 +837,27 @@ public class EmailServiceImpl implements EmailService {
     public void sendNewsletterWelcomeEmail(String email, String unsubscribeUrl, String language) {
         try {
             validateNewsletterEmailInputs(email, language);
-            
+
             Map<String, Object> variables = new HashMap<>();
             variables.put("email", email);
             variables.put("unsubscribeUrl", unsubscribeUrl);
             variables.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
             variables.put("websiteUrl", websiteUrl);
             variables.put("supportEmail", supportEmail);
-            
+
             Map<String, Object> subjectParams = new HashMap<>();
             subjectParams.put("websiteName", "en".equals(language) ? websiteName : websiteNameAr);
             String subject = messageService.getLocalizedMessage("email.newsletter_welcome.subject", language, subjectParams);
-            
+
             sendTemplatedEmail(email, subject, "newsletter-welcome", variables, language);
             log.info("Newsletter welcome email sent to: {} in language: {}", email, language);
-            
+
         } catch (Exception e) {
             log.error("Failed to send newsletter welcome email to: {} in language: {}", email, language, e);
             throw new EmailSendException("Failed to send newsletter welcome email", e);
         }
     }
-    
+
     /**
      * Validate inputs for newsletter emails.
      */
@@ -869,7 +869,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("Unsupported language: " + language);
         }
     }
-    
+
     /**
      * Send password reset email with default language.
      */
@@ -877,14 +877,14 @@ public class EmailServiceImpl implements EmailService {
     public void sendPasswordResetEmail(String toEmail, String username, String resetUrl) {
         sendPasswordResetEmail(toEmail, username, resetUrl, defaultLanguage);
     }
-    
+
     /**
      * Send password reset email with retry logic and specified language.
      */
     @Override
     @Retryable(
-        retryFor = {Exception.class}, 
-        maxAttempts = 3, 
+        retryFor = {Exception.class},
+        maxAttempts = 3,
         backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public void sendPasswordResetEmail(String toEmail, String username, String resetUrl, String language) {
@@ -892,32 +892,32 @@ public class EmailServiceImpl implements EmailService {
             if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username) || !StringUtils.hasText(resetUrl)) {
                 throw new IllegalArgumentException("Email, username, and reset URL are required");
             }
-            
+
             if (!SUPPORTED_LANGUAGES.contains(language)) {
                 language = defaultLanguage;
             }
-            
+
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
             variables.put("resetUrl", resetUrl);
-            
+
             String subject = messageService.getLocalizedMessage("email.password_reset.subject", language);
-            
+
             sendTemplatedEmail(toEmail, subject, "user-management/password-reset", variables, language);
             log.info("Password reset email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
-            
+
         } catch (Exception e) {
             log.error("Failed to send password reset email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset email", e);
         }
     }
-    
+
     /**
      * Recovery method for password reset email sending failures.
      */
     @Recover
     public void recoverPasswordResetEmail(Exception ex, String toEmail, String username, String resetUrl) {
-        log.error("All attempts to send password reset email failed for: {}. Error: {}", 
+        log.error("All attempts to send password reset email failed for: {}. Error: {}",
             maskEmail(toEmail), ex.getMessage());
         throw new EmailSendException("Failed to send password reset email after all retry attempts", ex);
     }
@@ -929,14 +929,14 @@ public class EmailServiceImpl implements EmailService {
     public void sendPasswordResetConfirmationEmail(String toEmail, String username) {
         sendPasswordResetConfirmationEmail(toEmail, username, defaultLanguage);
     }
-    
+
     /**
      * Send password reset confirmation email with retry logic and specified language.
      */
     @Override
     @Retryable(
-        retryFor = {Exception.class}, 
-        maxAttempts = 3, 
+        retryFor = {Exception.class},
+        maxAttempts = 3,
         backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public void sendPasswordResetConfirmationEmail(String toEmail, String username, String language) {
@@ -945,36 +945,36 @@ public class EmailServiceImpl implements EmailService {
             if (!StringUtils.hasText(toEmail) || !StringUtils.hasText(username)) {
                 throw new IllegalArgumentException("Email and username are required");
             }
-            
+
             if (!SUPPORTED_LANGUAGES.contains(language)) {
                 language = defaultLanguage;
             }
-            
+
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", username);
-            
+
             String subject = messageService.getLocalizedMessage("email.password_reset_confirmation.subject", language);
-            
+
             sendTemplatedEmail(toEmail, subject, "user-management/password-reset-confirmation", variables, language);
             log.info("Password reset confirmation email sent successfully to: {} in language: {}", maskEmail(toEmail), language);
-            
+
         } catch (Exception e) {
             log.error("Failed to send password reset confirmation email to: {} in language: {}", maskEmail(toEmail), language, e);
             throw new EmailSendException("Failed to send password reset confirmation email", e);
         }
     }
-    
+
     /**
      * Recovery method for password reset confirmation email sending failures.
      */
     @Recover
     public void recoverPasswordResetConfirmationEmail(Exception ex, String toEmail, String username) {
-        log.error("All attempts to send password reset confirmation email failed for: {}. Error: {}", 
+        log.error("All attempts to send password reset confirmation email failed for: {}. Error: {}",
             maskEmail(toEmail), ex.getMessage());
         throw new EmailSendException("Failed to send password reset confirmation email after all retry attempts", ex);
     }
 
-    
+
 
     /**
      * Custom exception for email sending errors.
@@ -984,7 +984,7 @@ public class EmailServiceImpl implements EmailService {
             super(message, cause);
         }
     }
-    
+
     /**
      * Enhanced email sending with additional validation
      */
@@ -994,20 +994,20 @@ public class EmailServiceImpl implements EmailService {
             if (!isValidEmailFormat(toEmail)) {
                 throw new IllegalArgumentException("Invalid email format: " + toEmail);
             }
-            
+
             // Check for suspicious content
             if (containsSuspiciousContent(body)) {
                 log.warn("Email body contains suspicious content for recipient: {}", maskEmail(toEmail));
             }
-            
+
             sendSimpleEmail(toEmail, subject, body);
-            
+
         } catch (Exception e) {
             log.error("Enhanced email validation failed for: {}", maskEmail(toEmail), e);
             throw e;
         }
     }
-    
+
     /**
      * Mask email address for logging (privacy protection)
      */
@@ -1015,34 +1015,34 @@ public class EmailServiceImpl implements EmailService {
         if (!StringUtils.hasText(email)) {
             return "invalid-email";
         }
-        
+
         int atIndex = email.indexOf('@');
         if (atIndex <= 0) {
             return "invalid-email";
         }
-        
+
         String localPart = email.substring(0, atIndex);
         String domain = email.substring(atIndex);
-        
+
         if (localPart.length() <= 2) {
             return "*".repeat(localPart.length()) + domain;
         }
-        
+
         return localPart.charAt(0) + "*".repeat(localPart.length() - 2) + localPart.charAt(localPart.length() - 1) + domain;
     }
-    
+
     /**
      * Basic email format validation
      */
     private boolean isValidEmailFormat(String email) {
-        return StringUtils.hasText(email) && 
-               email.contains("@") && 
-               email.contains(".") && 
+        return StringUtils.hasText(email) &&
+               email.contains("@") &&
+               email.contains(".") &&
                email.length() > 5 &&
                !email.startsWith("@") &&
                !email.endsWith("@");
     }
-    
+
     /**
      * Check for suspicious content in email body
      */
@@ -1050,19 +1050,19 @@ public class EmailServiceImpl implements EmailService {
         if (!StringUtils.hasText(body)) {
             return false;
         }
-        
+
         String lowerBody = body.toLowerCase();
         String[] suspiciousPatterns = {
-            "<script", "javascript:", "onclick=", "onerror=", 
+            "<script", "javascript:", "onclick=", "onerror=",
             "eval(", "document.cookie", "window.location"
         };
-        
+
         for (String pattern : suspiciousPatterns) {
             if (lowerBody.contains(pattern)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -1143,4 +1143,4 @@ public class EmailServiceImpl implements EmailService {
 
         sendTemplatedEmail(newEmail, subject, "emails/user-management/email-change-confirmation", variables, language);
     }
-} 
+}

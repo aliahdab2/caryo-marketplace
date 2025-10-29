@@ -89,7 +89,7 @@ public class CarQueryDataService implements CarDataProvider {
             syncStatusService.completeSync(getProviderName(), "Sync completed successfully", result.getTotalProcessed(), result.getTotalFailed());
 
         } catch (Exception e) {
-            String errorContext = String.format("CarQuery complete dataset load failed - Provider: %s, API Client Available: %s", 
+            String errorContext = String.format("CarQuery complete dataset load failed - Provider: %s, API Client Available: %s",
                 getProviderName(), carQueryApiClient != null);
             log.error("{}, Error: {}", errorContext, e.getMessage(), e);
             result.setSuccess(false);
@@ -124,7 +124,7 @@ public class CarQueryDataService implements CarDataProvider {
     @Override
     public ValidationResult validateData() {
         ValidationResult result = new ValidationResult();
-        
+
         try {
             if (!isEnabled()) {
                 result.setValid(false);
@@ -142,12 +142,12 @@ public class CarQueryDataService implements CarDataProvider {
 
             // Validate data quality
             // List<String> issues = new ArrayList<>(); // Removed unused variable
-            
+
             // Check for brands without Arabic names
             List<CarBrand> brandsWithoutArabic = carBrandService.getAllBrands().stream()
                 .filter(brand -> brand.getDisplayNameAr() == null || brand.getDisplayNameAr().trim().isEmpty())
                 .collect(Collectors.toList());
-            
+
             if (!brandsWithoutArabic.isEmpty()) {
                 result.addWarning(String.format("%d brands missing Arabic translations", brandsWithoutArabic.size()));
             }
@@ -156,7 +156,7 @@ public class CarQueryDataService implements CarDataProvider {
             List<CarModel> modelsWithoutBrands = carModelService.getAllModels().stream()
                 .filter(model -> model.getBrand() == null)
                 .collect(Collectors.toList());
-            
+
             if (!modelsWithoutBrands.isEmpty()) {
                 result.addError(String.format("%d models have no associated brand", modelsWithoutBrands.size()));
                 result.setValid(false);
@@ -174,7 +174,7 @@ public class CarQueryDataService implements CarDataProvider {
             result.setMessage("Error during CarQuery data validation: " + e.getMessage());
             result.addError(e.getMessage());
         }
-        
+
         return result;
     }
 
@@ -259,7 +259,7 @@ public class CarQueryDataService implements CarDataProvider {
                 skippedBrands += batchSkipped;
                 result.incrementProcessed(batch.size() - batchSkipped);
                 result.incrementFailed(batchSkipped);
-                log.debug("Processed brand batch {}-{}: {} brands ({} imported, {} skipped)", 
+                log.debug("Processed brand batch {}-{}: {} brands ({} imported, {} skipped)",
                          i, endIndex - 1, batch.size(), batch.size() - batchSkipped, batchSkipped);
             } catch (Exception e) {
                 log.warn("Failed to process brand batch {}-{}: {}", i, endIndex - 1, e.getMessage());
@@ -295,7 +295,7 @@ public class CarQueryDataService implements CarDataProvider {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private int processBrandBatchWithValidation(List<CarQueryMakeResponse.CarQueryMake> batch) {
         int skippedCount = 0;
-        
+
         for (CarQueryMakeResponse.CarQueryMake makeData : batch) {
             try {
                 String brandSlug = makeData.getMakeId().toLowerCase();
@@ -327,7 +327,7 @@ public class CarQueryDataService implements CarDataProvider {
                 throw e; // Re-throw to rollback the batch transaction
             }
         }
-        
+
         return skippedCount;
     }
 
@@ -457,7 +457,7 @@ public class CarQueryDataService implements CarDataProvider {
             }
 
         } catch (Exception e) {
-            String errorContext = String.format("Brand creation/update failed - Name: %s, ID: %s, Operation: createOrUpdateBrandFromCarQuery", 
+            String errorContext = String.format("Brand creation/update failed - Name: %s, ID: %s, Operation: createOrUpdateBrandFromCarQuery",
                 makeData.getMakeDisplay(), makeData.getMakeId());
             log.warn("{}, Error: {}", errorContext, e.getMessage());
         }
@@ -471,7 +471,7 @@ public class CarQueryDataService implements CarDataProvider {
     private void importModelsForExistingBrand(CarBrand existingBrand, String makeId) {
         try {
             log.info("Checking for new models for existing brand: {}", existingBrand.getName());
-            
+
             CarQueryModelResponse modelsResponse = carQueryApiClient.getModelsByMake(makeId);
             if (modelsResponse == null || modelsResponse.getModels() == null || modelsResponse.getModels().isEmpty()) {
                 log.debug("No models found for brand '{}' in CarQuery API", existingBrand.getName());
@@ -484,7 +484,7 @@ public class CarQueryDataService implements CarDataProvider {
                     // Check if model already exists for this brand
                     String modelName = modelData.getModelName();
                     String expectedSlug = (existingBrand.getName() + "-" + modelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                    
+
                     // Try to find existing model by slug
                     try {
                         carModelService.getModelBySlug(expectedSlug);
@@ -496,17 +496,17 @@ public class CarQueryDataService implements CarDataProvider {
                         newModelsCount++;
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to process model '{}' for brand '{}': {}", 
+                    log.warn("Failed to process model '{}' for brand '{}': {}",
                             modelData.getModelName(), existingBrand.getName(), e.getMessage());
                 }
             }
-            
+
             if (newModelsCount > 0) {
                 log.info("✅ Imported {} new models for existing brand '{}'", newModelsCount, existingBrand.getName());
             } else {
                 log.debug("No new models found for existing brand '{}'", existingBrand.getName());
             }
-            
+
         } catch (Exception e) {
             log.error("Failed to import models for existing brand '{}': {}", existingBrand.getName(), e.getMessage());
         }
@@ -694,14 +694,14 @@ public class CarQueryDataService implements CarDataProvider {
             String englishModelName = modelData.getModelName();
             String arabicModelName = arabicTranslationService.translateModelToArabic(
                 brand.getDisplayNameEn(), englishModelName);
-            
+
             // Skip model creation if Arabic translation is not available
             if (arabicModelName == null || arabicModelName.trim().isEmpty()) {
-                log.warn("⚠️ SKIPPING MODEL CREATION: '{}' for brand '{}' - Arabic translation not available", 
+                log.warn("⚠️ SKIPPING MODEL CREATION: '{}' for brand '{}' - Arabic translation not available",
                         englishModelName, brand.getDisplayNameEn());
                 return;
             }
-            
+
             // Generate slug with brand-model format for proper filtering
             String modelSlug = (brand.getName() + "-" + englishModelName).toLowerCase().replaceAll("[^a-z0-9-]", "-");
 

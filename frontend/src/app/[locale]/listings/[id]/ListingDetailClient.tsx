@@ -29,7 +29,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const user = useOptimizedUser();
-  
+
   const listing = initialListing;
 
   // Convert listing media to CarMedia format using useMemo for performance
@@ -68,7 +68,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="h-72 sm:h-80 md:h-96 lg:h-[500px]">
-              <CarMediaGallery 
+              <CarMediaGallery
                 media={convertedMedia}
                 initialIndex={0}
                 className="w-full h-full"
@@ -103,7 +103,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <FavoriteButton
                     listingId={listing.id.toString()}
@@ -148,10 +148,10 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Action Buttons - Blocket Style */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button 
+                  <button
                     onClick={() => {
                       if (user) {
                         setShowContactModal(true);
@@ -166,7 +166,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                     </svg>
                     {t('sendMessage')}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowPhoneNumber(!showPhoneNumber)}
                     className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
                   >
@@ -204,7 +204,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
               <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                 {t('equipment')}
               </h2>
-              
+
               {/* Equipment List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {/* Sample equipment items */}
@@ -214,21 +214,21 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                   </svg>
                   <span className="text-sm text-gray-700 dark:text-gray-300">{t('winterTires')}</span>
                 </div>
-                
+
                 <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
                   <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-sm text-gray-700 dark:text-gray-300">{t('motorHeater')}</span>
                 </div>
-                
+
                 <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
                   <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span className="text-sm text-gray-700 dark:text-gray-300">{t('boseSound')}</span>
                 </div>
-                
+
                 <div className="flex items-center py-2 border-b border-gray-100 dark:border-gray-700">
                   <svg className="w-4 h-4 text-green-500 mr-3 rtl:ml-3 rtl:mr-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -236,7 +236,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                   <span className="text-sm text-gray-700 dark:text-gray-300">{t('leatherSeats')}</span>
                 </div>
               </div>
-              
+
               {/* Notice */}
               <div className="text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
                 {t('equipmentComingSoon')}

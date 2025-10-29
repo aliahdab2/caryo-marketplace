@@ -10,9 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface DriveTypeRepository extends JpaRepository<DriveType, Long> {
-    
+
     Optional<DriveType> findByName(String name);
-    
+
     @Query("SELECT d FROM DriveType d WHERE " +
            "LOWER(d.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(d.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

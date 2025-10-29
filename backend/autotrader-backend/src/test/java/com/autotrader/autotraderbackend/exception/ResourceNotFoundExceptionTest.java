@@ -13,7 +13,7 @@ class ResourceNotFoundExceptionTest {
         String expectedMessage = String.format("%s not found with %s : '%s'", resourceName, fieldName, fieldValue);
 
         ResourceNotFoundException exception = new ResourceNotFoundException(resourceName, fieldName, fieldValue);
-        
+
         assertEquals(expectedMessage, exception.getMessage());
         assertEquals(resourceName, exception.getResourceName());
         assertEquals(fieldName, exception.getFieldName());

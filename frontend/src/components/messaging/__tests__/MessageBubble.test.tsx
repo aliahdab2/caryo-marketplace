@@ -8,8 +8,8 @@ jest.mock('@/components/CarMediaGallery', () => {
   return function MockCarMediaGallery({ media, initialIndex }: { media: unknown[]; initialIndex: number }) {
     return (
       <div data-testid="car-media-gallery">
-        <div 
-          className="cursor-pointer" 
+        <div
+          className="cursor-pointer"
           data-testid="gallery-clickable"
           onClick={() => {
             // Simulate modal opening
@@ -59,11 +59,11 @@ describe('MessageBubble', () => {
     it('renders message content correctly', () => {
       const message = createMockMessage();
       render(
-        <MessageBubble 
-          message={message} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={message}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -74,11 +74,11 @@ describe('MessageBubble', () => {
     it('applies correct styling for own messages', () => {
       const message = createMockMessage();
       const { container } = render(
-        <MessageBubble 
-          message={message} 
-          isOwn={true} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={message}
+          isOwn={true}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -89,11 +89,11 @@ describe('MessageBubble', () => {
     it('applies correct styling for other messages', () => {
       const message = createMockMessage();
       const { container } = render(
-        <MessageBubble 
-          message={message} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={message}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -104,11 +104,11 @@ describe('MessageBubble', () => {
     it('shows read status for own messages', () => {
       const message = createMockMessage({ isRead: true });
       render(
-        <MessageBubble 
-          message={message} 
-          isOwn={true} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={message}
+          isOwn={true}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -120,11 +120,11 @@ describe('MessageBubble', () => {
     it('does not show read status for other messages', () => {
       const message = createMockMessage({ isRead: true });
       render(
-        <MessageBubble 
-          message={message} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={message}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -160,11 +160,11 @@ describe('MessageBubble', () => {
 
     it('renders image attachments correctly', () => {
       render(
-        <MessageBubble 
-          message={messageWithImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -174,11 +174,11 @@ describe('MessageBubble', () => {
 
     it('renders CarMediaGallery when images are present', () => {
       render(
-        <MessageBubble 
-          message={messageWithImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -187,11 +187,11 @@ describe('MessageBubble', () => {
 
     it('opens gallery modal when image is clicked', async () => {
       render(
-        <MessageBubble 
-          message={messageWithImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -206,11 +206,11 @@ describe('MessageBubble', () => {
 
     it('sets correct initial index when second image is clicked', async () => {
       render(
-        <MessageBubble 
-          message={messageWithImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -226,11 +226,11 @@ describe('MessageBubble', () => {
     it('does not render gallery when no images are present', () => {
       const messageWithoutImages = createMockMessage();
       render(
-        <MessageBubble 
-          message={messageWithoutImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithoutImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -264,11 +264,11 @@ describe('MessageBubble', () => {
 
     it('renders document attachments correctly', () => {
       render(
-        <MessageBubble 
-          message={messageWithDocuments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithDocuments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -280,11 +280,11 @@ describe('MessageBubble', () => {
 
     it('shows correct document type icons', () => {
       render(
-        <MessageBubble 
-          message={messageWithDocuments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithDocuments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -294,11 +294,11 @@ describe('MessageBubble', () => {
 
     it('calls onDownloadDocument when document is clicked', () => {
       render(
-        <MessageBubble 
-          message={messageWithDocuments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithDocuments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -338,11 +338,11 @@ describe('MessageBubble', () => {
 
     it('renders both image and document attachments', () => {
       render(
-        <MessageBubble 
-          message={messageWithMixedAttachments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithMixedAttachments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -353,11 +353,11 @@ describe('MessageBubble', () => {
 
     it('only includes images in gallery media', async () => {
       render(
-        <MessageBubble 
-          message={messageWithMixedAttachments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithMixedAttachments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -375,11 +375,11 @@ describe('MessageBubble', () => {
     it('handles message without content', () => {
       const emptyMessage = createMockMessage({ displayContent: '' });
       render(
-        <MessageBubble 
-          message={emptyMessage} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={emptyMessage}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -390,11 +390,11 @@ describe('MessageBubble', () => {
     it('handles message without attachments', () => {
       const messageWithoutAttachments = createMockMessage({ attachments: undefined });
       render(
-        <MessageBubble 
-          message={messageWithoutAttachments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithoutAttachments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -420,11 +420,11 @@ describe('MessageBubble', () => {
       });
 
       render(
-        <MessageBubble 
-          message={messageWithImages} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithImages}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 
@@ -447,11 +447,11 @@ describe('MessageBubble', () => {
       });
 
       render(
-        <MessageBubble 
-          message={messageWithDocuments} 
-          isOwn={false} 
-          isRTL={false} 
-          onDownloadDocument={mockOnDownloadDocument} 
+        <MessageBubble
+          message={messageWithDocuments}
+          isOwn={false}
+          isRTL={false}
+          onDownloadDocument={mockOnDownloadDocument}
         />
       );
 

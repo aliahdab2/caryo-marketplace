@@ -123,7 +123,7 @@ public class MessagingSystemIntegrationTest {
 
         // Extract conversation ID from response
         String responseJson = createResult.getResponse().getContentAsString();
-        ApiResponse<ConversationResponse> createResponse = objectMapper.readValue(responseJson, 
+        ApiResponse<ConversationResponse> createResponse = objectMapper.readValue(responseJson,
             new TypeReference<ApiResponse<ConversationResponse>>() {});
         Long conversationId = createResponse.getData().getId();
 
@@ -203,7 +203,7 @@ public class MessagingSystemIntegrationTest {
         // Create a conversation first (as buyer)
         authenticateUser(buyer);
         Conversation conversation = createTestConversation();
-        
+
         // Verify the conversation was created and has a valid ID
         assertThat(conversation.getId()).isNotNull();
         assertThat(conversationRepository.findById(conversation.getId())).isPresent();
@@ -235,7 +235,7 @@ public class MessagingSystemIntegrationTest {
 
     private void authenticateUser(User user) {
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
-        UsernamePasswordAuthenticationToken authentication = 
+        UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
@@ -245,7 +245,7 @@ public class MessagingSystemIntegrationTest {
         user.setEmail(email);
         user.setUsername(email);
         user.setPassword("hashedPassword");
-        
+
         // Create and save a basic role if it doesn't exist
         Role userRole = roleRepository.findByName("ROLE_USER")
                 .orElseGet(() -> {
@@ -253,7 +253,7 @@ public class MessagingSystemIntegrationTest {
                     return roleRepository.save(role);
                 });
         user.setRoles(Set.of(userRole));
-        
+
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(user);
@@ -271,7 +271,7 @@ public class MessagingSystemIntegrationTest {
                     brand.setDisplayNameAr("ماركة اختبار");
                     return carBrandRepository.save(brand);
                 });
-        
+
         CarModel testModel = carModelRepository.findAll().stream()
                 .findFirst()
                 .orElseGet(() -> {
@@ -283,7 +283,7 @@ public class MessagingSystemIntegrationTest {
                     model.setBrand(testBrand);
                     return carModelRepository.save(model);
                 });
-        
+
         CarListing listing = new CarListing();
         listing.setTitle("Test Car 2020");
         listing.setDescription("A great test car");
@@ -297,13 +297,13 @@ public class MessagingSystemIntegrationTest {
         listing.setSold(false);
         listing.setCreatedAt(LocalDateTime.now());
         listing.setUpdatedAt(LocalDateTime.now());
-        
+
         // Set required relationships
         listing.setModel(testModel);
         listing.setGovernorate(governorateRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No governorates found in test database")));
-        
+
         return carListingRepository.save(listing);
     }
 

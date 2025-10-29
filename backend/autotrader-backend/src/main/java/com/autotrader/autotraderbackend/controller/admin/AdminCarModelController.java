@@ -51,7 +51,7 @@ public class AdminCarModelController {
     )
     public ResponseEntity<ApiResponse<CarModelResponse>> createModel(
             @Valid @RequestBody CreateCarModelRequest request) {
-        
+
         log.info("Admin creating new car model: {} for brand ID: {}", request.getNameEn(), request.getBrandId());
 
         try {
@@ -90,18 +90,18 @@ public class AdminCarModelController {
     public ResponseEntity<ApiResponse<CarModelResponse>> updateModel(
             @Parameter(description = "Model ID", required = true) @PathVariable Long id,
             @Valid @RequestBody UpdateCarModelRequest request) {
-        
+
         log.info("Admin updating car model ID: {}", id);
 
         try {
             CarModel existingModel = carModelService.getModelById(id);
-            
+
             // Update brand if changed
             if (!existingModel.getBrand().getId().equals(request.getBrandId())) {
                 CarBrand newBrand = carBrandService.getBrandById(request.getBrandId());
                 existingModel.setBrand(newBrand);
             }
-            
+
             // Update other fields
             existingModel.setName(request.getNameEn());
             existingModel.setSlug(request.getSlug() != null ? request.getSlug() : request.getNameEn().toLowerCase().replaceAll("[^a-z0-9-]", "-"));
@@ -132,14 +132,14 @@ public class AdminCarModelController {
     )
     public ResponseEntity<ApiResponse<Void>> deleteModel(
             @Parameter(description = "Model ID", required = true) @PathVariable Long id) {
-        
+
         log.info("Admin deleting car model ID: {}", id);
 
         try {
             // Check if model has associated listings
             // This would need to be implemented in the service layer
             // For now, we'll proceed with deletion
-            
+
             carModelService.deleteModel(id);
 
             log.info("Successfully deleted car model ID: {}", id);
@@ -167,7 +167,7 @@ public class AdminCarModelController {
             @Parameter(description = "Brand ID filter") @RequestParam(required = false) Long brandId,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sortBy,
             @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDir) {
-        
+
         try {
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
@@ -206,7 +206,7 @@ public class AdminCarModelController {
     )
     public ResponseEntity<ApiResponse<CarModelResponse>> getModel(
             @Parameter(description = "Model ID", required = true) @PathVariable Long id) {
-        
+
         try {
             CarModel model = carModelService.getModelById(id);
             CarModelResponse response = CarModelResponse.fromEntity(model);
@@ -231,13 +231,13 @@ public class AdminCarModelController {
     )
     public ResponseEntity<ApiResponse<CarModelResponse>> toggleModelStatus(
             @Parameter(description = "Model ID", required = true) @PathVariable Long id) {
-        
+
         log.info("Admin toggling active status for car model ID: {}", id);
 
         try {
             CarModel model = carModelService.getModelById(id);
             model.setIsActive(!model.getIsActive());
-            
+
             CarModel updatedModel = carModelService.updateModel(id, model);
             CarModelResponse response = CarModelResponse.fromEntity(updatedModel);
 
@@ -262,7 +262,7 @@ public class AdminCarModelController {
     public ResponseEntity<ApiResponse<String>> bulkUpdateModelsBrand(
             @Parameter(description = "Model IDs") @RequestParam List<Long> modelIds,
             @Parameter(description = "New Brand ID") @RequestParam Long newBrandId) {
-        
+
         log.info("Admin bulk updating {} models to brand ID: {}", modelIds.size(), newBrandId);
 
         try {

@@ -1,7 +1,7 @@
 # 🚗 Caryo Marketplace - Dealer System Reference
 
-**Last Updated**: January 28, 2025  
-**Document Type**: Implementation Guide & Business Blueprint  
+**Last Updated**: January 28, 2025
+**Document Type**: Implementation Guide & Business Blueprint
 **Audience**: Developers, Product Managers, Stakeholders
 
 ---
@@ -28,9 +28,12 @@
 - Subscription tier support (trial/basic/advanced/professional)
 
 **Next Steps**:
+- ✅ Payment System Architecture - APPROVED (Generic Payment Layer)
+- 🔄 Phase 1B: Payment Implementation (2 weeks)
+  - Week 1: Manual transfer system
+  - Week 2: Bank gateway integration (Cham/Bemo)
+- 🔄 Phase 1C: Dealer dashboard & analytics
 - 🔄 Frontend UI for trial system (banners, warnings, upgrade modals)
-- 🔄 Payment integration (Phase 1B)
-- 🔄 Dealer dashboard (Phase 1C)
 
 ---
 
@@ -41,11 +44,12 @@
 | Dealer Signup | ✅ Complete | 100% | Done |
 | Database Schema | ✅ Complete | 100% | Done |
 | Trial System | ✅ Complete | 100% | Done ✨ |
-| Payment System | ❌ Not Started | 0% | **HIGH** |
+| Payment Architecture | ✅ Approved | 100% | Done ✨ |
+| Payment Implementation | 🔄 Ready to Start | 0% | **HIGH** |
 | Dealer Dashboard | ❌ Not Started | 0% | **HIGH** |
 | Analytics | ❌ Not Started | 0% | Medium |
 
-**Overall Progress: 60%** (Phase 1A Complete!)
+**Overall Progress: 65%** (Phase 1A Complete + Payment Architecture Approved!)
 
 ---
 
@@ -94,29 +98,29 @@ CREATE TABLE dealers (
     business_email VARCHAR(50) UNIQUE,
     business_phone VARCHAR(20),
     logo_url VARCHAR(255),
-    
+
     -- ✅ NEW: Trial System Fields (V51)
     trial_started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     trial_listings_count INTEGER DEFAULT 0 NOT NULL,
     trial_expired BOOLEAN DEFAULT FALSE NOT NULL,
     trial_extended_until TIMESTAMP WITH TIME ZONE,
     timezone VARCHAR(50) DEFAULT 'Asia/Damascus',
-    
+
     -- ✅ NEW: Subscription Fields (V51)
     subscription_tier VARCHAR(50) DEFAULT 'trial',
     subscription_status VARCHAR(50) DEFAULT 'trial',
     subscription_started_at TIMESTAMP WITH TIME ZONE,
     subscription_next_billing_date TIMESTAMP WITH TIME ZONE,
     subscription_cancelled_at TIMESTAMP WITH TIME ZONE,
-    
+
     -- ✅ NEW: Feature Flags (V51)
     can_create_listings BOOLEAN DEFAULT TRUE NOT NULL,
     payment_warning BOOLEAN DEFAULT FALSE NOT NULL,
     notifications_sent JSONB DEFAULT '[]'::jsonb,
-    
+
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    
+
     CONSTRAINT fk_dealer_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ```
@@ -333,7 +337,7 @@ CREATE TABLE dealers (
 
 ### **1. Feature Flags System**
 
-**Current State**: Hard-coded feature logic  
+**Current State**: Hard-coded feature logic
 **Improvement Needed**: Runtime feature toggles
 
 **Recommended Approach**:
@@ -355,16 +359,16 @@ features.dealer.{dealerId}.beta_features=true
 ```java
 @Service
 public class FeatureToggleService {
-    
+
     @Value("${features.trial_system.enabled:true}")
     private boolean trialSystemEnabled;
-    
+
     @Value("${features.dealer_dashboard.enabled:true}")
     private boolean dealerDashboardEnabled;
-    
+
     @Value("${features.analytics_advanced.enabled:false}")
     private boolean advancedAnalyticsEnabled;
-    
+
     public boolean isFeatureEnabled(String featureName) {
         return switch (featureName) {
             case "trial_system" -> trialSystemEnabled;
@@ -373,14 +377,14 @@ public class FeatureToggleService {
             default -> false;
         };
     }
-    
+
     public boolean isFeatureEnabledForDealer(String featureName, Long dealerId) {
         // Check global toggle first
         if (!isFeatureEnabled(featureName)) return false;
-        
+
         // Future: Check dealer-specific overrides
         // return dealerFeatureRepository.isEnabledFor(dealerId, featureName);
-        
+
         return true;
     }
 }
@@ -412,28 +416,28 @@ public ResponseEntity<?> getDealerDashboard() {
 ```java
 @Service
 public class DealerTrialService {
-    
+
     // ALWAYS use UTC for trial calculations
     public boolean isTrialActive(Dealer dealer) {
         ZonedDateTime trialStart = dealer.getTrialStartedAt()
             .atZone(ZoneId.of("UTC"));
         ZonedDateTime trialEnd = trialStart.plusMonths(TRIAL_DURATION_MONTHS);
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
-        
+
         return now.isBefore(trialEnd);
     }
-    
+
     // Display in dealer's local timezone for UI
     public ZonedDateTime getTrialExpiryInDealerTimezone(Dealer dealer) {
         ZonedDateTime trialEndUTC = dealer.getTrialStartedAt()
             .atZone(ZoneId.of("UTC"))
             .plusMonths(TRIAL_DURATION_MONTHS);
-        
+
         // Get dealer's timezone from profile or default to Syria time
-        String dealerTimezone = dealer.getTimezone() != null 
-            ? dealer.getTimezone() 
+        String dealerTimezone = dealer.getTimezone() != null
+            ? dealer.getTimezone()
             : "Asia/Damascus";
-        
+
         return trialEndUTC.withZoneSameInstant(ZoneId.of(dealerTimezone));
     }
 }
@@ -456,16 +460,16 @@ ALTER TABLE dealers ADD COLUMN timezone VARCHAR(50) DEFAULT 'Asia/Damascus';
 ```java
 @Service
 public class DealerTrialService {
-    
+
     private static final int GRACE_PERIOD_DAYS = 3; // 3 days after trial expires
-    
+
     public TrialStatus getTrialStatus(Dealer dealer) {
         ZonedDateTime trialEnd = getTrialEndDate(dealer);
         ZonedDateTime graceEnd = trialEnd.plusDays(GRACE_PERIOD_DAYS);
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
-        
+
         boolean inGracePeriod = now.isAfter(trialEnd) && now.isBefore(graceEnd);
-        
+
         return TrialStatus.builder()
             .active(now.isBefore(trialEnd))
             .inGracePeriod(inGracePeriod)
@@ -474,15 +478,15 @@ public class DealerTrialService {
             .canCreateListings(now.isBefore(graceEnd)) // Allow during grace
             .build();
     }
-    
+
     public boolean canCreateListing(Dealer dealer) {
         TrialStatus status = getTrialStatus(dealer);
-        
+
         // Allow during trial OR grace period
         if (status.isActive() || status.isInGracePeriod()) {
             return dealer.getTrialListingsCount() < TRIAL_LISTING_LIMIT;
         }
-        
+
         // After grace period, check subscription
         return hasActiveSubscription(dealer);
     }
@@ -510,7 +514,7 @@ if (trialStatus.inGracePeriod) {
 ```java
 @Service
 public class DealerTrialService {
-    
+
     public void extendTrial(Dealer dealer, int additionalDays, String reason) {
         // Log the extension for audit
         TrialExtension extension = new TrialExtension();
@@ -520,7 +524,7 @@ public class DealerTrialService {
         extension.setExtendedBy(getCurrentAdminUser());
         extension.setExtendedAt(LocalDateTime.now());
         trialExtensionRepository.save(extension);
-        
+
         // Update dealer's trial end date
         dealer.setTrialExtendedUntil(
             dealer.getTrialStartedAt()
@@ -528,7 +532,7 @@ public class DealerTrialService {
                 .plusDays(additionalDays)
         );
         dealerRepository.save(dealer);
-        
+
         // Notify dealer
         emailService.sendTrialExtensionEmail(dealer, additionalDays);
     }
@@ -544,7 +548,7 @@ public class DealerTrialService {
 **50% Usage** (8/15 listings):
 ```typescript
 <InfoBanner>
-  You've used 8 of 15 trial listings. 
+  You've used 8 of 15 trial listings.
   {daysRemaining} days remaining.
 </InfoBanner>
 ```
@@ -585,45 +589,45 @@ public class DealerTrialService {
 ```java
 @Service
 public class TrialNotificationService {
-    
+
     @Scheduled(cron = "0 0 9 * * *") // Daily at 9 AM
     public void checkTrialMilestones() {
         List<Dealer> dealers = dealerRepository.findActiveTrialDealers();
-        
+
         for (Dealer dealer : dealers) {
             TrialStatus status = trialService.getTrialStatus(dealer);
-            
+
             // 50% time milestone (1 month remaining)
             if (status.getDaysRemaining() == 30 && !dealer.isNotified("50_time")) {
                 emailService.sendTrialMilestoneEmail(dealer, "50_time");
                 dealer.markNotified("50_time");
             }
-            
+
             // 75% usage milestone
             if (status.getUsagePercent() >= 75 && !dealer.isNotified("75_usage")) {
                 emailService.sendTrialMilestoneEmail(dealer, "75_usage");
                 dealer.markNotified("75_usage");
             }
-            
+
             // 1 week remaining
             if (status.getDaysRemaining() == 7 && !dealer.isNotified("7_days")) {
                 emailService.sendTrialExpiryWarning(dealer, 7);
                 dealer.markNotified("7_days");
             }
-            
+
             // 3 days remaining
             if (status.getDaysRemaining() == 3 && !dealer.isNotified("3_days")) {
                 emailService.sendTrialExpiryWarning(dealer, 3);
                 dealer.markNotified("3_days");
             }
-            
+
             // Trial expired yesterday (grace period started)
             if (status.isInGracePeriod() && !dealer.isNotified("grace_start")) {
                 emailService.sendGracePeriodEmail(dealer);
                 dealer.markNotified("grace_start");
             }
         }
-        
+
         dealerRepository.saveAll(dealers);
     }
 }
@@ -643,7 +647,7 @@ public class TrialNotificationService {
 // Notification component
 const TrialNotifications = () => {
   const { trialStatus } = useDealerTrial();
-  
+
   return (
     <NotificationCenter>
       {trialStatus.usagePercent >= 75 && (
@@ -652,7 +656,7 @@ const TrialNotifications = () => {
           <Link to="/upgrade">Upgrade Now</Link>
         </Notification>
       )}
-      
+
       {trialStatus.daysRemaining <= 7 && (
         <Notification type="urgent">
           Trial ends in {trialStatus.daysRemaining} days
@@ -676,35 +680,35 @@ const TrialNotifications = () => {
 ```java
 @Service
 public class SubscriptionService {
-    
+
     public ProrationResult calculateProration(
-        Dealer dealer, 
-        String currentTier, 
+        Dealer dealer,
+        String currentTier,
         String newTier
     ) {
         LocalDateTime subscriptionStart = dealer.getSubscriptionStartedAt();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextBillingDate = subscriptionStart.plusMonths(1);
-        
+
         // Calculate days remaining in current cycle
         long daysInCycle = ChronoUnit.DAYS.between(subscriptionStart, nextBillingDate);
         long daysRemaining = ChronoUnit.DAYS.between(now, nextBillingDate);
-        
+
         // Calculate unused amount from current tier
         BigDecimal currentTierPrice = getTierPrice(currentTier);
         BigDecimal unusedAmount = currentTierPrice
             .multiply(BigDecimal.valueOf(daysRemaining))
             .divide(BigDecimal.valueOf(daysInCycle), 2, RoundingMode.HALF_UP);
-        
+
         // Calculate prorated amount for new tier
         BigDecimal newTierPrice = getTierPrice(newTier);
         BigDecimal proratedAmount = newTierPrice
             .multiply(BigDecimal.valueOf(daysRemaining))
             .divide(BigDecimal.valueOf(daysInCycle), 2, RoundingMode.HALF_UP);
-        
+
         // Amount due today
         BigDecimal amountDue = proratedAmount.subtract(unusedAmount);
-        
+
         return ProrationResult.builder()
             .currentTier(currentTier)
             .newTier(newTier)
@@ -716,11 +720,11 @@ public class SubscriptionService {
             .nextBillingAmount(newTierPrice)
             .build();
     }
-    
+
     public void upgradeSubscription(Dealer dealer, String newTier) {
         String currentTier = dealer.getSubscriptionTier();
         ProrationResult proration = calculateProration(dealer, currentTier, newTier);
-        
+
         // Charge prorated amount
         if (proration.getAmountDue().compareTo(BigDecimal.ZERO) > 0) {
             PaymentResult payment = paymentProvider.chargeProrated(
@@ -728,16 +732,16 @@ public class SubscriptionService {
                 proration.getAmountDue(),
                 "Prorated upgrade from " + currentTier + " to " + newTier
             );
-            
+
             if (!payment.isSuccessful()) {
                 throw new PaymentException("Prorated charge failed");
             }
         }
-        
+
         // Update subscription
         dealer.setSubscriptionTier(newTier);
         dealerRepository.save(dealer);
-        
+
         // Send confirmation
         emailService.sendUpgradeConfirmation(dealer, proration);
     }
@@ -756,7 +760,7 @@ public class SubscriptionService {
   <Divider />
   <Line bold>Due today: ${amountDue.toFixed(2)}</Line>
   <Line>Next billing ({nextBillingDate}): ${nextBillingAmount}/month</Line>
-  
+
   <Button onClick={confirmUpgrade}>Confirm Upgrade</Button>
 </ProrationPreview>
 ```
@@ -769,10 +773,10 @@ public class SubscriptionService {
 ```java
 @Service
 public class PaymentRetryService {
-    
+
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final int[] RETRY_DELAYS_HOURS = {24, 72, 168}; // 1 day, 3 days, 7 days
-    
+
     @Transactional
     public void handlePaymentFailure(Subscription subscription, PaymentResult result) {
         // Log the failure
@@ -783,26 +787,26 @@ public class PaymentRetryService {
         failure.setAttemptNumber(subscription.getFailedAttempts() + 1);
         failure.setFailedAt(LocalDateTime.now());
         paymentFailureRepository.save(failure);
-        
+
         // Update subscription status
         subscription.incrementFailedAttempts();
         subscription.setStatus("payment_failed");
         subscriptionRepository.save(subscription);
-        
+
         // Notify dealer immediately
         emailService.sendPaymentFailureEmail(
             subscription.getDealer(),
             result.getErrorMessage(),
             subscription.getFailedAttempts()
         );
-        
+
         // Schedule retry if under max attempts
         if (subscription.getFailedAttempts() < MAX_RETRY_ATTEMPTS) {
             int delayHours = RETRY_DELAYS_HOURS[subscription.getFailedAttempts() - 1];
             LocalDateTime retryAt = LocalDateTime.now().plusHours(delayHours);
-            
+
             schedulePaymentRetry(subscription, retryAt);
-            
+
             // Send retry notification
             emailService.sendPaymentRetryScheduled(
                 subscription.getDealer(),
@@ -814,18 +818,18 @@ public class PaymentRetryService {
             suspendSubscription(subscription);
         }
     }
-    
+
     @Scheduled(fixedRate = 3600000) // Check every hour
     public void processScheduledRetries() {
         List<PaymentRetry> dueRetries = paymentRetryRepository
             .findByRetryAtBeforeAndStatus(LocalDateTime.now(), "pending");
-        
+
         for (PaymentRetry retry : dueRetries) {
             try {
                 PaymentResult result = paymentProvider.retryPayment(
                     retry.getSubscription()
                 );
-                
+
                 if (result.isSuccessful()) {
                     handlePaymentSuccess(retry.getSubscription());
                     retry.setStatus("success");
@@ -833,25 +837,25 @@ public class PaymentRetryService {
                     handlePaymentFailure(retry.getSubscription(), result);
                     retry.setStatus("failed");
                 }
-                
+
                 paymentRetryRepository.save(retry);
-                
+
             } catch (Exception e) {
-                log.error("Retry failed for subscription: " + 
+                log.error("Retry failed for subscription: " +
                     retry.getSubscription().getId(), e);
             }
         }
     }
-    
+
     private void suspendSubscription(Subscription subscription) {
         subscription.setStatus("suspended");
         subscription.setSuspendedAt(LocalDateTime.now());
         subscriptionRepository.save(subscription);
-        
+
         Dealer dealer = subscription.getDealer();
         dealer.setSubscriptionTier("suspended");
         dealerRepository.save(dealer);
-        
+
         // Send suspension notice
         emailService.sendSubscriptionSuspendedEmail(
             dealer,
@@ -874,11 +878,11 @@ public class PaymentRetryService {
 ```java
 @Service
 public class DunningService {
-    
+
     public void manageDunning(Subscription subscription) {
         int failureCount = subscription.getFailedAttempts();
         Dealer dealer = subscription.getDealer();
-        
+
         switch (failureCount) {
             case 1 -> {
                 // Friendly reminder
@@ -906,7 +910,7 @@ public class DunningService {
                 listingService.hideAllListings(dealer);
             }
         }
-        
+
         dealerRepository.save(dealer);
     }
 }
@@ -933,7 +937,7 @@ public void applyReferralBonus(Dealer referrer, Dealer newDealer) {
     // Give referrer 5 extra trial listings
     referrer.setTrialListingsCount(referrer.getTrialListingsCount() - 5);
     dealerRepository.save(referrer);
-    
+
     emailService.sendReferralBonusEmail(referrer, 5);
 }
 ```
@@ -985,32 +989,58 @@ Testing:
 
 ---
 
-### **Phase 1B: Payment Integration** (Week 3-4) 🔥
+### **Phase 1B: Payment Implementation** (Week 3-4) 🔥
 **Priority**: CRITICAL - Enables revenue
+**Architecture**: ✅ Generic Payment Layer (Approved)
 
+**Week 1: Foundation + Manual Transfers**
 ```
 Backend:
-- [ ] Integrate PayPal SDK
-- [ ] Integrate Stripe API
-- [ ] Create SubscriptionService
+- [ ] Create PaymentProvider interface (generic layer)
+- [ ] Create PaymentService orchestrator
+- [ ] Implement ManualTransferProvider
 - [ ] Build subscription creation endpoint
-- [ ] Add payment webhook handlers
-- [ ] Implement subscription status checks
+- [ ] Add receipt upload API
+- [ ] Create admin verification panel
 
 Frontend:
-- [ ] Payment method selection
+- [ ] Payment method selector
 - [ ] Subscription plan selection
-- [ ] Payment form components
-- [ ] Success/failure handling
-- [ ] Receipt display
+- [ ] Receipt upload component
+- [ ] Payment status tracking
+- [ ] Admin verification UI
 
 Testing:
-- [ ] Payment provider sandbox testing
-- [ ] Webhook testing
-- [ ] Failed payment scenarios
+- [ ] Manual transfer flow testing
+- [ ] Receipt upload/verification testing
+- [ ] Integration tests
 ```
 
-**Deliverable**: Dealers can subscribe and pay
+**Week 2: Bank Gateway Integration**
+```
+Backend:
+- [ ] Implement ChamBankProvider (or BemoProvider)
+- [ ] Add bank API client
+- [ ] Implement webhook handlers
+- [ ] Production configuration
+
+Frontend:
+- [ ] Add bank gateway to selector
+- [ ] Handle redirect flows
+- [ ] Payment callback pages
+
+Testing:
+- [ ] Bank sandbox testing
+- [ ] Webhook testing
+- [ ] Production smoke tests
+```
+
+**Deliverable**:
+- Week 1: Manual payment system operational
+- Week 2: Automated bank gateway operational
+
+**Documentation**:
+- See [Payment System Guide](./PAYMENT_SYSTEM.md) - Complete implementation guide
 
 ---
 
@@ -1072,42 +1102,42 @@ subscription_started_at TIMESTAMP
 ```java
 @Service
 public class DealerTrialService {
-    
+
     private static final int TRIAL_DURATION_MONTHS = 2;
     private static final int TRIAL_LISTING_LIMIT = 15;
-    
+
     public boolean isTrialActive(Dealer dealer) {
         if (dealer.getTrialExpired()) return false;
-        if (dealer.getSubscriptionTier() != null && 
+        if (dealer.getSubscriptionTier() != null &&
             !"trial".equals(dealer.getSubscriptionTier())) {
             return false;
         }
-        
+
         LocalDateTime trialStart = dealer.getTrialStartedAt();
         LocalDateTime trialEnd = trialStart.plusMonths(TRIAL_DURATION_MONTHS);
-        
+
         return LocalDateTime.now().isBefore(trialEnd);
     }
-    
+
     public boolean canCreateListing(Dealer dealer) {
         if (!isTrialActive(dealer)) {
             // Check subscription tier limits
             return checkSubscriptionLimit(dealer);
         }
-        
+
         return dealer.getTrialListingsCount() < TRIAL_LISTING_LIMIT;
     }
-    
+
     public void incrementListingCount(Dealer dealer) {
         dealer.setTrialListingsCount(dealer.getTrialListingsCount() + 1);
         dealerRepository.save(dealer);
     }
-    
+
     public TrialStatus getTrialStatus(Dealer dealer) {
         LocalDateTime trialStart = dealer.getTrialStartedAt();
         LocalDateTime trialEnd = trialStart.plusMonths(TRIAL_DURATION_MONTHS);
         long daysRemaining = ChronoUnit.DAYS.between(LocalDateTime.now(), trialEnd);
-        
+
         return TrialStatus.builder()
             .active(isTrialActive(dealer))
             .daysRemaining((int) daysRemaining)
@@ -1124,13 +1154,13 @@ public class DealerTrialService {
 @RestController
 @RequestMapping("/api/dealer")
 public class DealerController {
-    
+
     @GetMapping("/trial-status")
     public ResponseEntity<TrialStatus> getTrialStatus() {
         User user = getCurrentUser();
         Dealer dealer = dealerService.getDealerByUser(user)
             .orElseThrow(() -> new NotFoundException("Dealer not found"));
-        
+
         TrialStatus status = dealerTrialService.getTrialStatus(dealer);
         return ResponseEntity.ok(status);
     }
@@ -1142,26 +1172,26 @@ public class DealerController {
 @PostMapping("/listings")
 public ResponseEntity<?> createListing(@Valid @RequestBody ListingRequest request) {
     User user = getCurrentUser();
-    
+
     if (user.isDealer()) {
         Dealer dealer = dealerService.getDealerByUser(user).orElseThrow();
-        
+
         if (!dealerTrialService.canCreateListing(dealer)) {
             return ResponseEntity.status(403)
                 .body(new MessageResponse("Trial limit reached. Please upgrade your subscription."));
         }
-        
+
         // Create listing
         CarListing listing = createListing(request, user);
-        
+
         // Increment counter if on trial
         if (dealerTrialService.isTrialActive(dealer)) {
             dealerTrialService.incrementListingCount(dealer);
         }
-        
+
         return ResponseEntity.ok(listing);
     }
-    
+
     // Handle private seller
     return createPrivateSellerListing(request, user);
 }
@@ -1175,42 +1205,42 @@ public ResponseEntity<?> createListing(@Valid @RequestBody ListingRequest reques
 ```java
 @Service
 public class SubscriptionService {
-    
+
     public Subscription createSubscription(Dealer dealer, String tier, PaymentMethod payment) {
         // 1. Validate tier
         SubscriptionTier subscriptionTier = validateTier(tier);
-        
+
         // 2. Create payment with provider
         String paymentId = paymentProvider.createSubscription(
             dealer.getBusinessEmail(),
             subscriptionTier.getPrice(),
             "monthly"
         );
-        
+
         // 3. Update dealer record
         dealer.setSubscriptionTier(tier);
         dealer.setSubscriptionStartedAt(LocalDateTime.now());
         dealer.setTrialExpired(true);
         dealerRepository.save(dealer);
-        
+
         // 4. Create subscription record
         return subscriptionRepository.save(new Subscription(dealer, tier, paymentId));
     }
-    
+
     public void handlePaymentSuccess(String paymentId) {
         Subscription subscription = subscriptionRepository.findByPaymentId(paymentId);
         subscription.setStatus("active");
         subscription.setLastPaymentAt(LocalDateTime.now());
         subscriptionRepository.save(subscription);
     }
-    
+
     public void handlePaymentFailure(String paymentId) {
         Subscription subscription = subscriptionRepository.findByPaymentId(paymentId);
         subscription.setStatus("payment_failed");
-        
+
         // Send notification to dealer
         emailService.sendPaymentFailureEmail(subscription.getDealer());
-        
+
         subscriptionRepository.save(subscription);
     }
 }
@@ -1561,6 +1591,6 @@ Response: jobId, totals (processed/success/failed), errorReportUrl
 
 ---
 
-**Document Maintained By**: Development Team  
-**For Questions**: See implementation team  
+**Document Maintained By**: Development Team
+**For Questions**: See implementation team
 **Last Review**: January 2025

@@ -65,7 +65,7 @@ class PasswordResetServiceTest {
         // Arrange
         String email = "test@example.com";
         String clientIp = "192.168.1.1";
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
         when(tokenRepository.findValidTokenByUser(eq(testUser), any(LocalDateTime.class)))
             .thenReturn(Optional.empty());
@@ -78,7 +78,7 @@ class PasswordResetServiceTest {
         // Assert
         assertTrue(result.isSuccess());
         assertEquals("If the email exists, a password reset link has been sent.", result.getMessage());
-        
+
         verify(userRepository).findByEmail(email);
         verify(tokenRepository).invalidateAllUserTokens(testUser);
         verify(tokenRepository).save(any(PasswordResetToken.class));
@@ -90,7 +90,7 @@ class PasswordResetServiceTest {
         // Arrange
         String email = "nonexistent@example.com";
         String clientIp = "192.168.1.1";
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // Act
@@ -99,7 +99,7 @@ class PasswordResetServiceTest {
         // Assert
         assertTrue(result.isSuccess());
         assertEquals("If the email exists, a password reset link has been sent.", result.getMessage());
-        
+
         verify(userRepository).findByEmail(email);
         verify(tokenRepository, never()).save(any(PasswordResetToken.class));
         verify(emailService, never()).sendPasswordResetEmail(anyString(), anyString(), anyString());
@@ -117,7 +117,7 @@ class PasswordResetServiceTest {
         // Assert
         assertFalse(result.isSuccess());
         assertEquals("Invalid email address", result.getMessage());
-        
+
         verify(userRepository, never()).findByEmail(anyString());
     }
 
@@ -126,7 +126,7 @@ class PasswordResetServiceTest {
         // Arrange
         String email = "test@example.com";
         String clientIp = "192.168.1.1";
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
         when(tokenRepository.findValidTokenByUser(eq(testUser), any(LocalDateTime.class)))
             .thenReturn(Optional.of(testToken));
@@ -137,7 +137,7 @@ class PasswordResetServiceTest {
         // Assert
         assertTrue(result.isSuccess());
         assertEquals("If the email exists, a password reset link has been sent.", result.getMessage());
-        
+
         verify(tokenRepository, never()).save(any(PasswordResetToken.class));
     }
 
@@ -146,7 +146,7 @@ class PasswordResetServiceTest {
         // Arrange
         String email = "test@example.com";
         String clientIp = "192.168.1.1";
-        
+
         // Simulate rate limit exceeded by calling the method multiple times
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
         when(tokenRepository.findValidTokenByUser(eq(testUser), any(LocalDateTime.class)))
@@ -161,7 +161,7 @@ class PasswordResetServiceTest {
 
         // 4th call should be rate limited
         PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(email, clientIp);
-        
+
         // Assert
         assertFalse(result.isSuccess());
         assertTrue(result.isRateLimited());
@@ -173,7 +173,7 @@ class PasswordResetServiceTest {
         // Arrange
         String token = "valid-token";
         PasswordResetToken validToken = new PasswordResetToken(token, testUser, LocalDateTime.now().plusHours(1));
-        
+
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.of(validToken));
 
         // Act
@@ -188,7 +188,7 @@ class PasswordResetServiceTest {
     void validateResetToken_WithInvalidToken_ShouldReturnFalse() {
         // Arrange
         String token = "invalid-token";
-        
+
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.empty());
 
         // Act
@@ -204,7 +204,7 @@ class PasswordResetServiceTest {
         // Arrange
         String token = "expired-token";
         PasswordResetToken expiredToken = new PasswordResetToken(token, testUser, LocalDateTime.now().minusHours(1));
-        
+
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.of(expiredToken));
 
         // Act
@@ -221,9 +221,9 @@ class PasswordResetServiceTest {
         String newPassword = "NewPassword123!";
         String clientIp = "192.168.1.1";
         String encodedPassword = "encodedNewPassword";
-        
+
         PasswordResetToken validToken = new PasswordResetToken(token, testUser, LocalDateTime.now().plusHours(1));
-        
+
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.of(validToken));
         when(passwordValidator.validatePassword(newPassword))
             .thenReturn(new PasswordValidator.PasswordValidationResult(true, java.util.Collections.emptyList()));
@@ -240,7 +240,7 @@ class PasswordResetServiceTest {
         assertTrue(result.isSuccess());
         assertEquals("Password has been reset successfully!", result.getMessage());
         assertTrue(validToken.isUsed());
-        
+
         verify(passwordValidator).validatePassword(newPassword);
         verify(passwordEncoder).encode(newPassword);
         verify(userRepository).save(testUser);
@@ -255,7 +255,7 @@ class PasswordResetServiceTest {
         String token = "invalid-token";
         String newPassword = "NewPassword123!";
         String clientIp = "192.168.1.1";
-        
+
         when(passwordValidator.validatePassword(newPassword))
             .thenReturn(new PasswordValidator.PasswordValidationResult(true, java.util.Collections.emptyList()));
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.empty());
@@ -266,7 +266,7 @@ class PasswordResetServiceTest {
         // Assert
         assertFalse(result.isSuccess());
         assertEquals("Invalid or expired reset token", result.getMessage());
-        
+
         verify(passwordValidator).validatePassword(newPassword);
         verify(tokenRepository).findByTokenAndUsedFalse(token);
     }
@@ -277,9 +277,9 @@ class PasswordResetServiceTest {
         String token = "valid-token";
         String weakPassword = "123";
         String clientIp = "192.168.1.1";
-        
+
         when(passwordValidator.validatePassword(weakPassword))
-            .thenReturn(new PasswordValidator.PasswordValidationResult(false, 
+            .thenReturn(new PasswordValidator.PasswordValidationResult(false,
                 java.util.Arrays.asList("Password too short", "Missing uppercase letter")));
 
         // Act
@@ -288,7 +288,7 @@ class PasswordResetServiceTest {
         // Assert
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("Password does not meet security requirements"));
-        
+
         verify(passwordValidator).validatePassword(weakPassword);
         verify(tokenRepository, never()).findByTokenAndUsedFalse(anyString());
     }
@@ -299,9 +299,9 @@ class PasswordResetServiceTest {
         String token = "valid-token";
         String samePassword = "SamePassword123!";
         String clientIp = "192.168.1.1";
-        
+
         PasswordResetToken validToken = new PasswordResetToken(token, testUser, LocalDateTime.now().plusHours(1));
-        
+
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.of(validToken));
         when(passwordValidator.validatePassword(samePassword))
             .thenReturn(new PasswordValidator.PasswordValidationResult(true, java.util.Collections.emptyList()));
@@ -313,7 +313,7 @@ class PasswordResetServiceTest {
         // Assert
         assertFalse(result.isSuccess());
         assertEquals("New password must be different from your current password", result.getMessage());
-        
+
         verify(passwordValidator).validatePassword(samePassword);
         verify(passwordEncoder).matches(samePassword, testUser.getPassword());
         verify(userRepository, never()).save(any(User.class));
@@ -325,9 +325,9 @@ class PasswordResetServiceTest {
         String token = "expired-token";
         String newPassword = "NewPassword123!";
         String clientIp = "192.168.1.1";
-        
+
         PasswordResetToken expiredToken = new PasswordResetToken(token, testUser, LocalDateTime.now().minusHours(1));
-        
+
         when(passwordValidator.validatePassword(newPassword))
             .thenReturn(new PasswordValidator.PasswordValidationResult(true, java.util.Collections.emptyList()));
         when(tokenRepository.findByTokenAndUsedFalse(token)).thenReturn(Optional.of(expiredToken));
@@ -338,7 +338,7 @@ class PasswordResetServiceTest {
         // Assert
         assertFalse(result.isSuccess());
         assertEquals("Invalid or expired reset token", result.getMessage());
-        
+
         verify(passwordValidator).validatePassword(newPassword);
         verify(tokenRepository).findByTokenAndUsedFalse(token);
     }

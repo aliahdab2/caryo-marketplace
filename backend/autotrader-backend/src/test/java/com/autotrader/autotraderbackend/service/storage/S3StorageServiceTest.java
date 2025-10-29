@@ -39,20 +39,20 @@ class S3StorageServiceTest {
         s3Client = mock(S3Client.class);
         configManager = mock(StorageConfigurationManager.class);
         urlGenerator = mock(StorageUrlGenerator.class);
-        
+
         // Setup configuration manager defaults
         when(configManager.getDefaultBucketName()).thenReturn("test-bucket");
         when(configManager.getBucketName(anyString())).thenReturn("test-bucket");
         when(configManager.getFileTypeFromKey(anyString())).thenReturn("listing-media");
         when(configManager.getStorageBaseUrl()).thenReturn("http://localhost:9000");
         when(configManager.isPublicAccessEnabled()).thenReturn(false);
-        
+
         // Setup URL generator defaults
         when(urlGenerator.generateUrl(anyString(), any(StorageUrlGenerator.UrlType.class), anyLong()))
                 .thenReturn("http://localhost:9000/test-bucket/test-key");
-        
+
         s3StorageService = new S3StorageService(s3Client, configManager, urlGenerator);
-        
+
         // Mock the init call for headBucket
         HeadBucketResponse headBucketResponse = HeadBucketResponse.builder().build();
         when(s3Client.headBucket(any(HeadBucketRequest.class))).thenReturn(headBucketResponse);
@@ -88,7 +88,7 @@ class S3StorageServiceTest {
         GetObjectResponse response = GetObjectResponse.builder()
                 .contentLength(9L)
                 .build();
-        ResponseInputStream<GetObjectResponse> responseStream = 
+        ResponseInputStream<GetObjectResponse> responseStream =
                 new ResponseInputStream<>(response, new ByteArrayInputStream("test data".getBytes()));
 
         // Simulate loading the object from S3
@@ -100,12 +100,12 @@ class S3StorageServiceTest {
         assertNotNull(resource);
         verify(s3Client, times(1)).getObject(any(GetObjectRequest.class));
     }
-    
+
     @Test
     void testLoadThrowsUnsupportedOperation() {
         String key = "test_key";
-        
-        // The load method should throw UnsupportedOperationException since 
+
+        // The load method should throw UnsupportedOperationException since
         // loading as Path is not supported in S3
         assertThrows(UnsupportedOperationException.class, () -> {
             s3StorageService.load(key);
@@ -125,7 +125,7 @@ class S3StorageServiceTest {
         assertTrue(result);
         verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
     }
-    
+
     @Test
     void testDeleteFailed() {
         String key = "test_key";
@@ -151,10 +151,10 @@ class S3StorageServiceTest {
                 .contents(Collections.singletonList(s3Object))
                 .isTruncated(false)
                 .build();
-                
+
         // Simulate deleting objects
         DeleteObjectsResponse deleteResponse = DeleteObjectsResponse.builder().build();
-        
+
         when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResponse);
         when(s3Client.deleteObjects(any(DeleteObjectsRequest.class))).thenReturn(deleteResponse);
 
@@ -165,76 +165,76 @@ class S3StorageServiceTest {
         verify(s3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
         verify(s3Client, times(1)).deleteObjects(any(DeleteObjectsRequest.class));
     }
-    
+
     @Test
     void testInitSuccessful() {
         // Already mocked in setup method, just need to call init
         s3StorageService.init();
-        
+
         verify(s3Client, times(1)).headBucket(any(HeadBucketRequest.class));
     }
-    
+
     @Test
     void testInitFailedBucketNotFound() {
         // Mock bucket not found
         when(s3Client.headBucket(any(HeadBucketRequest.class)))
             .thenThrow(NoSuchBucketException.builder().build());
-            
+
         // Verify that StorageException is thrown
         StorageException exception = assertThrows(StorageException.class, () -> {
             s3StorageService.init();
         });
-        
+
         assertTrue(exception.getMessage().contains("S3 bucket not found"));
     }
-    
+
     @Test
     void testGetSignedUrl() throws MalformedURLException {
         String key = "test_key";
         long expirationSeconds = 3600;
         String expectedUrl = "http://localhost:9000/test-bucket/test_key?X-Amz-Expires=3600";
-        
+
         // Mock URL generator behavior
         when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.SIGNED), eq(expirationSeconds)))
                 .thenReturn(expectedUrl);
         when(configManager.isPublicAccessEnabled()).thenReturn(false); // Force signed URL
-            
+
         // Execute method
         String url = s3StorageService.getSignedUrl(key, expirationSeconds);
-        
+
         // Verify
         assertEquals(expectedUrl, url);
         verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.SIGNED), eq(expirationSeconds));
     }
-    
+
     @Test
     void testLoadAsResourceNotFound() {
         String key = "missing_file.txt";
-        
-        // Mock S3 throwing NoSuchKeyException 
+
+        // Mock S3 throwing NoSuchKeyException
         when(s3Client.getObject(any(GetObjectRequest.class)))
             .thenThrow(NoSuchKeyException.builder().build());
-            
+
         // Execute and verify
         StorageFileNotFoundException exception = assertThrows(StorageFileNotFoundException.class, () -> {
             s3StorageService.loadAsResource(key);
         });
-        
+
         assertTrue(exception.getMessage().contains("File not found"));
     }
-    
+
     @Test
     void testStoreEmptyFileThrows() {
         MultipartFile file = mock(MultipartFile.class);
         when(file.isEmpty()).thenReturn(true);
-        
+
         StorageException exception = assertThrows(StorageException.class, () -> {
             s3StorageService.store(file, "key");
         });
-        
+
         assertTrue(exception.getMessage().contains("empty file"));
     }
-    
+
     @Test
     void testLoadAllReturnsEmptyStream() {
         // S3StorageService's loadAll returns an empty stream
@@ -242,87 +242,87 @@ class S3StorageServiceTest {
         assertNotNull(stream);
         assertEquals(0, stream.count());
     }
-    
+
     @Test
     void testGetPublicUrl() {
         String key = "test_key";
         String expectedUrl = "http://localhost:9000/test-bucket/test_key";
-        
+
         // Mock URL generator behavior
         when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(0L)))
                 .thenReturn(expectedUrl);
-            
+
         // Execute method
         String url = s3StorageService.getPublicUrl(key);
-        
+
         // Verify
         assertEquals(expectedUrl, url);
         verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(0L));
     }
-    
+
     @Test
     void testGetCdnUrl() {
         String key = "test_key";
         String expectedUrl = "https://cdn.example.com/test-bucket/test_key";
-        
+
         // Mock URL generator behavior
         when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.CDN), eq(0L)))
                 .thenReturn(expectedUrl);
-            
+
         // Execute method
         String url = s3StorageService.getCdnUrl(key);
-        
+
         // Verify
         assertEquals(expectedUrl, url);
         verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.CDN), eq(0L));
     }
-    
+
     @Test
     void testGetSignedUrlWithPublicAccess() {
         String key = "test_key";
         long expirationSeconds = 3600;
         String expectedUrl = "http://localhost:9000/test-bucket/test_key";
-        
+
         // Mock URL generator behavior for public access
         when(configManager.isPublicAccessEnabled()).thenReturn(true); // Force public URL
         when(urlGenerator.generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(expirationSeconds)))
                 .thenReturn(expectedUrl);
-            
+
         // Execute method
         String url = s3StorageService.getSignedUrl(key, expirationSeconds);
-        
+
         // Verify
         assertEquals(expectedUrl, url);
         verify(urlGenerator, times(1)).generateUrl(eq(key), eq(StorageUrlGenerator.UrlType.PUBLIC), eq(expirationSeconds));
     }
-    
+
     @Test
     void testGetSignedUrlWithNullKey() {
         // Test validation
         StorageException exception = assertThrows(StorageException.class, () -> {
             s3StorageService.getSignedUrl(null, 3600);
         });
-        
+
         assertTrue(exception.getMessage().contains("Storage key cannot be null or empty"));
     }
-    
+
     @Test
     void testGetSignedUrlWithEmptyKey() {
         // Test validation
         StorageException exception = assertThrows(StorageException.class, () -> {
             s3StorageService.getSignedUrl("", 3600);
         });
-        
+
         assertTrue(exception.getMessage().contains("Storage key cannot be null or empty"));
     }
-    
+
     @Test
     void testGetSignedUrlWithNegativeExpiration() {
         // Test validation
         StorageException exception = assertThrows(StorageException.class, () -> {
             s3StorageService.getSignedUrl("test_key", -1);
         });
-        
+
         assertTrue(exception.getMessage().contains("Expiration seconds cannot be negative"));
     }
 }

@@ -52,7 +52,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
-      
+
       {/* Password input - RTL aware padding */}
       <input
         id={id}
@@ -70,7 +70,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         onInput={onInput}
         className={`block w-full ltr:pl-10 ltr:pr-12 rtl:pr-10 rtl:pl-12 px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${className}`}
       />
-      
+
       {/* Password visibility toggle button - RTL aware positioning */}
       <button
         type="button"

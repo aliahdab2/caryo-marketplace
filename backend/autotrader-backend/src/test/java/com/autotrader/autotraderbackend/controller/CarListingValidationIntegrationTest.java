@@ -100,7 +100,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
 
         Governorate testGovernorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", testCountry);
         testGovernorate = governorateRepository.save(testGovernorate);
-        
+
         testLocation = TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", testGovernorate);
         testLocation = locationRepository.save(testLocation);
 
@@ -121,7 +121,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         testCarModel.setSlug("valid-model");
         testCarModel = carModelRepository.save(testCarModel);
     }
-    
+
     private void registerAndLoginUser() {
         // Register a new user
         SignupRequest signupRequest = new SignupRequest();
@@ -155,7 +155,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
                 loginRequest,
                 JwtResponse.class
         );
-        
+
         assertNotNull(loginResponse.getBody(), "Login response body should not be null");
         jwtToken = loginResponse.getBody().getToken();
         assertNotNull(jwtToken, "JWT token should not be null");
@@ -177,48 +177,48 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
     public void testCreateListing_MissingTitle_ShouldFail() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
-        
+
         CreateListingRequest request = createValidListingRequest();
         request.setTitle(null); // Make title invalid (null)
-        
+
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
-        
+
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 entity,
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body
         );
-        
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value(), "Should return 400 Bad Request for missing title");
         // Optionally, assert specific error message in the response body if available
         // assertNotNull(response.getBody());
-        // assertTrue(response.getBody().toString().contains("Title is mandatory")); 
+        // assertTrue(response.getBody().toString().contains("Title is mandatory"));
     }
 
     @Test
     public void testCreateListing_InvalidPrice_ShouldFail() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
-        
+
         CreateListingRequest request = createValidListingRequest();
         request.setPrice(new BigDecimal("-100.00")); // Make price invalid (negative)
-        
+
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
-        
+
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 baseUrl + "/api/listings",
                 HttpMethod.POST,
                 entity,
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body
         );
-        
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value(), "Should return 400 Bad Request for negative price");
         // Optionally, assert specific error message
         // assertNotNull(response.getBody());
-        // assertTrue(response.getBody().toString().contains("Price must be positive")); 
+        // assertTrue(response.getBody().toString().contains("Price must be positive"));
     }
-    
+
     // Add more validation tests for other fields (brand, model, year, mileage, location, description)
     // Example: Test for blank title, invalid model year, negative mileage etc.
 }

@@ -66,7 +66,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
       </div>
 
       {/* Unified Listing Wizard with Auto-Loading */}
-      <ListingWizard 
+      <ListingWizard
         mode="edit"
         listingId={id}
         autoLoad={true}

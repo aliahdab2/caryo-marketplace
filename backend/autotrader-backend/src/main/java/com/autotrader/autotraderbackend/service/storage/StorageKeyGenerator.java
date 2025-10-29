@@ -40,12 +40,12 @@ public class StorageKeyGenerator {
         String safeFilename = sanitizeFilename(originalFilename);
         String timestamp = getCurrentTimestamp();
         String pattern = storageProperties.getKeyPatterns().getListingMedia();
-        
+
         String key = pattern
                 .replace("{listingId}", String.valueOf(listingId))
                 .replace("{timestamp}", timestamp)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated listing media key: {} for listingId: {}, filename: {}", key, listingId, originalFilename);
         return key;
     }
@@ -61,12 +61,12 @@ public class StorageKeyGenerator {
         String safeFilename = sanitizeFilename(originalFilename);
         String timestamp = getCurrentTimestamp();
         String pattern = storageProperties.getKeyPatterns().getUserAvatar();
-        
+
         String key = pattern
                 .replace("{userId}", String.valueOf(userId))
                 .replace("{timestamp}", timestamp)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated user avatar key: {} for userId: {}, filename: {}", key, userId, originalFilename);
         return key;
     }
@@ -81,11 +81,11 @@ public class StorageKeyGenerator {
         String safeFilename = sanitizeFilename(originalFilename);
         String uuid = UUID.randomUUID().toString();
         String pattern = storageProperties.getKeyPatterns().getTempUploads();
-        
+
         String key = pattern
                 .replace("{uuid}", uuid)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated temp upload key: {} for filename: {}", key, originalFilename);
         return key;
     }
@@ -101,11 +101,11 @@ public class StorageKeyGenerator {
         String safeFilename = sanitizeFilename(filename);
         String safeCategory = sanitizeFilename(category);
         String pattern = storageProperties.getKeyPatterns().getSampleData();
-        
+
         String key = pattern
                 .replace("{category}", safeCategory)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated sample data key: {} for category: {}, filename: {}", key, category, filename);
         return key;
     }
@@ -122,12 +122,12 @@ public class StorageKeyGenerator {
         String safeCategory = sanitizeFilename(category);
         String timestamp = getCurrentTimestamp();
         String pattern = storageProperties.getKeyPatterns().getDocuments();
-        
+
         String key = pattern
                 .replace("{category}", safeCategory)
                 .replace("{timestamp}", timestamp)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated document key: {} for category: {}, filename: {}", key, category, filename);
         return key;
     }
@@ -143,11 +143,11 @@ public class StorageKeyGenerator {
         String safeFilename = sanitizeFilename(filename);
         String safeOriginalPath = sanitizeFilename(originalPath);
         String pattern = storageProperties.getKeyPatterns().getThumbnails();
-        
+
         String key = pattern
                 .replace("{originalPath}", safeOriginalPath)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated thumbnail key: {} for originalPath: {}, filename: {}", key, originalPath, filename);
         return key;
     }
@@ -164,12 +164,12 @@ public class StorageKeyGenerator {
         String safeCategory = sanitizeFilename(category);
         String date = getCurrentDate();
         String pattern = storageProperties.getKeyPatterns().getBackups();
-        
+
         String key = pattern
                 .replace("{date}", date)
                 .replace("{category}", safeCategory)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated backup key: {} for category: {}, filename: {}", key, category, filename);
         return key;
     }
@@ -186,12 +186,12 @@ public class StorageKeyGenerator {
         String safeLevel = sanitizeFilename(level);
         String date = getCurrentDate();
         String pattern = storageProperties.getKeyPatterns().getLogs();
-        
+
         String key = pattern
                 .replace("{date}", date)
                 .replace("{level}", safeLevel)
                 .replace("{filename}", safeFilename);
-        
+
         log.debug("Generated log key: {} for level: {}, filename: {}", key, level, filename);
         return key;
     }
@@ -207,14 +207,14 @@ public class StorageKeyGenerator {
         if (replacements.length % 2 != 0) {
             throw new IllegalArgumentException("Replacements must be provided in key-value pairs");
         }
-        
+
         String key = pattern;
         for (int i = 0; i < replacements.length; i += 2) {
             String placeholder = "{" + replacements[i] + "}";
             String value = sanitizeFilename(replacements[i + 1]);
             key = key.replace(placeholder, value);
         }
-        
+
         log.debug("Generated custom key: {} from pattern: {}", key, pattern);
         return key;
     }
@@ -266,7 +266,7 @@ public class StorageKeyGenerator {
         if (filename == null || filename.trim().isEmpty()) {
             return "file";
         }
-        
+
         // Remove path traversal attempts and invalid characters
         return filename.replaceAll("[^a-zA-Z0-9._-]", "_")
                       .replaceAll("_{2,}", "_") // Replace multiple underscores with single

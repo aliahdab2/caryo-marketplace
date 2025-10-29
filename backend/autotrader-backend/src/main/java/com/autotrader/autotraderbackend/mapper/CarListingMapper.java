@@ -53,28 +53,28 @@ public class CarListingMapper {
             response.setCurrency(carListing.getCurrency());
             response.setMileage(carListing.getMileage());
             response.setDescription(carListing.getDescription());
-            
+
             // Set complete transmission and fuel type objects
             if (Objects.nonNull(carListing.getTransmissionType())) {
                 response.setTransmission(TransmissionResponse.fromEntity(carListing.getTransmissionType()));
             }
-            
+
             if (Objects.nonNull(carListing.getFuelType())) {
                 response.setFuelType(FuelTypeResponse.fromEntity(carListing.getFuelType()));
             }
-            
+
             // Set complete brand and model objects
             if (Objects.nonNull(carListing.getModel()) && Objects.nonNull(carListing.getModel().getBrand())) {
                 response.setBrand(CarBrandResponse.fromEntity(carListing.getModel().getBrand()));
                 response.setModel(CarModelResponse.fromEntity(carListing.getModel()));
             }
-            
+
             // Set denormalized brand and model name fields (backward compatibility)
             response.setBrandNameEn(carListing.getBrandNameEn());
             response.setBrandNameAr(carListing.getBrandNameAr());
             response.setModelNameEn(carListing.getModelNameEn());
             response.setModelNameAr(carListing.getModelNameAr());
-            
+
             // Set denormalized governorate name fields
             // First try denormalized fields from entity, then fallback to relationship
             if (Objects.nonNull(carListing.getGovernorateNameEn()) || Objects.nonNull(carListing.getGovernorateNameAr())) {
@@ -85,12 +85,12 @@ public class CarListingMapper {
                 response.setGovernorateNameEn(carListing.getGovernorate().getDisplayNameEn());
                 response.setGovernorateNameAr(carListing.getGovernorate().getDisplayNameAr());
             }
-            
+
             // Use location
             if (Objects.nonNull(carListing.getLocation())) {
                 response.setLocationDetails(LocationResponse.fromEntity(carListing.getLocation()));
             }
-            
+
             // Use governorate
             if (Objects.nonNull(carListing.getGovernorate())) {
                 response.setGovernorateDetails(GovernorateResponse.fromEntity(carListing.getGovernorate()));
@@ -108,19 +108,19 @@ public class CarListingMapper {
                 response.setSellerId(carListing.getSeller().getId());
                 response.setSellerUsername(carListing.getSeller().getUsername());
                 response.setSellerEmail(carListing.getSeller().getEmail());
-                
+
                 // Add seller type information
                 if (Objects.nonNull(carListing.getSeller().getSellerType())) {
                     response.setSellerType(SellerTypeResponse.fromEntity(carListing.getSeller().getSellerType()));
                 }
-                
+
                 // AutoTrader pattern: Listing-specific contact with smart fallbacks
-                response.setContactName(carListing.getContactName() != null ? 
+                response.setContactName(carListing.getContactName() != null ?
                     carListing.getContactName() : carListing.getSeller().getUsername());
-                response.setContactEmail(carListing.getContactEmail() != null ? 
+                response.setContactEmail(carListing.getContactEmail() != null ?
                     carListing.getContactEmail() : carListing.getSeller().getEmail());
                 response.setContactPhone(carListing.getContactPhone()); // No fallback for phone
-                response.setContactPreference(carListing.getContactPreference() != null ? 
+                response.setContactPreference(carListing.getContactPreference() != null ?
                     carListing.getContactPreference() : "email");
             } else {
                 log.warn("CarListing with ID {} has a null seller.", carListing.getId());
@@ -150,7 +150,7 @@ public class CarListingMapper {
             return fallbackResponse;
         }
     }
-    
+
     /**
      * Converts a CarListing entity to a CarListingResponse DTO specifically for admin operations.
      * This method is more defensive and will never throw exceptions to ensure admin operations
@@ -168,49 +168,49 @@ public class CarListingMapper {
         try {
             CarListingResponse response = new CarListingResponse();
             response.setId(carListing.getId());
-            
+
             // Set basic fields with null checks
-            try { response.setTitle(carListing.getTitle()); } 
+            try { response.setTitle(carListing.getTitle()); }
             catch (Exception e) { log.warn("Error setting title for listing ID {}", carListing.getId()); }
-            
-            try { 
+
+            try {
                 // Set complete brand and model objects
                 if (Objects.nonNull(carListing.getModel()) && Objects.nonNull(carListing.getModel().getBrand())) {
                     response.setBrand(CarBrandResponse.fromEntity(carListing.getModel().getBrand()));
                     response.setModel(CarModelResponse.fromEntity(carListing.getModel()));
                 }
-                
+
                 // Backward compatibility - use denormalized fields as fallback
                 response.setBrandNameEn(carListing.getBrandNameEn());
                 response.setBrandNameAr(carListing.getBrandNameAr());
                 response.setModelNameEn(carListing.getModelNameEn());
                 response.setModelNameAr(carListing.getModelNameAr());
-            } 
-            catch (Exception e) { 
-                log.warn("Error setting brand/model information for listing ID {}: {}", carListing.getId(), e.getMessage()); 
             }
-            
-            try { response.setModelYear(carListing.getModelYear()); } 
+            catch (Exception e) {
+                log.warn("Error setting brand/model information for listing ID {}: {}", carListing.getId(), e.getMessage());
+            }
+
+            try { response.setModelYear(carListing.getModelYear()); }
             catch (Exception e) { log.warn("Error setting modelYear for listing ID {}", carListing.getId()); }
-            
-            try { response.setPrice(carListing.getPrice()); } 
+
+            try { response.setPrice(carListing.getPrice()); }
             catch (Exception e) { log.warn("Error setting price for listing ID {}", carListing.getId()); }
-            
-            try { response.setCurrency(carListing.getCurrency()); } 
+
+            try { response.setCurrency(carListing.getCurrency()); }
             catch (Exception e) { log.warn("Error setting currency for listing ID {}", carListing.getId()); }
-            
-            try { response.setMileage(carListing.getMileage()); } 
+
+            try { response.setMileage(carListing.getMileage()); }
             catch (Exception e) { log.warn("Error setting mileage for listing ID {}", carListing.getId()); }
-            
-            try { response.setDescription(carListing.getDescription()); } 
+
+            try { response.setDescription(carListing.getDescription()); }
             catch (Exception e) { log.warn("Error setting description for listing ID {}", carListing.getId()); }
-            
+
             // Set transmission and fuel type information safely
             try {
                 if (Objects.nonNull(carListing.getTransmissionType())) {
                     // Set complete transmission object
                     response.setTransmission(TransmissionResponse.fromEntity(carListing.getTransmissionType()));
-                    
+
                     // Backward compatibility - deprecated fields
                     response.setTransmissionNameEn(carListing.getTransmissionType().getDisplayNameEn());
                     response.setTransmissionNameAr(carListing.getTransmissionType().getDisplayNameAr());
@@ -218,12 +218,12 @@ public class CarListingMapper {
             } catch (Exception e) {
                 log.warn("Error setting transmission for listing ID {}", carListing.getId());
             }
-            
+
             try {
                 if (Objects.nonNull(carListing.getFuelType())) {
                     // Set complete fuel type object
                     response.setFuelType(FuelTypeResponse.fromEntity(carListing.getFuelType()));
-                    
+
                     // Backward compatibility - deprecated fields
                     response.setFuelTypeNameEn(carListing.getFuelType().getDisplayNameEn());
                     response.setFuelTypeNameAr(carListing.getFuelType().getDisplayNameAr());
@@ -231,7 +231,7 @@ public class CarListingMapper {
             } catch (Exception e) {
                 log.warn("Error setting fuel type for listing ID {}", carListing.getId());
             }
-            
+
             // Set location safely
             try {
                 if (Objects.nonNull(carListing.getLocation())) {
@@ -240,7 +240,7 @@ public class CarListingMapper {
             } catch (Exception e) {
                 log.warn("Error setting location for listing ID {}", carListing.getId());
             }
-            
+
             // Set governorate safely
             try {
                 // First try denormalized fields from entity, then fallback to relationship
@@ -252,7 +252,7 @@ public class CarListingMapper {
                     response.setGovernorateNameEn(carListing.getGovernorate().getDisplayNameEn());
                     response.setGovernorateNameAr(carListing.getGovernorate().getDisplayNameAr());
                 }
-                
+
                 // Also set governorate details
                 if (Objects.nonNull(carListing.getGovernorate())) {
                     response.setGovernorateDetails(GovernorateResponse.fromEntity(carListing.getGovernorate()));
@@ -260,31 +260,31 @@ public class CarListingMapper {
             } catch (Exception e) {
                 log.warn("Error setting governorate for listing ID {}", carListing.getId());
             }
-            
-            try { response.setCreatedAt(carListing.getCreatedAt()); } 
+
+            try { response.setCreatedAt(carListing.getCreatedAt()); }
             catch (Exception e) { log.warn("Error setting createdAt for listing ID {}", carListing.getId()); }
-            
-            try { response.setApproved(carListing.getApproved()); } 
+
+            try { response.setApproved(carListing.getApproved()); }
             catch (Exception e) { log.warn("Error setting approved for listing ID {}", carListing.getId()); }
 
             // Important status fields - with default values if exceptions occur
-            try { 
-                response.setIsSold(carListing.getSold()); 
-            } catch (Exception e) { 
+            try {
+                response.setIsSold(carListing.getSold());
+            } catch (Exception e) {
                 log.warn("Error setting isSold for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsSold(false);
             }
-            
-            try { 
-                response.setIsArchived(carListing.getArchived()); 
-            } catch (Exception e) { 
+
+            try {
+                response.setIsArchived(carListing.getArchived());
+            } catch (Exception e) {
                 log.warn("Error setting isArchived for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsArchived(false);
             }
-            
-            try { 
-                response.setIsExpired(carListing.getExpired()); 
-            } catch (Exception e) { 
+
+            try {
+                response.setIsExpired(carListing.getExpired());
+            } catch (Exception e) {
                 log.warn("Error setting isExpired for listing ID {}, defaulting to false", carListing.getId());
                 response.setIsExpired(false);
             }
@@ -295,14 +295,14 @@ public class CarListingMapper {
                     response.setSellerId(carListing.getSeller().getId());
                     response.setSellerUsername(carListing.getSeller().getUsername());
                     response.setSellerEmail(carListing.getSeller().getEmail());
-                    
+
                     // AutoTrader pattern: Listing-specific contact with smart fallbacks
-                    response.setContactName(carListing.getContactName() != null ? 
+                    response.setContactName(carListing.getContactName() != null ?
                         carListing.getContactName() : carListing.getSeller().getUsername());
-                    response.setContactEmail(carListing.getContactEmail() != null ? 
+                    response.setContactEmail(carListing.getContactEmail() != null ?
                         carListing.getContactEmail() : carListing.getSeller().getEmail());
                     response.setContactPhone(carListing.getContactPhone()); // No fallback for phone
-                    response.setContactPreference(carListing.getContactPreference() != null ? 
+                    response.setContactPreference(carListing.getContactPreference() != null ?
                         carListing.getContactPreference() : "email");
                 }
             } catch (Exception e) {
@@ -323,31 +323,31 @@ public class CarListingMapper {
 
             return response;
         } catch (Exception e) {
-            log.error("Error creating response for listing ID {}: {}", 
+            log.error("Error creating response for listing ID {}: {}",
                     carListing.getId(), e.getMessage(), e);
-            
+
             // Return minimal response with just ID and status fields to avoid complete failure
             CarListingResponse fallback = new CarListingResponse();
             fallback.setId(carListing.getId());
-            
+
             try {
                 fallback.setIsSold(carListing.getSold());
             } catch (Exception ex) {
                 fallback.setIsSold(false);
             }
-            
+
             try {
                 fallback.setIsArchived(carListing.getArchived());
             } catch (Exception ex) {
                 fallback.setIsArchived(false);
             }
-            
+
             try {
                 fallback.setIsExpired(carListing.getExpired());
             } catch (Exception ex) {
                 fallback.setIsExpired(false);
             }
-            
+
             // Ensure approved is properly set in fallback response
             try {
                 fallback.setApproved(Objects.nonNull(carListing.getApproved()) ? carListing.getApproved() : false);
@@ -355,12 +355,12 @@ public class CarListingMapper {
                 fallback.setApproved(false);
                 log.warn("Error setting approved for listing ID {} in fallback, defaulting to false", carListing.getId());
             }
-            
+
             fallback.setMedia(new ArrayList<>());
             return fallback;
         }
     }
-    
+
     /**
      * Maps all media items from a car listing to ListingMediaResponse DTOs.
      * Handles generating signed URLs for each media item.
@@ -372,13 +372,13 @@ public class CarListingMapper {
         if (Objects.isNull(carListing) || Objects.isNull(carListing.getMedia()) || carListing.getMedia().isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         return carListing.getMedia().stream()
             .map(media -> mapSingleMedia(carListing.getId(), media))
             .sorted(Comparator.comparing(ListingMediaResponse::getSortOrder))
             .collect(Collectors.toList());
     }
-    
+
     /**
      * Maps a single media item to a ListingMediaResponse DTO.
      *
@@ -396,27 +396,27 @@ public class CarListingMapper {
         mediaResponse.setSortOrder(media.getSortOrder());
         mediaResponse.setIsPrimary(media.getIsPrimary());
         mediaResponse.setMediaType(media.getMediaType());
-        
+
         // Handle URL generation based on video source type (following AutoTrader patterns)
         String mediaUrl;
         if (media.isExternalVideo()) {
             // For external videos (YouTube, Vimeo, etc.), use the external URL directly
             mediaUrl = media.getExternalUrl();
-            log.debug("Using external URL for {} video: {}", media.getVideoSource(), 
+            log.debug("Using external URL for {} video: {}", media.getVideoSource(),
                 Objects.nonNull(mediaUrl) ? "[URL Present]" : "[URL Null]");
         } else {
             // For uploaded files (images and uploaded videos), return file key for frontend transformation
             mediaUrl = media.getFileKey();
         }
         mediaResponse.setUrl(mediaUrl);
-        
+
         // Set video-specific fields
         if ("video".equals(media.getMediaType())) {
             mediaResponse.setVideoSource(media.getVideoSource());
             mediaResponse.setExternalUrl(media.getExternalUrl());
             mediaResponse.setDurationSeconds(media.getDurationSeconds());
         }
-        
+
         return mediaResponse;
     }
 
@@ -446,7 +446,7 @@ public class CarListingMapper {
             return null; // Return null on other errors
         }
     }
-    
+
     /**
      * Safely maps a list of media items, ensuring no exceptions are thrown that could disrupt
      * the admin endpoints. If any errors occur during mapping, they are logged but will not
@@ -459,7 +459,7 @@ public class CarListingMapper {
         if (Objects.isNull(carListing) || Objects.isNull(carListing.getMedia())) {
             return new ArrayList<>();
         }
-        
+
         try {
             return mapListingMedia(carListing);
         } catch (Exception e) {

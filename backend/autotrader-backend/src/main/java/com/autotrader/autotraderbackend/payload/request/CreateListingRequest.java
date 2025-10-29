@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class CreateListingRequest {
-    
+
 
     /**
      * The title of the car listing. Required and must not be blank.

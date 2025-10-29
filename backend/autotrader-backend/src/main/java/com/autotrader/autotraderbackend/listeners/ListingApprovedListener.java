@@ -27,37 +27,37 @@ public class ListingApprovedListener {
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
-    
+
     /**
      * Handle the listing approved event.
      * This will log the event and trigger any notification processes.
-     * 
+     *
      * Uses transaction management to ensure database operations are consistent.
-     * 
+     *
      * @param event The listing approved event (must not be null)
      */
     @EventListener
     @Async
     public void handleListingApproved(@NonNull ListingApprovedEvent event) {
         Objects.requireNonNull(event, "ListingApprovedEvent cannot be null");
-        
+
         txService.executeInTransaction(() -> {
             CarListing listing = event.getListing();
             User seller = listing.getSeller();
-            
-            log.info("Listing approved event received for {}", 
+
+            log.info("Listing approved event received for {}",
                     eventUtils.getListingInfo(listing));
 
             // Detailed log about the car with safe null handling
             String sellerUsername = Optional.ofNullable(seller)
                     .map(User::getUsername)
                     .orElse("N/A");
-            
+
             String sellerId = Optional.ofNullable(seller)
                     .map(User::getId)
                     .map(Object::toString)
                     .orElse("N/A");
-                    
+
             log.debug("Approved Listing Details: ID: {}, Seller: {} (ID: {}), Make: {}, Model: {}, Year: {}, Price: {}",
                     listing.getId(),
                     sellerUsername,

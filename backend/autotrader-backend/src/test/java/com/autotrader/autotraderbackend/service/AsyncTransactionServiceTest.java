@@ -40,7 +40,7 @@ public class AsyncTransactionServiceTest {
         // Arrange
         String expected = "success";
         Supplier<String> operation = () -> expected;
-        
+
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(transactionStatus);
@@ -61,7 +61,7 @@ public class AsyncTransactionServiceTest {
         Supplier<String> operation = () -> {
             throw new RuntimeException("Test exception");
         };
-        
+
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(transactionStatus);
@@ -95,7 +95,7 @@ public class AsyncTransactionServiceTest {
     void executeInTransaction_withRunnable_success() {
         // Arrange
         Runnable operation = mock(Runnable.class);
-        
+
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(transactionStatus);
@@ -116,7 +116,7 @@ public class AsyncTransactionServiceTest {
         Runnable operation = () -> {
             throw new RuntimeException("Test exception");
         };
-        
+
         when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
             TransactionCallback<?> callback = invocation.getArgument(0);
             return callback.doInTransaction(transactionStatus);

@@ -49,13 +49,13 @@ public class CarListing {
 
     /**
      * Currency for the listing price following ISO 4217 standard.
-     * 
+     *
      * <p>Supported currencies for Syrian marketplace:</p>
      * <ul>
      *   <li><strong>USD</strong> - US Dollar (default, primary for car sales)</li>
      *   <li><strong>SYP</strong> - Syrian Pound (local currency)</li>
      * </ul>
-     * 
+     *
      * <p>Defaults to USD as it's the most common currency for car sales in Syria.</p>
      */
     @ValidCurrency
@@ -80,11 +80,11 @@ public class CarListing {
 
     @Column(name = "cylinders")
     private Integer cylinders;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id") // Made nullable
     private Location location;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "governorate_id", nullable = false) // Enforce that a listing must have a governorate
     private Governorate governorate;
@@ -92,7 +92,7 @@ public class CarListing {
     @Size(max = 100)
     @Column(name = "governorate_name_en", length = 100)
     private String governorateNameEn;
-    
+
     @Size(max = 100)
     @Column(name = "governorate_name_ar", length = 100)
     private String governorateNameAr;
@@ -100,19 +100,19 @@ public class CarListing {
     @Size(max = 100)
     @Column(name = "brand_name_en", length = 100)
     private String brandNameEn;
-    
+
     @Size(max = 100)
     @Column(name = "brand_name_ar", length = 100)
     private String brandNameAr;
-    
+
     @Size(max = 100)
     @Column(name = "model_name_en", length = 100)
     private String modelNameEn;
-    
+
     @Size(max = 100)
     @Column(name = "model_name_ar", length = 100)
     private String modelNameAr;
-    
+
     @NotBlank
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
@@ -121,15 +121,15 @@ public class CarListing {
     @Size(max = 100)
     @Column(name = "contact_name", length = 100)
     private String contactName;
-    
+
     @Size(max = 255)
     @Column(name = "contact_email", length = 255)
     private String contactEmail;
-    
+
     @Size(max = 50)
     @Column(name = "contact_phone", length = 50)
     private String contactPhone;
-    
+
     @Size(max = 20)
     @Column(name = "contact_preference", length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'email'")
     private String contactPreference = "email";
@@ -137,23 +137,23 @@ public class CarListing {
     @Size(max = 50)
     @Column(name = "transmission", length = 50)
     private String transmission;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "condition_id")
     private CarCondition condition;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "body_style_id")
     private BodyStyle bodyStyle;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transmission_id")
     private Transmission transmissionType;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fuel_type_id")
     private FuelType fuelType;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drive_type_id")
     private DriveType driveType;
@@ -208,7 +208,7 @@ public class CarListing {
 
     @OneToMany(mappedBy = "carListing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingMedia> media = new ArrayList<>();
-    
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -223,7 +223,7 @@ public class CarListing {
     /**
      * The @PreUpdate method is commented out because we're using a PostgreSQL trigger
      * to automatically update the updated_at timestamp.
-     * 
+     *
      * If we ever need to handle updates at the application level, uncomment this method.
      *
      * @PreUpdate
@@ -231,9 +231,9 @@ public class CarListing {
      *     updatedAt = LocalDateTime.now();
      * }
      */
-    
 
-    
+
+
     /**
      * Helper method to get the primary media item for this listing
      * @return The primary media item, or the first media item if no primary is set, or null if no media exists
@@ -242,7 +242,7 @@ public class CarListing {
         if (media == null || media.isEmpty()) {
             return null;
         }
-        
+
         return media.stream()
             .filter(m -> m.getIsPrimary() && "image".equals(m.getMediaType()))
             .findFirst()
@@ -251,7 +251,7 @@ public class CarListing {
                 .findFirst()
                 .orElse(null));
     }
-    
+
     /**
      * Helper method to add a media item to this listing
      * @param media The media item to add
@@ -259,7 +259,7 @@ public class CarListing {
     public void addMedia(ListingMedia media) {
         this.media.add(media);
     }
-    
+
     /**
      * Helper method to remove a media item from this listing
      * @param media The media item to remove
@@ -267,7 +267,7 @@ public class CarListing {
     public void removeMedia(ListingMedia media) {
         this.media.remove(media);
     }
-    
+
     /**
      * Synchronizes the transmission string field with the transmissionType entity.
      * This method should be called before saving a car listing.

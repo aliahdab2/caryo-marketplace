@@ -55,7 +55,7 @@ export default function Step4DealerContactInfo({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  
+
   // Error modal state
   const [errorModal, setErrorModal] = useState<{
     isOpen: boolean;
@@ -118,13 +118,13 @@ export default function Step4DealerContactInfo({
 
       // Upload to backend (no Content-Type needed - browser sets it with boundary)
       const response = await api.post<{ downloadUri: string }>(
-        '/api/images/upload', 
+        '/api/images/upload',
         formData
       );
 
       // Set the logo URL (this will be a proper URI from MinIO/S3)
       setLogoUrl(response.downloadUri);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -135,14 +135,14 @@ export default function Step4DealerContactInfo({
       // Success - no modal needed, just show the preview
     } catch (error) {
       console.error('Logo upload error:', error);
-      
+
       // Extract detailed error message
       let errorMessage = t('uploadFailedMessage', 'Failed to upload logo. Please try again or choose a different file.');
-      
+
       if (error && typeof error === 'object') {
-        const err = error as { 
-          message?: string; 
-          response?: { data?: { message?: string } } 
+        const err = error as {
+          message?: string;
+          response?: { data?: { message?: string } }
         };
         if (err.message) {
           errorMessage = `${errorMessage}\n\nDetails: ${err.message}`;
@@ -151,7 +151,7 @@ export default function Step4DealerContactInfo({
           errorMessage = `${errorMessage}\n\nServer: ${err.response.data.message}`;
         }
       }
-      
+
       showError(
         t('uploadFailed', 'Upload Failed'),
         errorMessage,
@@ -363,8 +363,8 @@ export default function Step4DealerContactInfo({
         <div
           onClick={openFileDialog}
           className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-            uploadingLogo 
-              ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/10 cursor-wait' 
+            uploadingLogo
+              ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/10 cursor-wait'
               : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer'
           }`}
         >

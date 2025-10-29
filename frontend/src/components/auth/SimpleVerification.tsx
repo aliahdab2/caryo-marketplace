@@ -2,7 +2,7 @@
 
 /**
  * SimpleVerification Component
- * 
+ *
  * A reliable verification component for user authentication that:
  * - Provides visual feedback during the verification process
  * - Automatically completes verification without user interaction (if autoStart is true)
@@ -16,15 +16,15 @@ import useLazyTranslation from '@/hooks/useLazyTranslation';
 
 type VerificationState = 'idle' | 'verifying' | 'success' | 'verified_hidden';
 
-export default function SimpleVerification({ 
-  onVerified, 
+export default function SimpleVerification({
+  onVerified,
   autoStart = false,
   autoHide = true
 }: SimpleVerificationProps) {
   // Use improved useLazyTranslation hook
   const { ready } = useLazyTranslation('auth');
   const [state, setState] = useState<VerificationState>(autoStart ? 'verifying' : 'idle');
-  
+
   // Refs to track component state
   const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const autoVerifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,16 +37,16 @@ export default function SimpleVerification({
   useEffect(() => {
     isMounted.current = true;
     hasVerified.current = false; // Reset verification status on mount
-    
+
     return () => {
       isMounted.current = false;
-      
+
       // Clean up all timeouts
       if (verificationTimeoutRef.current) {
         clearTimeout(verificationTimeoutRef.current);
         verificationTimeoutRef.current = null;
       }
-      
+
       if (autoVerifyTimeoutRef.current) {
         clearTimeout(autoVerifyTimeoutRef.current);
         autoVerifyTimeoutRef.current = null;
@@ -63,7 +63,7 @@ export default function SimpleVerification({
     if (!isMounted.current) return;
 
     setState('success');
-    
+
     // Only call onVerified if we haven't verified yet
     if (!hasVerified.current) {
       hasVerified.current = true;
@@ -86,15 +86,15 @@ export default function SimpleVerification({
   const handleVerify = useCallback(() => {
     // Don't start verification if already past the idle state or already verified
     if (state !== 'idle' || hasVerified.current) return;
-    
+
     // Update UI state
     setState('verifying');
-    
+
     // Clear any existing verification timer
     if (verificationTimeoutRef.current) {
       clearTimeout(verificationTimeoutRef.current);
     }
-    
+
     // Start new verification timer
     verificationTimeoutRef.current = setTimeout(() => {
       markAsVerifiedAndScheduleHide();
@@ -132,7 +132,7 @@ export default function SimpleVerification({
         }
       }, 3000);
     }
-    
+
     return () => {
       // Clean up auto verify timeout on unmount or state change
       if (autoVerifyTimeoutRef.current) {
@@ -141,7 +141,7 @@ export default function SimpleVerification({
       }
     };
   }, [state, handleVerify, autoStart]);
-  
+
   return (
     <div className="text-center"> {/* Simplified container, primarily for centering */}
       {!ready ? (

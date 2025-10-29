@@ -67,7 +67,7 @@ const MileageSlider: React.FC<MileageSliderProps> = React.memo(({
 
   // Format mileage values
   const formatValue = React.useCallback((value: number) => {
-    return formatNumber(value, currentLocale, { 
+    return formatNumber(value, currentLocale, {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
@@ -78,11 +78,11 @@ const MileageSlider: React.FC<MileageSliderProps> = React.memo(({
   const minLabel = t ? t('search:lowestMileage', 'Lowest mileage') : 'Lowest mileage';
   const maxLabel = t ? t('search:highestMileage', 'Highest mileage') : 'Highest mileage';
   const anyPlaceholder = t ? t('search:any', 'Any') : 'Any';
-  
+
   // Placeholders: formatted "0" for min, highest mileage for max
   const minPlaceholder = formatValue(0);
   const maxPlaceholder = formatValue(maxRange);
-  
+
   const ariaLabelMin = t ? t('search:minimumMileage', 'Minimum mileage') : 'Minimum mileage';
   const ariaLabelMax = t ? t('search:maximumMileage', 'Maximum mileage') : 'Maximum mileage';
 

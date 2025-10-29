@@ -15,7 +15,7 @@ public class SlugUtils {
 
     /**
      * Converts a string into a URL-friendly slug.
-     * 
+     *
      * @param input The string to convert
      * @return A URL-friendly slug
      */
@@ -32,28 +32,28 @@ public class SlugUtils {
 
         // Convert to lowercase and normalize
         String normalized = Normalizer.normalize(result.toLowerCase(Locale.ENGLISH), Normalizer.Form.NFD);
-        
+
         // Remove diacritics
         normalized = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}", "");
-        
+
         // Replace non-alphanumeric characters with hyphens
         normalized = NON_LATIN.matcher(normalized).replaceAll("-");
-        
+
         // Replace whitespace with hyphens
         normalized = WHITESPACE.matcher(normalized).replaceAll("-");
-        
+
         // Collapse multiple hyphens to a single hyphen
         normalized = normalized.replaceAll("-+", "-");
-        
+
         // Remove leading and trailing hyphens
         normalized = normalized.replaceAll("^-|-$", "");
-        
+
         return normalized;
     }
 
     /**
      * Checks if a string contains Arabic characters.
-     * 
+     *
      * @param text The text to check
      * @return true if the text contains Arabic characters, false otherwise
      */
@@ -64,7 +64,7 @@ public class SlugUtils {
     /**
      * Simple transliteration of Arabic text to Latin alphabet.
      * This is a basic implementation - consider using a dedicated library for more accurate transliteration.
-     * 
+     *
      * @param arabicText The Arabic text to transliterate
      * @return A Latin alphabet representation of the Arabic text
      */
@@ -72,10 +72,10 @@ public class SlugUtils {
         // This is a very simplified transliteration.
         // For production, consider using a library like ICU4J or Apache Commons Lang for proper transliteration.
         String result = arabicText;
-        
+
         // Alef variants
         result = result.replace("أ", "a").replace("إ", "i").replace("آ", "a").replace("ا", "a");
-        
+
         // Single character replacements
         result = result.replace("ب", "b").replace("ت", "t").replace("ج", "j");
         result = result.replace("ح", "h").replace("د", "d").replace("ر", "r");
@@ -86,14 +86,14 @@ public class SlugUtils {
         result = result.replace("ن", "n").replace("ه", "h").replace("و", "w");
         result = result.replace("ي", "y").replace("ى", "a").replace("ء", "'");
         result = result.replace("ة", "a");
-        
+
         // Multi-character replacements (handle separately)
         result = result.replace("ث", "th");
         result = result.replace("خ", "kh");
         result = result.replace("ذ", "th");
         result = result.replace("ش", "sh");
         result = result.replace("غ", "gh");
-        
+
         return result;
     }
 }

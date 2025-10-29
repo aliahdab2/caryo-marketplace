@@ -87,7 +87,7 @@ interface LocaleLayoutProps {
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   const { locale } = await params;
-  
+
   // Validate locale
   if (!isValidLocale(locale)) {
     notFound();

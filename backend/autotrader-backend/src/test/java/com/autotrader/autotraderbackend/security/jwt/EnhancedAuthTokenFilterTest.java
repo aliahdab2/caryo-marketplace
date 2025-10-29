@@ -52,18 +52,18 @@ public class EnhancedAuthTokenFilterTest {
     void setUp() {
         // Clear security context before each test
         SecurityContextHolder.clearContext();
-        
+
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         filterChain = mock(MockFilterChain.class);
-        
+
         // Setup user details
         userDetails = User.builder()
                 .username("testuser")
                 .password("password")
                 .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
                 .build();
-        
+
         // Create filter with direct constructor injection instead of reflection
         authTokenFilter = new AuthTokenFilter(jwtUtils, userDetailsService);
     }
@@ -75,12 +75,12 @@ public class EnhancedAuthTokenFilterTest {
         when(jwtUtils.validateJwtToken(token)).thenReturn(true);
         when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        
+
         request.addHeader("Authorization", "Bearer " + token);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals("testuser", SecurityContextHolder.getContext().getAuthentication().getName());
@@ -92,7 +92,7 @@ public class EnhancedAuthTokenFilterTest {
     void doFilterInternal_WithNoHeader_ShouldNotSetAuthentication() throws Exception {
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -104,10 +104,10 @@ public class EnhancedAuthTokenFilterTest {
     void doFilterInternal_WithNonBearerToken_ShouldNotSetAuthentication() throws Exception {
         // Arrange
         request.addHeader("Authorization", "Basic dGVzdHVzZXI6cGFzc3dvcmQ=");
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -119,10 +119,10 @@ public class EnhancedAuthTokenFilterTest {
     void doFilterInternal_WithEmptyBearerToken_ShouldNotSetAuthentication() throws Exception {
         // Arrange
         request.addHeader("Authorization", "Bearer ");
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -135,12 +135,12 @@ public class EnhancedAuthTokenFilterTest {
         // Arrange
         String token = "invalid.jwt.token";
         when(jwtUtils.validateJwtToken(token)).thenReturn(false);
-        
+
         request.addHeader("Authorization", "Bearer " + token);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -155,12 +155,12 @@ public class EnhancedAuthTokenFilterTest {
         when(jwtUtils.validateJwtToken(token)).thenReturn(true);
         when(jwtUtils.getUserNameFromJwtToken(token)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenThrow(new RuntimeException("User not found"));
-        
+
         request.addHeader("Authorization", "Bearer " + token);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
@@ -178,19 +178,19 @@ public class EnhancedAuthTokenFilterTest {
             "Bearer",
             "Bearer  "
         };
-        
+
         for (String header : malformedHeaders) {
             // Reset for each test
             SecurityContextHolder.clearContext();
             reset(jwtUtils, userDetailsService, filterChain);
-            
+
             // Setup request with current header
             request = new MockHttpServletRequest();
             request.addHeader("Authorization", header);
-            
+
             // Act
             authTokenFilter.doFilterInternal(request, response, filterChain);
-            
+
             // Assert
             assertNull(SecurityContextHolder.getContext().getAuthentication());
             verify(filterChain).doFilter(request, response);
@@ -204,12 +204,12 @@ public class EnhancedAuthTokenFilterTest {
         // Arrange
         String token = "exception.token";
         when(jwtUtils.validateJwtToken(token)).thenThrow(new RuntimeException("JWT validation error"));
-        
+
         request.addHeader("Authorization", "Bearer " + token);
-        
+
         // Act
         authTokenFilter.doFilterInternal(request, response, filterChain);
-        
+
         // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);

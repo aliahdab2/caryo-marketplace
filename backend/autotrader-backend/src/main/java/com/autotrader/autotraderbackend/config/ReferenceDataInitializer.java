@@ -55,7 +55,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             createCarCondition("good", "Good", "جيد"),
             createCarCondition("fair", "Fair", "مقبول")
         );
-        
+
         for (CarCondition condition : conditions) {
             try {
                 // Try to find existing condition by name
@@ -68,7 +68,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeDriveTypes() {
         List<DriveType> driveTypes = Arrays.asList(
             createDriveType("fwd", "Front-Wheel Drive", "دفع أمامي"),
@@ -76,7 +76,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             createDriveType("awd", "All-Wheel Drive", "دفع رباعي"),
             createDriveType("4wd", "Four-Wheel Drive", "دفع رباعي")
         );
-        
+
         for (DriveType driveType : driveTypes) {
             try {
                 driveTypeService.getDriveTypeByName(driveType.getName());
@@ -87,7 +87,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeBodyStyles() {
         List<BodyStyle> bodyStyles = Arrays.asList(
             createBodyStyle("sedan", "Sedan", "سيدان"),
@@ -101,7 +101,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             createBodyStyle("minivan", "Minivan", "ميني فان"),
             createBodyStyle("crossover", "Crossover", "كروس أوفر")
         );
-        
+
         for (BodyStyle bodyStyle : bodyStyles) {
             try {
                 bodyStyleService.getBodyStyleByName(bodyStyle.getName());
@@ -112,7 +112,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeFuelTypes() {
         List<FuelType> fuelTypes = Arrays.asList(
             createFuelType("gasoline", "Gasoline", "بنزين"),
@@ -122,7 +122,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             createFuelType("cng", "CNG", "غاز طبيعي"),
             createFuelType("lpg", "LPG", "غاز مسال")
         );
-        
+
         for (FuelType fuelType : fuelTypes) {
             try {
                 fuelTypeService.getFuelTypeByName(fuelType.getName());
@@ -133,7 +133,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeTransmissions() {
         List<Transmission> transmissions = Arrays.asList(
             createTransmission("automatic", "Automatic", "أوتوماتيك"),
@@ -142,7 +142,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             createTransmission("semi_auto", "Semi-Automatic", "نصف أوتوماتيك"),
             createTransmission("dual_clutch", "Dual Clutch", "ثنائي القابض")
         );
-        
+
         for (Transmission transmission : transmissions) {
             try {
                 transmissionService.getTransmissionByName(transmission.getName());
@@ -153,13 +153,13 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeSellerTypes() {
         List<SellerTypeRequest> sellerTypes = Arrays.asList(
             createSellerTypeRequest("PRIVATE", "Private Seller", "بائع خاص"),
             createSellerTypeRequest("DEALER", "Dealer", "معرض سيارات")
         );
-        
+
         for (SellerTypeRequest sellerType : sellerTypes) {
             try {
                 sellerTypeService.getSellerTypeByName(sellerType.getName());
@@ -177,44 +177,44 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             }
         }
     }
-    
+
     private void initializeUserSellerTypes() {
         log.info("Initializing user seller types...");
-        
+
         // Find all users that don't have seller types assigned
         List<User> usersWithoutSellerType = userRepository.findBySellerTypeIsNull();
-        
+
         if (usersWithoutSellerType.isEmpty()) {
             log.info("All users already have seller types assigned");
             return;
         }
-        
+
         try {
             // Get the seller types
             SellerType privateSellerType = null;
             SellerType dealerSellerType = null;
-            
+
             try {
                 privateSellerType = sellerTypeService.getSellerTypeEntityByName("PRIVATE");
             } catch (Exception e) {
                 log.warn("PRIVATE seller type not found: {}", e.getMessage());
             }
-            
+
             try {
                 dealerSellerType = sellerTypeService.getSellerTypeEntityByName("DEALER");
             } catch (Exception e) {
                 log.warn("DEALER seller type not found: {}", e.getMessage());
             }
-            
+
             if (privateSellerType == null && dealerSellerType == null) {
                 log.warn("No seller types available for assignment");
                 return;
             }
-            
+
             // Assign seller types to users (alternating between PRIVATE and DEALER)
             for (int i = 0; i < usersWithoutSellerType.size(); i++) {
                 User user = usersWithoutSellerType.get(i);
-                
+
                 if (i % 2 == 0 && privateSellerType != null) {
                     user.setSellerType(privateSellerType);
                     log.info("Assigned PRIVATE seller type to user: {}", user.getUsername());
@@ -225,19 +225,19 @@ public class ReferenceDataInitializer implements CommandLineRunner {
                     user.setSellerType(privateSellerType);
                     log.info("Assigned PRIVATE seller type to user: {}", user.getUsername());
                 }
-                
+
                 userRepository.save(user);
             }
-            
+
             log.info("Successfully assigned seller types to {} users", usersWithoutSellerType.size());
-            
+
         } catch (Exception e) {
             log.error("Error initializing user seller types: {}", e.getMessage(), e);
         }
     }
 
     // Helper methods for creating entities
-    
+
     private CarCondition createCarCondition(String name, String displayNameEn, String displayNameAr) {
         CarCondition condition = new CarCondition();
         condition.setName(name);
@@ -246,7 +246,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         condition.setSlug(name); // Set slug to match the name
         return condition;
     }
-    
+
     private DriveType createDriveType(String name, String displayNameEn, String displayNameAr) {
         DriveType driveType = new DriveType();
         driveType.setName(name);
@@ -255,7 +255,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         driveType.setSlug(name); // Set slug to match the name
         return driveType;
     }
-    
+
     private BodyStyle createBodyStyle(String name, String displayNameEn, String displayNameAr) {
         BodyStyle bodyStyle = new BodyStyle();
         bodyStyle.setName(name);
@@ -264,7 +264,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         bodyStyle.setSlug(name); // Set slug to match the name
         return bodyStyle;
     }
-    
+
     private FuelType createFuelType(String name, String displayNameEn, String displayNameAr) {
         FuelType fuelType = new FuelType();
         fuelType.setName(name);
@@ -273,7 +273,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         fuelType.setSlug(name); // Set slug to match the name
         return fuelType;
     }
-    
+
     private Transmission createTransmission(String name, String displayNameEn, String displayNameAr) {
         Transmission transmission = new Transmission();
         transmission.setName(name);
@@ -282,7 +282,7 @@ public class ReferenceDataInitializer implements CommandLineRunner {
         transmission.setSlug(name); // Set slug to match the name
         return transmission;
     }
-    
+
     private SellerTypeRequest createSellerTypeRequest(String name, String displayNameEn, String displayNameAr) {
         return SellerTypeRequest.builder()
                 .name(name)

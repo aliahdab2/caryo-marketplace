@@ -1,7 +1,7 @@
 # CarQuery API Integration
 
-**Version:** 2.1.0  
-**Last Updated:** September 12, 2025  
+**Version:** 2.1.0
+**Last Updated:** September 12, 2025
 **Enhancements:** Provider Pattern, Manual Admin Data Entry, Fallback Strategy, Enhanced Localization, MVP Simplification
 
 **📖 Related Documentation:**
@@ -384,7 +384,7 @@ The integration includes Flyway migrations for car brand and model data:
 **V22__Seed_Syrian_Car_Brands_and_Models.sql:**
 ```sql
 -- Initial Syrian market car brands and models
-INSERT INTO car_brands (name, slug, display_name_en, display_name_ar, is_active) 
+INSERT INTO car_brands (name, slug, display_name_en, display_name_ar, is_active)
 VALUES ('Toyota', 'toyota', 'Toyota', 'تويوتا', true);
 
 INSERT INTO car_models (brand_id, name, slug, display_name_en, display_name_ar, is_active)

@@ -29,7 +29,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -46,7 +46,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -63,7 +63,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -80,7 +80,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -97,7 +97,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -115,7 +115,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -133,7 +133,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -150,7 +150,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -167,7 +167,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -184,7 +184,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content, recipient);
 
         // Assert
@@ -205,7 +205,7 @@ class EmailContentValidationServiceTest {
         String recipient = "user@example.com";
 
         // Act
-        EmailContentValidationService.ValidationResult result = 
+        EmailContentValidationService.ValidationResult result =
             validationService.validateEmailContent(subject, content.toString(), recipient);
 
         // Assert

@@ -19,7 +19,7 @@ export default function NotFound() {
             The page you are looking for could not be found.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           <Link
             href="/"

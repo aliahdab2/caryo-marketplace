@@ -85,7 +85,7 @@ public class AdminDataManagementController {
         try {
             // Check if sync is allowed (rate limiting protection)
             ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkCarQuerySyncStatus();
-            
+
             if (!syncStatus.isAllowed()) {
                 log.warn("CarQuery sync blocked: {}", syncStatus.getMessage());
                 return ResponseEntity.badRequest()
@@ -133,7 +133,7 @@ public class AdminDataManagementController {
 
         // Check if sync is allowed (rate limiting protection)
         ApiSyncTrackingService.SyncStatus syncStatus = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-        
+
         if (!syncStatus.isAllowed()) {
             log.warn("SyrianCars sync blocked: {}", syncStatus.getMessage());
             return ResponseEntity.badRequest()
@@ -212,17 +212,17 @@ public class AdminDataManagementController {
 
         try {
             byte[] excelData = carDataExcelService.exportCarDataToExcel();
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", "caryo-car-data-export.xlsx");
             headers.setContentLength(excelData.length);
-            
+
             log.info("Successfully exported car data to Excel ({} bytes)", excelData.length);
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(excelData);
-                    
+
         } catch (Exception e) {
             log.error("Error exporting car data to Excel", e);
             return ResponseEntity.internalServerError().build();
@@ -248,15 +248,15 @@ public class AdminDataManagementController {
                 return ResponseEntity.badRequest()
                     .body(ApiResponse.error("File is empty"));
             }
-            
+
             if (!isExcelFile(file)) {
                 return ResponseEntity.badRequest()
                     .body(ApiResponse.error("File must be an Excel file (.xlsx or .xls)"));
             }
-            
+
             // Import data
             CarDataExcelService.ExcelImportResult result = carDataExcelService.importCarDataFromExcel(file);
-            
+
             if (result.isSuccess()) {
                 log.info("Car data import completed successfully: {}", result.getSummary());
                 return ResponseEntity.ok(ApiResponse.success(
@@ -266,7 +266,7 @@ public class AdminDataManagementController {
                 return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Import completed with errors: " + result.getSummary()));
             }
-            
+
         } catch (Exception e) {
             log.error("Error importing car data from Excel", e);
             return ResponseEntity.internalServerError()
@@ -288,29 +288,29 @@ public class AdminDataManagementController {
 
         try {
             Map<String, ApiSyncTrackingService.SyncStatus> syncStatuses = apiSyncTrackingService.getAllSyncStatuses();
-            
+
             Map<String, Object> response = new HashMap<>();
-            
+
             for (Map.Entry<String, ApiSyncTrackingService.SyncStatus> entry : syncStatuses.entrySet()) {
                 String apiName = entry.getKey();
                 ApiSyncTrackingService.SyncStatus status = entry.getValue();
-                
+
                 Map<String, Object> apiStatus = new HashMap<>();
                 apiStatus.put("allowed", status.isAllowed());
                 apiStatus.put("message", status.getMessage());
                 apiStatus.put("lastSyncTime", status.getLastSyncTime());
                 apiStatus.put("hoursSinceLastSync", status.getHoursSinceLastSync());
-                
+
                 if (!status.isAllowed()) {
                     int cooldownHours = apiName.equals("carquery") ? 2 : 1;
                     apiStatus.put("remainingCooldownHours", status.getRemainingCooldownHours(cooldownHours));
                 }
-                
+
                 response.put(apiName, apiStatus);
             }
-            
+
             return ResponseEntity.ok(ApiResponse.success("Sync status retrieved", response));
-            
+
         } catch (Exception e) {
             log.error("Error retrieving sync status", e);
             return ResponseEntity.internalServerError()
@@ -358,9 +358,9 @@ public class AdminDataManagementController {
             stats.activeModels = (int) carModelService.getAllModels().stream()
                 .filter(model -> model.getIsActive() != null && model.getIsActive())
                 .count();
-            
+
             return ResponseEntity.ok(ApiResponse.success("Statistics retrieved", stats));
-            
+
         } catch (Exception e) {
             log.error("Error retrieving car data statistics", e);
             return ResponseEntity.internalServerError()
@@ -374,7 +374,7 @@ public class AdminDataManagementController {
     private boolean isExcelFile(MultipartFile file) {
         String contentType = file.getContentType();
         String filename = file.getOriginalFilename();
-        
+
         return (contentType != null && (
                 contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
                 contentType.equals("application/vnd.ms-excel")

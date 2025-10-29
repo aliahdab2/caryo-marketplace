@@ -72,7 +72,7 @@ public class EmailTemplateService {
                    try {
                @SuppressWarnings("unchecked")
                Map<String, Object> templates = (Map<String, Object>) templateRegistry.get("templates");
-               
+
                if (templates.containsKey(templateName)) {
                    @SuppressWarnings("unchecked")
                    Map<String, Object> template = (Map<String, Object>) templates.get(templateName);
@@ -81,7 +81,7 @@ public class EmailTemplateService {
         } catch (Exception e) {
             logger.error("Error getting template path for template: {}", templateName, e);
         }
-        
+
         return Optional.empty();
     }
 
@@ -96,7 +96,7 @@ public class EmailTemplateService {
                    try {
                @SuppressWarnings("unchecked")
                Map<String, Object> templates = (Map<String, Object>) templateRegistry.get("templates");
-               
+
                if (templates.containsKey(templateName)) {
                    @SuppressWarnings("unchecked")
                    Map<String, Object> template = (Map<String, Object>) templates.get(templateName);
@@ -105,7 +105,7 @@ public class EmailTemplateService {
         } catch (Exception e) {
             logger.error("Error getting template metadata for template: {}", templateName, e);
         }
-        
+
         return Optional.empty();
     }
 
@@ -118,11 +118,11 @@ public class EmailTemplateService {
         }
 
         List<String> templates = new ArrayList<>();
-        
+
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> categories = (Map<String, Object>) templateRegistry.get("categories");
-            
+
             if (categories.containsKey(category)) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> categoryInfo = (Map<String, Object>) categories.get(category);
@@ -133,7 +133,7 @@ public class EmailTemplateService {
         } catch (Exception e) {
             System.err.println("Error getting templates by category: " + e.getMessage());
         }
-        
+
         return templates;
     }
 
@@ -146,7 +146,7 @@ public class EmailTemplateService {
         }
 
         List<String> categories = new ArrayList<>();
-        
+
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> categoriesMap = (Map<String, Object>) templateRegistry.get("categories");
@@ -154,7 +154,7 @@ public class EmailTemplateService {
         } catch (Exception e) {
             System.err.println("Error getting template categories: " + e.getMessage());
         }
-        
+
         return categories;
     }
 
@@ -163,14 +163,14 @@ public class EmailTemplateService {
      */
     public boolean validateTemplate(String templateName, Map<String, Object> variables) {
         Optional<Map<String, Object>> metadata = getTemplateMetadata(templateName);
-        
+
         if (metadata.isEmpty()) {
             return false;
         }
 
         @SuppressWarnings("unchecked")
         List<String> requiredVariables = (List<String>) metadata.get().get("variables");
-        
+
         if (requiredVariables == null) {
             return true; // No required variables specified
         }
@@ -181,7 +181,7 @@ public class EmailTemplateService {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -200,14 +200,14 @@ public class EmailTemplateService {
      */
     public boolean supportsLanguage(String templateName, String language) {
         Optional<Map<String, Object>> metadata = getTemplateMetadata(templateName);
-        
+
         if (metadata.isEmpty()) {
             return false;
         }
 
         @SuppressWarnings("unchecked")
         List<String> supportedLanguages = (List<String>) metadata.get().get("languages");
-        
+
         return supportedLanguages != null && supportedLanguages.contains(language);
     }
 
@@ -220,11 +220,11 @@ public class EmailTemplateService {
         }
 
         Map<String, Map<String, Object>> allTemplates = new HashMap<>();
-        
+
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> templates = (Map<String, Object>) templateRegistry.get("templates");
-            
+
             for (String templateName : templates.keySet()) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> template = (Map<String, Object>) templates.get(templateName);
@@ -233,7 +233,7 @@ public class EmailTemplateService {
         } catch (Exception e) {
             System.err.println("Error getting all templates: " + e.getMessage());
         }
-        
+
         return allTemplates;
     }
 }

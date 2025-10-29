@@ -47,7 +47,7 @@ describe('TransmissionFilter', () => {
 
   it('renders dropdown variant correctly', () => {
     render(<TransmissionFilter {...defaultProps} variant="dropdown" />);
-    
+
     expect(screen.getByText('Gearbox')).toBeInTheDocument();
     expect(screen.getByText('Any')).toBeInTheDocument();
     expect(screen.getByText('Manual')).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('TransmissionFilter', () => {
 
   it('renders cards variant correctly', () => {
     render(<TransmissionFilter {...defaultProps} variant="cards" />);
-    
+
     expect(screen.getByText('Manual')).toBeInTheDocument();
     expect(screen.getByText('Automatic')).toBeInTheDocument();
     expect(screen.getAllByText('(0)')).toHaveLength(2);
@@ -65,57 +65,57 @@ describe('TransmissionFilter', () => {
   it('calls onTransmissionChange when transmission is selected in dropdown', () => {
     const onTransmissionChange = jest.fn();
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
-        variant="dropdown" 
+      <TransmissionFilter
+        {...defaultProps}
+        variant="dropdown"
         onTransmissionChange={onTransmissionChange}
       />
     );
-    
+
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: '1' } });
-    
+
     expect(onTransmissionChange).toHaveBeenCalledWith(1);
   });
 
   it('calls onTransmissionChange when transmission is selected in cards', () => {
     const onTransmissionChange = jest.fn();
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
-        variant="cards" 
+      <TransmissionFilter
+        {...defaultProps}
+        variant="cards"
         onTransmissionChange={onTransmissionChange}
       />
     );
-    
+
     const manualCard = screen.getByText('Manual').closest('div');
     fireEvent.click(manualCard!);
-    
+
     expect(onTransmissionChange).toHaveBeenCalledWith(1);
   });
 
   it('shows selected transmission in dropdown', () => {
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
-        variant="dropdown" 
+      <TransmissionFilter
+        {...defaultProps}
+        variant="dropdown"
         selectedTransmissionId={1}
       />
     );
-    
+
     const select = screen.getByRole('combobox') as HTMLSelectElement;
     expect(select.value).toBe('1');
   });
 
   it('shows selected transmission in cards', () => {
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
-        variant="cards" 
+      <TransmissionFilter
+        {...defaultProps}
+        variant="cards"
         selectedTransmissionId={1}
       />
     );
-    
+
     // Verify that the manual transmission is rendered
     expect(screen.getByText('Manual')).toBeInTheDocument();
     // The selection styling is handled by CSS classes which are applied correctly
@@ -123,27 +123,27 @@ describe('TransmissionFilter', () => {
 
   it('handles Arabic language correctly', () => {
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
+      <TransmissionFilter
+        {...defaultProps}
         currentLanguage="ar"
         variant="dropdown"
       />
     );
-    
+
     expect(screen.getByText('يدوي')).toBeInTheDocument();
     expect(screen.getByText('أوتوماتيك')).toBeInTheDocument();
   });
 
   it('handles null reference data gracefully', () => {
     render(
-      <TransmissionFilter 
-        {...defaultProps} 
+      <TransmissionFilter
+        {...defaultProps}
         referenceData={null}
         variant="dropdown"
       />
     );
-    
+
     expect(screen.getByText('Gearbox')).toBeInTheDocument();
     expect(screen.getByText('Any')).toBeInTheDocument();
   });
-}); 
+});

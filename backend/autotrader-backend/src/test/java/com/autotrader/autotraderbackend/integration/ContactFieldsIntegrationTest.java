@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DisplayName("Contact Fields Integration Tests (AutoTrader Pattern)")
 public class ContactFieldsIntegrationTest {
-    
+
     private static final Logger log = LoggerFactory.getLogger(ContactFieldsIntegrationTest.class);
 
     @Autowired
@@ -62,19 +62,19 @@ public class ContactFieldsIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CarModelRepository carModelRepository;
-    
+
     @Autowired
     private CarBrandRepository carBrandRepository;
-    
+
     @Autowired
     private LocationRepository locationRepository;
-    
+
     @Autowired
     private GovernorateRepository governorateRepository;
-    
+
 
 
     private User testUser;
@@ -98,13 +98,13 @@ public class ContactFieldsIntegrationTest {
             // If no locations exist, create a simple test location for the test
             // This ensures the test can run even if the seeder fails
             log.warn("No test locations found from seeder. Creating a simple test location.");
-            
+
             // Find any governorate to use
             var governorate = governorateRepository.findAll().stream().findFirst().orElse(null);
             if (governorate == null) {
                 throw new IllegalStateException("No governorates found. Cannot create test location.");
             }
-            
+
             Location simpleLocation = new Location();
             simpleLocation.setDisplayNameEn("Test City");
             simpleLocation.setDisplayNameAr("مدينة الاختبار");
@@ -114,11 +114,11 @@ public class ContactFieldsIntegrationTest {
             simpleLocation.setRegion("Test Region");
             simpleLocation.setIsActive(true);
             simpleLocation.setGovernorate(governorate);
-            
+
             testLocation = locationRepository.save(simpleLocation);
             log.info("Created test location: {}", testLocation.getDisplayNameEn());
         }
-        
+
         // Create and save car brand and model
         CarBrand testBrand = new CarBrand();
         testBrand.setName("Toyota");
@@ -126,7 +126,7 @@ public class ContactFieldsIntegrationTest {
         testBrand.setDisplayNameEn("Toyota");
         testBrand.setDisplayNameAr("تويوتا");
         testBrand = carBrandRepository.save(testBrand);
-        
+
         testModel = new CarModel();
         testModel.setName("Camry");
         testModel.setSlug("camry");
@@ -154,7 +154,7 @@ public class ContactFieldsIntegrationTest {
             request.setCurrency("USD");
             request.setLocationId(testLocation.getId());
             request.setDescription("Excellent condition");
-            
+
             // AutoTrader pattern: Custom contact fields
             request.setContactName("Sales Department");
             request.setContactEmail("sales@toyotadealer.com");
@@ -186,7 +186,7 @@ public class ContactFieldsIntegrationTest {
             request.setCurrency("USD");
             request.setLocationId(testLocation.getId());
             request.setDescription("Excellent condition");
-            
+
             // No contact fields set - should fallback to seller info
 
             // Act & Assert
@@ -214,7 +214,7 @@ public class ContactFieldsIntegrationTest {
             request.setCurrency("USD");
             request.setLocationId(testLocation.getId());
             request.setDescription("Excellent condition");
-            
+
             // AutoTrader pattern: Only some contact fields
             request.setContactName("Service Department");
             request.setContactPhone("+966509876543");
@@ -255,13 +255,13 @@ public class ContactFieldsIntegrationTest {
             listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Test description");
             listing.setSeller(testUser);
-            
+
             // Initial contact fields
             listing.setContactName("Initial Contact");
             listing.setContactEmail("initial@example.com");
             listing.setContactPhone("+966501111111");
             listing.setContactPreference("email");
-            
+
             listing = carListingRepository.save(listing);
             listingId = listing.getId();
         }
@@ -334,13 +334,13 @@ public class ContactFieldsIntegrationTest {
             listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Priority test");
             listing.setSeller(testUser);
-            
+
             // Custom contact fields should take priority over seller info
             listing.setContactName("Luxury Cars Division");
             listing.setContactEmail("luxury@premiumdealer.com");
             listing.setContactPhone("+966503333333");
             listing.setContactPreference("both");
-            
+
             listing = carListingRepository.save(listing);
 
             // Act & Assert - Use my-listings endpoint to get unapproved listings
@@ -378,7 +378,7 @@ public class ContactFieldsIntegrationTest {
             listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Persistence test");
             listing.setSeller(testUser);
-            
+
             // Set contact fields
             listing.setContactName("Test Contact Name");
             listing.setContactEmail("test@persistence.com");
@@ -388,10 +388,10 @@ public class ContactFieldsIntegrationTest {
             // Act
             CarListing savedListing = carListingRepository.save(listing);
             Long savedId = savedListing.getId();
-            
+
             // Clear session to ensure fresh fetch
             carListingRepository.flush();
-            
+
             CarListing retrievedListing = carListingRepository.findById(savedId).orElse(null);
 
             // Assert
@@ -420,13 +420,13 @@ public class ContactFieldsIntegrationTest {
             listing.setGovernorateNameAr(testLocation.getGovernorate().getDisplayNameAr());
             listing.setDescription("Null test");
             listing.setSeller(testUser);
-            
+
             // Don't set contact fields (they should be null)
 
             // Act
             CarListing savedListing = carListingRepository.save(listing);
             Long savedId = savedListing.getId();
-            
+
             carListingRepository.flush();
             CarListing retrievedListing = carListingRepository.findById(savedId).orElse(null);
 

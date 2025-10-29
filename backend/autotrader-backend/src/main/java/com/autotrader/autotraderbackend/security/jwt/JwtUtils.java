@@ -46,7 +46,7 @@ public class JwtUtils {
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
-    
+
     public String generateJwtTokenForUser(com.autotrader.autotraderbackend.model.User user) {
         Objects.requireNonNull(user, "User cannot be null");
         Objects.requireNonNull(user.getUsername(), "Username cannot be null");
@@ -82,7 +82,7 @@ public class JwtUtils {
             log.error("JWT token is null or empty");
             throw new MalformedJwtTokenException("JWT token is null or empty");
         }
-        
+
         // Additional check for null characters which StringUtils.isBlank doesn't catch
         if (authToken.indexOf('\u0000') >= 0) {
             log.error("JWT token contains null characters");

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
+import {
   getBusinessRegistrationConfig,
-  validateBusinessRegistration 
+  validateBusinessRegistration
 } from '@/config/businessRegistration';
 import { api } from '@/services/api';
 
@@ -55,15 +55,15 @@ export default function Step3DealerBusinessInfo({
   hasAttemptedValidation
 }: Step3DealerBusinessInfoProps) {
   const { t, i18n } = useTranslation('auth');
-  
+
   // Get country-specific configuration
   const businessRegConfig = getBusinessRegistrationConfig();
   const currentLocale = (i18n.language || 'en').startsWith('ar') ? 'ar' : 'en';
-  
+
   // Load governorates
   const [governorates, setGovernorates] = useState<Governorate[]>([]);
   const [loadingGovernorates, setLoadingGovernorates] = useState(false);
-  
+
   useEffect(() => {
     const loadGovernorates = async () => {
       try {

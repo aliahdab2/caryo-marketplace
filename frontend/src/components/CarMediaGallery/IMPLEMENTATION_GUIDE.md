@@ -53,14 +53,14 @@ const CarDetailPage = ({ carData }) => {
   return (
     <div className="car-detail-container max-w-6xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">{carData.title}</h1>
-      
+
       {/* Car Media Gallery */}
-      <CarMediaGallery 
-        media={carMedia} 
+      <CarMediaGallery
+        media={carMedia}
         showThumbnails={true}
         className="mb-8"
       />
-      
+
       {/* Rest of car details */}
       {/* ... */}
     </div>
@@ -75,8 +75,8 @@ const CarDetailPage = ({ carData }) => {
 You can add additional styling by passing a className:
 
 ```tsx
-<CarMediaGallery 
-  media={carMedia} 
+<CarMediaGallery
+  media={carMedia}
   className="border rounded-lg shadow-lg bg-white p-4"
 />
 ```
@@ -86,8 +86,8 @@ You can add additional styling by passing a className:
 Use the `initialIndex` prop to show a specific image first:
 
 ```tsx
-<CarMediaGallery 
-  media={carMedia} 
+<CarMediaGallery
+  media={carMedia}
   initialIndex={2} // Show the third image first (0-indexed)
 />
 ```
@@ -102,19 +102,19 @@ import { useState, useEffect } from 'react';
 const CarDetailPage = ({ carId }) => {
   const [loading, setLoading] = useState(true);
   const [carMedia, setCarMedia] = useState([]);
-  
+
   useEffect(() => {
     const loadCarData = async () => {
       setLoading(true);
       try {
         const data = await fetchCarDetails(carId);
-        
+
         // Transform API data to CarMedia format
         const media = [
           // Images and video formatting
           // ...
         ];
-        
+
         setCarMedia(media);
       } catch (error) {
         console.error('Failed to load car data', error);
@@ -123,10 +123,10 @@ const CarDetailPage = ({ carId }) => {
         setLoading(false);
       }
     };
-    
+
     loadCarData();
   }, [carId]);
-  
+
   return (
     <div>
       {loading ? (
@@ -153,26 +153,26 @@ Example upload handler:
 ```tsx
 const handleImageUpload = async (files) => {
   const formData = new FormData();
-  
+
   Array.from(files).forEach((file) => {
     formData.append('images', file);
   });
-  
+
   try {
     const response = await fetch('/api/car-listings/upload-images', {
       method: 'POST',
       body: formData,
     });
-    
+
     const uploadedFiles = await response.json();
-    
+
     // Map uploaded files to CarMedia format
     const newMedia = uploadedFiles.map(file => ({
       type: 'image',
       url: file.url,
       alt: `${carData.year} ${carData.make} ${carData.model} - Additional view`
     }));
-    
+
     // Update state with new media
     setCarMedia([...carMedia, ...newMedia]);
   } catch (error) {

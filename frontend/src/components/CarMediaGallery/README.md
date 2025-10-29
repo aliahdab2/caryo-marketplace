@@ -19,24 +19,24 @@ import { CarMediaGallery } from '@/components/CarMediaGallery';
 
 // Example media array
 const carMedia = [
-  { 
-    type: 'image', 
+  {
+    type: 'image',
     url: '/images/car-front.jpg',
     alt: '2023 Toyota Camry front view'
   },
-  { 
-    type: 'image', 
+  {
+    type: 'image',
     url: '/images/car-interior.jpg',
     alt: 'Interior dashboard view'
   },
-  { 
-    type: 'image', 
+  {
+    type: 'image',
     url: '/images/car-back.jpg',
     alt: 'Rear view showing trunk space'
   },
-  { 
-    type: 'video', 
-    url: 'https://www.youtube.com/watch?v=abc123', 
+  {
+    type: 'video',
+    url: 'https://www.youtube.com/watch?v=abc123',
     thumbnailUrl: '/images/video-thumbnail.jpg',
     alt: 'Car walk-around video'
   }
@@ -46,8 +46,8 @@ const carMedia = [
 function CarDetailPage() {
   return (
     <div className="car-detail-page">
-      <CarMediaGallery 
-        media={carMedia} 
+      <CarMediaGallery
+        media={carMedia}
         initialIndex={0}
         showThumbnails={true}
       />

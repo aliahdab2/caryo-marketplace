@@ -1,8 +1,8 @@
 # Database Schema Documentation
 ## Caryo Marketplace
 
-**Version:** 1.0.0 (Current Implementation)  
-**Last Updated:** September 12, 2025  
+**Version:** 1.0.0 (Current Implementation)
+**Last Updated:** September 12, 2025
 **Database:** PostgreSQL 16+ (H2 for testing)
 
 ---
@@ -33,14 +33,14 @@ erDiagram
     roles ||--o{ user_roles : assigned_to
     users ||--o{ car_listings : creates
     users ||--o| dealers : becomes
-    
+
     %% Geographic Hierarchy
     countries ||--o{ governorates : contains
     governorates ||--o{ locations : contains
-    
+
     %% Car Data Hierarchy (Current Implementation)
     makes ||--o{ models : has
-    
+
     %% Car Listings Core
     car_listings }o--|| models : references
     car_listings }o--|| locations : located_in
@@ -51,17 +51,17 @@ erDiagram
     car_listings }o--|| fuel_types : has
     car_listings }o--|| drive_types : has
     car_listings }o--|| seller_types : sold_by
-    
+
     %% Media & Files
     car_listings ||--o{ listing_media : contains
-    
+
     %% User Interactions
     users ||--o{ favorites : saves
     car_listings ||--o{ favorites : favorited_by
     users ||--o{ messages : sends
     users ||--o{ messages : receives
     car_listings ||--o{ messages : about
-    
+
     %% Saved Searches
     users ||--o{ saved_searches : creates
 ```
@@ -94,32 +94,32 @@ CREATE TABLE dealers (
     business_phone VARCHAR(50) NOT NULL,
     commercial_registration VARCHAR(100),
     tax_id VARCHAR(100),
-    
+
     -- Trial System Fields (Phase 1A)
     trial_started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     trial_listings_count INTEGER DEFAULT 0 NOT NULL,
     trial_expired BOOLEAN DEFAULT FALSE NOT NULL,
     trial_extended_until TIMESTAMP WITH TIME ZONE,
     timezone VARCHAR(50) DEFAULT 'Asia/Damascus',
-    
+
     -- Subscription Management Fields
     subscription_tier VARCHAR(50) DEFAULT 'trial',
     subscription_started_at TIMESTAMP WITH TIME ZONE,
     subscription_status VARCHAR(50) DEFAULT 'trial',
     subscription_next_billing_date TIMESTAMP WITH TIME ZONE,
     subscription_cancelled_at TIMESTAMP WITH TIME ZONE,
-    
+
     -- Notification Tracking (JSONB)
     notifications_sent JSONB DEFAULT '[]'::jsonb,
-    
+
     -- Feature Flags per Dealer
     can_create_listings BOOLEAN DEFAULT TRUE NOT NULL,
     payment_warning BOOLEAN DEFAULT FALSE NOT NULL,
-    
+
     -- Timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- Foreign Key Constraints
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -223,8 +223,8 @@ CREATE TABLE makes (
 );
 ```
 
-**Entity Mapping**: 
-- Java Entity: `CarBrand` 
+**Entity Mapping**:
+- Java Entity: `CarBrand`
 - Maps to: `@Table(name = "makes")`
 
 ### **models** (Car Models)
@@ -245,7 +245,7 @@ CREATE TABLE models (
 );
 ```
 
-**Entity Mapping**: 
+**Entity Mapping**:
 - Java Entity: `CarModel`
 - Maps to: `@Table(name = "models")`
 - Foreign Key: `@JoinColumn(name = "make_id")`
@@ -266,7 +266,7 @@ CREATE TABLE car_listings (
     currency VARCHAR(3) DEFAULT 'USD',
     mileage INT NOT NULL,
     model_year INT NOT NULL,
-    
+
     -- Foreign Key References
     seller_id BIGINT NOT NULL,
     model_id BIGINT NOT NULL,
@@ -278,7 +278,7 @@ CREATE TABLE car_listings (
     fuel_type_id BIGINT,
     drive_type_id BIGINT,
     seller_type_id BIGINT,
-    
+
     -- Denormalized Fields for Search Performance
     brand_name_en VARCHAR(100),
     brand_name_ar VARCHAR(100),
@@ -286,26 +286,26 @@ CREATE TABLE car_listings (
     model_name_ar VARCHAR(100),
     governorate_name_en VARCHAR(100),
     governorate_name_ar VARCHAR(100),
-    
+
     -- Car Specifications
     vin VARCHAR(17),
     stock_number VARCHAR(50),
     exterior_color VARCHAR(50),
     doors INTEGER,
     cylinders INTEGER,
-    
+
     -- Status Fields
     approved BOOLEAN DEFAULT FALSE,
     sold BOOLEAN DEFAULT FALSE,
     archived BOOLEAN DEFAULT FALSE,
     expired BOOLEAN DEFAULT FALSE,
     is_user_active BOOLEAN DEFAULT TRUE,
-    
+
     -- Timestamps
     expiration_date TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- Foreign Key Constraints
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (model_id) REFERENCES models(id) ON DELETE RESTRICT,
@@ -332,7 +332,7 @@ CREATE TABLE listing_media (
     is_primary BOOLEAN DEFAULT FALSE,
     media_type VARCHAR(20) NOT NULL CHECK (media_type IN ('image', 'video')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE
 );
 ```
@@ -425,10 +425,10 @@ CREATE TABLE favorites (
     user_id BIGINT NOT NULL,
     listing_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE,
-    
+
     UNIQUE(user_id, listing_id)
 );
 ```
@@ -444,7 +444,7 @@ CREATE TABLE messages (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE SET NULL
@@ -462,7 +462,7 @@ CREATE TABLE saved_searches (
     last_notified_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 ```
@@ -534,8 +534,8 @@ The `car_listings` table includes denormalized fields for search performance:
 
 ```sql
 -- Fast search without joins (denormalized)
-SELECT * FROM car_listings 
-WHERE brand_name_en ILIKE '%toyota%' 
+SELECT * FROM car_listings
+WHERE brand_name_en ILIKE '%toyota%'
   AND approved = true;
 
 -- vs expensive join query
@@ -568,7 +568,7 @@ CREATE INDEX idx_car_listings_model_name_ar ON car_listings(model_name_ar);
 
 -- Status Indexes
 CREATE INDEX idx_car_listings_approved ON car_listings(approved) WHERE approved = true;
-CREATE INDEX idx_car_listings_active ON car_listings(approved, sold, archived, expired) 
+CREATE INDEX idx_car_listings_active ON car_listings(approved, sold, archived, expired)
     WHERE approved = true AND sold = false AND archived = false AND expired = false;
 ```
 

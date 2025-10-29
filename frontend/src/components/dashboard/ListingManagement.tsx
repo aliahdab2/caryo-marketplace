@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
+import {
   MdSearch,
   MdFilterList,
   MdViewList,
@@ -36,10 +36,10 @@ export interface CommonListing {
   mileage: number;
   createdAt: string;
   imageUrls?: string[];
-  media?: { 
-    url: string; 
-    isPrimary?: boolean; 
-    contentType?: string; 
+  media?: {
+    url: string;
+    isPrimary?: boolean;
+    contentType?: string;
   }[];
   views?: number;
   favoriteCount?: number;
@@ -88,11 +88,11 @@ export interface ListingManagementProps {
   listings: CommonListing[];
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   actions?: ListingAction[];
   bulkActions?: BulkAction[];
-  
+
   // Configuration
   title: string;
   subtitle?: string;
@@ -100,15 +100,15 @@ export interface ListingManagementProps {
   allowSelection?: boolean;
   allowBulkActions?: boolean;
   defaultViewMode?: 'grid' | 'list';
-  
+
   // Callbacks
   onRefresh?: () => void;
   onSearch?: (term: string) => void;
   onFilter?: (filter: { status?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) => void;
-  
+
   // Processing state
   processing?: (string | number)[] | number | null;
-  
+
   // Custom renderers
   renderStats?: () => React.ReactNode;
   renderCustomActions?: (listing: CommonListing) => React.ReactNode;
@@ -134,7 +134,7 @@ export default function ListingManagement({
   renderCustomActions
 }: ListingManagementProps) {
   const { t } = useTranslation('dashboard');
-  
+
   // Local state
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,19 +149,19 @@ export default function ListingManagement({
   // Computed values
   const filteredListings = useMemo(() => {
     return listings.filter(listing => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch = !searchTerm ||
         listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (typeof listing.make === 'string' ? listing.make : listing.make?.displayNameEn || '')
           .toLowerCase().includes(searchTerm.toLowerCase()) ||
         (typeof listing.model === 'string' ? listing.model : listing.model?.displayNameEn || '')
           .toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || 
+
+      const matchesStatus = statusFilter === 'all' ||
         (statusFilter === 'pending' && (!listing.approved && listing.status !== 'approved')) ||
         (statusFilter === 'approved' && (listing.approved || listing.status === 'approved')) ||
         (statusFilter === 'active' && listing.status === 'active') ||
         (statusFilter === 'expired' && listing.status === 'expired');
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [listings, searchTerm, statusFilter]);
@@ -171,7 +171,7 @@ export default function ListingManagement({
     const pending = listings.filter(l => !l.approved && l.status !== 'approved').length;
     const approved = listings.filter(l => l.approved || l.status === 'approved').length;
     const active = listings.filter(l => l.status === 'active').length;
-    
+
     return { total, pending, approved, active };
   }, [listings]);
 
@@ -208,22 +208,22 @@ export default function ListingManagement({
   }, []);
 
   const toggleSelection = useCallback((id: string | number) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
+    setSelectedItems(prev =>
+      prev.includes(id)
         ? prev.filter(item => item !== id)
         : [...prev, id]
     );
   }, []);
 
   const toggleSelectAll = useCallback(() => {
-    const selectableListings = filteredListings.filter(listing => 
+    const selectableListings = filteredListings.filter(listing =>
       !actions.some(action => action.disabled?.(listing))
     );
-    
-    const allSelected = selectableListings.every(listing => 
+
+    const allSelected = selectableListings.every(listing =>
       selectedItems.includes(listing.id)
     );
-    
+
     if (allSelected) {
       setSelectedItems([]);
     } else {
@@ -295,7 +295,7 @@ export default function ListingManagement({
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-4"></div>
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-96 mb-8"></div>
-            
+
             {showStats && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 {[1, 2, 3].map((i) => (
@@ -306,7 +306,7 @@ export default function ListingManagement({
                 ))}
               </div>
             )}
-            
+
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -350,7 +350,7 @@ export default function ListingManagement({
                 </p>
               )}
             </div>
-            
+
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -359,13 +359,13 @@ export default function ListingManagement({
                 <MdFilterList className="w-5 h-5" />
                 {t('filters')}
               </button>
-              
+
               <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'list' 
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    viewMode === 'list'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
@@ -374,15 +374,15 @@ export default function ListingManagement({
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'grid' 
-                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    viewMode === 'grid'
+                      ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
                   <MdViewModule className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {onRefresh && (
                 <button
                   onClick={onRefresh}
@@ -414,7 +414,7 @@ export default function ListingManagement({
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-xl flex items-center justify-center">
@@ -428,7 +428,7 @@ export default function ListingManagement({
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
@@ -442,7 +442,7 @@ export default function ListingManagement({
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
@@ -478,7 +478,7 @@ export default function ListingManagement({
                   />
                 </div>
               </div>
-              
+
               {/* Quick Filters */}
               <div className="flex gap-2">
                 <select
@@ -492,7 +492,7 @@ export default function ListingManagement({
                   <option value="active">{t('activeStatus')}</option>
                   <option value="expired">{t('expiredStatus')}</option>
                 </select>
-                
+
                 <select
                   value={sortBy}
                   onChange={(e) => handleFilter({ sortBy: e.target.value })}
@@ -516,7 +516,7 @@ export default function ListingManagement({
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   {t('listingsCount', { count: filteredListings.length })}
                 </span>
-                
+
                 {allowSelection && filteredListings.length > 0 && (
                   <button
                     onClick={toggleSelectAll}
@@ -591,7 +591,7 @@ export default function ListingManagement({
                 </p>
               </div>
             ) : (
-              <div className={viewMode === 'grid' 
+              <div className={viewMode === 'grid'
                 ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4"
                 : "space-y-0 mt-4"
               }>
@@ -664,7 +664,7 @@ function ListingCard({
   renderCustomActions
 }: ListingCardProps) {
   const imageUrl = getImageUrl(listing);
-  const isProcessing = Array.isArray(processing) 
+  const isProcessing = Array.isArray(processing)
     ? processing.includes(listing.id)
     : processing === listing.id;
 
@@ -734,11 +734,11 @@ function ListingCard({
                 {listing.title}
               </h3>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {typeof listing.make === 'string' 
-                  ? listing.make 
+                {typeof listing.make === 'string'
+                  ? listing.make
                   : listing.make?.displayNameEn || 'N/A'} {' '}
-                {typeof listing.model === 'string' 
-                  ? listing.model 
+                {typeof listing.model === 'string'
+                  ? listing.model
                   : listing.model?.displayNameEn || 'N/A'} {' '}
                 {listing.year && `• ${listing.year}`}
               </div>
@@ -807,7 +807,7 @@ function ListingCard({
               {/* Selection checkbox */}
               {allowSelection && (
                 <div className="flex-shrink-0">
-                  <button 
+                  <button
                     onClick={onSelect}
                     className="p-1 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
@@ -824,13 +824,13 @@ function ListingCard({
               <div className="flex-shrink-0">
                 <div className="relative w-24 h-18 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 shadow-sm">
                   {imageUrl ? (
-                    <Image 
-                      src={imageUrl} 
-                      alt={listing.title || 'Car'} 
-                      fill 
-                      className="object-cover" 
-                      sizes="96px" 
-                      unoptimized 
+                    <Image
+                      src={imageUrl}
+                      alt={listing.title || 'Car'}
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      unoptimized
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
@@ -846,15 +846,15 @@ function ListingCard({
                   {listing.title}
                 </h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {typeof listing.make === 'string' 
-                    ? listing.make 
+                  {typeof listing.make === 'string'
+                    ? listing.make
                     : listing.make?.displayNameEn || 'N/A'} {' '}
-                  {typeof listing.model === 'string' 
-                    ? listing.model 
+                  {typeof listing.model === 'string'
+                    ? listing.model
                     : listing.model?.displayNameEn || 'N/A'} {' '}
                   {listing.year && `• ${listing.year}`}
                 </div>
-                
+
                 {/* Info Chips */}
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <div className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-xs font-medium">

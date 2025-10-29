@@ -47,7 +47,7 @@ describe('Authentication Integration Tests', () => {
       },
     });
     jest.clearAllMocks();
-    
+
     // Default unauthenticated state
     mockUseSession.mockReturnValue({
       data: null,
@@ -76,7 +76,7 @@ describe('Authentication Integration Tests', () => {
     // Fill form and submit
     await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
     await userEvent.type(screen.getByLabelText(/password/i), 'password123');
-    
+
     const submitButton = screen.getByRole('button', { name: /sign_in/i });
     await userEvent.click(submitButton);
 

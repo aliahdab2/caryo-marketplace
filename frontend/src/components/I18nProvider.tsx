@@ -20,44 +20,44 @@ export default function I18nProvider({ children }: I18nProviderProps) {
     const initializeI18n = async () => {
       try {
         setIsLoading(true);
-        
+
         // Extract locale from URL path (first segment)
         const pathSegments = pathname.split('/').filter(Boolean);
         let currentLocale = 'en'; // default
-        
+
         if (pathSegments.length > 0 && isValidLocale(pathSegments[0])) {
           currentLocale = pathSegments[0];
         }
-        
+
         // Only re-initialize if locale actually changed
         if (currentLocaleRef.current === currentLocale && mounted) {
           setIsLoading(false);
           return;
         }
-        
+
         currentLocaleRef.current = currentLocale;
-        
+
         // Set the document attributes based on language
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
-        
+
         // Make sure i18next is initialized
         if (!i18n.isInitialized) {
           await new Promise((resolve) => {
             i18n.on('initialized', resolve);
           });
         }
-        
+
         // Change language and load resources only if needed
         if (i18n.language !== currentLocale) {
           await i18n.changeLanguage(currentLocale);
         }
-        
+
         // Explicitly load all namespaces (only once)
         if (!mounted) {
           await i18n.loadNamespaces(['common', 'listings', 'errors']);
         }
-        
+
         setMounted(true);
       } catch (error) {
         console.error('Error initializing i18n:', error);

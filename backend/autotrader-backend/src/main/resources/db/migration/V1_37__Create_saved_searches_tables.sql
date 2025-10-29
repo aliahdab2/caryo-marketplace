@@ -27,24 +27,24 @@ DROP TABLE IF EXISTS saved_searches;
 CREATE TABLE saved_searches (
     id UUID PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    
+
     -- Bilingual display names (following project _en/_ar pattern)
     name_en VARCHAR(255) NOT NULL,    -- User-displayable name in English
     name_ar VARCHAR(255),             -- User-displayable name in Arabic
-    
+
     -- Technical/functional data stored as JSON (language-neutral)
     -- Note: These fields contain technical search criteria and system settings,
     -- not user-displayable content, so they don't require bilingual fields.
     -- This follows the existing pattern used in search_parameters field.
     filters TEXT NOT NULL DEFAULT '{}',                           -- Search criteria JSON
     notification_preferences TEXT NOT NULL DEFAULT '{"email": true, "frequency": "immediate"}',  -- System preferences JSON
-    
+
     -- System fields
     last_notified_at TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT fk_saved_searches_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -54,7 +54,7 @@ CREATE TABLE saved_search_notifications (
     saved_search_id UUID NOT NULL,
     listing_id BIGINT NOT NULL,
     notified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT fk_notifications_saved_search FOREIGN KEY (saved_search_id) REFERENCES saved_searches(id) ON DELETE CASCADE,
     CONSTRAINT fk_notifications_listing FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE,
     CONSTRAINT uk_search_listing_notification UNIQUE (saved_search_id, listing_id)

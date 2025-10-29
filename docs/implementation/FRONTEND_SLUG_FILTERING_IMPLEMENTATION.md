@@ -13,10 +13,10 @@ export interface CarListingFilterParams {
   // NEW: Slug-based filtering parameters
   brandSlugs?: string[];  // AutoTrader UK pattern: brandSlugs=toyota&brandSlugs=honda
   modelSlugs?: string[];  // modelSlugs=camry&modelSlugs=corolla
-  
+
   // LEGACY: Hierarchical brand filtering (backward compatibility)
   brand?: string;
-  
+
   // ... other existing parameters
 }
 ```
@@ -82,10 +82,10 @@ interface AdvancedSearchFilters {
   // NEW: Slug-based filters (AutoTrader UK pattern)
   brandSlugs?: string[];
   modelSlugs?: string[];
-  
+
   // LEGACY: Basic filters matching old backend hierarchical format
   brand?: string;
-  
+
   // ... other existing parameters
 }
 ```

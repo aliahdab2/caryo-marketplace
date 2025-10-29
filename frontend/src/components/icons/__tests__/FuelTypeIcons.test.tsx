@@ -162,10 +162,10 @@ describe('FuelTypeIcons', () => {
       icons.forEach(icon => {
         const { container } = render(icon);
         const iconElement = container.firstChild as HTMLElement;
-        
+
         // All icons should have flex layout
         expect(iconElement).toHaveClass('flex', 'items-center', 'justify-center');
-        
+
         // All icons should have a relative container inside
         const relativeContainer = iconElement.querySelector('.relative');
         expect(relativeContainer).toBeTruthy();
@@ -188,4 +188,4 @@ describe('FuelTypeIcons', () => {
       expect(lpgContainer.firstChild).toHaveClass('text-red-600');
     });
   });
-}); 
+});

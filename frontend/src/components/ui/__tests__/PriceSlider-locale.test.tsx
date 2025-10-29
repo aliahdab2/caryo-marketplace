@@ -39,7 +39,7 @@ describe('PriceSlider Locale Auto-Detection', () => {
     mockUseTranslation.mockReturnValue({
       i18n: { language: 'en' }
     });
-    
+
     render(
       <PriceSlider
         minPrice={10000}
@@ -57,7 +57,7 @@ describe('PriceSlider Locale Auto-Detection', () => {
     mockUseTranslation.mockReturnValue({
       i18n: { language: 'ar' }
     });
-    
+
     render(
       <PriceSlider
         minPrice={10000}
@@ -75,7 +75,7 @@ describe('PriceSlider Locale Auto-Detection', () => {
     mockUseTranslation.mockReturnValue({
       i18n: { language: 'en' }
     });
-    
+
     render(
       <PriceSlider
         minPrice={10000}
@@ -94,7 +94,7 @@ describe('PriceSlider Locale Auto-Detection', () => {
     mockUseTranslation.mockReturnValue({
       i18n: { language: 'fr' }
     });
-    
+
     render(
       <PriceSlider
         minPrice={10000}

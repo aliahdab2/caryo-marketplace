@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatDate, formatNumber } from "../../utils/localization";
 import { Listing } from "../../types/listings";
-import { 
-  MdDirectionsCar, 
+import {
+  MdDirectionsCar,
   MdEditNote,
   MdDelete,
   MdArrowForward,
@@ -31,14 +31,14 @@ const LISTINGS_NAMESPACES = ['listings', 'common'];
 interface ListingsViewProps {
   listings: Listing[];
   loading?: boolean;
-  
+
   // Display Configuration
   variant?: 'summary' | 'full'; // summary for dashboard, full for listings page
   maxRows?: number; // for summary variant
   showHeader?: boolean;
   headerTitle?: string;
   headerIcon?: React.ReactNode;
-  
+
   // Features
   showActions?: boolean;
   showViewAllLink?: boolean;
@@ -46,14 +46,14 @@ interface ListingsViewProps {
   showFilters?: boolean;
   showBulkActions?: boolean;
   showPagination?: boolean;
-  
+
   // Callbacks
   onDelete?: (id: string) => Promise<void>;
   onBulkDelete?: (ids: string[]) => Promise<void>;
   onSearch?: (term: string) => void;
   onFilter?: (filter: Record<string, unknown>) => void;
   onSort?: (sortBy: string, order: 'asc' | 'desc') => void;
-  
+
   // Styling
   className?: string;
 }
@@ -81,7 +81,7 @@ export default function ListingsView({
 }: ListingsViewProps) {
   const { t } = useTranslation(LISTINGS_NAMESPACES);
   const { locale, isArabic } = useLanguageSwitching();
-  
+
   // Helper function to get bilingual transmission display name from backend data
   const getTransmissionText = (listing: Listing) => {
     if (isArabic) {
@@ -97,14 +97,14 @@ export default function ListingsView({
     }
     return listing.fuelTypeNameEn || listing.fuelTypeNameAr || '';
   };
-  
+
   // State for full variant features
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [sortOrder] = useState<"asc" | "desc">("desc");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  
+
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation({
     namespace: 'listings',
@@ -119,7 +119,7 @@ export default function ListingsView({
   const formatLocation = useCallback((listing: Listing) => {
     const city = isArabic ? listing.location?.cityAr : listing.location?.city;
     const governorate = isArabic ? listing.governorate?.nameAr : listing.governorate?.nameEn;
-    
+
     if (city && governorate) {
       return `${city}، ${governorate}`;
     } else if (city) {
@@ -151,19 +151,19 @@ export default function ListingsView({
   const formatCurrencyDisplay = useCallback((price: number, currency: string) => {
     // For USD, show $ + number
     if (currency === 'USD') {
-      const formattedNumber = formatNumber(price, locale, { 
+      const formattedNumber = formatNumber(price, locale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
       return `$ ${formattedNumber}`;
     }
-    
+
     // For other currencies, show number + currency code
-    const formattedNumber = formatNumber(price, locale, { 
+    const formattedNumber = formatNumber(price, locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
-    
+
     return `${formattedNumber} ${currency}`;
   }, [locale]);
 
@@ -183,8 +183,8 @@ export default function ListingsView({
   };
 
   const handleSelectItem = (id: string) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
+    setSelectedItems(prev =>
+      prev.includes(id)
         ? prev.filter(item => item !== id)
         : [...prev, id]
     );
@@ -192,7 +192,7 @@ export default function ListingsView({
 
   // Apply filters and sorting for full variant
   let displayListings = listings;
-  
+
   if (variant === 'full') {
     // Apply search filter
     if (searchTerm) {
@@ -202,16 +202,16 @@ export default function ListingsView({
         listing.model?.displayNameEn?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== 'all') {
       displayListings = displayListings.filter(listing => listing.status === statusFilter);
     }
-    
+
     // Apply sorting
     displayListings = displayListings.sort((a, b) => {
       const multiplier = sortOrder === 'asc' ? 1 : -1;
-      
+
       switch (sortBy) {
         case 'title':
           return (a.title || '').localeCompare(b.title || '') * multiplier;
@@ -327,7 +327,7 @@ export default function ListingsView({
             </div>
           </div>
           {showViewAllLink && variant === 'summary' && (
-            <Link 
+            <Link
               href="/dashboard/listings"
               className="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-base rounded-lg font-medium transition-colors duration-200 hover:shadow-md"
             >
@@ -388,7 +388,7 @@ export default function ListingsView({
           <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
             {t('noListingsDesc') || 'You haven\'t created any listings yet. Start by creating your first listing!'}
           </p>
-          <Link 
+          <Link
             href="/dashboard/listings/new"
             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-medium transition-colors duration-200 hover:shadow-md"
           >
@@ -406,10 +406,10 @@ export default function ListingsView({
           const hasValidPrice = listing.price && listing.price > 0;
           const hasValidMileage = listing.mileage && listing.mileage > 0;
           const isSelected = selectedItems.includes(listing.id);
-          
+
           return (
-            <div 
-              key={listing.id} 
+            <div
+              key={listing.id}
               className={`group bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md overflow-hidden ${
                 isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''
               }`}
@@ -436,8 +436,8 @@ export default function ListingsView({
                   <div className="relative flex-shrink-0">
                     <div className="w-32 h-24 sm:w-36 sm:h-28 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-500 shadow-sm">
                       {listing.image ? (
-                        <Image 
-                          src={listing.image} 
+                        <Image
+                          src={listing.image}
                           alt={listing.title || 'Vehicle image'}
                           width={144}
                           height={112}
@@ -457,7 +457,7 @@ export default function ListingsView({
                     {/* Status Badge */}
                     <div className="absolute -top-2 -right-2 rtl:-left-2 rtl:right-auto">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium shadow-sm border border-white dark:border-gray-800 ${getStatusStyle(listing.status || 'pending')}`}>
-                        {listing?.status 
+                        {listing?.status
                           ? t(`listings:listingStatus${listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}`)
                           : t('listings:listingStatusPending')
                         }
@@ -498,8 +498,8 @@ export default function ListingsView({
                                 <>
                                   <span className="text-blue-400 dark:text-blue-300">•</span>
                                   <span className="font-medium opacity-90">
-                                    {isArabic 
-                                      ? (listing.model?.displayNameAr || listing.modelNameAr) 
+                                    {isArabic
+                                      ? (listing.model?.displayNameAr || listing.modelNameAr)
                                       : (listing.model?.displayNameEn || listing.modelNameEn)}
                                   </span>
                                 </>
@@ -514,7 +514,7 @@ export default function ListingsView({
                               )}
                             </div>
                           </div>
-                          
+
                           {/* Additional specs if available */}
                           {(listing.fuelType || listing.transmission || hasValidMileage) && (
                             <div className="flex flex-wrap items-center gap-1.5">
@@ -571,7 +571,7 @@ export default function ListingsView({
                           >
                             <MdEditNote size={18} />
                           </Link>
-                          <button 
+                          <button
                             onClick={() => handleDelete(listing.id)}
                             className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors duration-200"
                             title={t('delete', { ns: 'common' })}
@@ -594,7 +594,7 @@ export default function ListingsView({
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden ${className}`}>
       {renderHeader()}
-      
+
       <div className="p-6">
         {renderSearchAndFilters()}
         {renderListings()}

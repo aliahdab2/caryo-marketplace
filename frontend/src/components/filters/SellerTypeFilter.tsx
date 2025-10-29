@@ -44,7 +44,7 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
     const fetchCounts = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         // Create a copy of filters without sellerTypeId to get all counts
         const { sellerTypeId: _sellerTypeId, ...filtersWithoutSellerType } = filters;
@@ -104,13 +104,13 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
       <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
         {t('filters.sellerType', { defaultValue: 'Seller Type' })}
       </h3>
-      
+
       <div className="space-y-2">
         {sellerTypeOptions.map((option) => {
           const isSelected = selectedSellerTypeId === option.id;
           const displayName = getDisplayName(option);
           const countText = isLoading ? '...' : option.count.toLocaleString();
-          
+
           return (
             <button
               key={option.id}
@@ -120,8 +120,8 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
               className={`
                 w-full text-left px-3 py-2 rounded-md text-sm transition-colors duration-200
                 border border-gray-200 dark:border-gray-700
-                ${isSelected 
-                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300' 
+                ${isSelected
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300'
                   : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }
                 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-sm cursor-pointer'}
@@ -136,8 +136,8 @@ const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({
                 </span>
                 <span className={`
                   text-xs px-2 py-1 rounded-full
-                  ${isSelected 
-                    ? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300' 
+                  ${isSelected
+                    ? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                   }
                 `}>

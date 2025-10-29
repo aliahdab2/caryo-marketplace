@@ -30,11 +30,11 @@ public class NewsletterController {
     @Operation(summary = "Subscribe to newsletter", description = "Subscribe to newsletter with email confirmation")
     public ResponseEntity<NewsletterSubscriptionResponse> subscribe(
             @Valid @RequestBody NewsletterSubscriptionRequest request) {
-        
+
         log.info("Newsletter subscription request for email: {}", request.getEmail());
-        
+
         NewsletterSubscriptionResponse response = newsletterService.subscribe(request);
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -44,11 +44,11 @@ public class NewsletterController {
     @GetMapping("/confirm")
     @Operation(summary = "Confirm newsletter subscription", description = "Confirm newsletter subscription using token")
     public ResponseEntity<String> confirmSubscription(@RequestParam String token) {
-        
+
         log.info("Newsletter confirmation request with token: {}", token);
-        
+
         boolean confirmed = newsletterService.confirmSubscription(token);
-        
+
         if (confirmed) {
             return ResponseEntity.ok("""
                 <!DOCTYPE html>
@@ -102,11 +102,11 @@ public class NewsletterController {
     @GetMapping("/unsubscribe")
     @Operation(summary = "Unsubscribe from newsletter", description = "Unsubscribe from newsletter using token")
     public ResponseEntity<String> unsubscribe(@RequestParam String token) {
-        
+
         log.info("Newsletter unsubscribe request with token: {}", token);
-        
+
         boolean unsubscribed = newsletterService.unsubscribe(token);
-        
+
         if (unsubscribed) {
             return ResponseEntity.ok("""
                 <!DOCTYPE html>

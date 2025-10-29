@@ -27,7 +27,7 @@ export default function CreateAlertModal({
 }: CreateAlertModalProps) {
   const { t, i18n } = useTranslation(['search', 'common']);
   const isRTL = i18n.language === 'ar';
-  
+
   // Fetch reference data for slug conversion
   const {
     data: referenceData
@@ -36,7 +36,7 @@ export default function CreateAlertModal({
     '/api/reference-data',
     []
   );
-  
+
   // Form state
   const [alertName, setAlertName] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -49,30 +49,30 @@ export default function CreateAlertModal({
   // Generate a default alert name based on filters
   const generateDefaultName = useCallback((): string => {
     const parts: string[] = [];
-    
+
     if (filters.brands && filters.brands.length > 0) {
       parts.push(filters.brands.join(', '));
     }
-    
+
     if (filters.models && filters.models.length > 0) {
       parts.push(filters.models.join(', '));
     }
-    
+
     if (filters.locations && filters.locations.length > 0) {
       parts.push(`in ${filters.locations.join(', ')}`);
     }
-    
+
     if (filters.minPrice || filters.maxPrice) {
       const priceRange = [];
       if (filters.minPrice) priceRange.push(`from $${filters.minPrice}`);
       if (filters.maxPrice) priceRange.push(`up to $${filters.maxPrice}`);
       parts.push(priceRange.join(' '));
     }
-    
+
     if (parts.length === 0) {
       return searchQuery ? `Cars matching "${searchQuery}"` : 'Car Alert';
     }
-    
+
     return parts.join(' ');
   }, [filters, searchQuery]);
 
@@ -91,17 +91,17 @@ export default function CreateAlertModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!alertName.trim()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Convert frontend filters to backend format
       const backendFilters: Record<string, unknown> = {};
-      
+
       if (filters.brands) backendFilters.brandSlugs = filters.brands;
       if (filters.models) backendFilters.modelSlugs = filters.models;
       if (filters.locations) backendFilters.location = filters.locations;
@@ -111,7 +111,7 @@ export default function CreateAlertModal({
       if (filters.maxYear) backendFilters.maxYear = filters.maxYear;
       if (filters.minMileage) backendFilters.minMileage = filters.minMileage;
       if (filters.maxMileage) backendFilters.maxMileage = filters.maxMileage;
-      
+
       // Convert transmissionId to transmissionSlug
       if (filters.transmissionId && referenceData?.transmissions) {
         const transmission = referenceData.transmissions.find(t => t.id === filters.transmissionId);
@@ -119,10 +119,10 @@ export default function CreateAlertModal({
           backendFilters.transmissionSlug = transmission.slug;
         }
       }
-      
+
       if (filters.fuelTypeSlugs) backendFilters.fuelTypeSlugs = filters.fuelTypeSlugs;
       if (filters.bodyType) backendFilters.bodyType = filters.bodyType;
-      
+
       // Convert conditionId to conditionSlug
       if (filters.conditionId && referenceData?.carConditions) {
         const condition = referenceData.carConditions.find(c => c.id === filters.conditionId);
@@ -130,10 +130,10 @@ export default function CreateAlertModal({
           backendFilters.conditionSlug = condition.slug;
         }
       }
-      
+
       if (filters.sellerTypeIds) backendFilters.sellerTypeIds = filters.sellerTypeIds;
       if (searchQuery) backendFilters.searchQuery = searchQuery;
-      
+
       const request: SavedSearchRequest = {
         nameEn: alertName.trim(),
         nameAr: '', // TODO: Add Arabic name support
@@ -144,31 +144,31 @@ export default function CreateAlertModal({
         },
         isActive: true
       };
-      
+
       const response = await createSavedSearch(request);
-      
+
       // Store response and show success message
       setLastResponse(response);
       setShowSuccess(true);
-      
+
       // Close modal after success message
       setTimeout(() => {
         onClose();
         onSuccess?.();
       }, 2000);
-      
+
     } catch (error: unknown) {
       // Use proper error logging instead of console.error
       if (process.env.NODE_ENV === 'development') {
         console.error('Error creating alert:', error);
       }
-      
+
       // Extract error message from various possible locations
       let errorMsg = 'Failed to create alert. Please try again.';
-      
+
       if (error && typeof error === 'object') {
         const errorObj = error as Record<string, unknown>;
-        
+
         // Check for backend error response
         if (errorObj.response && typeof errorObj.response === 'object') {
           const response = errorObj.response as Record<string, unknown>;
@@ -186,7 +186,7 @@ export default function CreateAlertModal({
           errorMsg = errorObj.message;
         }
       }
-      
+
       // Handle different types of errors with appropriate UI feedback
       if (errorMsg.includes('maximum limit')) {
         // For user limits, don't auto-suggest - user needs to manage their searches
@@ -243,7 +243,7 @@ export default function CreateAlertModal({
                   setAlertName(e.target.value);
                   if (errorMessage) setErrorMessage(''); // Clear error when user types
                 }}
-                className={`w-full px-3 py-2 border rounded-md 
+                className={`w-full px-3 py-2 border rounded-md
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent
                          ${errorMessage ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}`}
@@ -311,7 +311,7 @@ export default function CreateAlertModal({
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {t('search:notificationSettings', 'Notification Settings')}
               </h3>
-              
+
               {/* Email Notifications */}
               <div className="flex items-center gap-3">
                 <input
@@ -339,7 +339,7 @@ export default function CreateAlertModal({
                     id="frequency"
                     value={frequency}
                     onChange={(e) => setFrequency(e.target.value as 'immediate' | 'daily' | 'weekly')}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md
                              bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                              focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isSubmitting}
@@ -388,7 +388,7 @@ export default function CreateAlertModal({
       <SuccessAlert
         visible={showSuccess}
         message={
-          lastResponse?.wasUpdated 
+          lastResponse?.wasUpdated
             ? t('search:alertUpdatedSuccess', 'Updated your existing search criteria with name "{name}"! Your notification preferences have been saved.', { name: lastResponse.nameEn })
             : t('search:alertCreatedSuccess', 'Alert created successfully! You will be notified when new cars match your criteria.')
         }

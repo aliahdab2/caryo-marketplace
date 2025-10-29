@@ -35,10 +35,10 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-    
+
     @Autowired
     private PlatformTransactionManager transactionManager;
-    
+
     @MockBean
     private ListingEventUtils eventUtils;
 
@@ -46,7 +46,7 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
     void transactionTemplateBean_shouldBeCreated() {
         // Arrange & Act
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-        
+
         // Assert
         assertNotNull(transactionTemplate);
     }
@@ -55,16 +55,16 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
     void asyncTransactionService_shouldBeCreatedWithTransactionTemplate() {
         // Arrange & Act
         AsyncTransactionService service = new AsyncTransactionService(new TransactionTemplate(transactionManager));
-        
+
         // Assert
         assertNotNull(service);
     }
-    
+
     @Test
     void publishingEvent_shouldTriggerListenerWithTransaction() throws Exception {
         // Arrange
         when(eventUtils.getListingInfo(any())).thenReturn("Test listing info");
-        
+
         User seller = new User();
         seller.setId(1L);
         seller.setUsername("testuser");
@@ -79,7 +79,7 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
         testModel.setDisplayNameEn("X5");
         testModel.setDisplayNameAr("اكس 5");
         testModel.setBrand(testBrand);
-        
+
         CarListing listing = new CarListing();
         listing.setId(1L);
         listing.setModel(testModel); // Set the CarModel relationship
@@ -90,20 +90,20 @@ public class AsyncEventTransactionIntegrationTest extends IntegrationTestWithS3 
         listing.setModelYear(2023);
         listing.setPrice(BigDecimal.valueOf(50000));
         listing.setSeller(seller);
-        
+
         CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
             latch.countDown();
             return null;
         }).when(eventUtils).getListingInfo(any());
-        
+
         // Act
         eventPublisher.publishEvent(new ListingApprovedEvent(this, listing));
-        
+
         // Assert - wait for async processing to complete
         boolean processed = latch.await(10, TimeUnit.SECONDS);
         assertTrue(processed, "Event was not processed within the timeout period");
-        
+
         // Verify the event was processed
         verify(eventUtils, timeout(10000)).getListingInfo(any());
     }

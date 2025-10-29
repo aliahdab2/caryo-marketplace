@@ -31,11 +31,11 @@ public class AdminNewsletterController {
     @GetMapping("/stats")
     @Operation(summary = "Get newsletter statistics", description = "Get newsletter subscription statistics")
     public ResponseEntity<Map<String, Object>> getStats() {
-        
+
         log.info("Admin requesting newsletter statistics");
-        
+
         long activeCount = newsletterService.getActiveSubscriptionCount();
-        
+
         return ResponseEntity.ok(Map.of(
             "activeSubscriptions", activeCount,
             "timestamp", LocalDateTime.now()

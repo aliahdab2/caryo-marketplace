@@ -18,7 +18,7 @@ const ContentFields = memo(function ContentFields({
   handleChange
 }: ContentFieldsProps) {
   const { t } = useLazyTranslation(['listings']);
-  
+
   // Recommended character limits (soft limits for guidance only)
   const titleRecommendedMax = 70;
   const descriptionRecommendedMax = 1000;

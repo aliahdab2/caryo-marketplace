@@ -61,12 +61,12 @@ class ConversationParticipantTest {
         // Initially active
         assertTrue(participant.isActive());
         assertNull(participant.getLeftAt());
-        
+
         // Leave conversation
         participant.leave();
         assertFalse(participant.isActive());
         assertNotNull(participant.getLeftAt());
-        
+
         // Rejoin conversation
         participant.rejoin();
         assertTrue(participant.isActive());
@@ -80,12 +80,12 @@ class ConversationParticipantTest {
         participant.setRole(ParticipantRole.BUYER);
         assertTrue(participant.isBuyer());
         assertFalse(participant.isSeller());
-        
+
         // Test seller role
         participant.setRole(ParticipantRole.SELLER);
         assertFalse(participant.isBuyer());
         assertTrue(participant.isSeller());
-        
+
         // Test participant role
         participant.setRole(ParticipantRole.PARTICIPANT);
         assertFalse(participant.isBuyer());
@@ -99,12 +99,12 @@ class ConversationParticipantTest {
         participant.setRole(ParticipantRole.SELLER);
         assertEquals(ParticipantRole.SELLER, participant.getRole());
         assertTrue(participant.isSeller());
-        
+
         participant.setRole(ParticipantRole.PARTICIPANT);
         assertEquals(ParticipantRole.PARTICIPANT, participant.getRole());
         assertFalse(participant.isSeller());
         assertFalse(participant.isBuyer());
-        
+
         participant.setRole(ParticipantRole.BUYER);
         assertEquals(ParticipantRole.BUYER, participant.getRole());
         assertTrue(participant.isBuyer());
@@ -116,18 +116,18 @@ class ConversationParticipantTest {
         // Initially active
         assertTrue(participant.isActive());
         assertNull(participant.getLeftAt());
-        
+
         // Leave conversation
         LocalDateTime beforeLeave = LocalDateTime.now();
         participant.leave();
-        
+
         assertFalse(participant.isActive());
         assertNotNull(participant.getLeftAt());
         assertTrue(participant.getLeftAt().isAfter(beforeLeave) || participant.getLeftAt().equals(beforeLeave));
-        
+
         // Rejoin conversation
         participant.rejoin();
-        
+
         assertTrue(participant.isActive());
         assertNull(participant.getLeftAt());
     }
@@ -139,17 +139,17 @@ class ConversationParticipantTest {
         participant.leave();
         assertFalse(participant.isActive());
         assertNotNull(participant.getLeftAt());
-        
+
         // First rejoin
         participant.rejoin();
         assertTrue(participant.isActive());
         assertNull(participant.getLeftAt());
-        
+
         // Second leave
         participant.leave();
         assertFalse(participant.isActive());
         assertNotNull(participant.getLeftAt());
-        
+
         // Second rejoin
         participant.rejoin();
         assertTrue(participant.isActive());
@@ -163,7 +163,7 @@ class ConversationParticipantTest {
         LocalDateTime newJoinedAt = LocalDateTime.now().plusHours(1);
         participant.setJoinedAt(newJoinedAt);
         assertEquals(newJoinedAt, participant.getJoinedAt());
-        
+
         // Test leftAt update
         LocalDateTime newLeftAt = LocalDateTime.now().plusHours(2);
         participant.setLeftAt(newLeftAt);
@@ -175,7 +175,7 @@ class ConversationParticipantTest {
     void shouldHandleNullConversation() {
         // Act
         participant.setConversation(null);
-        
+
         // Assert
         assertNull(participant.getConversation());
     }
@@ -185,7 +185,7 @@ class ConversationParticipantTest {
     void shouldHandleNullUser() {
         // Act
         participant.setUser(null);
-        
+
         // Assert
         assertNull(participant.getUser());
     }
@@ -195,7 +195,7 @@ class ConversationParticipantTest {
     void shouldHandleNullRole() {
         // Act
         participant.setRole(null);
-        
+
         // Assert
         assertNull(participant.getRole());
         assertFalse(participant.isBuyer());
@@ -208,7 +208,7 @@ class ConversationParticipantTest {
         // Test null joinedAt
         participant.setJoinedAt(null);
         assertNull(participant.getJoinedAt());
-        
+
         // Test null leftAt
         participant.setLeftAt(null);
         assertNull(participant.getLeftAt());
@@ -223,13 +223,13 @@ class ConversationParticipantTest {
         assertEquals(ParticipantRole.BUYER, participant.getRole());
         assertTrue(participant.isBuyer());
         assertFalse(participant.isSeller());
-        
+
         // Test SELLER role
         participant.setRole(ParticipantRole.SELLER);
         assertEquals(ParticipantRole.SELLER, participant.getRole());
         assertFalse(participant.isBuyer());
         assertTrue(participant.isSeller());
-        
+
         // Test PARTICIPANT role
         participant.setRole(ParticipantRole.PARTICIPANT);
         assertEquals(ParticipantRole.PARTICIPANT, participant.getRole());
@@ -244,7 +244,7 @@ class ConversationParticipantTest {
         LocalDateTime oldTimestamp = LocalDateTime.of(2000, 1, 1, 0, 0);
         participant.setJoinedAt(oldTimestamp);
         assertEquals(oldTimestamp, participant.getJoinedAt());
-        
+
         // Test future timestamp
         LocalDateTime futureTimestamp = LocalDateTime.now().plusYears(1);
         participant.setLeftAt(futureTimestamp);
@@ -267,16 +267,16 @@ class ConversationParticipantTest {
         // Test that active state is consistent with leftAt
         assertTrue(participant.isActive());
         assertNull(participant.getLeftAt());
-        
+
         // Leave conversation
         participant.leave();
         assertFalse(participant.isActive());
         assertNotNull(participant.getLeftAt());
-        
+
         // Manually set leftAt to null (should make active)
         participant.setLeftAt(null);
         assertTrue(participant.isActive());
-        
+
         // Manually set leftAt to a timestamp (should make inactive)
         participant.setLeftAt(LocalDateTime.now());
         assertFalse(participant.isActive());

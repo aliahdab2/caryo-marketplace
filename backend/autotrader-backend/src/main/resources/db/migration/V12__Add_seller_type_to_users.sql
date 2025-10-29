@@ -16,12 +16,12 @@
 -- - No validation blocks to maintain H2 compatibility
 
 -- Add seller_type_id column to users table
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN seller_type_id BIGINT;
 
 -- Add foreign key constraint
-ALTER TABLE users 
-ADD CONSTRAINT fk_users_seller_type 
+ALTER TABLE users
+ADD CONSTRAINT fk_users_seller_type
 FOREIGN KEY (seller_type_id) REFERENCES seller_types(id);
 
 -- Add index for better query performance

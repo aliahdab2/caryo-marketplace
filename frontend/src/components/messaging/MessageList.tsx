@@ -70,7 +70,7 @@ export default function MessageList({
                 onDownloadDocument={onDownloadDocument}
               />
             ))}
-            
+
             {/* Typing Indicator */}
             {otherPersonTyping && (
               <div className="flex justify-start mb-4">
@@ -90,7 +90,7 @@ export default function MessageList({
             )}
           </>
         )}
-        
+
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
@@ -146,8 +146,8 @@ function ChatHeader({ conversation }: ChatHeaderProps) {
                 {conversation.buyer.username} • {conversation.seller.username}
               </p>
               <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                {formatNumber(parseFloat(conversation.listingPrice), _i18n.language, { 
-                  style: 'currency', 
+                {formatNumber(parseFloat(conversation.listingPrice), _i18n.language, {
+                  style: 'currency',
                   currency: conversation.listingCurrency || 'USD',
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0

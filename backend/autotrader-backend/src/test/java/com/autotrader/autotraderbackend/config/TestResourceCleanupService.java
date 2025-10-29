@@ -13,15 +13,15 @@ import org.slf4j.LoggerFactory;
  */
 @Service
 public class TestResourceCleanupService implements AutoCloseable {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TestResourceCleanupService.class);
-    
+
     @Autowired
     private CarListingRepository carListingRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     /**
      * Cleans up all test resources
      */
@@ -38,7 +38,7 @@ public class TestResourceCleanupService implements AutoCloseable {
                 logger.warn("Exception during carListingRepository.deleteAll() in cleanup: {}", e.getMessage());
             }
         }
-        
+
         // Clean up stored users for tests
         try {
             userRepository.deleteAll();
@@ -50,10 +50,10 @@ public class TestResourceCleanupService implements AutoCloseable {
                 logger.warn("Exception during userRepository.deleteAll() in cleanup: {}", e.getMessage());
             }
         }
-        
+
         logger.info("Test resources cleanup attempt finished.");
     }
-    
+
     /**
      * Implementation of AutoCloseable interface
      * Automatically called when used with try-with-resources

@@ -30,15 +30,15 @@ class ConversationStatusTest {
         assertThrows(IllegalArgumentException.class, () -> {
             ConversationStatus.valueOf("invalid");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ConversationStatus.valueOf("active");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ConversationStatus.valueOf("");
         });
-        
+
         assertThrows(NullPointerException.class, () -> {
             ConversationStatus.valueOf(null);
         });
@@ -50,7 +50,7 @@ class ConversationStatusTest {
         assertThrows(IllegalArgumentException.class, () -> {
             ConversationStatus.valueOf("Active");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ConversationStatus.valueOf("active");
         });
@@ -60,13 +60,13 @@ class ConversationStatusTest {
     @DisplayName("Should have all expected enum values")
     void shouldHaveAllExpectedEnumValues() {
         ConversationStatus[] values = ConversationStatus.values();
-        
+
         assertEquals(3, values.length);
-        
+
         boolean hasActive = false;
         boolean hasArchived = false;
         boolean hasBlocked = false;
-        
+
         for (ConversationStatus status : values) {
             switch (status) {
                 case ACTIVE:
@@ -80,7 +80,7 @@ class ConversationStatusTest {
                     break;
             }
         }
-        
+
         assertTrue(hasActive, "Should have ACTIVE status");
         assertTrue(hasArchived, "Should have ARCHIVED status");
         assertTrue(hasBlocked, "Should have BLOCKED status");

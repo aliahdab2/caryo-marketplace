@@ -97,7 +97,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   const [brandCounts, setBrandCounts] = useState<Record<string, number>>({});
   const [modelCounts, setModelCounts] = useState<Record<string, number>>({});
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
-  
+
   // State for managing collapsible sections in allFilters modal
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     makeModel: true,
@@ -150,7 +150,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
     // Update the previous state
     prevCollapsedRef.current = isCollapsed;
-    
+
     return (
       <div ref={sectionRef} className="border border-gray-200 rounded-lg overflow-hidden">
         <button
@@ -210,12 +210,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
     // The filters already contain the correct slugs, so we can use them directly
     const selectedBrandSlugs = filters.brands || [];
     const selectedModelSlugs = filters.models || [];
-    
+
     updateFiltersAndState({
       brands: selectedBrandSlugs.length > 0 ? selectedBrandSlugs : undefined,
       models: selectedModelSlugs.length > 0 ? selectedModelSlugs : undefined
     });
-    
+
     onClose();
   };
 
@@ -265,7 +265,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           setIsLoadingCounts(false);
         }
       };
-      
+
       fetchCounts();
     }
   }, [filterType]);
@@ -277,7 +277,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
       case 'makeModel': {
         // Use allModels if available, otherwise fall back to availableModels
         const modelsToUse = allModels || availableModels || [];
-        
+
         // Filter brands and models based on search query
         const _filteredBrands = (carMakes || []).map(brand => {
           // Filter models for this brand using brandId instead of brand object
@@ -288,7 +288,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             // Check if brand matches in either English or Arabic
             const brandMatchesEn = brand.displayNameEn.toLowerCase().includes(searchQuery.toLowerCase());
             const brandMatchesAr = brand.displayNameAr.includes(searchQuery);
-            
+
             if (brandMatchesEn || brandMatchesAr) {
               showBrand = true;
             } else {
@@ -321,31 +321,31 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
         // Chips: collect all selected brands and models from filters
         const chips: Chip[] = [];
-        
+
         // Add brand chips from filters.brands
         if (filters.brands && filters.brands.length > 0) {
           filters.brands.forEach(brandSlug => {
             const brand = carMakes?.find(b => b.slug === brandSlug);
             if (brand) {
-              chips.push({ 
-                type: 'brand', 
-                id: brand.id, 
+              chips.push({
+                type: 'brand',
+                id: brand.id,
                 label: getBrandName(brand),
                 slug: brandSlug
               });
             }
           });
         }
-        
+
         // Add model chips from filters.models
         if (filters.models && filters.models.length > 0) {
           filters.models.forEach(modelSlug => {
             const model = modelsToUse.find(m => m.slug === modelSlug);
             if (model) {
               const modelName = getModelName(model);
-              chips.push({ 
-                type: 'model', 
-                id: model.id, 
+              chips.push({
+                type: 'model',
+                id: model.id,
                 label: modelName,
                 brandId: model.brandId,
                 slug: modelSlug
@@ -359,28 +359,28 @@ const FilterModal: React.FC<FilterModalProps> = ({
           if (chip.type === 'brand') {
             // Remove brand and all its associated models from filters
             const updatedBrands = filters.brands?.filter(b => b !== chip.slug) || [];
-            
+
             // Find all models that belong to this brand and remove them
             const brandToRemove = carMakes?.find(b => b.slug === chip.slug);
             let updatedModels = filters.models || [];
-            
+
             if (brandToRemove) {
               // Get all models that belong to this brand
               const brandModels = modelsToUse.filter(model => model.brandId === brandToRemove.id);
               const brandModelSlugs = brandModels.map(model => model.slug);
-              
+
               // Remove all models that belong to this brand
               updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
             }
-            
-            updateFiltersAndState({ 
+
+            updateFiltersAndState({
               brands: updatedBrands.length > 0 ? updatedBrands : undefined,
               models: updatedModels.length > 0 ? updatedModels : undefined
             });
           } else {
             // Remove model from filters
             const updatedModels = filters.models?.filter(m => m !== chip.slug) || [];
-            updateFiltersAndState({ 
+            updateFiltersAndState({
               models: updatedModels.length > 0 ? updatedModels : undefined
             });
           }
@@ -390,54 +390,54 @@ const FilterModal: React.FC<FilterModalProps> = ({
         const handleBrandCheckbox = (brand: CarMake) => {
           const isSelected = filters.brands?.includes(brand.slug) || false;
           const updatedBrands = filters.brands || [];
-          
+
           if (isSelected) {
             // Remove brand and all its associated models
             const newBrands = updatedBrands.filter(b => b !== brand.slug);
-            
+
             // Find all models that belong to this brand and remove them
             let updatedModels = filters.models || [];
             const brandModels = modelsToUse.filter(model => model.brandId === brand.id);
             const brandModelSlugs = brandModels.map(model => model.slug);
-            
+
             // Remove all models that belong to this brand
             updatedModels = updatedModels.filter(modelSlug => !brandModelSlugs.includes(modelSlug));
-            
-            updateFiltersAndState({ 
+
+            updateFiltersAndState({
               brands: newBrands.length > 0 ? newBrands : undefined,
               models: updatedModels.length > 0 ? updatedModels : undefined
             });
           } else {
             // Add brand
-            updateFiltersAndState({ 
+            updateFiltersAndState({
               brands: [...updatedBrands, brand.slug]
             });
           }
         };
-        
+
         const handleModelCheckbox = (model: CarModel) => {
           const isSelected = filters.models?.includes(model.slug) || false;
           const updatedModels = filters.models || [];
           const updatedBrands = filters.brands || [];
-          
+
           if (isSelected) {
             // Remove model
             const newModels = updatedModels.filter(m => m !== model.slug);
-            updateFiltersAndState({ 
+            updateFiltersAndState({
               models: newModels.length > 0 ? newModels : undefined
             });
           } else {
             // Add model and ensure brand is also added
             const newModels = [...updatedModels, model.slug];
             let newBrands = updatedBrands;
-            
+
             // Add brand if it's not already selected
             const brand = carMakes?.find(b => b.id === model.brandId);
             if (brand && !updatedBrands.includes(brand.slug)) {
               newBrands = [...updatedBrands, brand.slug];
             }
-            
-            updateFiltersAndState({ 
+
+            updateFiltersAndState({
               models: newModels,
               brands: newBrands.length > 0 ? newBrands : undefined
             });
@@ -683,7 +683,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
       case 'allFilters':
         return (
           <div className="space-y-4">
-            
+
             {/* Make and Model */}
             <CollapsibleSection
               title={t('search:makeAndModel', 'Make and Model')}
@@ -1029,7 +1029,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 )}
               </div>
             </CollapsibleSection>
-            
+
             {/* Price Range */}
             <CollapsibleSection
               title={t('priceRange', 'Price Range')}
@@ -1050,7 +1050,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 className="mb-2"
               />
             </CollapsibleSection>
-            
+
             {/* Year Range */}
             <CollapsibleSection
               title={t('yearRange', 'Year Range')}
@@ -1076,7 +1076,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 className="w-full"
               />
             </CollapsibleSection>
-            
+
             {/* Mileage Range */}
             <CollapsibleSection
               title={t('mileageRange', 'Mileage Range')}
@@ -1104,7 +1104,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 />
               </div>
             </CollapsibleSection>
-            
+
             {/* Fuel Type */}
             <CollapsibleSection
               title={t('fuelType', 'Fuel Type')}
@@ -1127,7 +1127,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
-            
+
             {/* Body Style */}
             <CollapsibleSection
               title={t('bodyStyle', 'Body Style')}
@@ -1150,7 +1150,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
-            
+
             {/* Seller Type */}
             <CollapsibleSection
               title={t('sellerType', 'Seller Type')}
@@ -1173,7 +1173,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 t={t as (key: string, fallback?: string) => string}
               />
             </CollapsibleSection>
-            
+
             {/* Transmission */}
             <CollapsibleSection
               title={t('transmission', 'Transmission')}
@@ -1208,7 +1208,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
     <div className={MODAL_CLASSES.OVERLAY}>
       <div className={MODAL_CLASSES.CONTAINER}>
         <div className={MODAL_CLASSES.BACKDROP} onClick={onClose} />
-        
+
         <div
           ref={modalRef}
           className={MODAL_CLASSES.MODAL}
@@ -1231,12 +1231,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 id="filter-modal-title" className="text-xl font-semibold text-gray-900">
-              {filterType === 'allFilters' 
+              {filterType === 'allFilters'
                 ? (currentLanguage === 'ar' ? 'تصفية وترتيب' : 'Filter and sort')
                 : getModalTitle(filterType)
               }
             </h2>
-            
+
             <button
               type="button"
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
@@ -1272,8 +1272,8 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold shadow-sm"
                   onClick={handleApplyFilters}
                 >
-                  {currentLanguage === 'ar' 
-                    ? `عرض ${carListings?.totalElements || 0} نتيجة` 
+                  {currentLanguage === 'ar'
+                    ? `عرض ${carListings?.totalElements || 0} نتيجة`
                     : `Show ${carListings?.totalElements || 0} results`
                   }
                 </button>

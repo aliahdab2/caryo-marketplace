@@ -57,7 +57,7 @@ class EmailServiceTest {
     void setUp() {
         messageService = new MessageService(); // Use real MessageService instance
         emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
-        
+
         // Set configuration values
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@caryo.sy");
         ReflectionTestUtils.setField(emailService, "supportEmail", "support@caryo.sy");
@@ -68,7 +68,7 @@ class EmailServiceTest {
         ReflectionTestUtils.setField(emailService, "websiteSupportPhone", "+963-XXX-XXXX");
         ReflectionTestUtils.setField(emailService, "defaultLanguage", "en");
     }
-    
+
     /**
      * Sets up mocks for templated email tests.
      * Call this method in tests that use HTML email templates.
@@ -76,23 +76,23 @@ class EmailServiceTest {
     private void setupTemplatedEmailMocks() {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html><body>Test Email</body></html>");
-        
+
         // Mock EmailContentValidationService behavior with lenient
         EmailContentValidationService.ValidationResult validResult = new EmailContentValidationService.ValidationResult();
         lenient().when(contentValidationService.validateEmailContent(anyString(), anyString(), anyString())).thenReturn(validResult);
-        
+
         // Mock EmailTemplateBuilder behavior with lenient
         lenient().when(emailTemplateBuilder.template(anyString())).thenReturn(emailTemplateBuilder);
         lenient().when(emailTemplateBuilder.language(anyString())).thenReturn(emailTemplateBuilder);
         lenient().when(emailTemplateBuilder.user(anyString(), anyString())).thenReturn(emailTemplateBuilder);
         lenient().when(emailTemplateBuilder.website(anyString(), anyString())).thenReturn(emailTemplateBuilder);
         lenient().when(emailTemplateBuilder.withLanguage()).thenReturn(emailTemplateBuilder);
-        
+
         EmailTemplateBuilder.EmailTemplateData templateData = new EmailTemplateBuilder.EmailTemplateData(
             "welcome", "en", Map.of("userName", "testuser", "userEmail", "test@example.com")
         );
         lenient().when(emailTemplateBuilder.build()).thenReturn(templateData);
-        
+
         // Mock EmailTemplateService behavior with lenient
         lenient().when(emailTemplateService.getTemplatePath(anyString())).thenReturn(Optional.of("welcome.html"));
         lenient().when(emailTemplateService.getTemplateMetadata(anyString())).thenReturn(Optional.of(Map.of("path", "welcome.html")));
@@ -459,12 +459,12 @@ class EmailServiceTest {
         // Arrange
         User user = createTestUser();
         setupTemplatedEmailMocks(); // Setup mocks for email sending
-        
+
         // Act - Send multiple welcome emails to exceed rate limit
         for (int i = 0; i < 6; i++) { // 6 emails > 5 per minute limit
             emailService.sendWelcomeEmail(user);
         }
-        
+
         // Assert - Verify rate limiting is working
         // The 6th email should be blocked due to rate limiting
         // We can't easily verify this without exposing internal state,
@@ -480,16 +480,16 @@ class EmailServiceTest {
         // Arrange
         User user = createTestUser();
         setupTemplatedEmailMocks(); // Setup mocks for email sending
-        
+
         // Act - Send emails up to the limit
         for (int i = 0; i < 5; i++) {
             emailService.sendWelcomeEmail(user);
         }
-        
+
         // Wait for rate limit window to pass (in real scenario this would be 1 minute)
         // For testing, we'll just verify the behavior
         Thread.sleep(200); // Small delay for testing in CI environment
-        
+
         // Assert - Should be able to send more emails after rate limit window
         assertDoesNotThrow(() -> {
             emailService.sendWelcomeEmail(user);
@@ -505,13 +505,13 @@ class EmailServiceTest {
         user2.setUsername("testuser2");
         user2.setEmail("test2@example.com");
         setupTemplatedEmailMocks(); // Setup mocks for email sending
-        
+
         // Act - Send emails to both users
         for (int i = 0; i < 5; i++) {
             emailService.sendWelcomeEmail(user1);
             emailService.sendWelcomeEmail(user2);
         }
-        
+
         // Assert - Both users should be able to send emails
         // Rate limits are per-user, so both should work
         assertDoesNotThrow(() -> {
@@ -532,14 +532,14 @@ class EmailServiceTest {
             users.add(user);
         }
         setupTemplatedEmailMocks(); // Setup mocks for email sending
-        
+
         // Act - Send emails from multiple users
         for (User user : users) {
             for (int i = 0; i < 5; i++) { // 5 emails per user
                 emailService.sendWelcomeEmail(user);
             }
         }
-        
+
         // Assert - Global rate limit should prevent excessive emails
         // This test verifies that the system doesn't crash under load
         assertDoesNotThrow(() -> {
@@ -567,4 +567,4 @@ class EmailServiceTest {
         listing.setPrice(new BigDecimal("25000"));
         return listing;
     }
-} 
+}

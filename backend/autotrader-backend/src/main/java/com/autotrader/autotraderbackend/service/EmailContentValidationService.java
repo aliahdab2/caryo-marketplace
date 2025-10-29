@@ -37,7 +37,7 @@ public class EmailContentValidationService {
      */
     public ValidationResult validateEmailContent(String subject, String content, String recipient) {
         ValidationResult result = new ValidationResult();
-        
+
         // Check for empty content
         if (!StringUtils.hasText(subject) || !StringUtils.hasText(content)) {
             result.addError("Email subject and content cannot be empty");
@@ -46,30 +46,30 @@ public class EmailContentValidationService {
 
         // Check for spam keywords
         checkSpamKeywords(subject, content, result);
-        
+
         // Check for suspicious patterns
         checkSuspiciousPatterns(subject, content, result);
-        
+
         // Check content length
         checkContentLength(subject, content, result);
-        
+
         // Check for malicious content
         checkMaliciousContent(content, result);
-        
+
         // Log validation results
         if (!result.isValid()) {
-            log.warn("Email content validation failed for recipient: {}. Errors: {}", 
+            log.warn("Email content validation failed for recipient: {}. Errors: {}",
                 recipient, result.getErrors());
         } else {
             log.debug("Email content validation passed for recipient: {}", recipient);
         }
-        
+
         return result;
     }
 
     private void checkSpamKeywords(String subject, String content, ValidationResult result) {
         String combinedText = (subject + " " + content).toLowerCase();
-        
+
         for (String keyword : SPAM_KEYWORDS) {
             if (combinedText.contains(keyword.toLowerCase())) {
                 result.addError("Content contains potential spam keyword: " + keyword);
@@ -79,12 +79,12 @@ public class EmailContentValidationService {
 
     private void checkSuspiciousPatterns(String subject, String content, ValidationResult result) {
         String combinedText = subject + " " + content;
-        
+
         // Check for excessive caps
         if (EXCESSIVE_CAPS.matcher(combinedText).find()) {
             result.addWarning("Content contains excessive capital letters");
         }
-        
+
         // Check for excessive punctuation
         if (EXCESSIVE_PUNCTUATION.matcher(combinedText).find()) {
             result.addWarning("Content contains excessive punctuation");
@@ -95,7 +95,7 @@ public class EmailContentValidationService {
         if (subject.length() > 100) {
             result.addError("Subject line too long (max 100 characters)");
         }
-        
+
         if (content.length() > 10000) {
             result.addError("Email content too long (max 10,000 characters)");
         }
@@ -106,7 +106,7 @@ public class EmailContentValidationService {
         if (content.contains("<script>") || content.contains("javascript:")) {
             result.addError("Content contains potentially malicious code");
         }
-        
+
         // Check for excessive links
         long linkCount = SUSPICIOUS_URLS.matcher(content).results().count();
         if (linkCount > 10) {

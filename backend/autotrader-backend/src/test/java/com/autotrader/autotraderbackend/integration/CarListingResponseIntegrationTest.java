@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CarListingResponseIntegrationTest {
 
     private CarListingMapper carListingMapper;
-    
+
     @BeforeEach
     void setUp() {
         // Note: In a real test, this would be injected
@@ -47,7 +47,7 @@ public class CarListingResponseIntegrationTest {
         model.setDisplayNameAr("كامري");
         model.setIsActive(true);
         model.setBrand(brand);
-        
+
 
 
         Transmission transmission = new Transmission();
@@ -85,7 +85,7 @@ public class CarListingResponseIntegrationTest {
         listing.setSold(false);
         listing.setArchived(false);
         listing.setExpired(false);
-        
+
         // Set denormalized fields for backward compatibility
         listing.setBrandNameEn("Toyota");
         listing.setBrandNameAr("تويوتا");
@@ -156,7 +156,7 @@ public class CarListingResponseIntegrationTest {
         listing.setSold(false);
         listing.setArchived(false);
         listing.setExpired(false);
-        
+
         // Set only denormalized fields (objects are null)
         listing.setBrandNameEn("Toyota");
         listing.setBrandNameAr("تويوتا");

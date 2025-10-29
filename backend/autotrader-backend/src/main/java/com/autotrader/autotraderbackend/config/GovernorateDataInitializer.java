@@ -46,11 +46,11 @@ public class GovernorateDataInitializer {
 
             // Ensure countries exist before creating governorates
             ensureCountriesExist();
-            
+
             // Get all countries by code for reference
             Map<String, Country> countryMap = countryRepository.findAll().stream()
                     .collect(Collectors.toMap(Country::getCountryCode, Function.identity()));
-            
+
             if (countryMap.isEmpty()) {
                 log.error("No countries found in the database. Cannot initialize governorates.");
                 return;
@@ -63,7 +63,7 @@ public class GovernorateDataInitializer {
             log.info("Successfully initialized {} governorates.", governorates.size());
         };
     }
-    
+
     /**
      * Creates the list of governorates to be saved
      */
@@ -79,7 +79,7 @@ public class GovernorateDataInitializer {
                 .latitude(33.5138)
                 .longitude(36.2765)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("aleppo")
                 .nameEn("Aleppo")
@@ -89,7 +89,7 @@ public class GovernorateDataInitializer {
                 .latitude(36.2021)
                 .longitude(37.1343)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("homs")
                 .nameEn("Homs")
@@ -99,7 +99,7 @@ public class GovernorateDataInitializer {
                 .latitude(34.7324)
                 .longitude(36.7137)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("latakia")
                 .nameEn("Latakia")
@@ -109,7 +109,7 @@ public class GovernorateDataInitializer {
                 .latitude(35.5317)
                 .longitude(35.7915)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("hama")
                 .nameEn("Hama")
@@ -119,7 +119,7 @@ public class GovernorateDataInitializer {
                 .latitude(35.1353)
                 .longitude(36.7520)
                 .build()),
-                
+
             // Additional governorates from other countries (for future reference)
             createGovernorate(GovernorateData.builder()
                 .slug("riyadh")
@@ -130,7 +130,7 @@ public class GovernorateDataInitializer {
                 .latitude(24.7136)
                 .longitude(46.6753)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("jeddah")
                 .nameEn("Jeddah")
@@ -140,7 +140,7 @@ public class GovernorateDataInitializer {
                 .latitude(21.4858)
                 .longitude(39.1925)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("dubai")
                 .nameEn("Dubai")
@@ -150,7 +150,7 @@ public class GovernorateDataInitializer {
                 .latitude(25.2048)
                 .longitude(55.2708)
                 .build()),
-                
+
             createGovernorate(GovernorateData.builder()
                 .slug("kuwait-city")
                 .nameEn("Kuwait City")
@@ -162,14 +162,14 @@ public class GovernorateDataInitializer {
                 .build())
         );
     }
-    
+
     /**
      * Ensures that the necessary countries exist in the database
      */
     private void ensureCountriesExist() {
         if (countryRepository.count() == 0) {
             log.info("No countries found, creating default countries...");
-            
+
             List<Country> countries = Arrays.asList(
                 createCountry("SY", "Syria", "سوريا"),
                 createCountry("SA", "Saudi Arabia", "المملكة العربية السعودية"),
@@ -177,12 +177,12 @@ public class GovernorateDataInitializer {
                 createCountry("QA", "Qatar", "قطر"),
                 createCountry("KW", "Kuwait", "الكويت")
             );
-            
+
             countryRepository.saveAll(countries);
             log.info("Created {} default countries", countries.size());
         }
     }
-    
+
     /**
      * Helper method to create a Country entity
      */
@@ -202,7 +202,7 @@ public class GovernorateDataInitializer {
         // Validate required inputs
         Objects.requireNonNull(data, "Governorate data cannot be null");
         Objects.requireNonNull(data.getCountry(), "Country cannot be null");
-        
+
         if (StringUtils.isBlank(data.getSlug())) {
             throw new IllegalArgumentException("Slug cannot be blank");
         }
@@ -224,7 +224,7 @@ public class GovernorateDataInitializer {
         governorate.setIsActive(true);
         return governorate;
     }
-    
+
     /**
      * Data class to hold governorate creation information
      */

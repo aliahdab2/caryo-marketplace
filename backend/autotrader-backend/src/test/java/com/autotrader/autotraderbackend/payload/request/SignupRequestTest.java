@@ -219,20 +219,20 @@ class SignupRequestTest {
     @Test
     void testGettersAndSetters() {
         SignupRequest signupRequest = new SignupRequest();
-        
+
         signupRequest.setUsername("testuser");
         assertEquals("testuser", signupRequest.getUsername());
-        
+
         signupRequest.setEmail("test@example.com");
         assertEquals("test@example.com", signupRequest.getEmail());
-        
+
         signupRequest.setPassword("password123");
         assertEquals("password123", signupRequest.getPassword());
-        
+
         Set<String> roles = new HashSet<>();
         roles.add("user");
         roles.add("admin");
-        
+
         signupRequest.setRole(roles);
         assertEquals(roles, signupRequest.getRole());
     }
@@ -240,17 +240,17 @@ class SignupRequestTest {
     @Test
     void testRoleAssignment() {
         SignupRequest signupRequest = new SignupRequest();
-        
+
         // Test null role
         assertNull(signupRequest.getRole());
-        
+
         // Test adding roles
         Set<String> roles = new HashSet<>();
         roles.add("user");
         signupRequest.setRole(roles);
         assertEquals(1, signupRequest.getRole().size());
         assertTrue(signupRequest.getRole().contains("user"));
-        
+
         // Test updating roles
         Set<String> newRoles = new HashSet<>();
         newRoles.add("admin");

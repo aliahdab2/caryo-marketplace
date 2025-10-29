@@ -27,34 +27,34 @@ public class ListingExpiredListener {
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
-    
+
     /**
      * Handle the listing expired event.
      * This will log the event and trigger any notification processes.
-     * 
+     *
      * Uses transaction management to ensure database operations are consistent.
-     * 
+     *
      * @param event The listing expired event (must not be null)
      */
     @EventListener
     @Async
     public void handleListingExpired(@NonNull ListingExpiredEvent event) {
         Objects.requireNonNull(event, "ListingExpiredEvent cannot be null");
-        
+
         txService.executeInTransaction(() -> {
             CarListing listing = event.getListing();
             User seller = listing.getSeller();
             boolean isAdminAction = event.isAdminAction();
             String actionBy = isAdminAction ? "admin" : "system";
-                    
-            log.info("Listing expired event received for {} by {}", 
+
+            log.info("Listing expired event received for {} by {}",
                     eventUtils.getListingInfo(listing), actionBy);
 
             // Send renewal options to seller
             Optional.ofNullable(seller).ifPresent(user -> {
-                log.info("Preparing renewal options for seller {} for listing ID {}", 
+                log.info("Preparing renewal options for seller {} for listing ID {}",
                         user.getUsername(), listing.getId());
-                        
+
                 // Send email with renewal options
                 if (user.getEmail() != null) {
                     try {

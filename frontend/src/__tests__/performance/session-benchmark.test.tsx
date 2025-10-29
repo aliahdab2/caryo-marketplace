@@ -28,14 +28,14 @@ const SearchPageSimulation = ({ listingCount = 20 }: { listingCount?: number }) 
     <div>
       {/* Navbar */}
       <SessionConsumer id={0} />
-      
+
       {/* Main content with multiple listings, each with a favorite button */}
       {Array.from({ length: listingCount }, (_, i) => (
         <div key={i}>
           <SessionConsumer id={i + 1} />
         </div>
       ))}
-      
+
       {/* Footer */}
       <SessionConsumer id={listingCount + 1} />
     </div>
@@ -181,7 +181,7 @@ describe.skip('Session Performance Benchmarks', () => {
 
     // Simulate the old behavior where each component would make its own call
     const OLD_BEHAVIOR_CALL_COUNT = 20; // Each of 20 components making its own call
-    
+
     render(
       <Wrapper>
         <SearchPageSimulation listingCount={20} />
@@ -285,7 +285,7 @@ describe.skip('Session Performance Benchmarks', () => {
     // With React Query's efficient caching, memory usage should be reasonable
     // This is more of a monitoring test than a strict assertion
     console.log(`Memory used for 32 session consumers: ${memoryUsed} bytes`);
-    
+
     expect(mockGetSession).toHaveBeenCalledTimes(1);
   });
 });

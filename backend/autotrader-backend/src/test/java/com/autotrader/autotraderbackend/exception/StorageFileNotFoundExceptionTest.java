@@ -9,7 +9,7 @@ class StorageFileNotFoundExceptionTest {
     void testConstructorWithMessage() {
         String message = "Could not find file.";
         StorageFileNotFoundException exception = new StorageFileNotFoundException(message);
-        
+
         assertEquals(message, exception.getMessage());
         assertNull(exception.getCause());
     }
@@ -19,7 +19,7 @@ class StorageFileNotFoundExceptionTest {
         String message = "Could not find file due to underlying issue.";
         Throwable cause = new RuntimeException("File system error");
         StorageFileNotFoundException exception = new StorageFileNotFoundException(message, cause);
-        
+
         assertEquals(message, exception.getMessage());
         assertEquals(cause, exception.getCause());
     }
