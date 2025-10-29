@@ -281,13 +281,13 @@ export default function DealerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {t('welcome', { name: session?.name || 'Dealer' })}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {t('overviewSubtitle')}
           </p>
         </div>
@@ -297,25 +297,25 @@ export default function DealerDashboard() {
           <TrialBanner 
             trialStatus={trialStatus}
             onUpgradeClick={handleUpgradeClick}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           />
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Link
             href={`/${currentLang}/dashboard/listings/new`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <MdAddCircleOutline className="w-6 h-6 text-primary" />
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                <MdAddCircleOutline className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                   {t('createListing')}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
                   {t('createListingDesc')}
                 </p>
               </div>
@@ -324,17 +324,17 @@ export default function DealerDashboard() {
 
           <Link
             href={`/${currentLang}/dashboard/listings`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <MdDirectionsCar className="w-6 h-6 text-blue-600" />
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+              <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex-shrink-0">
+                <MdDirectionsCar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                   {t('myListings')}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                   {formatNumber(dashboardStats.totalListings, currentLang)} {t('listingsCount', { count: dashboardStats.totalListings })}
                 </p>
               </div>
@@ -345,17 +345,17 @@ export default function DealerDashboard() {
           {trialStatus?.subscriptionTier === 'trial' && (
             <button
               onClick={handleUpgradeClick}
-              className="bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg shadow-sm p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+              className="bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105 text-left"
             >
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <MdTrendingUp className="w-6 h-6" />
+              <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+                <div className="p-2 sm:p-3 bg-white/20 rounded-lg flex-shrink-0">
+                  <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div className="text-left rtl:text-right">
-                  <h3 className="font-semibold">
+                <div className="min-w-0 flex-1 text-left rtl:text-right">
+                  <h3 className="font-semibold text-sm sm:text-base truncate">
                     {t('upgrade.title')}
                   </h3>
-                  <p className="text-sm opacity-90">
+                  <p className="text-xs sm:text-sm opacity-90 truncate">
                     {t('upgrade.subtitle')}
                   </p>
                 </div>
@@ -365,17 +365,17 @@ export default function DealerDashboard() {
 
           <Link
             href={`/${currentLang}/dashboard/settings`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <MdCheckCircle className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+              <div className="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex-shrink-0">
+                <MdCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                   {t('settings')}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                   {t('settings.accountPreferences')}
                 </p>
               </div>
@@ -384,7 +384,7 @@ export default function DealerDashboard() {
         </div>
 
         {/* Stats Cards (ORIGINAL FUNCTIONALITY) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {statsCards.map((stat, index) => (
             <Link
               key={index}
