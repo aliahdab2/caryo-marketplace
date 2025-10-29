@@ -311,11 +311,11 @@ export default function DealerDashboard() {
               <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
                 <MdAddCircleOutline className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                   {t('createListing')}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {t('createListingDesc')}
                 </p>
               </div>
@@ -330,11 +330,11 @@ export default function DealerDashboard() {
               <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex-shrink-0">
                 <MdDirectionsCar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                   {t('myListings')}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   {formatNumber(dashboardStats.totalListings, currentLang)} {t('listingsCount', { count: dashboardStats.totalListings })}
                 </p>
               </div>
@@ -351,11 +351,11 @@ export default function DealerDashboard() {
                 <div className="p-2 sm:p-3 bg-white/20 rounded-lg flex-shrink-0">
                   <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div className="min-w-0 flex-1 text-left rtl:text-right">
-                  <h3 className="font-semibold text-sm sm:text-base truncate">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base">
                     {t('upgrade.title')}
                   </h3>
-                  <p className="text-xs sm:text-sm opacity-90 truncate">
+                  <p className="text-xs sm:text-sm opacity-90">
                     {t('upgrade.subtitle')}
                   </p>
                 </div>
@@ -371,11 +371,11 @@ export default function DealerDashboard() {
               <div className="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex-shrink-0">
                 <MdCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" />
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
                   {t('settings')}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {t('settings.accountPreferences')}
                 </p>
               </div>
