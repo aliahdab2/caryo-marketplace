@@ -40,12 +40,12 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final DealerService dealerService;
-    
+
     // Regular user credentials
     private static final String USER_USERNAME = "user";
     private static final String USER_EMAIL = "user@caryo.sy";
     private static final String USER_PASSWORD = "Password123!";
-    
+
     // Admin user credentials
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_EMAIL = "admin@caryo.sy";
@@ -66,21 +66,21 @@ public class DataInitializer implements CommandLineRunner {
         User dealerUser = createDealerUser();
         generateAndPrintDevTokens(regularUser, adminUser, dealerUser);
     }
-    
+
     private User createRegularUser() {
         // Check if user already exists
         User user = null;
-        
+
         try {
             if (!userRepository.existsByUsername(USER_USERNAME)) {
                 log.info("Creating regular development user: {}", USER_USERNAME);
-                
+
                 // Create the user
                 user = new User(USER_USERNAME, USER_EMAIL, passwordEncoder.encode(USER_PASSWORD));
 
                 // For development, mark regular user as fully verified and active
                 user.markEmailVerifiedByOAuth("development", "user-setup");
-                
+
                 // Set role (only USER role)
                 Set<Role> roles = new HashSet<>();
                 roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
@@ -88,7 +88,7 @@ public class DataInitializer implements CommandLineRunner {
                 if (roles.isEmpty()) {
                     try {
                         Role userRole = new Role("ROLE_USER");
-                        userRole = Objects.requireNonNull(roleRepository.save(userRole), 
+                        userRole = Objects.requireNonNull(roleRepository.save(userRole),
                             "Failed to save ROLE_USER");
                         roles.add(userRole);
                     } catch (Exception e) {
@@ -97,14 +97,14 @@ public class DataInitializer implements CommandLineRunner {
                         roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
                     }
                 }
-                
+
                 if (roles.isEmpty()) {
                     log.error("Failed to create or retrieve ROLE_USER");
                     return null;
                 }
-                
+
                 user.setRoles(roles);
-                
+
                 // Save the user
                 user = Objects.requireNonNull(userRepository.saveAndFlush(user),
                     "Failed to save regular user");
@@ -131,32 +131,32 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.error("Error creating or retrieving regular user: {}", e.getMessage());
         }
-        
+
         return user;
     }
-    
+
     private User createAdminUser() {
         // Check if admin user already exists
         User adminUser = null;
-        
+
         try {
             if (!userRepository.existsByUsername(ADMIN_USERNAME)) {
                 log.info("Creating admin development user: {}", ADMIN_USERNAME);
-                
+
                 // Create the user
                 adminUser = new User(ADMIN_USERNAME, ADMIN_EMAIL, passwordEncoder.encode(ADMIN_PASSWORD));
 
                 // For development, mark admin user as fully verified and active
                 adminUser.markEmailVerifiedByOAuth("development", "admin-setup");
-                
+
                 // Set roles (ADMIN and USER roles)
                 Set<Role> roles = new HashSet<>();
                 Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
                 Optional<Role> adminRole = roleRepository.findByName("ROLE_ADMIN");
-                
+
                 userRole.ifPresent(roles::add);
                 adminRole.ifPresent(roles::add);
-                
+
                 // If roles don't exist, create them
                 if (!userRole.isPresent()) {
                     try {
@@ -169,7 +169,7 @@ public class DataInitializer implements CommandLineRunner {
                         roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
                     }
                 }
-                
+
                 if (!adminRole.isPresent()) {
                     try {
                         Role newAdminRole = new Role("ROLE_ADMIN");
@@ -181,19 +181,19 @@ public class DataInitializer implements CommandLineRunner {
                         roleRepository.findByName("ROLE_ADMIN").ifPresent(roles::add);
                     }
                 }
-                
+
                 // Verify that we have both roles
                 boolean hasUserRole = roles.stream().anyMatch(role -> "ROLE_USER".equals(role.getName()));
                 boolean hasAdminRole = roles.stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
-                
+
                 if (!hasUserRole || !hasAdminRole) {
-                    log.error("Failed to create or retrieve required roles for admin user. User role: {}, Admin role: {}", 
+                    log.error("Failed to create or retrieve required roles for admin user. User role: {}, Admin role: {}",
                         hasUserRole, hasAdminRole);
                     return null;
                 }
-                
+
                 adminUser.setRoles(roles);
-                
+
                 // Save the admin user
                 adminUser = Objects.requireNonNull(userRepository.saveAndFlush(adminUser),
                     "Failed to save admin user");
@@ -220,32 +220,32 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.error("Error creating or retrieving admin user: {}", e.getMessage());
         }
-        
+
         return adminUser;
     }
-    
+
     private User createDealerUser() {
         // Check if dealer user already exists
         User dealerUser = null;
-        
+
         try {
             if (!userRepository.existsByUsername(DEALER_USERNAME)) {
                 log.info("Creating dealer development user: {}", DEALER_USERNAME);
-                
+
                 // Create the user
                 dealerUser = new User(DEALER_USERNAME, DEALER_EMAIL, passwordEncoder.encode(DEALER_PASSWORD));
 
                 // For development, mark dealer user as fully verified and active
                 dealerUser.markEmailVerifiedByOAuth("development", "dealer-setup");
-                
+
                 // Set roles (DEALER and USER roles)
                 Set<Role> roles = new HashSet<>();
                 Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
                 Optional<Role> dealerRole = roleRepository.findByName("ROLE_DEALER");
-                
+
                 userRole.ifPresent(roles::add);
                 dealerRole.ifPresent(roles::add);
-                
+
                 // If roles don't exist, create them
                 if (!userRole.isPresent()) {
                     try {
@@ -258,7 +258,7 @@ public class DataInitializer implements CommandLineRunner {
                         roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
                     }
                 }
-                
+
                 if (!dealerRole.isPresent()) {
                     try {
                         Role newDealerRole = new Role("ROLE_DEALER");
@@ -270,24 +270,24 @@ public class DataInitializer implements CommandLineRunner {
                         roleRepository.findByName("ROLE_DEALER").ifPresent(roles::add);
                     }
                 }
-                
+
                 // Verify that we have both roles
                 boolean hasUserRole = roles.stream().anyMatch(role -> "ROLE_USER".equals(role.getName()));
                 boolean hasDealerRole = roles.stream().anyMatch(role -> "ROLE_DEALER".equals(role.getName()));
-                
+
                 if (!hasUserRole || !hasDealerRole) {
-                    log.error("Failed to create or retrieve required roles for dealer user. User role: {}, Dealer role: {}", 
+                    log.error("Failed to create or retrieve required roles for dealer user. User role: {}, Dealer role: {}",
                         hasUserRole, hasDealerRole);
                     return null;
                 }
-                
+
                 dealerUser.setRoles(roles);
-                
+
                 // Save the dealer user
                 dealerUser = Objects.requireNonNull(userRepository.saveAndFlush(dealerUser),
                     "Failed to save dealer user");
                 log.info("Dealer user created successfully");
-                
+
                 // Create dealer profile
                 try {
                     SignupRequest dealerSignupRequest = new SignupRequest();
@@ -296,13 +296,13 @@ public class DataInitializer implements CommandLineRunner {
                     dealerSignupRequest.setBusinessPhone(DEALER_BUSINESS_PHONE);
                     dealerSignupRequest.setVatNumber("TEST-VAT-12345");
                     dealerSignupRequest.setTradingAddress("Damascus Test Address");
-                    
+
                     dealerService.createDealer(dealerUser, dealerSignupRequest);
                     log.info("Dealer profile created successfully for user: {}", DEALER_USERNAME);
                 } catch (Exception e) {
                     log.error("Error creating dealer profile: {}", e.getMessage());
                 }
-                
+
             } else {
                 log.info("Dealer user already exists: {}", DEALER_USERNAME);
                 try {
@@ -325,55 +325,55 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.error("Error creating or retrieving dealer user: {}", e.getMessage());
         }
-        
+
         return dealerUser;
     }
-    
+
     private void generateAndPrintDevTokens(User regularUser, User adminUser, User dealerUser) {
         try {
             if (Objects.isNull(regularUser)) {
                 log.warn("Regular user is null, skipping token generation for regular user");
             }
-            
+
             if (Objects.isNull(adminUser)) {
                 log.warn("Admin user is null, skipping token generation for admin user");
             }
-            
+
             if (Objects.isNull(dealerUser)) {
                 log.warn("Dealer user is null, skipping token generation for dealer user");
             }
-            
+
             // Generate tokens
             String regularUserToken = Objects.nonNull(regularUser) ? generateTokenForUser(regularUser) : null;
             String adminUserToken = Objects.nonNull(adminUser) ? generateTokenForUser(adminUser) : null;
             String dealerUserToken = Objects.nonNull(dealerUser) ? generateTokenForUser(dealerUser) : null;
-            
+
             // Print tokens in a nice format
             log.info("\n\n====== DEVELOPMENT AUTHENTICATION TOKENS ======");
             log.info("These tokens can be used for testing without login:");
             log.info("");
-            
+
             if (Objects.nonNull(regularUser) && Objects.nonNull(regularUserToken)) {
                 log.info("REGULAR USER TOKEN ({})", regularUser.getUsername());
                 log.info("--------------------------------------------");
                 log.info("{}", regularUserToken);
                 log.info("");
             }
-            
+
             if (Objects.nonNull(adminUser) && Objects.nonNull(adminUserToken)) {
                 log.info("ADMIN USER TOKEN ({})", adminUser.getUsername());
                 log.info("--------------------------------------------");
                 log.info("{}", adminUserToken);
                 log.info("");
             }
-            
+
             if (Objects.nonNull(dealerUser) && Objects.nonNull(dealerUserToken)) {
                 log.info("DEALER USER TOKEN ({})", dealerUser.getUsername());
                 log.info("--------------------------------------------");
                 log.info("{}", dealerUserToken);
                 log.info("");
             }
-            
+
             log.info("To use: Add the following header to your HTTP requests:");
             log.info("Authorization: Bearer <token>");
             log.info("==============================================\n");
@@ -381,20 +381,20 @@ public class DataInitializer implements CommandLineRunner {
             log.error("Error generating development tokens", e);
         }
     }
-    
+
     private String generateTokenForUser(User user) {
         // Check if user is null using Objects utility
         if (Objects.isNull(user)) {
             log.error("Cannot generate token for null user");
             return "TOKEN_GENERATION_FAILED_NULL_USER";
         }
-        
+
         // Check if user roles is null using Objects utility
         if (Objects.isNull(user.getRoles())) {
             log.error("Cannot generate token for user with null roles: {}", user.getUsername());
             return "TOKEN_GENERATION_FAILED_NULL_ROLES";
         }
-        
+
         try {
             // Create authorities from roles - using safe null handling
             Set<Role> roles = Objects.requireNonNull(user.getRoles(), "User roles cannot be null");
@@ -402,7 +402,7 @@ public class DataInitializer implements CommandLineRunner {
                     .filter(Objects::nonNull)
                     .map(role -> new SimpleGrantedAuthority(role.getName()))
                     .collect(Collectors.toList());
-            
+
             // Create a UserDetails object - safe access to required fields
             String username = Objects.requireNonNull(user.getUsername(), "Username cannot be null");
             String password = Objects.requireNonNull(user.getPassword(), "Password cannot be null");
@@ -411,14 +411,14 @@ public class DataInitializer implements CommandLineRunner {
                     password,
                     authorities
             );
-            
+
             // Create Authentication object
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
                     authorities
             );
-            
+
             // Generate JWT token
             return jwtUtils.generateJwtToken(authentication);
         } catch (Exception e) {
