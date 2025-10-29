@@ -81,6 +81,12 @@ class CarListingContactFieldsServiceTest {
     @Mock
     private CarListingMediaService carListingMediaService;
 
+    @Mock
+    private DealerService dealerService;
+
+    @Mock
+    private DealerTrialService dealerTrialService;
+
     @InjectMocks
     private CarListingService carListingService;
 
@@ -173,6 +179,8 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("both");
 
             // Mock dependencies
+            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
+            when(dealerService.isDealer(testUser)).thenReturn(false);
             when(crudService.createListingInternal(request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act
@@ -216,6 +224,8 @@ class CarListingContactFieldsServiceTest {
             expectedResponse.setContactPreference("email"); // Default preference
 
             // Mock dependencies
+            when(userRepository.findByUsername("dealeruser")).thenReturn(Optional.of(testUser));
+            when(dealerService.isDealer(testUser)).thenReturn(false);
             when(crudService.createListingInternal(request, "dealeruser")).thenReturn(expectedResponse);
 
             // Act

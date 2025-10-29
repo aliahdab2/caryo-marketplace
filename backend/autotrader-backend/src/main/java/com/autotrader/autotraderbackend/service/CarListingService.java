@@ -3,13 +3,14 @@ package com.autotrader.autotraderbackend.service;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.exception.StorageException;
 import com.autotrader.autotraderbackend.model.CarListing;
-
+import com.autotrader.autotraderbackend.model.Dealer;
+import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.repository.CarListingRepository;
-
+import com.autotrader.autotraderbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -30,12 +31,14 @@ import java.util.Objects;
 public class CarListingService {
 
     private final CarListingRepository carListingRepository;
-
+    private final UserRepository userRepository;
     private final SavedSearchService savedSearchService;
     private final CarListingMediaService carListingMediaService;
     private final CarListingCrudService crudService;
     private final CarListingAnalyticsService analyticsService;
     private final CarListingQueryService queryService;
+    private final DealerService dealerService;
+    private final DealerTrialService dealerTrialService;
 
     /**
      * Check if user can create listings (email verified and account active).
@@ -55,7 +58,16 @@ public class CarListingService {
         }
         log.info("Attempting to create new listing for user: {}", username);
 
-        return crudService.createListingInternal(request, username);
+        // 1. VALIDATE dealer can create listing (trial/subscription limits)
+        validateDealerCanCreateListing(username);
+
+        // 2. Create the listing
+        CarListingResponse response = crudService.createListingInternal(request, username);
+
+        // 3. TRACK usage (increment trial counter if dealer on trial)
+        trackListingCreation(username);
+
+        return response;
     }
 
     /**
@@ -69,8 +81,14 @@ public class CarListingService {
         }
         log.info("Attempting to create new listing with media for user: {}", username);
 
-        // Create the listing first
+        // 1. VALIDATE dealer can create listing (trial/subscription limits)
+        validateDealerCanCreateListing(username);
+
+        // 2. Create the listing
         CarListingResponse listingResponse = crudService.createListingInternal(request, username);
+
+        // 3. TRACK usage (increment trial counter if dealer on trial)
+        trackListingCreation(username);
 
         // Get the actual entity for notifications and media handling
         CarListing savedListing = carListingRepository.findById(listingResponse.getId())
@@ -85,6 +103,60 @@ public class CarListingService {
         processSavedSearchNotifications(savedListing);
 
         return listingResponse;
+    }
+
+    /**
+     * Validate that dealer can create a listing (checks trial/subscription limits).
+     * For private sellers, this currently only checks email verification.
+     */
+    private void validateDealerCanCreateListing(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        // Check if user is a dealer
+        if (dealerService.isDealer(user)) {
+            Dealer dealer = dealerService.getDealerByUserId(user.getId())
+                .orElseThrow(() -> new com.autotrader.autotraderbackend.exception.dealer.DealerNotFoundException(user.getId()));
+
+            // Check if dealer can create listing (trial/subscription limits)
+            if (!dealerTrialService.canCreateListing(dealer)) {
+                int listingsUsed = dealer.getTrialListingsCount();
+                String tier = dealer.getSubscriptionTier();
+                
+                if ("trial".equals(tier)) {
+                    throw new com.autotrader.autotraderbackend.exception.dealer.TrialExpiredException(listingsUsed, 15);
+                } else if ("suspended".equals(dealer.getSubscriptionStatus())) {
+                    throw new com.autotrader.autotraderbackend.exception.dealer.TrialExpiredException(tier, true);
+                } else {
+                    throw new com.autotrader.autotraderbackend.exception.dealer.SubscriptionLimitExceededException(tier, listingsUsed, 100);
+                }
+            }
+            
+            log.debug("Dealer {} validated - can create listing. Trial: {}, Used: {}", 
+                dealer.getId(), dealer.isOnTrial(), dealer.getTrialListingsCount());
+        } else {
+            // Private seller - no special validation needed here (email verification checked elsewhere)
+            log.debug("Private seller {} - no trial limits apply", username);
+        }
+    }
+
+    /**
+     * Track listing creation (increment trial counter for dealers on trial).
+     */
+    private void trackListingCreation(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElse(null);
+        
+        if (user != null && dealerService.isDealer(user)) {
+            Dealer dealer = dealerService.getDealerByUserId(user.getId())
+                .orElse(null);
+            
+            if (dealer != null && dealer.isOnTrial()) {
+                dealerTrialService.incrementListingCount(dealer);
+                log.info("Incremented trial listing count for dealer {}: {}/15", 
+                    dealer.getId(), dealer.getTrialListingsCount());
+            }
+        }
     }
 
     /**

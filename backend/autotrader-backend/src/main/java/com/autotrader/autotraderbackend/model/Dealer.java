@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "dealers", indexes = {
@@ -73,6 +76,58 @@ public class Dealer {
     @Column(name = "updated_by")
     private String updatedBy;
 
+    // Trial fields
+    @Column(name = "trial_started_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private ZonedDateTime trialStartedAt;
+
+    @Column(name = "trial_listings_count", nullable = false)
+    @Builder.Default
+    private Integer trialListingsCount = 0;
+
+    @Column(name = "trial_expired", nullable = false)
+    @Builder.Default
+    private Boolean trialExpired = false;
+
+    @Column(name = "trial_extended_until", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private ZonedDateTime trialExtendedUntil;
+
+    @Column(name = "timezone", length = 50)
+    @Builder.Default
+    private String timezone = "Asia/Damascus";
+
+    // Subscription fields
+    @Column(name = "subscription_tier", length = 50)
+    @Builder.Default
+    private String subscriptionTier = "trial";
+
+    @Column(name = "subscription_started_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private ZonedDateTime subscriptionStartedAt;
+
+    @Column(name = "subscription_status", length = 50)
+    @Builder.Default
+    private String subscriptionStatus = "trial";
+
+    @Column(name = "subscription_next_billing_date", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private ZonedDateTime subscriptionNextBillingDate;
+
+    @Column(name = "subscription_cancelled_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private ZonedDateTime subscriptionCancelledAt;
+
+    // Notification tracking (JSONB array)
+    @Column(name = "notifications_sent", columnDefinition = "jsonb")
+    @Convert(converter = com.autotrader.autotraderbackend.converter.StringListConverter.class)
+    @Builder.Default
+    private List<String> notificationsSent = new ArrayList<>();
+
+    // Feature flags
+    @Column(name = "can_create_listings", nullable = false)
+    @Builder.Default
+    private Boolean canCreateListings = true;
+
+    @Column(name = "payment_warning", nullable = false)
+    @Builder.Default
+    private Boolean paymentWarning = false;
+
     // Helper methods
     public boolean hasCompleteBusinessInfo() {
         return businessName != null && !businessName.trim().isEmpty();
@@ -83,10 +138,42 @@ public class Dealer {
                (businessPhone != null && !businessPhone.trim().isEmpty());
     }
 
+    public boolean isOnTrial() {
+        return "trial".equals(subscriptionTier);
+    }
+
+    public boolean hasActiveSubscription() {
+        return subscriptionTier != null && 
+               !"trial".equals(subscriptionTier) && 
+               !"suspended".equals(subscriptionStatus);
+    }
+
+    public void markNotified(String notificationType) {
+        if (notificationsSent == null) {
+            notificationsSent = new ArrayList<>();
+        }
+        if (!notificationsSent.contains(notificationType)) {
+            notificationsSent.add(notificationType);
+        }
+    }
+
+    public boolean isNotified(String notificationType) {
+        return notificationsSent != null && notificationsSent.contains(notificationType);
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        
+        if (trialStartedAt == null) {
+            trialStartedAt = ZonedDateTime.now();
+        }
+        
+        // Initialize notifications list to prevent NPE
+        if (notificationsSent == null) {
+            notificationsSent = new ArrayList<>();
+        }
     }
 
     @PreUpdate

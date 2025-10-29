@@ -1,10 +1,13 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.DealerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -25,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Initializes default data in the database at application startup.
  * This ensures development users are always available, even after rebuilds.
- * Creates two users: one with regular user role and one with admin role.
+ * Creates three test users: regular user, admin user, and dealer user.
  */
 @Component
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final DealerService dealerService;
     
     // Regular user credentials
     private static final String USER_USERNAME = "user";
@@ -47,11 +51,20 @@ public class DataInitializer implements CommandLineRunner {
     private static final String ADMIN_EMAIL = "admin@caryo.sy";
     private static final String ADMIN_PASSWORD = "Admin123!";
 
+    // Dealer user credentials
+    private static final String DEALER_USERNAME = "dealer";
+    private static final String DEALER_EMAIL = "dealer@caryo.sy";
+    private static final String DEALER_PASSWORD = "Dealer123!";
+    private static final String DEALER_BUSINESS_NAME = "Test Dealership Syria";
+    private static final String DEALER_BUSINESS_EMAIL = "business@testdealer.sy";
+    private static final String DEALER_BUSINESS_PHONE = "+963-11-234-5678";
+
     @Override
     public void run(String... args) {
         User regularUser = createRegularUser();
         User adminUser = createAdminUser();
-        generateAndPrintDevTokens(regularUser, adminUser);
+        User dealerUser = createDealerUser();
+        generateAndPrintDevTokens(regularUser, adminUser, dealerUser);
     }
     
     private User createRegularUser() {
@@ -211,23 +224,129 @@ public class DataInitializer implements CommandLineRunner {
         return adminUser;
     }
     
-    private void generateAndPrintDevTokens(User regularUser, User adminUser) {
+    private User createDealerUser() {
+        // Check if dealer user already exists
+        User dealerUser = null;
+        
+        try {
+            if (!userRepository.existsByUsername(DEALER_USERNAME)) {
+                log.info("Creating dealer development user: {}", DEALER_USERNAME);
+                
+                // Create the user
+                dealerUser = new User(DEALER_USERNAME, DEALER_EMAIL, passwordEncoder.encode(DEALER_PASSWORD));
+
+                // For development, mark dealer user as fully verified and active
+                dealerUser.markEmailVerifiedByOAuth("development", "dealer-setup");
+                
+                // Set roles (DEALER and USER roles)
+                Set<Role> roles = new HashSet<>();
+                Optional<Role> userRole = roleRepository.findByName("ROLE_USER");
+                Optional<Role> dealerRole = roleRepository.findByName("ROLE_DEALER");
+                
+                userRole.ifPresent(roles::add);
+                dealerRole.ifPresent(roles::add);
+                
+                // If roles don't exist, create them
+                if (!userRole.isPresent()) {
+                    try {
+                        Role newUserRole = new Role("ROLE_USER");
+                        newUserRole = Objects.requireNonNull(roleRepository.saveAndFlush(newUserRole),
+                            "Failed to save ROLE_USER");
+                        roles.add(newUserRole);
+                    } catch (Exception e) {
+                        log.warn("Error creating ROLE_USER, trying to fetch it again: {}", e.getMessage());
+                        roleRepository.findByName("ROLE_USER").ifPresent(roles::add);
+                    }
+                }
+                
+                if (!dealerRole.isPresent()) {
+                    try {
+                        Role newDealerRole = new Role("ROLE_DEALER");
+                        newDealerRole = Objects.requireNonNull(roleRepository.saveAndFlush(newDealerRole),
+                            "Failed to save ROLE_DEALER");
+                        roles.add(newDealerRole);
+                    } catch (Exception e) {
+                        log.warn("Error creating ROLE_DEALER, trying to fetch it again: {}", e.getMessage());
+                        roleRepository.findByName("ROLE_DEALER").ifPresent(roles::add);
+                    }
+                }
+                
+                // Verify that we have both roles
+                boolean hasUserRole = roles.stream().anyMatch(role -> "ROLE_USER".equals(role.getName()));
+                boolean hasDealerRole = roles.stream().anyMatch(role -> "ROLE_DEALER".equals(role.getName()));
+                
+                if (!hasUserRole || !hasDealerRole) {
+                    log.error("Failed to create or retrieve required roles for dealer user. User role: {}, Dealer role: {}", 
+                        hasUserRole, hasDealerRole);
+                    return null;
+                }
+                
+                dealerUser.setRoles(roles);
+                
+                // Save the dealer user
+                dealerUser = Objects.requireNonNull(userRepository.saveAndFlush(dealerUser),
+                    "Failed to save dealer user");
+                log.info("Dealer user created successfully");
+                
+                // Create dealer profile
+                try {
+                    SignupRequest dealerSignupRequest = new SignupRequest();
+                    dealerSignupRequest.setBusinessName(DEALER_BUSINESS_NAME);
+                    dealerSignupRequest.setBusinessEmail(DEALER_BUSINESS_EMAIL);
+                    dealerSignupRequest.setBusinessPhone(DEALER_BUSINESS_PHONE);
+                    dealerSignupRequest.setVatNumber("TEST-VAT-12345");
+                    dealerSignupRequest.setTradingAddress("Damascus Test Address");
+                    
+                    dealerService.createDealer(dealerUser, dealerSignupRequest);
+                    log.info("Dealer profile created successfully for user: {}", DEALER_USERNAME);
+                } catch (Exception e) {
+                    log.error("Error creating dealer profile: {}", e.getMessage());
+                }
+                
+            } else {
+                log.info("Dealer user already exists: {}", DEALER_USERNAME);
+                try {
+                    dealerUser = userRepository.findByUsername(DEALER_USERNAME).orElse(null);
+                    if (dealerUser == null) {
+                        log.error("Dealer user exists but couldn't be retrieved: {}", DEALER_USERNAME);
+                    } else {
+                        // For development, ensure existing dealer user is fully verified and active
+                        if (!dealerUser.isEmailVerified() ||
+                            dealerUser.getAccountStatus() != com.autotrader.autotraderbackend.model.AccountStatus.VERIFIED) {
+                            dealerUser.markEmailVerifiedByOAuth("development", "dealer-setup");
+                            dealerUser = userRepository.saveAndFlush(dealerUser);
+                            log.info("Updated existing dealer user to verified status");
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Error retrieving existing dealer user {}: {}", DEALER_USERNAME, e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error creating or retrieving dealer user: {}", e.getMessage());
+        }
+        
+        return dealerUser;
+    }
+    
+    private void generateAndPrintDevTokens(User regularUser, User adminUser, User dealerUser) {
         try {
             if (Objects.isNull(regularUser)) {
                 log.warn("Regular user is null, skipping token generation for regular user");
-                return;
             }
             
             if (Objects.isNull(adminUser)) {
                 log.warn("Admin user is null, skipping token generation for admin user");
-                return;
             }
             
-            // Generate token for regular user
-            String regularUserToken = generateTokenForUser(regularUser);
+            if (Objects.isNull(dealerUser)) {
+                log.warn("Dealer user is null, skipping token generation for dealer user");
+            }
             
-            // Generate token for admin user
-            String adminUserToken = generateTokenForUser(adminUser);
+            // Generate tokens
+            String regularUserToken = Objects.nonNull(regularUser) ? generateTokenForUser(regularUser) : null;
+            String adminUserToken = Objects.nonNull(adminUser) ? generateTokenForUser(adminUser) : null;
+            String dealerUserToken = Objects.nonNull(dealerUser) ? generateTokenForUser(dealerUser) : null;
             
             // Print tokens in a nice format
             log.info("\n\n====== DEVELOPMENT AUTHENTICATION TOKENS ======");
@@ -245,6 +364,13 @@ public class DataInitializer implements CommandLineRunner {
                 log.info("ADMIN USER TOKEN ({})", adminUser.getUsername());
                 log.info("--------------------------------------------");
                 log.info("{}", adminUserToken);
+                log.info("");
+            }
+            
+            if (Objects.nonNull(dealerUser) && Objects.nonNull(dealerUserToken)) {
+                log.info("DEALER USER TOKEN ({})", dealerUser.getUsername());
+                log.info("--------------------------------------------");
+                log.info("{}", dealerUserToken);
                 log.info("");
             }
             

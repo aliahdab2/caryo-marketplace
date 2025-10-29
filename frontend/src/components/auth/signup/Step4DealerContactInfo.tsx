@@ -140,7 +140,10 @@ export default function Step4DealerContactInfo({
       let errorMessage = t('uploadFailedMessage', 'Failed to upload logo. Please try again or choose a different file.');
       
       if (error && typeof error === 'object') {
-        const err = error as any;
+        const err = error as { 
+          message?: string; 
+          response?: { data?: { message?: string } } 
+        };
         if (err.message) {
           errorMessage = `${errorMessage}\n\nDetails: ${err.message}`;
         }

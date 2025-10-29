@@ -26,18 +26,33 @@ jest.mock('next/server', () => ({
     json: jest.fn((data, options) => ({
       json: () => Promise.resolve(data),
       status: options?.status || 200,
-      headers: new Headers(),
+      headers: {
+        get: jest.fn(),
+        set: jest.fn(),
+        has: jest.fn(),
+        delete: jest.fn(),
+        append: jest.fn(),
+        entries: jest.fn(),
+        forEach: jest.fn(),
+        keys: jest.fn(),
+        values: jest.fn(),
+      },
       cookies: {
         set: mockCookiesSet,
       },
     })),
   },
-  NextRequest: jest.fn().mockImplementation((url, init) => {
-    const request = new Request(url, init);
-    return Object.assign(request, {
-      nextUrl: new URL(url),
-    });
-  }),
+  NextRequest: jest.fn().mockImplementation((url: string, init?: RequestInit) => ({
+    url,
+    method: init?.method || 'GET',
+    headers: init?.headers || {},
+    body: init?.body,
+    json: async () => JSON.parse((init?.body as string) || '{}'),
+    nextUrl: {
+      pathname: new URL(url).pathname,
+      searchParams: new URL(url).searchParams,
+    },
+  })),
 }));
 
 describe('/api/auth/auto-login', () => {

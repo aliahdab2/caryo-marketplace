@@ -1,0 +1,61 @@
+-- V43: Add trial and subscription fields to dealers table
+-- Purpose: Enable trial system tracking (Phase 1A)
+-- Author: Caryo Development Team
+-- Date: January 2025
+
+-- Add trial tracking fields
+ALTER TABLE dealers
+    ADD COLUMN trial_started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN trial_listings_count INTEGER DEFAULT 0 NOT NULL,
+    ADD COLUMN trial_expired BOOLEAN DEFAULT FALSE NOT NULL,
+    ADD COLUMN trial_extended_until TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN timezone VARCHAR(50) DEFAULT 'Asia/Damascus';
+
+-- Add subscription fields
+ALTER TABLE dealers
+    ADD COLUMN subscription_tier VARCHAR(50) DEFAULT 'trial',
+    ADD COLUMN subscription_started_at TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN subscription_status VARCHAR(50) DEFAULT 'trial',
+    ADD COLUMN subscription_next_billing_date TIMESTAMP WITH TIME ZONE,
+    ADD COLUMN subscription_cancelled_at TIMESTAMP WITH TIME ZONE;
+
+-- Add notification tracking (for trial emails)
+ALTER TABLE dealers
+    ADD COLUMN notifications_sent JSONB DEFAULT '[]'::jsonb;
+
+-- Add feature flags per dealer
+ALTER TABLE dealers
+    ADD COLUMN can_create_listings BOOLEAN DEFAULT TRUE NOT NULL,
+    ADD COLUMN payment_warning BOOLEAN DEFAULT FALSE NOT NULL;
+
+-- Add indexes for common queries
+CREATE INDEX idx_dealers_trial_expired ON dealers(trial_expired) WHERE trial_expired = false;
+CREATE INDEX idx_dealers_subscription_tier ON dealers(subscription_tier);
+CREATE INDEX idx_dealers_subscription_status ON dealers(subscription_status);
+CREATE INDEX idx_dealers_trial_started_at ON dealers(trial_started_at);
+
+-- Add comments for documentation
+COMMENT ON COLUMN dealers.trial_started_at IS 'Trial start timestamp (UTC). Defaults to signup time.';
+COMMENT ON COLUMN dealers.trial_listings_count IS 'Number of listings created during trial (max 15 for 2-month trial)';
+COMMENT ON COLUMN dealers.trial_expired IS 'True if trial has expired (time or listings)';
+COMMENT ON COLUMN dealers.trial_extended_until IS 'Extended trial end date (for support cases)';
+COMMENT ON COLUMN dealers.timezone IS 'Dealer timezone (for display, calculations in UTC)';
+COMMENT ON COLUMN dealers.subscription_tier IS 'Current subscription tier: trial, basic, advanced, professional, suspended';
+COMMENT ON COLUMN dealers.subscription_started_at IS 'When paid subscription started (UTC)';
+COMMENT ON COLUMN dealers.subscription_status IS 'Status: trial, active, payment_failed, suspended, cancelled';
+COMMENT ON COLUMN dealers.subscription_next_billing_date IS 'Next billing date (UTC)';
+COMMENT ON COLUMN dealers.subscription_cancelled_at IS 'When subscription was cancelled (UTC)';
+COMMENT ON COLUMN dealers.notifications_sent IS 'Array of notification IDs sent (e.g., ["50_time", "75_usage"])';
+COMMENT ON COLUMN dealers.can_create_listings IS 'Feature flag: can dealer create new listings?';
+COMMENT ON COLUMN dealers.payment_warning IS 'Show payment warning banner in dashboard?';
+
+-- Update existing dealers to have trial started at their created_at time
+UPDATE dealers
+SET trial_started_at = created_at
+WHERE trial_started_at IS NULL;
+
+-- Ensure notifications_sent is properly initialized for existing rows
+UPDATE dealers
+SET notifications_sent = '[]'::jsonb
+WHERE notifications_sent IS NULL;
+

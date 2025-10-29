@@ -89,6 +89,12 @@ class CarListingServiceTest {
     @Mock
     private CarListingQueryService queryService;
 
+    @Mock
+    private DealerService dealerService;
+
+    @Mock
+    private DealerTrialService dealerTrialService;
+
     @InjectMocks
     private CarListingService carListingService;
 
@@ -179,6 +185,11 @@ class CarListingServiceTest {
         request.setLocationId(1L);
         request.setModelId(1L); // Use modelId
 
+        // Mock user lookup for validation
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        // Mock that user is NOT a dealer (private seller)
+        when(dealerService.isDealer(testUser)).thenReturn(false);
+        
         when(crudService.createListingInternal(request, "testuser")).thenReturn(testListingResponse);
 
         CarListingResponse response = carListingService.createListing(request, "testuser");
@@ -193,14 +204,15 @@ class CarListingServiceTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest(); // Populate as needed
         String username = "nonexistentuser";
-        when(crudService.createListingInternal(request, username))
-                .thenThrow(new ResourceNotFoundException("User", "username", username));
+        
+        // Mock user not found during validation
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             carListingService.createListing(request, username);
         });
-        assertEquals("User not found with username : 'nonexistentuser'", exception.getMessage());
+        assertEquals("User not found: nonexistentuser", exception.getMessage());
     }
 
     @Test
@@ -237,6 +249,11 @@ class CarListingServiceTest {
         mockLocation.setDisplayNameAr("موقع اختبار");
         mockLocation.setSlug("test-location");
         mockLocation.setGovernorate(mockGovernorate);
+        
+        // Mock user lookup for validation
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
+        // Mock that user is NOT a dealer (private seller)
+        when(dealerService.isDealer(testUser)).thenReturn(false);
         
         when(crudService.createListingInternal(request, username)).thenThrow(dbException);
 

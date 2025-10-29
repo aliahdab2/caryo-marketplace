@@ -42,9 +42,6 @@ export default function SyrianPhoneInput({
   const [localValue, setLocalValue] = useState(formatPhoneForDisplay(value));
   const [validationResult, setValidationResult] = useState<PhoneValidationResult | null>(null);
   const previousValueRef = useRef(value);
-  
-  // Detect RTL
-  const isRTL = i18n.language.startsWith('ar');
 
   // Sync local value with prop value
   useEffect(() => {
