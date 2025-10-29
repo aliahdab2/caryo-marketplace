@@ -77,7 +77,7 @@ export default function DealerDashboard() {
       try {
         const trialData = await getDealerTrialStatus();
         setTrialStatus(trialData);
-      } catch (err) {
+      } catch {
         // Expected: User may not be a dealer, or trial not set up yet
         // Dashboard works perfectly without trial features
         if (process.env.NODE_ENV === 'development') {
