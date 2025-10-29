@@ -158,7 +158,7 @@ describe('Form Validation Tests', () => {
       const errors = validateStep(2, formData, mockT, { mode: 'final' });
       
       expect(errors.mileage).toBeDefined();
-      expect(mockT).toHaveBeenNthCalledWith(1, 'validationFieldRequired', 'mileage is required');
+      expect(mockT).toHaveBeenCalledWith('validation:fieldRequired', 'mileage is required');
     });
 
     it('should allow empty mileage in navigation mode', () => {
