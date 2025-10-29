@@ -44,12 +44,23 @@ export async function getDealerTrialStatus(): Promise<TrialStatus> {
     });
 
     if (!response.ok) {
+      // If 404, dealer might not have trial features enabled yet
+      if (response.status === 404) {
+        // This is expected if user is not a dealer or trial not set up yet
+        // Return null-like response that dashboard can handle
+        throw new Error('TRIAL_NOT_AVAILABLE');
+      }
       throw new Error(`Failed to fetch trial status: ${response.status}`);
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
+    // Only log actual errors, not expected "not available" scenarios
+    if (error instanceof Error && error.message === 'TRIAL_NOT_AVAILABLE') {
+      // Silent - this is normal for non-dealer users
+      throw error;
+    }
     console.error('Error fetching dealer trial status:', error);
     throw error;
   }

@@ -73,13 +73,16 @@ export default function DealerDashboard() {
       setIsLoading(true);
       setError(null);
 
-      // Load trial status
+      // Load trial status (optional - graceful fallback if not available)
       try {
         const trialData = await getDealerTrialStatus();
         setTrialStatus(trialData);
       } catch (err) {
-        console.warn('[DASHBOARD] Trial status not available:', err);
-        // Continue loading other data even if trial status fails
+        // Expected: User may not be a dealer, or trial not set up yet
+        // Dashboard works perfectly without trial features
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[DASHBOARD] Trial features not available - this is OK');
+        }
       }
 
       // Load real data from APIs (keeping original functionality)
