@@ -12,7 +12,6 @@ import {
   MdPayment,
   MdInfo
 } from 'react-icons/md';
-import { useDirection } from '@/utils/direction';
 
 interface SubscriptionTier {
   id: string;

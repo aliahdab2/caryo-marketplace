@@ -10,7 +10,6 @@ import {
   MdTimer,
   MdDirectionsCar 
 } from 'react-icons/md';
-import { useDirection } from '@/utils/direction';
 
 export interface TrialStatus {
   isActive: boolean;
