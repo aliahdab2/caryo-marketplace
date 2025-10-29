@@ -1,10 +1,1 @@
--- V52: Fix notifications_sent JSONB format
--- Purpose: Fix incorrectly stored string values in notifications_sent column
--- Author: Caryo Development Team
--- Date: January 2025
-
--- This migration is no longer needed as V51 was updated to handle initialization correctly
--- Keeping it as a no-op for migration history consistency
-
--- No-op comment: All dealers now properly initialized via V51
-
+-- V52: Fix notifications_sent JSONB format-- Purpose: Fix incorrectly stored string values in notifications_sent column-- Author: Caryo Development Team-- Date: January 2025-- This migration is no longer needed as V51 was updated to handle initialization correctly-- Keeping it as a no-op for migration history consistency-- No-op comment: All dealers now properly initialized via V51
