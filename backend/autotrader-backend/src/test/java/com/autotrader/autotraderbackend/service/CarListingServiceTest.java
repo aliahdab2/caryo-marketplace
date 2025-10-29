@@ -46,6 +46,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.test.util.ReflectionTestUtils;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -107,6 +110,9 @@ class CarListingServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Set the regular user listing limit
+        ReflectionTestUtils.setField(carListingService, "regularUserListingLimit", 5);
+        
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
@@ -189,6 +195,8 @@ class CarListingServiceTest {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         // Mock that user is NOT a dealer (private seller)
         when(dealerService.isDealer(testUser)).thenReturn(false);
+        // Mock listing count
+        when(carListingRepository.countActiveListingsByUser(testUser)).thenReturn(0L);
 
         when(crudService.createListingInternal(request, "testuser")).thenReturn(testListingResponse);
 
@@ -254,6 +262,8 @@ class CarListingServiceTest {
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         // Mock that user is NOT a dealer (private seller)
         when(dealerService.isDealer(testUser)).thenReturn(false);
+        // Mock listing count
+        when(carListingRepository.countActiveListingsByUser(testUser)).thenReturn(0L);
 
         when(crudService.createListingInternal(request, username)).thenThrow(dbException);
 
