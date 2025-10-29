@@ -94,5 +94,113 @@
   "settings.showPhoneDesc": "Display your phone number publicly",
   "loginRequired": "Please log in to access dashboard",
   "dataManagement": "Data Management",
-  "dataManagementTooltip": "Manage car brands and models data"
+  "dataManagementTooltip": "Manage car brands and models data",
+  "trial": {
+    "expired": {
+      "title": "Trial Expired",
+      "message": "Your trial period has ended. Upgrade now to continue posting listings."
+    },
+    "grace": {
+      "title": "Grace Period Active",
+      "message": "You have {{days}} days remaining in your grace period."
+    },
+    "usage": {
+      "high": {
+        "title": "Almost at your limit!",
+        "message": "You have {{remaining}} of {{total}} listings remaining."
+      }
+    },
+    "time": {
+      "low": {
+        "title": "Trial ending soon",
+        "message": "Your trial expires in {{days}} days."
+      }
+    },
+    "active": {
+      "title": "Trial Active",
+      "message": "{{days}} days and {{listings}} listings remaining."
+    },
+    "upgrade": {
+      "now": "Upgrade Now",
+      "soon": "Upgrade Soon", 
+      "consider": "Consider Upgrading"
+    },
+    "learn": {
+      "more": "Learn More"
+    },
+    "listings": {
+      "used": "{{used}}/{{total}} listings used"
+    },
+    "days": {
+      "remaining": "{{days}} days left"
+    }
+  },
+  "upgrade": {
+    "title": "Choose Your Plan",
+    "subtitle": "Select the perfect plan for your dealership",
+    "current": {
+      "trial": "Current: Free Trial"
+    },
+    "trial": {
+      "benefits": "You're currently on a free trial with limited features"
+    },
+    "popular": "Most Popular",
+    "recommended": "Recommended",
+    "per": {
+      "month": "per month"
+    },
+    "unlimited": {
+      "listings": "Unlimited listings"
+    },
+    "listings": {
+      "limit": "Up to {{count}} listings"
+    },
+    "selected": "Selected",
+    "select": {
+      "plan": "Select Plan"
+    },
+    "secure": {
+      "payment": "Secure payment processing"
+    },
+    "cancel": {
+      "anytime": "Cancel anytime"
+    },
+    "continue": "Continue to Payment",
+    "processing": "Processing...",
+    "coming": {
+      "soon": "Payment processing coming soon! We'll notify you when it's ready."
+    },
+    "error": "Failed to process upgrade. Please try again."
+  },
+  "stats": {
+    "listings": "Total Listings",
+    "views": "Total Views",
+    "inquiries": "Inquiries",
+    "favorites": "Favorites"
+  },
+  "actions": {
+    "new": {
+      "listing": "New Listing",
+      "listing": {
+        "desc": "Create a new vehicle listing"
+      }
+    },
+    "manage": {
+      "listings": "Manage Listings",
+      "listings": {
+        "desc": "View and edit your listings"
+      }
+    },
+    "upgrade": "Upgrade Plan",
+    "upgrade": {
+      "desc": "Get more features and listings"
+    },
+    "settings": "Account Settings",
+    "settings": {
+      "desc": "Manage your account preferences"
+    }
+  },
+  "error": {
+    "title": "Dashboard Error"
+  }
 }
