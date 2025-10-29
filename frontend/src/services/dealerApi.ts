@@ -44,10 +44,11 @@ export async function getDealerTrialStatus(): Promise<TrialStatus> {
     });
 
     if (!response.ok) {
-      // If 404, dealer might not have trial features enabled yet
-      if (response.status === 404) {
-        // This is expected if user is not a dealer or trial not set up yet
-        // Return null-like response that dashboard can handle
+      // If 404 or 403, user is not a dealer or doesn't have access
+      if (response.status === 404 || response.status === 403) {
+        // This is expected for non-dealer users
+        // 404: Endpoint not found or no dealer profile
+        // 403: User is authenticated but not authorized (not a dealer)
         throw new Error('TRIAL_NOT_AVAILABLE');
       }
       throw new Error(`Failed to fetch trial status: ${response.status}`);
