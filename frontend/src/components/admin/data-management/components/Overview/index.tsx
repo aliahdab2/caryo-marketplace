@@ -24,7 +24,7 @@ export const Overview: React.FC<OverviewProps> = ({ statistics }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
@@ -36,7 +36,7 @@ export const Overview: React.FC<OverviewProps> = ({ statistics }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
@@ -48,7 +48,7 @@ export const Overview: React.FC<OverviewProps> = ({ statistics }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">

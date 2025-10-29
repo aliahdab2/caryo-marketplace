@@ -114,7 +114,7 @@ class ConversationTest {
         // Act & Assert
         assertTrue(conversation.isParticipant(buyer));
         assertTrue(conversation.isParticipant(seller));
-        
+
         User nonParticipant = new User();
         nonParticipant.setId(999L);
         assertFalse(conversation.isParticipant(nonParticipant));
@@ -146,10 +146,10 @@ class ConversationTest {
     void shouldAddMessageToConversation() {
         // Arrange
         LocalDateTime beforeAdd = conversation.getLastMessageAt();
-        
+
         // Act
         conversation.addMessage(message1);
-        
+
         // Assert
         assertEquals(1, conversation.getMessages().size());
         assertTrue(conversation.getMessages().contains(message1));
@@ -167,7 +167,7 @@ class ConversationTest {
     void shouldAddParticipantToConversation() {
         // Act
         conversation.addParticipant(buyerParticipant);
-        
+
         // Assert
         assertEquals(1, conversation.getParticipants().size());
         assertTrue(conversation.getParticipants().contains(buyerParticipant));
@@ -180,7 +180,7 @@ class ConversationTest {
         // Act
         conversation.addMessage(message1);
         conversation.addMessage(message2);
-        
+
         // Assert
         assertEquals(2, conversation.getMessages().size());
         assertTrue(conversation.getMessages().contains(message1));
@@ -193,7 +193,7 @@ class ConversationTest {
     void shouldHandleConversationStatusChanges() {
         // Act
         conversation.setStatus(ConversationStatus.ARCHIVED);
-        
+
         // Assert
         assertEquals(ConversationStatus.ARCHIVED, conversation.getStatus());
     }
@@ -219,7 +219,7 @@ class ConversationTest {
         // Act
         conversation.addMessage(message1);
         conversation.addMessage(message2);
-        
+
         // Assert
         List<Message> messages = conversation.getMessages();
         assertEquals(message1, messages.get(0));
@@ -236,12 +236,12 @@ class ConversationTest {
                 .contentType("image/jpeg")
                 .size(1024L)
                 .build();
-        
+
         message1.addAttachment(attachment);
-        
+
         // Act
         conversation.addMessage(message1);
-        
+
         // Assert
         assertEquals(1, conversation.getMessages().size());
         assertTrue(message1.hasAttachments());
@@ -268,10 +268,10 @@ class ConversationTest {
                 .messageType(MessageType.SYSTEM)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         // Act
         conversation.addMessage(systemMessage);
-        
+
         // Assert
         assertEquals(1, conversation.getMessages().size());
         assertEquals(MessageType.SYSTEM, systemMessage.getMessageType());

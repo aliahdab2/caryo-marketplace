@@ -1,9 +1,9 @@
 import Script from 'next/script';
-import { 
-  VehicleSchema, 
-  OrganizationSchema, 
+import {
+  VehicleSchema,
+  OrganizationSchema,
   BreadcrumbSchema,
-  WebSiteSchema 
+  WebSiteSchema
 } from '@/utils/structuredData';
 
 // Union type for all supported schema types
@@ -18,8 +18,8 @@ interface StructuredDataProps {
  * Component to inject JSON-LD structured data into the page head
  * Optimized for performance and SEO best practices
  */
-export default function StructuredData({ 
-  data, 
+export default function StructuredData({
+  data,
   id = 'structured-data'
 }: StructuredDataProps) {
   // Validate data before rendering
@@ -56,9 +56,9 @@ interface MultipleStructuredDataProps {
 
 export function MultipleStructuredData({ items }: MultipleStructuredDataProps) {
   // Filter out invalid items
-  const validItems = items.filter(item => 
-    item.data && 
-    item.data['@context'] && 
+  const validItems = items.filter(item =>
+    item.data &&
+    item.data['@context'] &&
     item.data['@type'] &&
     item.id
   );
@@ -90,12 +90,12 @@ interface CombinedStructuredDataProps {
   id?: string;
 }
 
-export function CombinedStructuredData({ 
-  schemas, 
-  id = 'combined-structured-data' 
+export function CombinedStructuredData({
+  schemas,
+  id = 'combined-structured-data'
 }: CombinedStructuredDataProps) {
   // Filter and validate schemas
-  const validSchemas = schemas.filter(schema => 
+  const validSchemas = schemas.filter(schema =>
     schema && schema['@context'] && schema['@type']
   );
 

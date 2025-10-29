@@ -79,7 +79,7 @@ class SmartActivationIntegrationTest {
 
         // Then: Verify both model and brand are active
         assertThat(updatedModel.getIsActive()).isTrue();
-        
+
         CarBrand updatedBrand = carBrandRepository.findById(inactiveBrand.getId()).orElseThrow();
         assertThat(updatedBrand.getIsActive()).isTrue(); // Brand should be auto-activated
     }

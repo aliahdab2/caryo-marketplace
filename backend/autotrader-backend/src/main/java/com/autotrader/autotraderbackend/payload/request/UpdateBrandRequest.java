@@ -16,22 +16,22 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateBrandRequest {
-    
+
     @NotBlank(message = "Brand name is required")
     @Size(max = 50, message = "Brand name must not exceed 50 characters")
     private String name;
-    
+
     @NotBlank(message = "English display name is required")
     @Size(max = 100, message = "English display name must not exceed 100 characters")
     private String displayNameEn;
-    
+
     @NotBlank(message = "Arabic display name is required")
     @Size(max = 100, message = "Arabic display name must not exceed 100 characters")
     private String displayNameAr;
-    
+
     @NotNull(message = "Active status is required")
     private Boolean isActive;
-    
+
     @Override
     public String toString() {
         return "UpdateBrandRequest{" +

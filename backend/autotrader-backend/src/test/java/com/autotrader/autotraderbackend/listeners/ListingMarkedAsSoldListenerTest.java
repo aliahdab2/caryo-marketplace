@@ -22,13 +22,13 @@ class ListingMarkedAsSoldListenerTest {
 
     @Mock
     private ListingEventUtils eventUtils;
-    
+
     @Mock
     private AsyncTransactionService txService;
-    
+
     @Mock
     private EmailService emailService;
-    
+
     @Captor
     private ArgumentCaptor<Runnable> runnableCaptor;
 
@@ -39,7 +39,7 @@ class ListingMarkedAsSoldListenerTest {
     @BeforeEach
     void setUp() {
         listener = new ListingMarkedAsSoldListener(eventUtils, txService, emailService);
-        
+
         seller = new User();
         seller.setId(1L);
         seller.setEmail("seller@example.com");
@@ -56,20 +56,20 @@ class ListingMarkedAsSoldListenerTest {
         ListingMarkedAsSoldEvent event = new ListingMarkedAsSoldEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
-            
+
         // Act
         listener.handleListingMarkedAsSold(event);
-        
+
         // Assert
         verify(txService).executeInTransaction(runnableCaptor.capture());
-        
+
         // Execute the captured runnable
         runnableCaptor.getValue().run();
-        
+
         // Verify that the transaction block executed correctly
         verify(eventUtils).getListingInfo(carListing);
     }
-    
+
     @Test
     void handleListingMarkedAsSold_withNullEvent_shouldThrowException() {
         // Act & Assert

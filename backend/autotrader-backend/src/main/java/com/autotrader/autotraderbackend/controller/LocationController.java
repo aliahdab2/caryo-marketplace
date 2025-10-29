@@ -127,10 +127,10 @@ public class LocationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         log.debug("Request received to search locations with query: {}", q);
-        
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("displayNameEn").ascending());
         Page<LocationResponse> resultPage = locationService.searchLocations(q, pageable);
-        
+
         PageResponse<LocationResponse> response = new PageResponse<>(
             resultPage.getContent(),
             resultPage.getNumber(),
@@ -139,7 +139,7 @@ public class LocationController {
             resultPage.getTotalPages(),
             resultPage.isLast()
         );
-        
+
         log.debug("Returning {} search results for query: {}", response.getContent().size(), q);
         return ResponseEntity.ok(response);
     }

@@ -28,7 +28,7 @@ class FileValidatorTest {
         );
     }
 
-    // --- Standard Validator Tests --- 
+    // --- Standard Validator Tests ---
 
     @Test
     void validateImageFile_withValidJpeg_shouldPass() {
@@ -140,7 +140,7 @@ class FileValidatorTest {
         content[0] = (byte) 0xFF; // JPEG magic number
         content[1] = (byte) 0xD8;
         content[2] = (byte) 0xFF;
-        
+
         MultipartFile file = new MockMultipartFile(
             "exact-size.jpg",
             "exact-size.jpg",
@@ -189,7 +189,7 @@ class FileValidatorTest {
         );
     }
 
-    // --- Strict Validator Tests --- 
+    // --- Strict Validator Tests ---
 
     @Test
     void validateImageFile_withGifInStrictMode_shouldThrowException() {
@@ -242,13 +242,13 @@ class FileValidatorTest {
         assertTrue(exception.getMessage().contains("exceeds maximum limit"));
     }
 
-    // --- Default Configuration Test --- 
+    // --- Default Configuration Test ---
 
     @Test
     void validateImageFile_withDefaultConfiguration_shouldUseDefaults() {
         // Create validator with null allowed types to test defaults (uses 10MB default size)
         FileValidator defaultValidator = new FileValidator(null, 10485760L);
-        
+
         byte[] content = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}; // JPEG
         MultipartFile file = new MockMultipartFile(
             "test.jpg",

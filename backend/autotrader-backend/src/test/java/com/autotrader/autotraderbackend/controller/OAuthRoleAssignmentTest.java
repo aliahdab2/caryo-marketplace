@@ -39,7 +39,7 @@ public class OAuthRoleAssignmentTest {
 
     @Mock
     private UserRepository userRepository;
-    
+
     @Mock
     private RoleRepository roleRepository;
 
@@ -127,9 +127,9 @@ public class OAuthRoleAssignmentTest {
 
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            
+
             // Verify ROLE_USER was created
-            verify(roleRepository).save(argThat(role -> 
+            verify(roleRepository).save(argThat(role ->
                 "ROLE_USER".equals(role.getName())
             ));
         }

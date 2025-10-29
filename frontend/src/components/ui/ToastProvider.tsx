@@ -65,16 +65,16 @@ export function ToastProvider({ children, maxToasts = 5 }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      
+
       {/* Render toasts */}
       <div className="fixed top-5 ltr:right-5 rtl:left-5 z-50 space-y-2 pointer-events-none">
         {toasts.map((toast, index) => (
-          <div 
-            key={toast.id} 
+          <div
+            key={toast.id}
             className="pointer-events-auto"
-            style={{ 
+            style={{
               transform: `translateY(${index * 10}px)`,
-              zIndex: 50 - index 
+              zIndex: 50 - index
             }}
           >
             <Toast
@@ -94,16 +94,16 @@ export function useToastHelpers() {
   const { showToast } = useToast();
 
   return {
-    showSuccess: useCallback((message: string, title?: string) => 
+    showSuccess: useCallback((message: string, title?: string) =>
       showToast({ type: 'success', message, title }), [showToast]),
-    
-    showError: useCallback((message: string, title?: string) => 
+
+    showError: useCallback((message: string, title?: string) =>
       showToast({ type: 'error', message, title }), [showToast]),
-    
-    showWarning: useCallback((message: string, title?: string) => 
+
+    showWarning: useCallback((message: string, title?: string) =>
       showToast({ type: 'warning', message, title }), [showToast]),
-    
-    showInfo: useCallback((message: string, title?: string) => 
+
+    showInfo: useCallback((message: string, title?: string) =>
       showToast({ type: 'info', message, title }), [showToast])
   };
 }

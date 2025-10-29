@@ -25,18 +25,18 @@ public class TestApiSecurityConfig {
 
     @Bean
     @Primary
-    public SecurityFilterChain testApiFilterChain(HttpSecurity http, 
+    public SecurityFilterChain testApiFilterChain(HttpSecurity http,
                                               org.springframework.core.env.Environment env) throws Exception {
-        
+
         // Check if auth is disabled (for API tests)
         String authDisabled = env.getProperty("autotrader.security.auth.disabled");
         boolean isAuthDisabled = "true".equalsIgnoreCase(authDisabled);
-        
+
         System.out.println("🔐 TEST API Security Configuration loaded");
-        
+
         // Basic security setup
         http.csrf(csrf -> csrf.disable());
-        
+
         // Configure authorization based on test mode
         if (isAuthDisabled) {
             // For Postman/API tests, permit all requests
@@ -59,7 +59,7 @@ public class TestApiSecurityConfig {
                 .anyRequest().authenticated()
             );
         }
-        
+
         // Handle security exceptions properly in tests
         http.exceptionHandling(exceptions -> exceptions
             .accessDeniedHandler((request, response, accessDeniedException) -> {

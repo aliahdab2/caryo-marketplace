@@ -22,14 +22,14 @@ jest.mock('react-i18next', () => ({
 
 describe('YearSlider', () => {
   const mockOnChange = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('should format year values without thousands separators', async () => {
     const { formatNumber } = await import('../../../utils/localization');
-    
+
     render(
       <YearSlider
         minYear={2020}

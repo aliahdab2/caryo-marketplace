@@ -17,10 +17,10 @@ CREATE TABLE conversations (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version BIGINT DEFAULT 0,
     deleted_at TIMESTAMP,
-    
+
     -- Ensure one conversation per buyer-seller-listing combination
     CONSTRAINT uk_conversation_unique UNIQUE(listing_id, buyer_id, seller_id),
-    
+
     -- Prevent self-conversations
     CONSTRAINT ck_buyer_not_seller CHECK (buyer_id != seller_id)
 );
@@ -39,13 +39,13 @@ CREATE TABLE messages (
     deleted_at TIMESTAMP,
     edited_at TIMESTAMP,
     is_edited BOOLEAN DEFAULT FALSE,
-    
+
     -- Ensure content is not empty
     CONSTRAINT ck_content_not_empty CHECK (length(trim(content)) > 0),
-    
+
     -- Ensure read_at is set when is_read is true
     CONSTRAINT ck_read_at_set CHECK ((is_read = true AND read_at IS NOT NULL) OR (is_read = false AND read_at IS NULL)),
-    
+
     -- Ensure edited_at is set when is_edited is true
     CONSTRAINT ck_edited_at_set CHECK ((is_edited = true AND edited_at IS NOT NULL) OR (is_edited = false AND edited_at IS NULL))
 );
@@ -63,10 +63,10 @@ CREATE TABLE message_attachments (
     deleted_at TIMESTAMP,
     upload_status VARCHAR(20) DEFAULT 'COMPLETED' CHECK (upload_status IN ('PENDING', 'COMPLETED', 'FAILED')),
     error_message TEXT,
-    
+
     -- Ensure file size is positive
     CONSTRAINT ck_file_size_positive CHECK (size > 0),
-    
+
     -- Ensure file names are not empty
     CONSTRAINT ck_file_name_not_empty CHECK (length(trim(file_name)) > 0)
 );
@@ -85,12 +85,12 @@ CREATE TABLE conversation_participants (
     muted_until TIMESTAMP,
     last_read_message_id BIGINT REFERENCES messages(id) ON DELETE SET NULL,
     last_read_at TIMESTAMP,
-    
+
     CONSTRAINT uk_participant_conversation UNIQUE(conversation_id, user_id),
-    
+
     -- Ensure left_at is after joined_at
     CONSTRAINT ck_left_after_join CHECK (left_at IS NULL OR left_at > joined_at),
-    
+
     -- Ensure muted_until is after joined_at
     CONSTRAINT ck_muted_after_join CHECK (muted_until IS NULL OR muted_until > joined_at)
 );

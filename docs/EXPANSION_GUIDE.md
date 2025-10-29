@@ -2,7 +2,7 @@
 
 ## Current Status: Syria Only 🇸🇾
 
-**Focus Now**: Build features for Syrian market  
+**Focus Now**: Build features for Syrian market
 **Expand Later**: When you have 1000+ users
 
 ---
@@ -30,7 +30,7 @@ export type CountryCode = 'SY' | 'JO'; // Added Jordan
 // 2. Add config
 export const BUSINESS_REGISTRATION_CONFIGS = {
   SY: { /* ... existing Syria config ... */ },
-  
+
   // Add Jordan
   JO: {
     country: 'JO',
@@ -166,8 +166,8 @@ After adding a market:
 
 ## Summary
 
-**Now**: Focus on Syria, build features  
-**Later**: Add markets in 15 minutes each  
+**Now**: Focus on Syria, build features
+**Later**: Add markets in 15 minutes each
 **Much Later**: Add currency, payments, filters
 
 The foundation is ready - expand when you're ready! 🚀

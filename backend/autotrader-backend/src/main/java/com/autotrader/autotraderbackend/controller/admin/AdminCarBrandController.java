@@ -51,7 +51,7 @@ public class AdminCarBrandController {
     )
     public ResponseEntity<ApiResponse<CarBrandResponse>> createBrand(
             @Valid @RequestBody CreateCarBrandRequest request) {
-        
+
         log.info("Admin creating new car brand: {}", request.getName());
 
         try {
@@ -86,12 +86,12 @@ public class AdminCarBrandController {
     public ResponseEntity<ApiResponse<CarBrandResponse>> updateBrand(
             @Parameter(description = "Brand ID", required = true) @PathVariable Long id,
             @Valid @RequestBody UpdateCarBrandRequest request) {
-        
+
         log.info("Admin updating car brand ID: {}", id);
 
         try {
             CarBrand existingBrand = carBrandService.getBrandById(id);
-            
+
             // Update fields
             existingBrand.setName(request.getName());
             existingBrand.setSlug(request.getSlug());
@@ -122,7 +122,7 @@ public class AdminCarBrandController {
     )
     public ResponseEntity<ApiResponse<Void>> deleteBrand(
             @Parameter(description = "Brand ID", required = true) @PathVariable Long id) {
-        
+
         log.info("Admin deleting car brand ID: {}", id);
 
         try {
@@ -159,7 +159,7 @@ public class AdminCarBrandController {
             @Parameter(description = "Search term") @RequestParam(required = false) String search,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sortBy,
             @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDir) {
-        
+
         try {
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
@@ -213,7 +213,7 @@ public class AdminCarBrandController {
     )
     public ResponseEntity<ApiResponse<CarBrandResponse>> getBrand(
             @Parameter(description = "Brand ID", required = true) @PathVariable Long id) {
-        
+
         try {
             CarBrand brand = carBrandService.getBrandById(id);
             CarBrandResponse response = CarBrandResponse.fromEntity(brand);
@@ -237,13 +237,13 @@ public class AdminCarBrandController {
     )
     public ResponseEntity<ApiResponse<CarBrandResponse>> toggleBrandStatus(
             @Parameter(description = "Brand ID", required = true) @PathVariable Long id) {
-        
+
         log.info("Admin toggling active status for car brand ID: {}", id);
 
         try {
             CarBrand brand = carBrandService.getBrandById(id);
             brand.setIsActive(!brand.getIsActive());
-            
+
             CarBrand updatedBrand = carBrandService.updateBrand(id, brand);
             CarBrandResponse response = CarBrandResponse.fromEntity(updatedBrand);
 

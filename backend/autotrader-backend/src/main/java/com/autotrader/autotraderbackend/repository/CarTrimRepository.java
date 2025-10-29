@@ -10,11 +10,11 @@ import java.util.List;
 
 @Repository
 public interface CarTrimRepository extends JpaRepository<CarTrim, Long> {
-    
+
     List<CarTrim> findByModel(CarModel model);
-    
+
     List<CarTrim> findByModelAndIsActiveTrue(CarModel model);
-    
+
     @Query("SELECT t FROM CarTrim t WHERE " +
            "LOWER(t.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(t.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

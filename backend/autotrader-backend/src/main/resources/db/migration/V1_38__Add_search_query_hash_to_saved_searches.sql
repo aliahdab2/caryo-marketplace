@@ -1,7 +1,7 @@
 -- Add search query hash column for easier duplicate detection
 -- This replaces complex JSON comparison with simple string comparison
 
-ALTER TABLE saved_searches 
+ALTER TABLE saved_searches
 ADD COLUMN search_query_hash VARCHAR(500);
 
 -- Create index for fast duplicate checking

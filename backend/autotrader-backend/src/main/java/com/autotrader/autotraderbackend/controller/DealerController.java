@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for dealer-specific operations.
- * 
+ *
  * Endpoints:
  * - GET /api/dealer/trial-status - Get current trial status
  * - POST /api/dealer/extend-trial - Extend trial (admin only)
@@ -35,7 +35,7 @@ public class DealerController {
 
     /**
      * Get trial status for the authenticated dealer.
-     * 
+     *
      * @param userDetails Authenticated user details
      * @return Trial status including days remaining, listings used, etc.
      */
@@ -44,17 +44,17 @@ public class DealerController {
     public ResponseEntity<?> getTrialStatus(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
             Long userId = userDetails.getId();
-            
+
             Dealer dealer = dealerService.getDealerByUserId(userId)
                 .orElseThrow(() -> new DealerNotFoundException(userId));
 
             TrialStatus status = dealerTrialService.getTrialStatus(dealer);
-            
-            log.info("Trial status requested for dealer: {} - Active: {}, Listings: {}/{}", 
+
+            log.info("Trial status requested for dealer: {} - Active: {}, Listings: {}/{}",
                 dealer.getId(), status.isActive(), status.getListingsUsed(), status.getListingsLimit());
 
             return ResponseEntity.ok(status);
-            
+
         } catch (DealerNotFoundException e) {
             log.error("Dealer not found for user: {}", userDetails.getId());
             return ResponseEntity.status(404)
@@ -68,7 +68,7 @@ public class DealerController {
 
     /**
      * Extend trial for a dealer (admin only).
-     * 
+     *
      * @param dealerId Dealer ID to extend
      * @param additionalDays Number of days to extend
      * @param reason Reason for extension (audit trail)
@@ -86,13 +86,13 @@ public class DealerController {
                 .orElseThrow(() -> new DealerNotFoundException("Dealer not found with ID: " + dealerId, dealerId));
 
             dealerTrialService.extendTrial(dealer, additionalDays, reason);
-            
-            log.info("Trial extended by admin {} for dealer {}: {} days. Reason: {}", 
+
+            log.info("Trial extended by admin {} for dealer {}: {} days. Reason: {}",
                 userDetails.getUsername(), dealerId, additionalDays, reason);
 
             return ResponseEntity.ok(
                 new MessageResponse("Trial extended successfully by " + additionalDays + " days"));
-            
+
         } catch (DealerNotFoundException e) {
             log.error("Dealer not found: {}", dealerId);
             return ResponseEntity.status(404)
@@ -106,7 +106,7 @@ public class DealerController {
 
     /**
      * Get dealer profile for authenticated user.
-     * 
+     *
      * @param userDetails Authenticated user details
      * @return Dealer profile
      */
@@ -115,12 +115,12 @@ public class DealerController {
     public ResponseEntity<?> getDealerProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
             Long userId = userDetails.getId();
-            
+
             Dealer dealer = dealerService.getDealerByUserId(userId)
                 .orElseThrow(() -> new DealerNotFoundException(userId));
 
             return ResponseEntity.ok(dealer);
-            
+
         } catch (DealerNotFoundException e) {
             log.error("Dealer profile not found for user: {}", userDetails.getId());
             return ResponseEntity.status(404)
@@ -134,7 +134,7 @@ public class DealerController {
 
     /**
      * Check if dealer can create a new listing.
-     * 
+     *
      * @param userDetails Authenticated user details
      * @return Response with canCreate flag, reason, and trial status
      */
@@ -143,13 +143,13 @@ public class DealerController {
     public ResponseEntity<?> canCreateListing(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
             Long userId = userDetails.getId();
-            
+
             Dealer dealer = dealerService.getDealerByUserId(userId)
                 .orElseThrow(() -> new DealerNotFoundException(userId));
 
             boolean canCreate = dealerTrialService.canCreateListing(dealer);
             TrialStatus status = dealerTrialService.getTrialStatus(dealer);
-            
+
             // Determine reason based on status
             CanCreateListingResponse response;
             if (canCreate) {
@@ -169,9 +169,9 @@ public class DealerController {
                     response = CanCreateListingResponse.trialExpired(status);
                 }
             }
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (DealerNotFoundException e) {
             log.error("Dealer not found for user: {}", userDetails.getId());
             return ResponseEntity.status(404)

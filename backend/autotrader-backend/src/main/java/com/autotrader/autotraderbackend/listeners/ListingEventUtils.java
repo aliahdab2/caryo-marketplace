@@ -15,7 +15,7 @@ public class ListingEventUtils {
 
     /**
      * Extract seller information from a car listing in a safe way.
-     * 
+     *
      * @param listing The car listing, can be null
      * @return A string with the seller's information or "unknown" if not available
      */
@@ -23,17 +23,17 @@ public class ListingEventUtils {
         if (listing == null) {
             return "unknown";
         }
-        
+
         return Optional.ofNullable(listing.getSeller())
-                .map(seller -> String.format("'%s' (ID: %s)", 
-                        Objects.toString(seller.getUsername(), "unnamed"), 
+                .map(seller -> String.format("'%s' (ID: %s)",
+                        Objects.toString(seller.getUsername(), "unnamed"),
                         Objects.toString(seller.getId(), "unknown")))
                 .orElse("unknown seller");
     }
 
     /**
      * Extract listing information in a safe way.
-     * 
+     *
      * @param listing The car listing, can be null
      * @return A string with basic listing information
      */
@@ -41,9 +41,9 @@ public class ListingEventUtils {
         if (listing == null) {
             return "unknown listing";
         }
-        
-        return String.format("listing ID %s by %s", 
-                Objects.toString(listing.getId(), "unknown"), 
+
+        return String.format("listing ID %s by %s",
+                Objects.toString(listing.getId(), "unknown"),
                 getSellerInfo(listing));
     }
 }

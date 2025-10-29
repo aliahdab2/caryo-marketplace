@@ -114,7 +114,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 ## 📝 Document Categories
 
 - **🏗️ Architecture**: System design and technical structure
-- **⚙️ Setup**: Environment configuration and installation guides  
+- **⚙️ Setup**: Environment configuration and installation guides
 - **💻 Development**: Feature development and coding guidelines
 - **🧪 Testing**: Testing procedures and troubleshooting
 - **📋 Implementation**: Completed feature documentation and summaries

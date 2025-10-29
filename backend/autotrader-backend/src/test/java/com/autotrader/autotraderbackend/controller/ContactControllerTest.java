@@ -30,7 +30,7 @@ class ContactControllerTest {
 
     @Mock
     private EmailService emailService;
-    
+
     @Mock
     private MessageService messageService;
 
@@ -46,7 +46,7 @@ class ContactControllerTest {
         lenient().when(messageService.getMessage(eq("error.invalid.data"), eq("ar"), any())).thenReturn("بيانات غير صحيحة: test error");
         lenient().when(messageService.getMessage("error.server", "en")).thenReturn("Sorry, there was an error processing your message. Please try again later.");
         lenient().when(messageService.getMessage("error.server", "ar")).thenReturn("عذراً، حدث خطأ في معالجة رسالتك. يرجى المحاولة مرة أخرى لاحقاً.");
-        
+
         ContactController controller = new ContactController(emailService, messageService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
@@ -346,4 +346,4 @@ class ContactControllerTest {
         verify(emailService).sendContactFormEmail(request.getName(), "test@example.com", request.getMessage(), "en");
         verify(emailService).sendContactFormConfirmation(request.getName(), "test@example.com", "en");
     }
-} 
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { 
+import {
   ConvertibleIcon,
   CoupeIcon,
   EstateIcon,
@@ -22,7 +22,7 @@ import {
  */
 export const getCarIcon = (bodyStyleName: string, size: string = "w-16 h-12"): React.ReactNode => {
   const normalizedName = bodyStyleName.toLowerCase();
-  
+
   // Create a new icon map with the specified size
   const sizedIconMap: Record<string, React.ReactNode> = {
     'sedan': <SedanIcon className={size} />,

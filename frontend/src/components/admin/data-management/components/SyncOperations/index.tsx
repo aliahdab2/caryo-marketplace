@@ -33,7 +33,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
             {t('datamanagement:syncOperationsDesc')}
           </p>
         </div>
-        
+
         <div className={`flex flex-wrap items-center ${isRTL ? 'gap-x-reverse' : ''} gap-3`}>
           <button
             onClick={syncCarQuery}
@@ -44,13 +44,13 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
                 : 'bg-purple-600 hover:bg-purple-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             title={syncStatus?.carquery?.status === 'IN_PROGRESS'
-              ? `Syncing: ${syncStatus.carquery.lastSyncMessage || 'In progress...'}` 
+              ? `Syncing: ${syncStatus.carquery.lastSyncMessage || 'In progress...'}`
               : 'Import data from CarQuery API'}
           >
             <MdRefresh className={`w-4 h-4 ${syncingCarQuery ? 'animate-spin' : ''}`} />
             {syncingCarQuery ? t('datamanagement:syncing') : t('datamanagement:syncCarQuery')}
           </button>
-          
+
           <button
             onClick={syncSyrianCars}
             disabled={syncingSyrianCars || loading || (syncStatus?.syriancars?.status === 'IN_PROGRESS')}
@@ -60,7 +60,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
                 : 'bg-orange-600 hover:bg-orange-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
             title={syncStatus?.syriancars?.status === 'IN_PROGRESS'
-              ? `Syncing: ${syncStatus.syriancars.lastSyncMessage || 'In progress...'}` 
+              ? `Syncing: ${syncStatus.syriancars.lastSyncMessage || 'In progress...'}`
               : 'Import data from SyrianCars'}
           >
             <MdRefresh className={`w-4 h-4 ${syncingSyrianCars ? 'animate-spin' : ''}`} />
@@ -85,7 +85,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
           {syncStatus?.carquery && (
             <div className="space-y-2">
               <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                syncStatus.carquery.status !== 'FAILED' 
+                syncStatus.carquery.status !== 'FAILED'
                   ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                   : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
               }`}>
@@ -122,7 +122,7 @@ export const SyncOperations: React.FC<SyncOperationsProps> = ({
           {syncStatus?.syriancars && (
             <div className="space-y-2">
               <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                syncStatus.syriancars.status !== 'FAILED' 
+                syncStatus.syriancars.status !== 'FAILED'
                   ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                   : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
               }`}>

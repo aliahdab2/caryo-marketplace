@@ -4,7 +4,7 @@
 
 -- Car Conditions
 INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('new', 'New', 'جديد', 'new'),
     ('like_new', 'Like New', 'شبه جديد', 'like-new'),
     ('excellent', 'Excellent', 'ممتاز', 'excellent'),
@@ -19,7 +19,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- Drive Types
 INSERT INTO drive_types (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('fwd', 'Front-Wheel Drive', 'دفع أمامي', 'fwd'),
     ('rwd', 'Rear-Wheel Drive', 'دفع خلفي', 'rwd'),
     ('awd', 'All-Wheel Drive', 'دفع رباعي', 'awd'),
@@ -31,7 +31,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- Body Styles
 INSERT INTO body_styles (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('sedan', 'Sedan', 'سيدان', 'sedan'),
     ('suv', 'SUV', 'إس يو في', 'suv'),
     ('hatchback', 'Hatchback', 'هاتشباك', 'hatchback'),
@@ -49,7 +49,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- Fuel Types
 INSERT INTO fuel_types (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('gasoline', 'Gasoline', 'بنزين', 'gasoline'),
     ('diesel', 'Diesel', 'ديزل', 'diesel'),
     ('hybrid', 'Hybrid', 'هجين', 'hybrid'),
@@ -63,7 +63,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- Transmissions
 INSERT INTO transmissions (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('automatic', 'Automatic', 'أوتوماتيك', 'automatic'),
     ('manual', 'Manual', 'عادي', 'manual'),
     ('cvt', 'CVT', 'تعشيق مستمر', 'cvt'),
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS seller_types (
 );
 
 INSERT INTO seller_types (name, display_name_en, display_name_ar, slug)
-VALUES 
+VALUES
     ('private', 'Private Seller', 'بائع خاص', 'private'),
     ('dealer', 'Dealer', 'معرض سيارات', 'dealer'),
     ('certified', 'Certified Dealer', 'معرض معتمد', 'certified')

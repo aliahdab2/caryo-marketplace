@@ -10,11 +10,11 @@ interface LoadingSpinnerProps {
 /**
  * Reusable loading spinner component with multiple sizes and colors
  */
-export default function LoadingSpinner({ 
-  size = 'md', 
-  color = 'blue', 
+export default function LoadingSpinner({
+  size = 'md',
+  color = 'blue',
   className = '',
-  text 
+  text
 }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
@@ -30,7 +30,7 @@ export default function LoadingSpinner({
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <div 
+      <div
         className={`animate-spin rounded-full border-2 border-t-transparent ${sizeClasses[size]} ${colorClasses[color]}`}
         role="status"
         aria-label="Loading"

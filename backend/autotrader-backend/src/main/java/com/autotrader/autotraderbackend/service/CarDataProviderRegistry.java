@@ -50,7 +50,7 @@ public class CarDataProviderRegistry {
      */
     public Map<String, ProviderHealthStatus> getProvidersHealthStatus() {
         Map<String, ProviderHealthStatus> healthMap = new HashMap<>();
-        
+
         for (CarDataProvider provider : providers) {
             try {
                 ProviderHealthStatus health = new ProviderHealthStatus();
@@ -58,27 +58,27 @@ public class CarDataProviderRegistry {
                 health.setEnabled(provider.isEnabled());
                 health.setHealthy(provider.testConnection());
                 health.setLastChecked(System.currentTimeMillis());
-                
+
                 if (provider.isEnabled()) {
                     CarDataProvider.ProviderStatistics stats = provider.getStatistics();
                     health.setStatistics(stats);
                 }
-                
+
                 healthMap.put(provider.getProviderName(), health);
             } catch (Exception e) {
                 log.warn("Error checking health for provider {}: {}", provider.getProviderName(), e.getMessage());
-                
+
                 ProviderHealthStatus health = new ProviderHealthStatus();
                 health.setProviderName(provider.getProviderName());
                 health.setEnabled(provider.isEnabled());
                 health.setHealthy(false);
                 health.setLastChecked(System.currentTimeMillis());
                 health.setErrorMessage(e.getMessage());
-                
+
                 healthMap.put(provider.getProviderName(), health);
             }
         }
-        
+
         return healthMap;
     }
 
@@ -87,7 +87,7 @@ public class CarDataProviderRegistry {
      */
     public CompletableFuture<CarDataProvider.DataLoadResult> loadDataWithFallback() {
         List<CarDataProvider> enabledProviders = getEnabledProviders();
-        
+
         if (enabledProviders.isEmpty()) {
             log.warn("No enabled providers available for data loading");
             CarDataProvider.DataLoadResult result = new CarDataProvider.DataLoadResult();
@@ -104,7 +104,7 @@ public class CarDataProviderRegistry {
      */
     public CompletableFuture<CarDataProvider.DataLoadResult> loadDataFromProvider(String providerName) {
         Optional<CarDataProvider> provider = getProvider(providerName);
-        
+
         if (provider.isEmpty()) {
             log.warn("Provider {} not found", providerName);
             CarDataProvider.DataLoadResult result = new CarDataProvider.DataLoadResult();
@@ -140,7 +140,7 @@ public class CarDataProviderRegistry {
      */
     private CompletableFuture<CarDataProvider.DataLoadResult> loadFromProvidersSequentially(
             List<CarDataProvider> providers, int currentIndex) {
-        
+
         if (currentIndex >= providers.size()) {
             log.error("All providers failed to load data");
             CarDataProvider.DataLoadResult result = new CarDataProvider.DataLoadResult();
@@ -150,16 +150,16 @@ public class CarDataProviderRegistry {
         }
 
         CarDataProvider currentProvider = providers.get(currentIndex);
-        
+
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.info("Attempting to load data from provider: {} (priority: {})", 
+                log.info("Attempting to load data from provider: {} (priority: {})",
                     currentProvider.getProviderName(), currentProvider.getPriority());
-                
+
                 if (!currentProvider.testConnection()) {
                     throw new RuntimeException("Provider connection test failed");
                 }
-                
+
                 return currentProvider.loadCompleteDataset();
             } catch (Exception e) {
                 log.warn("Provider {} failed: {}", currentProvider.getProviderName(), e.getMessage());
@@ -181,7 +181,7 @@ public class CarDataProviderRegistry {
      */
     public AggregatedProviderStatistics getAggregatedStatistics() {
         AggregatedProviderStatistics aggregated = new AggregatedProviderStatistics();
-        
+
         for (CarDataProvider provider : getEnabledProviders()) {
             try {
                 CarDataProvider.ProviderStatistics stats = provider.getStatistics();
@@ -190,7 +190,7 @@ public class CarDataProviderRegistry {
                 log.warn("Error getting statistics from provider {}: {}", provider.getProviderName(), e.getMessage());
             }
         }
-        
+
         return aggregated;
     }
 
@@ -235,7 +235,7 @@ public class CarDataProviderRegistry {
             totalBrands += stats.getTotalBrands();
             totalModels += stats.getTotalModels();
             enabledProviders++;
-            
+
             if ("HEALTHY".equals(stats.getStatus()) || "ENABLED".equals(stats.getStatus())) {
                 healthyProviders++;
             }
@@ -247,8 +247,8 @@ public class CarDataProviderRegistry {
         public long getTotalModels() { return totalModels; }
         public int getEnabledProviders() { return enabledProviders; }
         public int getHealthyProviders() { return healthyProviders; }
-        public double getHealthPercentage() { 
-            return enabledProviders > 0 ? (double) healthyProviders / enabledProviders * 100 : 0; 
+        public double getHealthPercentage() {
+            return enabledProviders > 0 ? (double) healthyProviders / enabledProviders * 100 : 0;
         }
     }
 }

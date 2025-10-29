@@ -37,10 +37,10 @@ class DataInitializerTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-    
+
     @Mock
     private JwtUtils jwtUtils;
-    
+
     @Mock
     private RoleRepository roleRepository;
 
@@ -52,25 +52,25 @@ class DataInitializerTest {
         // Common mocking setup
         when(passwordEncoder.encode(anyString())).thenReturn("encoded_password");
         when(jwtUtils.generateJwtToken(any(Authentication.class))).thenReturn("test.jwt.token");
-        
+
         // Mock roles
         Role userRole = new Role("ROLE_USER");
         Role adminRole = new Role("ROLE_ADMIN");
         when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
         when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
-        
+
         // Setup findByUsername mock for all usernames
         User mockUser = new User("user", "user@caryo.sy", "encoded_password");
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(userRole);
         mockUser.setRoles(userRoles);
-        
+
         User mockAdmin = new User("admin", "admin@caryo.sy", "encoded_password");
         Set<Role> adminRoles = new HashSet<>();
         adminRoles.add(userRole);
         adminRoles.add(adminRole);
         mockAdmin.setRoles(adminRoles);
-        
+
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(mockUser));
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(mockAdmin));
     }
@@ -138,7 +138,7 @@ class DataInitializerTest {
         assertEquals(AccountStatus.VERIFIED, savedUser.getAccountStatus());
         assertEquals(VerificationMethod.OAUTH, savedUser.getVerificationMethod());
     }
-    
+
     @Test
     void shouldCreateAdminWithCorrectRoles() {
         // Given
@@ -176,7 +176,7 @@ class DataInitializerTest {
         assertEquals(AccountStatus.VERIFIED, savedUser.getAccountStatus());
         assertEquals(VerificationMethod.OAUTH, savedUser.getVerificationMethod());
     }
-    
+
     @Test
     void shouldGenerateTokensForBothUsers() {
         // Given
@@ -189,7 +189,7 @@ class DataInitializerTest {
         // Then
         verify(jwtUtils, times(2)).generateJwtToken(any(Authentication.class));
     }
-    
+
     @Test
     void shouldNotCreateUsersWhenTheyAlreadyExist() {
         // Given - users exist but are not verified

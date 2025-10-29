@@ -160,7 +160,7 @@ class DriveTypeServiceTest {
         updatedDriveType.setName("4wd");
         updatedDriveType.setDisplayNameEn("Four-Wheel Drive");
         updatedDriveType.setDisplayNameAr("دفع رباعي");
-        
+
         when(driveTypeRepository.findById(1L)).thenReturn(Optional.of(testDriveType));
         when(driveTypeRepository.save(any(DriveType.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -172,7 +172,7 @@ class DriveTypeServiceTest {
         assertEquals(updatedDriveType.getName(), result.getName());
         assertEquals(updatedDriveType.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedDriveType.getDisplayNameAr(), result.getDisplayNameAr());
-        
+
         verify(driveTypeRepository, times(1)).findById(1L);
         verify(driveTypeRepository, times(1)).save(any(DriveType.class));
     }
@@ -182,10 +182,10 @@ class DriveTypeServiceTest {
         // Arrange
         when(driveTypeRepository.findById(1L)).thenReturn(Optional.of(testDriveType));
         doNothing().when(driveTypeRepository).delete(testDriveType);
-        
+
         // Act
         driveTypeService.deleteDriveType(1L);
-        
+
         // Assert
         verify(driveTypeRepository, times(1)).findById(1L);
         verify(driveTypeRepository, times(1)).delete(testDriveType);

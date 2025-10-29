@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Comprehensive test suite for {@link CurrencyUtil}.
- * 
+ *
  * <p>Tests cover all utility methods including validation, formatting,
  * recommendations, and Syrian marketplace-specific functionality.</p>
  */
@@ -31,7 +31,7 @@ class CurrencyUtilTest {
         @DisplayName("Should validate and normalize supported currencies")
         void shouldValidateAndNormalizeSupportedCurrencies(String currency) {
             String result = CurrencyUtil.validateAndNormalize(currency);
-            
+
             assertThat(result)
                 .isIn("USD", "SYP")
                 .isEqualTo(currency.trim().toUpperCase());
@@ -73,7 +73,7 @@ class CurrencyUtilTest {
         void shouldFormatUsdPricesCorrectly() {
             BigDecimal amount = new BigDecimal("25000.50");
             String formatted = CurrencyUtil.formatPrice(amount, "USD");
-            
+
             assertThat(formatted).isEqualTo("$25,000.50");
         }
 
@@ -82,7 +82,7 @@ class CurrencyUtilTest {
         void shouldFormatSypPricesCorrectlyWithoutDecimals() {
             BigDecimal amount = new BigDecimal("12500000");
             String formatted = CurrencyUtil.formatPrice(amount, "SYP");
-            
+
             assertThat(formatted).isEqualTo("SYR12,500,000");
         }
 
@@ -91,7 +91,7 @@ class CurrencyUtilTest {
         void shouldHandleLargeUsdAmounts() {
             BigDecimal amount = new BigDecimal("125000.99");
             String formatted = CurrencyUtil.formatPrice(amount, "USD");
-            
+
             assertThat(formatted).isEqualTo("$125,000.99");
         }
 
@@ -100,7 +100,7 @@ class CurrencyUtilTest {
         void shouldHandleSypAmountsWithDecimalsByRounding() {
             BigDecimal amount = new BigDecimal("12500000.75");
             String formatted = CurrencyUtil.formatPrice(amount, "SYP");
-            
+
             assertThat(formatted).isEqualTo("SYR12,500,001");
         }
 
@@ -117,7 +117,7 @@ class CurrencyUtilTest {
         void shouldFormatPriceWithCurrencyCode() {
             BigDecimal amount = new BigDecimal("25000.50");
             String formatted = CurrencyUtil.formatPriceWithCode(amount, "USD");
-            
+
             assertThat(formatted).isEqualTo("25000.50 USD");
         }
     }
@@ -158,7 +158,7 @@ class CurrencyUtilTest {
         @DisplayName("Should get USD currency info")
         void shouldGetUsdCurrencyInfo() {
             CurrencyUtil.CurrencyInfo info = CurrencyUtil.getCurrencyInfo("USD");
-            
+
             assertThat(info.getCode()).isEqualTo("USD");
             assertThat(info.getName()).isEqualTo("US Dollar");
             assertThat(info.getSymbol()).isEqualTo("$");
@@ -170,7 +170,7 @@ class CurrencyUtilTest {
         @DisplayName("Should get SYP currency info")
         void shouldGetSypCurrencyInfo() {
             CurrencyUtil.CurrencyInfo info = CurrencyUtil.getCurrencyInfo("SYP");
-            
+
             assertThat(info.getCode()).isEqualTo("SYP");
             assertThat(info.getName()).isEqualTo("Syrian Pound");
             assertThat(info.getSymbol()).isEqualTo("SYR");
@@ -182,7 +182,7 @@ class CurrencyUtilTest {
         @DisplayName("Should get all currency info")
         void shouldGetAllCurrencyInfo() {
             Map<String, CurrencyUtil.CurrencyInfo> allInfo = CurrencyUtil.getAllCurrencyInfo();
-            
+
             assertThat(allInfo)
                 .hasSize(2)
                 .containsKeys("USD", "SYP");
@@ -315,7 +315,7 @@ class CurrencyUtilTest {
         @DisplayName("Should have correct supported currencies")
         void shouldHaveCorrectSupportedCurrencies() {
             Set<String> supported = CurrencyUtil.SUPPORTED_CURRENCIES;
-            
+
             assertThat(supported)
                 .hasSize(2)
                 .containsExactlyInAnyOrder("USD", "SYP");
@@ -332,7 +332,7 @@ class CurrencyUtilTest {
             CurrencyUtil.CurrencyInfo info = new CurrencyUtil.CurrencyInfo(
                 "USD", "US Dollar", "$", 2, "Test description"
             );
-            
+
             assertThat(info.getCode()).isEqualTo("USD");
             assertThat(info.getName()).isEqualTo("US Dollar");
             assertThat(info.getSymbol()).isEqualTo("$");
@@ -346,7 +346,7 @@ class CurrencyUtilTest {
             CurrencyUtil.CurrencyInfo info = new CurrencyUtil.CurrencyInfo(
                 "USD", "US Dollar", "$", 2, "Test description"
             );
-            
+
             String toString = info.toString();
             assertThat(toString)
                 .contains("USD")
@@ -366,7 +366,7 @@ class CurrencyUtilTest {
             CurrencyUtil.CurrencyInfo info3 = new CurrencyUtil.CurrencyInfo(
                 "SYP", "Syrian Pound", "S£", 0, "Description 3"
             );
-            
+
             assertThat(info1).isEqualTo(info2);
             assertThat(info1).isNotEqualTo(info3);
             assertThat(info1.hashCode()).isEqualTo(info2.hashCode());

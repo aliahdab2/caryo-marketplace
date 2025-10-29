@@ -39,9 +39,9 @@ import jakarta.mail.internet.MimeMessage;
 @Configuration
 @Profile("test")
 public class TestEmailConfig {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TestEmailConfig.class);
-    
+
     /**
      * Mock JavaMailSender that logs email attempts instead of sending real emails
      */
@@ -51,55 +51,55 @@ public class TestEmailConfig {
         return new JavaMailSender() {
             @Override
             public void send(SimpleMailMessage simpleMessage) {
-                logger.info("Mock email send: {} to {}", 
-                    simpleMessage.getSubject(), 
-                    simpleMessage.getTo() != null && simpleMessage.getTo().length > 0 
+                logger.info("Mock email send: {} to {}",
+                    simpleMessage.getSubject(),
+                    simpleMessage.getTo() != null && simpleMessage.getTo().length > 0
                         ? simpleMessage.getTo()[0] : "unknown");
             }
-            
+
             @Override
             public void send(MimeMessage mimeMessage) {
                 logger.info("Mock email send: MimeMessage (test mode)");
             }
-            
+
             @Override
             public void send(MimeMessagePreparator mimeMessagePreparator) {
                 logger.info("Mock email send: MimeMessagePreparator (test mode)");
             }
-            
+
             @Override
             public MimeMessage createMimeMessage() {
                 return new MockMimeMessage();
             }
-            
+
             @Override
             public void send(SimpleMailMessage... simpleMessages) {
                 for (SimpleMailMessage message : simpleMessages) {
                     send(message);
                 }
             }
-            
+
             @Override
             public void send(MimeMessage... mimeMessages) {
                 for (MimeMessage message : mimeMessages) {
                     send(message);
                 }
             }
-            
+
             @Override
             public void send(MimeMessagePreparator... mimeMessagePreparators) {
                 for (MimeMessagePreparator preparator : mimeMessagePreparators) {
                     send(preparator);
                 }
             }
-            
+
             @Override
             public MimeMessage createMimeMessage(java.io.InputStream contentStream) {
                 return createMimeMessage();
             }
         };
     }
-    
+
     /**
      * Simple mock MimeMessage for testing
      */
@@ -107,7 +107,7 @@ public class TestEmailConfig {
         public MockMimeMessage() {
             super((jakarta.mail.Session) null);
         }
-        
+
         @Override
         public void saveChanges() {
             // No-op for mock
@@ -121,14 +121,14 @@ public class TestEmailConfig {
     @Primary
     public TemplateEngine templateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        
+
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/emails/");
         templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(false);
-        
+
         templateEngine.setTemplateResolver(templateResolver);
         return templateEngine;
     }
@@ -178,7 +178,7 @@ spring.thymeleaf.suffix=.html
 # Unit tests for EmailService
 ./gradlew test --tests=EmailServiceTest
 
-# Integration tests for ContactController  
+# Integration tests for ContactController
 ./gradlew test --tests=ContactControllerTest
 
 # Application context tests

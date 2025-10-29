@@ -12,7 +12,7 @@ import { usePasswordValidation } from '@/components/auth/PasswordValidation';
 // Helper function to format role names and get styling
 const formatRole = (role: string) => {
   const cleanRole = role.replace(/^ROLE_/, '').toLowerCase();
-  
+
   // Color and styling mapping for different roles
   const roleStyles = {
     user: {
@@ -66,14 +66,14 @@ export default function ProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   // Use centralized password validation
   const { isValid: isPasswordValid, firstError: passwordValidationError } = usePasswordValidation(passwordForm.newPassword);
-  
+
   // Check if user logged in via OAuth (like Google)
-  const isOAuthUser = user?.image?.includes('googleusercontent.com') || 
+  const isOAuthUser = user?.image?.includes('googleusercontent.com') ||
                       localStorage.getItem('authMethod') === 'oauth';
-  
+
   // Form state (in a real app, this would be handled with React Hook Form)
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -87,7 +87,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const updateRoles = async () => {
       const roles = localStorage.getItem('userRoles');
-      
+
       if (roles) {
         try {
           const roleArray = JSON.parse(roles);
@@ -151,7 +151,7 @@ export default function ProfilePage() {
     // Listen for storage changes
     const handleStorageChange = () => updateRoles();
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -260,7 +260,7 @@ export default function ProfilePage() {
         <div className="absolute inset-0 bg-black/10">
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent"></div>
         </div>
-        
+
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="flex-1">
             <h1 className="text-4xl lg:text-5xl font-bold mb-3 leading-tight">
@@ -270,10 +270,10 @@ export default function ProfilePage() {
               {t('manageProfile')}
             </p>
           </div>
-          
+
           {!isEditing && (
             <div className="flex flex-col sm:flex-row gap-3">
-              <button 
+              <button
                 onClick={() => setIsEditing(true)}
                 className="group px-8 py-4 bg-white/15 backdrop-blur-md border border-white/25 text-white rounded-2xl hover:bg-white/25 transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 active:translate-y-0 flex items-center gap-3"
               >
@@ -302,7 +302,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="p-8 lg:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               <div className="space-y-2">
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +360,7 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="lg:col-span-2 space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                   <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,7 +428,7 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end mt-8 space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
               <button
                 type="button"
@@ -485,7 +485,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          
+
           {/* Profile Details */}
           <div className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -508,7 +508,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Contact Information */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
                 <div className="flex items-center mb-4">
@@ -537,7 +537,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Bio Section */}
             <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6">
               <div className="flex items-center mb-4">
@@ -555,7 +555,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-      
+
       {/* Account Security Section */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-8 py-6 border-b border-gray-200 dark:border-gray-600">
@@ -567,7 +567,7 @@ export default function ProfilePage() {
           </div>
           <p className="text-gray-600 dark:text-gray-300 mt-2">{t('manageSecuritySettings')}</p>
         </div>
-        
+
         <div className="p-8 space-y-6">
           {/* Password Management for non-OAuth users */}
           {!isOAuthUser && (
@@ -589,7 +589,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowPasswordModal(true)}
                   className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap"
                 >
@@ -598,7 +598,7 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
-          
+
           {/* OAuth Authentication info for OAuth users */}
           {isOAuthUser && (
             <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 border-l-4 border-green-500">
@@ -629,7 +629,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          
+
           {/* Two-Factor Authentication for non-OAuth users */}
           {!isOAuthUser && (
             <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border-l-4 border-amber-500">

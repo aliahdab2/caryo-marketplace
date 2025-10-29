@@ -176,9 +176,9 @@ public void sendNewTemplateEmail(User user, String language) {
     variables.put("userName", user.getUsername());
     variables.put("userEmail", user.getEmail());
     // ... other variables
-    
+
     String subject = language.equals("ar") ? "Arabic Subject" : "English Subject";
-    
+
     sendTemplatedEmail(
         user.getEmail(),
         subject,
@@ -200,7 +200,7 @@ void testTemplateValidation() {
     Map<String, Object> variables = new HashMap<>();
     variables.put("userName", "testuser");
     variables.put("userEmail", "test@example.com");
-    
+
     assertTrue(templateService.validateTemplate("welcome", variables));
 }
 ```

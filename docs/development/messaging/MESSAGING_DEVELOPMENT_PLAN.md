@@ -106,7 +106,7 @@ conversation_participants -- Participant management with mute and read tracking
 ### **📊 Testing Coverage:**
 ```
 Model Tests:          7 classes, 125+ test methods
-DTO Tests:            2 classes,  40+ test methods  
+DTO Tests:            2 classes,  40+ test methods
 Repository Tests:     2 classes,  40+ test methods
 Total Coverage:      11 classes, 205+ test methods
 ```

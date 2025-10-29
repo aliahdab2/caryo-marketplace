@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import Link from "next/link";
-import { 
+import {
   MdHelp,
   MdContactSupport,
   MdBugReport,
@@ -118,8 +118,8 @@ export default function SupportPage() {
     }
   ];
 
-  const filteredFAQs = selectedCategory === 'all' 
-    ? faqData 
+  const filteredFAQs = selectedCategory === 'all'
+    ? faqData
     : faqData.filter(faq => faq.category === selectedCategory);
 
   const toggleFAQ = (id: string) => {
@@ -179,7 +179,7 @@ export default function SupportPage() {
               <Link
                 key={index}
                 href={action.href}
-                className={`${colorClasses.bg} ${colorClasses.border} ${colorClasses.hover} 
+                className={`${colorClasses.bg} ${colorClasses.border} ${colorClasses.hover}
                           border rounded-xl p-6 transition-all duration-200 group`}
               >
                 <div className="flex flex-col items-center text-center">
@@ -201,7 +201,7 @@ export default function SupportPage() {
 
       {/* Contact Information */}
       <div className="mb-10">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20
                        rounded-xl p-6 border border-blue-200 dark:border-blue-800">
           <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-300 mb-4">
             {t('support.contactInfo', 'Need Direct Support?')}
@@ -237,7 +237,7 @@ export default function SupportPage() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
           {t('support.faq', 'Frequently Asked Questions')}
         </h2>
-        
+
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2 mb-6">
           {categories.map((category) => (
@@ -315,7 +315,7 @@ export default function SupportPage() {
               </div>
               <MdArrowForward className="text-gray-400 group-hover:text-primary transition-colors" size={16} />
             </Link>
-            
+
             <Link
               href="/saved/alerts"
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
@@ -328,7 +328,7 @@ export default function SupportPage() {
               </div>
               <MdArrowForward className="text-gray-400 group-hover:text-primary transition-colors" size={16} />
             </Link>
-            
+
             <Link
               href={`/${currentLang}/dashboard/settings`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
@@ -341,7 +341,7 @@ export default function SupportPage() {
               </div>
               <MdArrowForward className="text-gray-400 group-hover:text-primary transition-colors" size={16} />
             </Link>
-            
+
             <Link
               href={`/${currentLang}/dashboard/profile`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"

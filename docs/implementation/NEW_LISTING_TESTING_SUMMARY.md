@@ -37,12 +37,12 @@ The project already has comprehensive testing infrastructure. Use these instead 
 # Run comprehensive Postman tests (includes listing creation)
 ./run-postman-tests.sh
 
-# Run authentication-specific tests  
+# Run authentication-specific tests
 ./scripts/testing/test-auth-paths.sh
 ```
 
 ### Manual Frontend Testing
-1. Start backend: `./autotrader.sh dev start` 
+1. Start backend: `./autotrader.sh dev start`
 2. Start frontend: `npm run dev`
 3. Navigate to: `http://localhost:3000/dashboard/listings/new`
 4. Test the 4-step form with real data
@@ -52,7 +52,7 @@ The project already has comprehensive testing infrastructure. Use these instead 
 ### Step 1: Basic Information
 - Title, Description, Price (all required)
 
-### Step 2: Car Details  
+### Step 2: Car Details
 - Make/Brand (dropdown with real backend data)
 - Model (dropdown that populates based on selected make)
 - Year, Mileage (required)
@@ -71,7 +71,7 @@ The project already has comprehensive testing infrastructure. Use these instead 
 ### Frontend
 - `src/app/dashboard/listings/new/page.tsx` - Main form component
 - `src/services/referenceData.ts` - Car brands/models API
-- `src/services/listings.ts` - Listing creation API  
+- `src/services/listings.ts` - Listing creation API
 - `src/utils/auth.ts` - Centralized authentication
 - `public/locales/{en,ar}/*.json` - Translation files
 
@@ -83,7 +83,7 @@ The project already has comprehensive testing infrastructure. Use these instead 
 ✅ **All success criteria met:**
 - New listing form loads without errors
 - Car makes/models dropdowns populate with real backend data
-- Form follows translation guide with proper namespace structure  
+- Form follows translation guide with proper namespace structure
 - Form integrates with backend API and authentication
 - Listing creation works end-to-end
 - Database schema supports listing creation without constraints errors

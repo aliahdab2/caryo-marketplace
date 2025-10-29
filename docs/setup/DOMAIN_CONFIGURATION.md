@@ -1,7 +1,7 @@
 # Domain Configuration Guide
 
 ## Current Setup Status
-✅ **Development-Ready**: Your sitemap configuration now defaults to `localhost:3000` for development  
+✅ **Development-Ready**: Your sitemap configuration now defaults to `localhost:3000` for development
 🔄 **Production-Flexible**: Easy to update when you choose your domain name
 
 ## Environment Variable Setup

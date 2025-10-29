@@ -22,11 +22,11 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
     const principal = listing.price - downPayment;
     const monthlyRate = interestRate / 100 / 12;
     const numberOfPayments = loanTerm;
-    
+
     if (monthlyRate === 0) {
       return principal / numberOfPayments;
     }
-    
+
     const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
     return monthlyPayment;
   };
@@ -37,7 +37,7 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-      <div 
+      <div
         className="p-4 sm:p-6 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -48,17 +48,17 @@ const FinancingCalculator: React.FC<FinancingCalculatorProps> = ({ listing }) =>
             </svg>
             {t('financing')}
           </h3>
-          <svg 
+          <svg
             className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
-        
+
         {!isExpanded && (
           <div className="mt-3">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">

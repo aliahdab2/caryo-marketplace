@@ -10,8 +10,8 @@ import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
 import { CarMake, CarModel } from '@/types/car';
-import { 
-  fetchCarBrands, 
+import {
+  fetchCarBrands,
   fetchCarModels,
   fetchCarReferenceData,
   fetchCarListings,
@@ -58,7 +58,7 @@ export default function AdvancedSearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { dirClass, isRTL } = useLanguageDirection();
-  
+
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = currentLang;
 
@@ -80,7 +80,7 @@ export default function AdvancedSearchPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [currentPage, setCurrentPage] = useState(0);
   const shouldScrollAfterPageChange = useRef(false);
-  
+
   // New state for all models (for makeModel filter modal)
   const [allModels, setAllModels] = useState<CarModel[]>([]);
   const [isLoadingAllModels, setIsLoadingAllModels] = useState(false);
@@ -90,7 +90,7 @@ export default function AdvancedSearchPage() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       const dropdown = document.querySelector('.location-dropdown-container');
-      
+
       // Only close if clicking outside the entire dropdown container
       // Don't close immediately to allow for checkbox interactions
       if (dropdown && !dropdown.contains(target)) {
@@ -136,19 +136,19 @@ export default function AdvancedSearchPage() {
       size: 20, // Default page size
       page: currentPage, // Use current page state
       sort: getSortValue(selectedSort), // Use selectedSort state
-      
+
       // Add missing filter fields that are defined in CarListingFilterParams
       transmissionId: filters.transmissionId,
       fuelTypeSlugs: filters.fuelTypeSlugs,
       bodyType: filters.bodyType,
       conditionId: filters.conditionId,
-      
+
       // Slug-based filtering - ensure we have valid arrays
-      brands: filters.brands && filters.brands.length > 0 
-        ? filters.brands.filter(brand => brand && brand.trim()) 
+      brands: filters.brands && filters.brands.length > 0
+        ? filters.brands.filter(brand => brand && brand.trim())
         : undefined,
-      models: filters.models && filters.models.length > 0 
-        ? filters.models.filter(model => model && model.trim()) 
+      models: filters.models && filters.models.length > 0
+        ? filters.models.filter(model => model && model.trim())
         : undefined
     };
 
@@ -238,19 +238,19 @@ export default function AdvancedSearchPage() {
           setIsLoadingAllModels(false);
         }
       };
-      
+
       fetchAllModels();
     }
   }, [activeFilterModal, carMakes]);
 
   // Stable dependency for models to prevent loops
-  const modelsFetchKey = useMemo(() => 
-    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '', 
+  const modelsFetchKey = useMemo(() =>
+    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake]
   );
 
   // Stable fetch function to prevent recreation on every render
-  const fetchModelsFunction = useMemo(() => 
+  const fetchModelsFunction = useMemo(() =>
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     [selectedMake]
   );
@@ -286,7 +286,7 @@ export default function AdvancedSearchPage() {
   );
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
-  const getTransmissionDisplayName = useMemo(() => 
+  const getTransmissionDisplayName = useMemo(() =>
     (id: number): string => {
       const transmission = referenceData?.transmissions?.find(t => t.id === id);
       return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
@@ -300,14 +300,14 @@ export default function AdvancedSearchPage() {
     }, [referenceData?.fuelTypes, currentLanguage]
   );
 
-  const getBodyStyleDisplayName = useMemo(() => 
+  const getBodyStyleDisplayName = useMemo(() =>
     (slug: string): string => {
       const bodyStyle = referenceData?.bodyStyles?.find(b => b.slug === slug);
       return bodyStyle ? (currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn) : '';
     }, [referenceData?.bodyStyles, currentLanguage]
   );
 
-  const getSellerTypeDisplayName = useMemo(() => 
+  const getSellerTypeDisplayName = useMemo(() =>
     (id: number): string => {
       const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
       if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
@@ -318,7 +318,7 @@ export default function AdvancedSearchPage() {
     }, [referenceData?.sellerTypes, currentLanguage]
   );
 
-  const _getConditionDisplayName = useMemo(() => 
+  const _getConditionDisplayName = useMemo(() =>
     (id: number): string => {
       const condition = referenceData?.carConditions?.find(c => c.id === id);
       return condition ? (currentLanguage === 'ar' ? condition.displayNameAr : condition.displayNameEn) : '';
@@ -331,8 +331,8 @@ export default function AdvancedSearchPage() {
   // Memoized filter count for UI display
   const filterCount = useMemo(() => {
     return (
-      (filters.brands?.length || 0) + 
-      (filters.models?.length || 0) + 
+      (filters.brands?.length || 0) +
+      (filters.models?.length || 0) +
       (filters.minPrice || filters.maxPrice ? 1 : 0) +
       (filters.minYear || filters.maxYear ? 1 : 0) +
       (filters.minMileage || filters.maxMileage ? 1 : 0) +
@@ -368,14 +368,14 @@ export default function AdvancedSearchPage() {
     if (model) {
       return currentLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
     }
-    
+
     // If not found, try to extract display name from slug
     // Convert slug like "honda-civic" to "Honda Civic"
     const words = slug.split('-');
     const displayName = words
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
-    
+
     return displayName;
   }, [availableModels, currentLanguage]);
 
@@ -387,23 +387,23 @@ export default function AdvancedSearchPage() {
     if (hasInitialized || !searchParams) return;
 
     const initialFilters: AdvancedSearchFilters = {};
-    
+
     // Handle URL parameters with clean singular form
     const brands = searchParams.getAll('brand');
     const models = searchParams.getAll('model');
-    
+
     if (brands.length > 0) {
       initialFilters.brands = brands;
     }
-    
+
     if (models.length > 0) {
       initialFilters.models = models;
     }
-    
+
     // Handle location parameters - support comma-separated values
     const locationParams = searchParams.getAll('location'); // Legacy support
     const locationsParam = searchParams.get('locations'); // New format
-    
+
     if (locationsParam) {
       // Parse dash-separated locations (maximum SEO-friendly format)
       initialFilters.locations = locationsParam.split('-').map(loc => loc.trim()).filter(loc => loc);
@@ -411,17 +411,17 @@ export default function AdvancedSearchPage() {
       // Backward compatibility for old multiple location parameters
       initialFilters.locations = locationParams;
     }
-    
+
     // Other simple filters
     const minYear = searchParams.get('minYear');
     if (minYear) initialFilters.minYear = parseInt(minYear);
-    
-    const maxYear = searchParams.get('maxYear');  
+
+    const maxYear = searchParams.get('maxYear');
     if (maxYear) initialFilters.maxYear = parseInt(maxYear);
-    
+
     const minPrice = searchParams.get('minPrice');
     if (minPrice) initialFilters.minPrice = parseFloat(minPrice);
-    
+
     const maxPrice = searchParams.get('maxPrice');
     if (maxPrice) initialFilters.maxPrice = parseFloat(maxPrice);
 
@@ -459,15 +459,15 @@ export default function AdvancedSearchPage() {
   // Reset monitoring state when filters actually change (not when isMonitoring changes)
   useEffect(() => {
     if (!hasInitialized) return;
-    
+
     const currentFiltersString = JSON.stringify({ filters, searchQuery });
-    
+
     // Only reset if filters actually changed (not on first render or isMonitoring change)
     if (prevFiltersRef.current && prevFiltersRef.current !== currentFiltersString && isMonitoring) {
       console.log('🔄 Filters changed, resetting monitoring state');
       setIsMonitoring(false);
     }
-    
+
     prevFiltersRef.current = currentFiltersString;
   }, [filters, searchQuery, hasInitialized, isMonitoring]);
 
@@ -479,21 +479,21 @@ export default function AdvancedSearchPage() {
   const updateUrlFromFilters = useCallback((newFilters: AdvancedSearchFilters, page?: number) => {
 
     const params = new URLSearchParams();
-    
+
     // Location first for SEO - local relevance is primary
     if (newFilters.locations && newFilters.locations.length > 0) {
 
       // Use dash-separated values for maximum SEO-friendliness (no encoding ever)
       params.set('locations', newFilters.locations.join('-'));
     }
-    
+
     // Add brand slugs - use singular form for clean URLs
     if (newFilters.brands && newFilters.brands.length > 0) {
       newFilters.brands.forEach(brand => {
         params.append('brand', brand);
       });
     }
-    
+
     // Add model slugs - use singular form for clean URLs
     if (newFilters.models && newFilters.models.length > 0) {
       newFilters.models.forEach(model => {
@@ -517,13 +517,13 @@ export default function AdvancedSearchPage() {
     if (newFilters.sellerTypeIds && newFilters.sellerTypeIds.length > 0) {
       newFilters.sellerTypeIds.forEach(id => params.append('sellerTypeId', id.toString()));
     }
-    
+
     // Add page parameter (only if not first page)
     const pageToUse = page !== undefined ? page : currentPage;
     if (pageToUse > 0) {
       params.append('page', pageToUse.toString());
     }
-    
+
     // Update URL without causing a page reload
     const newUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
     router.replace(newUrl, { scroll: false });
@@ -567,7 +567,7 @@ export default function AdvancedSearchPage() {
   // Convert brand/model slugs to selected IDs when data loads (optimized)
   useEffect(() => {
     if (!carMakes || carMakes.length === 0) return;
-    
+
     if (filters.brands && filters.brands.length > 0) {
       const firstBrandSlug = filters.brands[0];
       const brand = carMakes.find(make => make.slug === firstBrandSlug);
@@ -581,7 +581,7 @@ export default function AdvancedSearchPage() {
 
   useEffect(() => {
     if (!availableModels || availableModels.length === 0) return;
-    
+
     if (filters.models && filters.models.length > 0) {
       const firstModelSlug = filters.models[0];
       const model = availableModels.find(m => m.slug === firstModelSlug);
@@ -625,7 +625,7 @@ export default function AdvancedSearchPage() {
           // Don't include transmissionId, fuelTypeSlugs, or bodyStyleIds as they're not supported by this endpoint
           // Don't include sellerTypeId in count queries
         };
-        
+
         const counts = await getSellerTypeCounts(apiFilters);
         setSellerTypeCounts(counts);
       } catch (error) {
@@ -671,7 +671,7 @@ export default function AdvancedSearchPage() {
     if (stateUpdates?.selectedModel !== undefined) {
       setSelectedModel(stateUpdates.selectedModel);
     }
-    
+
     setFilters(prev => {
       const newFilters = { ...prev, ...updates };
       return newFilters;
@@ -711,12 +711,12 @@ export default function AdvancedSearchPage() {
         // If new maxMileage is less than current minMileage, clear minMileage
         newFilters.minMileage = undefined;
       }
-      
+
       return newFilters;
     });
   }, []);
 
-  // Clear filter - simplified to prevent loops  
+  // Clear filter - simplified to prevent loops
   const clearSpecificFilter = useCallback((filterType: FilterType) => {
     switch (filterType) {
       case 'makeModel':
@@ -758,7 +758,7 @@ export default function AdvancedSearchPage() {
         if (filters.brands && filters.brands.length > 0) {
           const brandNames = filters.brands.map(slug => getBrandDisplayNameFromSlug(slug));
           let display = brandNames.join(', ');
-          
+
           if (filters.models && filters.models.length > 0) {
             const modelNames = filters.models.map(slug => getModelDisplayNameFromSlug(slug));
             display += ` - ${modelNames.join(', ')}`;
@@ -785,8 +785,8 @@ export default function AdvancedSearchPage() {
         return filters.transmissionId ? getTransmissionDisplayName(filters.transmissionId) : t('transmission', 'Transmission');
 
       case 'fuelType':
-        return filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0 
-          ? filters.fuelTypeSlugs.map(slug => getFuelTypeDisplayNameFromSlug(slug)).join(', ') 
+        return filters.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0
+          ? filters.fuelTypeSlugs.map(slug => getFuelTypeDisplayNameFromSlug(slug)).join(', ')
           : t('fuelType', 'Fuel type');
       case 'bodyStyle':
                 return filters.bodyType && filters.bodyType.length > 0
@@ -795,8 +795,8 @@ export default function AdvancedSearchPage() {
             : `${filters.bodyType.length} ${t('bodyStyles', 'Body types')}`
           : t('bodyStyle', 'Body style');
       case 'sellerType':
-        return filters.sellerTypeIds && filters.sellerTypeIds.length > 0 
-          ? filters.sellerTypeIds.length === 1 
+        return filters.sellerTypeIds && filters.sellerTypeIds.length > 0
+          ? filters.sellerTypeIds.length === 1
             ? getSellerTypeDisplayName(filters.sellerTypeIds[0])
             : `${filters.sellerTypeIds.length} ${t('sellerType', 'Seller types')}`
           : t('sellerType', 'Seller type');
@@ -839,7 +839,7 @@ export default function AdvancedSearchPage() {
     if (searchQuery && searchQuery.trim()) {
       return true;
     }
-    
+
     // Check if there are any filter values
     return Object.values(filters).some(value => {
       if (Array.isArray(value)) {
@@ -855,7 +855,7 @@ export default function AdvancedSearchPage() {
   // Helper function to extract clean model name from brand-model format
   const extractModelName = useCallback((modelSlug: string, brandSlug?: string) => {
     if (!modelSlug) return modelSlug;
-    
+
     // If brand is provided and model starts with brand-, remove the brand prefix
     if (brandSlug && modelSlug.toLowerCase().startsWith(brandSlug.toLowerCase() + '-')) {
       const modelPart = modelSlug.substring(brandSlug.length + 1);
@@ -864,7 +864,7 @@ export default function AdvancedSearchPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
     }
-    
+
     // For compound model slugs like "honda-accord", try to extract just the model part
     // by checking against actual brand slugs from the database
     if (carMakes && carMakes.length > 0) {
@@ -878,7 +878,7 @@ export default function AdvancedSearchPage() {
         }
       }
     }
-    
+
     // Otherwise, just format the model name nicely (capitalize each word)
     return modelSlug
       .split('-')
@@ -903,7 +903,7 @@ export default function AdvancedSearchPage() {
   const _getModelDisplayName = useCallback((modelSlug: string, isArabic: boolean) => {
     // First try to find by exact slug match in allModels
     let model = allModels?.find(m => m.slug === modelSlug);
-    
+
     // If not found and slug contains a dash, try to find by just the model part
     if (!model && modelSlug.includes('-') && carMakes && carMakes.length > 0) {
       // Extract the model part from compound slugs like "honda-accord" -> "accord"
@@ -916,11 +916,11 @@ export default function AdvancedSearchPage() {
         }
       }
     }
-    
+
     // If still not found and allModels is empty/insufficient, try availableModels as fallback
     if (!model && availableModels && availableModels.length > 0) {
       model = availableModels.find(m => m.slug === modelSlug);
-      
+
       // Also try extracting model part from compound slugs for availableModels
       if (!model && modelSlug.includes('-') && carMakes && carMakes.length > 0) {
         for (const brand of carMakes) {
@@ -932,11 +932,11 @@ export default function AdvancedSearchPage() {
         }
       }
     }
-    
+
     if (model) {
       return isArabic ? model.displayNameAr : model.displayNameEn;
     }
-    
+
     // If still no model found, try comprehensive fallback with popular models
     // This handles cases where both allModels and availableModels are empty
     const popularModels: Record<string, { en: string; ar: string }> = {
@@ -979,13 +979,13 @@ export default function AdvancedSearchPage() {
       'sportage': { en: 'Sportage', ar: 'سبورتاج' },
       'forte': { en: 'Forte', ar: 'فورتي' }
     };
-    
+
     // Try direct lookup first
     const directMatch = popularModels[modelSlug];
     if (directMatch) {
       return isArabic ? directMatch.ar : directMatch.en;
     }
-    
+
     // If compound slug, extract model part and try popular models lookup
     if (modelSlug.includes('-') && carMakes && carMakes.length > 0) {
       for (const brand of carMakes) {
@@ -999,7 +999,7 @@ export default function AdvancedSearchPage() {
         }
       }
     }
-    
+
     // Final fallback to extracted model name
     return extractModelName(modelSlug);
   }, [allModels, availableModels, extractModelName, carMakes]);
@@ -1007,7 +1007,7 @@ export default function AdvancedSearchPage() {
   // Generate a descriptive name for the alert based on filters
   // This function creates alert names by using the exact same text that appears in filter chips
   const generateAlertName = useCallback((filters: AdvancedSearchFilters, searchQuery: string) => {
-    
+
     // Helper function to get filter display text in any language (like chips do)
     const getFilterDisplayTextInLanguage = (filterType: FilterType, targetLanguage: string): string => {
       switch (filterType) {
@@ -1019,7 +1019,7 @@ export default function AdvancedSearchPage() {
               return brand ? (targetLanguage === 'ar' ? brand.displayNameAr : brand.displayNameEn) : slug;
             });
             let display = brandNames.join(', ');
-            
+
             if (filters.models && filters.models.length > 0) {
               const modelNames = filters.models.map(slug => {
                 // First try to find in current availableModels
@@ -1027,13 +1027,13 @@ export default function AdvancedSearchPage() {
                 if (model) {
                   return targetLanguage === 'ar' ? model.displayNameAr : model.displayNameEn;
                 }
-                
+
                 // If not found, try to extract display name from slug
                 const words = slug.split('-');
                 const displayName = words
                   .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                   .join(' ');
-                
+
                 return displayName;
               });
               display += ` - ${modelNames.join(', ')}`;
@@ -1108,7 +1108,7 @@ export default function AdvancedSearchPage() {
 
       // Get the exact text from each active filter chip
       const filterTypes: FilterType[] = ['makeModel', 'price', 'year', 'mileage', 'transmission', 'fuelType', 'bodyStyle', 'sellerType'];
-      
+
       for (const filterType of filterTypes) {
         if (isFilterActive(filterType)) {
           const chipText = getFilterDisplayTextInLanguage(filterType, targetLanguage);
@@ -1137,12 +1137,12 @@ export default function AdvancedSearchPage() {
     const arabicChipTexts = generateChipTextsForLanguage('ar');
 
     // Create alert names by joining chip texts with commas
-    const nameEn = englishChipTexts.length === 0 
-      ? 'Car Search' 
+    const nameEn = englishChipTexts.length === 0
+      ? 'Car Search'
       : englishChipTexts.join(', ');
 
-    const nameAr = arabicChipTexts.length === 0 
-      ? 'بحث سيارات' 
+    const nameAr = arabicChipTexts.length === 0
+      ? 'بحث سيارات'
       : arabicChipTexts.join('، ');
 
     return { nameEn, nameAr };
@@ -1178,13 +1178,13 @@ export default function AdvancedSearchPage() {
     }
 
     setIsSavingAlert(true);
-    
+
     try {
       const token = user?.accessToken;
-      
+
       // Transform frontend filters to backend format (same as CreateAlertModal)
       const backendFilters: Record<string, unknown> = {};
-      
+
       if (filters.brands) backendFilters.brandSlugs = filters.brands;
       if (filters.models) backendFilters.modelSlugs = filters.models;
       if (filters.locations) backendFilters.location = filters.locations;
@@ -1199,9 +1199,9 @@ export default function AdvancedSearchPage() {
       if (filters.bodyType) backendFilters.bodyType = filters.bodyType;
       if (filters.sellerTypeIds) backendFilters.sellerTypeIds = filters.sellerTypeIds;
       if (searchQuery) backendFilters.searchQuery = searchQuery;
-      
+
       const { nameEn, nameAr } = generateAlertName(filters, searchQuery);
-      
+
       const savedSearchRequest: SavedSearchRequest = {
         nameEn,
         nameAr,
@@ -1214,17 +1214,17 @@ export default function AdvancedSearchPage() {
       };
 
       const response = await createSavedSearch(savedSearchRequest, token);
-      
+
       // Simple feedback and set monitoring state
       setIsMonitoring(true); // Now monitoring these criteria
       if (response?.id) setSavedSearchId(response.id);
-      
+
       if (response.wasUpdated) {
         console.log('✅ Alert updated with new criteria!');
       } else {
         console.log('✅ New alert created successfully!');
       }
-      
+
     } catch (error) {
       console.error('Error creating alert:', error);
     } finally {
@@ -1247,21 +1247,21 @@ export default function AdvancedSearchPage() {
   // Filter pill component with memo for performance
   const handleSearch = () => {
     setSearchLoading(true);
-    
+
     // Close location dropdown if open
     setShowLocationDropdown(false);
-    
+
     // Reset to first page on new search
     setCurrentPage(0);
-    
+
     // The URL is already updated by the filters, so just execute search
     // The search query will be sent to the backend which will handle both English and Arabic text search
     // No need to manually parse brands/models here - the backend will search in all relevant fields
-    
+
     // Simply trigger a search with the current search query
     // The listingFilters already includes the searchQuery, so executeSearch will use it
     executeSearch(false);
-    
+
     setTimeout(() => {
       setSearchLoading(false);
     }, 1000);
@@ -1328,7 +1328,7 @@ export default function AdvancedSearchPage() {
               onSortChange={setSelectedSort}
               onSearchTrigger={() => executeSearch(false)}
             />
-            
+
             {/* View Mode Toggle - Bottom row, under sort */}
             <ViewModeToggle
               viewMode={viewMode}
@@ -1338,19 +1338,19 @@ export default function AdvancedSearchPage() {
               isRTL={isRTL}
             />
           </div>
-          
+
           {/* Save Search Button - Simple with monitoring state */}
           {hasActiveFilters && (
-            <button 
+            <button
               onClick={handleToggleAlert}
               disabled={isSavingAlert}
               className={`
-                flex items-center text-sm font-medium 
+                flex items-center text-sm font-medium
                 px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                 ${isRTL ? 'flex-row-reverse' : ''}
                 ${isSavingAlert ? 'opacity-50 cursor-not-allowed' : ''}
-                ${isMonitoring 
-                  ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700 shadow-md' 
+                ${isMonitoring
+                  ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700 shadow-md'
                   : 'text-gray-700 hover:text-gray-900 border-gray-300 bg-white hover:bg-gray-50'
                 }
               `}
@@ -1363,8 +1363,8 @@ export default function AdvancedSearchPage() {
               )}
               {/* Fixed-width label to prevent jitter when text changes */}
               <span className="inline-block w-[11ch] xs:w-[12ch] text-center whitespace-nowrap">
-                {isSavingAlert 
-                  ? t('search:savingAlert', 'Saving...') 
+                {isSavingAlert
+                  ? t('search:savingAlert', 'Saving...')
                   : isMonitoring
                     ? t('search:monitoring', 'Monitoring')
                     : t('search:createWatch', 'Create Alert')
@@ -1417,14 +1417,14 @@ export default function AdvancedSearchPage() {
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-3 rounded-lg">
               <span>Want to contact sellers?</span>
-              <Link 
+              <Link
                 href={`/${currentLang}/auth/signup`}
                 className="text-blue-600 hover:text-blue-700 font-medium underline"
               >
                 Sign up free
               </Link>
               <span>•</span>
-              <Link 
+              <Link
                 href={`/${currentLang}/auth/signin`}
                 className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
               >
@@ -1438,7 +1438,7 @@ export default function AdvancedSearchPage() {
 
         {/* Modal */}
         {activeFilterModal && (
-          <FilterModal 
+          <FilterModal
             filterType={activeFilterModal}
             onClose={() => setActiveFilterModal(null)}
             filters={filters}

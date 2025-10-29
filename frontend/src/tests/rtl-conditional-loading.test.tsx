@@ -29,33 +29,33 @@ describe('RTL Conditional Stylesheet Loading', () => {
     // First test LTR mode
     mockDocumentElementDir('ltr');
     render(<ClientRTLStylesLoader />);
-    
+
     // In LTR mode, there should be no RTL stylesheet
     const stylesheetLTR = document.querySelector('link[href="/rtl-specific.css"]');
     expect(stylesheetLTR).not.toBeInTheDocument();
-    
+
     // Now test RTL mode
     mockDocumentElementDir('rtl');
     render(<ClientRTLStylesLoader />);
-    
+
     // Wait for the useEffect to run
     await new Promise(resolve => setTimeout(resolve, 0));
-    
+
     // There should now be an RTL stylesheet
     const stylesheetRTL = document.querySelector('link[href="/rtl-specific.css"]');
     expect(stylesheetRTL).toBeInTheDocument();
   });
-  
+
   test('isRTLStylesheetLoaded returns correct value', () => {
     // Initially no stylesheet should be loaded
     expect(isRTLStylesheetLoaded()).toBe(false);
-    
+
     // Add a stylesheet manually
     const link = document.createElement('link');
     link.setAttribute('rel', 'stylesheet');
     link.setAttribute('href', '/rtl-specific.css');
     document.head.appendChild(link);
-    
+
     // Now the function should detect it
     expect(isRTLStylesheetLoaded()).toBe(true);
   });

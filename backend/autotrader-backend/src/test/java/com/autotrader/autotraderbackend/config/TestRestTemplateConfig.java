@@ -20,7 +20,7 @@ public class TestRestTemplateConfig {
         RestTemplateBuilder builder = new RestTemplateBuilder()
                 .setConnectTimeout(Duration.ofSeconds(5))
                 .setReadTimeout(Duration.ofSeconds(5));
-        
+
         // Create and return the TestRestTemplate instance
         return new TestRestTemplate(builder);
     }

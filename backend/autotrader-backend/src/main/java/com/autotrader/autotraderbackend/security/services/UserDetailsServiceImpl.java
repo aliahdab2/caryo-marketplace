@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -21,7 +21,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         log.debug("Attempting to load user by username or email: {}", usernameOrEmail);
-        
+
         // Try to find by username first
         User user = userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() -> {

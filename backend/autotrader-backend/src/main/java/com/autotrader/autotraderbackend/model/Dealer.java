@@ -143,8 +143,8 @@ public class Dealer {
     }
 
     public boolean hasActiveSubscription() {
-        return subscriptionTier != null && 
-               !"trial".equals(subscriptionTier) && 
+        return subscriptionTier != null &&
+               !"trial".equals(subscriptionTier) &&
                !"suspended".equals(subscriptionStatus);
     }
 
@@ -165,11 +165,11 @@ public class Dealer {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        
+
         if (trialStartedAt == null) {
             trialStartedAt = ZonedDateTime.now();
         }
-        
+
         // Initialize notifications list to prevent NPE
         if (notificationsSent == null) {
             notificationsSent = new ArrayList<>();

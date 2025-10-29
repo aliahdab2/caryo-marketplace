@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { MdNotificationsNone, MdEdit, MdDelete, MdEmail, MdMailOutline } from 'react-icons/md';
 // Removed useLanguage import - using i18n.language directly
-import { 
-  getUserSavedSearches, 
-  deleteSavedSearch, 
-  SavedSearchResponse 
+import {
+  getUserSavedSearches,
+  deleteSavedSearch,
+  SavedSearchResponse
 } from '@/services/savedSearches';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import EmptyState from '@/components/ui/EmptyState';
@@ -17,13 +17,13 @@ interface SavedSearchesManagerProps {
   onEditSearch?: (search: SavedSearchResponse) => void;
 }
 
-export default function SavedSearchesManager({ 
-  onEditSearch 
+export default function SavedSearchesManager({
+  onEditSearch
 }: SavedSearchesManagerProps) {
   const { t, i18n } = useTranslation(['search', 'common']);
   const user = useOptimizedUser();
   const isRTL = i18n.language === 'ar';
-  
+
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -57,10 +57,10 @@ export default function SavedSearchesManager({
       setDeletingId(id);
       const token = user?.accessToken;
       await deleteSavedSearch(id, token);
-      
+
       // Remove from local state
       setSavedSearches(prev => prev.filter(search => search.id !== id));
-      
+
       setSuccessMessage(t('search:alertDeletedSuccess', 'Alert deleted successfully'));
       setShowSuccess(true);
     } catch (error) {
@@ -72,37 +72,37 @@ export default function SavedSearchesManager({
 
   const formatFilterSummary = (filters: Record<string, unknown>): string => {
     const parts: string[] = [];
-    
+
     if (filters.brandSlugs && Array.isArray(filters.brandSlugs)) {
       parts.push(`Brands: ${filters.brandSlugs.join(', ')}`);
     }
-    
+
     if (filters.modelSlugs && Array.isArray(filters.modelSlugs)) {
       parts.push(`Models: ${filters.modelSlugs.join(', ')}`);
     }
-    
+
     if (filters.location && Array.isArray(filters.location)) {
       parts.push(`Locations: ${filters.location.join(', ')}`);
     }
-    
+
     if (filters.minPrice || filters.maxPrice) {
       const priceRange = [];
       if (filters.minPrice) priceRange.push(`from $${Number(filters.minPrice).toLocaleString()}`);
       if (filters.maxPrice) priceRange.push(`up to $${Number(filters.maxPrice).toLocaleString()}`);
       parts.push(`Price: ${priceRange.join(' ')}`);
     }
-    
+
     if (filters.minYear || filters.maxYear) {
       const yearRange = [];
       if (filters.minYear) yearRange.push(`from ${filters.minYear}`);
       if (filters.maxYear) yearRange.push(`up to ${filters.maxYear}`);
       parts.push(`Year: ${yearRange.join(' ')}`);
     }
-    
+
     if (filters.searchQuery) {
       parts.push(`Search: "${filters.searchQuery}"`);
     }
-    
+
     return parts.length > 0 ? parts.join(' • ') : t('search:noFilters', 'No specific filters');
   };
 
@@ -161,12 +161,12 @@ export default function SavedSearchesManager({
                     </span>
                   )}
                 </div>
-                
+
                 {/* Filter Summary */}
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                   {formatFilterSummary(search.filters)}
                 </p>
-                
+
                 {/* Notification Settings */}
                 <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
@@ -176,25 +176,25 @@ export default function SavedSearchesManager({
                       <MdMailOutline className="text-gray-400" />
                     )}
                     <span>
-                      {search.notificationPreferences.email 
-                        ? t('search:emailEnabled', 'Email notifications') 
+                      {search.notificationPreferences.email
+                        ? t('search:emailEnabled', 'Email notifications')
                         : t('search:emailDisabled', 'Email disabled')
                       }
                     </span>
                   </div>
-                  
+
                   {search.notificationPreferences.email && (
                     <span>
-                      {t(`search:frequency_${search.notificationPreferences.frequency}`, 
+                      {t(`search:frequency_${search.notificationPreferences.frequency}`,
                          search.notificationPreferences.frequency)}
                     </span>
                   )}
-                  
+
                   <span>
                     {t('search:created', 'Created')} {formatDate(search.createdAt)}
                   </span>
                 </div>
-                
+
                 {/* Last Notification */}
                 {search.lastNotifiedAt && (
                   <div className="text-xs text-gray-400 mt-1">
@@ -202,7 +202,7 @@ export default function SavedSearchesManager({
                   </div>
                 )}
               </div>
-              
+
               {/* Actions */}
               <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 {onEditSearch && (
@@ -214,7 +214,7 @@ export default function SavedSearchesManager({
                     <MdEdit size={18} />
                   </button>
                 )}
-                
+
                 <button
                   onClick={() => handleDeleteSearch(search.id)}
                   disabled={deletingId === search.id}

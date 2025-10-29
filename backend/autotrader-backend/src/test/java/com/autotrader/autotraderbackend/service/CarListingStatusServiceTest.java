@@ -221,7 +221,7 @@ class CarListingStatusServiceTest {
     void listing_NotFound() {
         when(carListingRepository.findById(anyLong())).thenReturn(Optional.empty());
         // Simulating calls that would require a user, even if not directly used in findListingById
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser)); 
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(testUser));
 
         assertThrows(ResourceNotFoundException.class,
                 () -> carListingStatusService.markListingAsSold(999L, testUser.getUsername()));
@@ -410,7 +410,7 @@ class CarListingStatusServiceTest {
                 assertThat(r.getIsExpired()).isTrue();
             });
 
-        verify(carListingRepository).save(argThat(listing -> 
+        verify(carListingRepository).save(argThat(listing ->
             Objects.nonNull(listing) &&
             listing.getId().equals(testListing.getId()) &&
             listing.getExpired() &&

@@ -15,37 +15,37 @@ import java.util.Arrays;
 @Component
 @ConfigurationProperties(prefix = "app.email")
 public class EmailProperties {
-    
+
     /**
      * From email address for outgoing emails.
      */
     private String from = "noreply@caryo.sy";
-    
+
     /**
      * Support email address.
      */
     private String support = "support@caryo.sy";
-    
+
     /**
      * Default language for emails.
      */
     private String defaultLanguage = "en";
-    
+
     /**
      * Supported languages for emails.
      */
     private List<String> supportedLanguages = Arrays.asList("en", "ar");
-    
+
     /**
      * Website configuration.
      */
     private Website website = new Website();
-    
+
     /**
      * Email template configuration.
      */
     private Template template = new Template();
-    
+
     @Data
     public static class Website {
         private String name = "Caryo Marketplace";
@@ -53,7 +53,7 @@ public class EmailProperties {
         private String url = "http://localhost:3000";
         private String supportEmail = "support@caryo.sy";
     }
-    
+
     @Data
     public static class Template {
         private String prefix = "classpath:/templates/emails/";

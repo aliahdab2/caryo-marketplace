@@ -14,21 +14,21 @@ export default function TranslationDebugger() {
   const [currentLang, setCurrentLang] = useState<string>('');
   const { i18n: i18nInstance } = useTranslation();
   const mountedRef = useRef(true);
-  
+
   // Safer approach to check if namespaces are loaded
   const safelyCheckLoadedNamespaces = useCallback(() => {
     if (!i18nInstance || !mountedRef.current) return;
-    
+
     const language = i18nInstance.language;
     if (!language) return;
-    
+
     setCurrentLang(language);
-    
+
     try {
       // All known namespaces we care about
       const allNamespaces = ['common', 'translation', 'errors', 'listings', 'auth'];
       const loaded: string[] = [];
-      
+
       // Safely check each namespace
       for (const ns of allNamespaces) {
         try {
@@ -44,7 +44,7 @@ export default function TranslationDebugger() {
           console.debug(`[i18n debug] Error checking namespace ${ns}:`, err);
         }
       }
-      
+
       if (mountedRef.current) {
         setLoadedNamespaces(loaded);
       }
@@ -55,28 +55,28 @@ export default function TranslationDebugger() {
       }
     }
   }, [i18nInstance]);
-  
+
   useEffect(() => {
     mountedRef.current = true;
-    
+
     // Initial check
     safelyCheckLoadedNamespaces();
-    
+
     // Update on language change or resource loading
     const handleUpdate = () => {
       safelyCheckLoadedNamespaces();
     };
-    
+
     if (i18nInstance) {
       // Listen for i18n events
       i18nInstance.on('initialized', handleUpdate);
       i18nInstance.on('loaded', handleUpdate);
       i18nInstance.on('languageChanged', handleUpdate);
     }
-    
+
     // Check periodically (less frequently than before)
     const intervalId = setInterval(handleUpdate, 2000);
-    
+
     return () => {
       mountedRef.current = false;
       if (i18nInstance) {
@@ -87,15 +87,15 @@ export default function TranslationDebugger() {
       clearInterval(intervalId);
     };
   }, [i18nInstance, safelyCheckLoadedNamespaces]);
-  
+
   // Don't render in production
   if (process.env.NODE_ENV !== 'development') {
     return null;
   }
-  
+
   const allNamespaces = ['common', 'translation', 'errors', 'listings', 'auth'];
   const unloadedNamespaces = allNamespaces.filter(ns => !loadedNamespaces.includes(ns));
-  
+
   return (
     <div
       style={{
@@ -113,8 +113,8 @@ export default function TranslationDebugger() {
         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
       }}
     >
-      <div 
-        style={{ 
+      <div
+        style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -130,7 +130,7 @@ export default function TranslationDebugger() {
           {loadedNamespaces.length}/{allNamespaces.length} loaded
         </span>
       </div>
-      
+
       {showDetails && (
         <div>
           <div style={{ marginBottom: '4px' }}>
@@ -144,7 +144,7 @@ export default function TranslationDebugger() {
           <div style={{ marginTop: '8px', fontSize: '10px', color: '#9E9E9E' }}>
             Language: {currentLang}
           </div>
-          <button 
+          <button
             onClick={() => {
               try {
                 reloadNamespace('auth');
@@ -152,7 +152,7 @@ export default function TranslationDebugger() {
               } catch (err) {
                 console.error('[i18n debug] Error reloading namespace:', err);
               }
-            }} 
+            }}
             style={{
               backgroundColor: '#2196F3',
               color: 'white',

@@ -46,7 +46,7 @@ jest.mock('lodash/debounce', () => {
 describe('HomeSearchBar', () => {
   const mockPush = jest.fn();
   const mockT = jest.fn((key: string, defaultValue?: string) => defaultValue || key);
-  
+
   // Mock data
   const mockCarMakes = [
     { id: 1, displayNameEn: 'Toyota', displayNameAr: 'تويوتا', slug: 'toyota' },
@@ -66,7 +66,7 @@ describe('HomeSearchBar', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Setup router mock
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
@@ -182,7 +182,7 @@ describe('HomeSearchBar', () => {
 
       const brandSelect = screen.getByLabelText(/select brand/i);
       expect(brandSelect).toBeDisabled();
-      
+
       // Loading spinner should be positioned absolutely to not affect layout
       const spinner = screen.getByTestId('brand-loading-spinner');
       expect(spinner.closest('div')).toHaveClass('absolute', 'pointer-events-none');
@@ -216,7 +216,7 @@ describe('HomeSearchBar', () => {
 
       const modelSelect = screen.getByLabelText(/select model/i);
       expect(modelSelect).toBeDisabled();
-      
+
       // Loading spinner should be positioned absolutely to not affect layout
       const spinner = screen.getByTestId('model-loading-spinner');
       expect(spinner.closest('div')).toHaveClass('absolute', 'pointer-events-none');
@@ -282,17 +282,17 @@ describe('HomeSearchBar', () => {
       render(<HomeSearchBar />);
 
       const brandSelect = screen.getByLabelText(/select brand/i);
-      
+
       // Measure layout before interaction
       const initialRect = brandSelect.getBoundingClientRect();
-      
+
       await userEvent.selectOptions(brandSelect, '1');
-      
+
       // Verify no layout shift occurred
       const afterRect = brandSelect.getBoundingClientRect();
       expect(afterRect.height).toBe(initialRect.height);
       expect(afterRect.width).toBe(initialRect.width);
-      
+
       expect(mockSetSelectedMake).toHaveBeenCalledWith(1);
     });
 
@@ -300,14 +300,14 @@ describe('HomeSearchBar', () => {
       // This test verifies that the component handles model reset behavior
       // We test this by checking that when no brand is selected, model is disabled
       // And when a brand is selected, model becomes enabled
-      
+
       render(<HomeSearchBar />);
 
       const modelSelect = screen.getByLabelText(/select model/i) as HTMLSelectElement;
-      
+
       // Initially, model should be disabled when no brand is selected
       expect(modelSelect).toBeDisabled();
-      
+
       // This indirectly tests that the reset logic is working correctly
       // since the disabled state depends on the selectedMake value
       expect(modelSelect.value).toBe('');
@@ -315,7 +315,7 @@ describe('HomeSearchBar', () => {
 
     it('handles search functionality with slug-based URLs correctly', async () => {
       const mockSetSelectedMake = jest.fn();
-      
+
       // Mock form selection for brand=1 (Toyota)
       (useApiDataHook.useFormSelection as jest.Mock)
         .mockReturnValue([1, mockSetSelectedMake]); // selectedMake = 1 (Toyota)
@@ -323,9 +323,9 @@ describe('HomeSearchBar', () => {
       render(<HomeSearchBar />);
 
       const searchButton = screen.getByRole('button', { name: /search cars/i });
-      
+
       await userEvent.click(searchButton);
-      
+
       // Should use brands parameter when a brand is selected
       expect(mockPush).toHaveBeenCalledWith(
         expect.stringContaining('/search?brand=toyota'),
@@ -341,9 +341,9 @@ describe('HomeSearchBar', () => {
       render(<HomeSearchBar />);
 
       const searchButton = screen.getByRole('button', { name: /search cars/i });
-      
+
       await userEvent.click(searchButton);
-      
+
       // Should include brands parameter when brand is selected
       expect(mockPush).toHaveBeenCalledWith(
         expect.stringContaining('/search?brand=toyota'),
@@ -359,9 +359,9 @@ describe('HomeSearchBar', () => {
       render(<HomeSearchBar />);
 
       const searchButton = screen.getByRole('button', { name: /search cars/i });
-      
+
       await userEvent.click(searchButton);
-      
+
       // Should not create URL params when no brand is selected
       expect(mockPush).toHaveBeenCalledWith('/search', { scroll: false });
     });
@@ -423,7 +423,7 @@ describe('HomeSearchBar', () => {
       rerender(<HomeSearchBar />);
 
       const afterRect = container.getBoundingClientRect();
-      
+
       // Layout should remain stable (height should not change significantly)
       expect(Math.abs(afterRect.height - initialRect.height)).toBeLessThan(5);
     });
@@ -499,16 +499,16 @@ describe('HomeSearchBar', () => {
       render(<HomeSearchBar />);
 
       const brandSelect = screen.getByLabelText(/select brand/i);
-      
+
       brandSelect.focus();
       expect(brandSelect).toHaveFocus();
-      
+
       await userEvent.keyboard('{Tab}');
       // The model select should be focused next, but it may be disabled
       // so we'll check if governorate gets focus when model is disabled
       const modelSelect = screen.getByLabelText(/select model/i);
       const governorateSelect = screen.getByLabelText(/select governorate/i);
-      
+
       // Either model (if enabled) or governorate (if model is disabled) should have focus
       const hasFocus = modelSelect.matches(':focus') || governorateSelect.matches(':focus');
       expect(hasFocus).toBe(true);
@@ -542,12 +542,12 @@ describe('HomeSearchBar', () => {
     it('displays error messages and retry buttons', async () => {
       // This test verifies the component renders without errors by default
       // and the error handling UI is properly structured
-      
+
       render(<HomeSearchBar />);
 
       // Verify component renders successfully
       expect(screen.getByRole('button', { name: /search cars/i })).toBeInTheDocument();
-      
+
       // Verify no error messages are shown by default
       expect(screen.queryByText(/failed to load/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/try again/i)).not.toBeInTheDocument();

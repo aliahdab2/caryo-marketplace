@@ -19,13 +19,13 @@ public class FuelTypeResponse {
     private String slug;
     private String displayNameEn;
     private String displayNameAr;
-    
+
     // Static factory method to create from entity
     public static FuelTypeResponse fromEntity(com.autotrader.autotraderbackend.model.FuelType fuelType) {
         if (fuelType == null) {
             return null;
         }
-        
+
         return new FuelTypeResponse(
             fuelType.getId(),
             fuelType.getName(),

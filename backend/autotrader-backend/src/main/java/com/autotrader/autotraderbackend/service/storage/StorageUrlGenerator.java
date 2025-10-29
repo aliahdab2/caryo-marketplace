@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Advanced URL generator for storage files that supports multiple CDN providers,
  * different storage backends, and configurable URL generation strategies.
- * 
+ *
  * Supported providers:
  * - AWS S3 (production)
  * - MinIO (development/testing)
@@ -34,11 +34,11 @@ public class StorageUrlGenerator {
     private final StorageProperties storageProperties;
     private final StorageConfigurationManager configManager;
     private final S3Presigner s3Presigner;
-    
+
     // Cache for computed base URLs
     private final Map<String, String> baseUrlCache = new ConcurrentHashMap<>();
 
-    public StorageUrlGenerator(StorageProperties storageProperties, 
+    public StorageUrlGenerator(StorageProperties storageProperties,
                               StorageConfigurationManager configManager,
                               S3Presigner s3Presigner) {
         this.storageProperties = storageProperties;
@@ -49,7 +49,7 @@ public class StorageUrlGenerator {
 
     /**
      * Generate the appropriate URL for a storage key based on configuration.
-     * 
+     *
      * @param key The storage key
      * @param urlType The type of URL to generate (PUBLIC, SIGNED, CDN)
      * @param expirationSeconds Expiration for signed URLs (ignored for public URLs)
@@ -58,9 +58,9 @@ public class StorageUrlGenerator {
     public String generateUrl(String key, UrlType urlType, long expirationSeconds) {
         String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
         StorageProvider provider = detectStorageProvider();
-        
+
         log.debug("Generating {} URL for key: {} with provider: {}", urlType, key, provider);
-        
+
         switch (urlType) {
             case PUBLIC:
                 return generatePublicUrl(bucketName, key, provider);
@@ -90,7 +90,7 @@ public class StorageUrlGenerator {
             log.debug("Using direct URL for MinIO with public access");
             return generatePublicUrl(bucketName, key, provider);
         }
-        
+
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
@@ -105,10 +105,10 @@ public class StorageUrlGenerator {
 
             PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
             String originalUrl = presignedRequest.url().toString();
-            
+
             // Apply provider-specific URL fixes
             return applyProviderUrlFixes(originalUrl, bucketName, key, provider);
-            
+
         } catch (Exception e) {
             log.error("Failed to generate signed URL for key: {}, falling back to public URL", key, e);
             return generatePublicUrl(bucketName, key, provider);
@@ -123,7 +123,7 @@ public class StorageUrlGenerator {
         if (cdnBaseUrl != null && !cdnBaseUrl.isEmpty()) {
             return cdnBaseUrl + "/" + key;
         }
-        
+
         // Fall back to public URL if no CDN is configured
         log.debug("No CDN configured, falling back to public URL");
         return generatePublicUrl(bucketName, key, provider);
@@ -172,7 +172,7 @@ public class StorageUrlGenerator {
         if (endpointUrl == null) {
             endpointUrl = "http://localhost:9000";
         }
-        
+
         // MinIO typically uses path-style access
         return endpointUrl + "/" + bucketName;
     }
@@ -211,14 +211,14 @@ public class StorageUrlGenerator {
         if (endpointUrl == null) {
             endpointUrl = configManager.getStorageBaseUrl();
         }
-        
+
         if (storageProperties.getS3().isPathStyleAccessEnabled()) {
             return endpointUrl + "/" + bucketName;
         } else {
             // Virtual-hosted-style (might not work for all providers)
             try {
                 URI uri = new URI(endpointUrl);
-                return uri.getScheme() + "://" + bucketName + "." + uri.getHost() + 
+                return uri.getScheme() + "://" + bucketName + "." + uri.getHost() +
                        (uri.getPort() != -1 ? ":" + uri.getPort() : "");
             } catch (URISyntaxException e) {
                 log.warn("Invalid endpoint URL, falling back to path-style: {}", endpointUrl);
@@ -234,7 +234,7 @@ public class StorageUrlGenerator {
         if (provider == StorageProvider.MINIO) {
             return applyMinioUrlFixes(originalUrl, bucketName);
         }
-        
+
         // Other providers might need specific fixes in the future
         return originalUrl;
     }
@@ -247,31 +247,31 @@ public class StorageUrlGenerator {
             URI uri = new URI(originalUrl);
             String host = uri.getHost();
             String path = uri.getPath();
-            
+
             // Check if this is a MinIO URL that needs fixing
-            boolean isMinioUrl = "localhost".equals(host) || "127.0.0.1".equals(host) || 
+            boolean isMinioUrl = "localhost".equals(host) || "127.0.0.1".equals(host) ||
                                host.contains("minio") || host.endsWith(".minio");
-            
+
             if (isMinioUrl) {
                 boolean needsHostFix = !("localhost".equals(host) || "127.0.0.1".equals(host));
                 boolean needsPathFix = !path.startsWith("/" + bucketName + "/");
-                
+
                 if (needsHostFix || needsPathFix) {
                     log.debug("Applying MinIO URL fixes - Host fix: {}, Path fix: {}", needsHostFix, needsPathFix);
-                    
+
                     String newHost = needsHostFix ? "localhost" : host;
                     String newPath = needsPathFix ? "/" + bucketName + path : path;
                     String query = uri.getQuery();
-                    
-                    return uri.getScheme() + "://" + newHost + 
+
+                    return uri.getScheme() + "://" + newHost +
                            (uri.getPort() != -1 ? ":" + uri.getPort() : "") +
-                           newPath + 
+                           newPath +
                            (query != null ? "?" + query : "");
                 }
             }
-            
+
             return originalUrl;
-            
+
         } catch (URISyntaxException e) {
             log.warn("Failed to parse URL for MinIO fixes: {}", originalUrl, e);
             return originalUrl;
@@ -283,7 +283,7 @@ public class StorageUrlGenerator {
      */
     private StorageProvider detectStorageProvider() {
         String endpointUrl = storageProperties.getS3().getEndpointUrl();
-        
+
         if (endpointUrl == null || endpointUrl.contains("amazonaws.com")) {
             return StorageProvider.AWS_S3;
         } else if (endpointUrl.contains("localhost") || endpointUrl.contains("minio")) {

@@ -65,4 +65,4 @@ export const LPGIcon: React.FC<FuelTypeIconProps> = ({ className = "w-12 h-8" })
       </div>
     </div>
   </div>
-); 
+);

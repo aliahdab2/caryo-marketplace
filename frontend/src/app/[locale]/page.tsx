@@ -34,7 +34,7 @@ export default function Home() {
   useEffect(() => {
     const verified = searchParams.get('verified');
     const _username = searchParams.get('username');
-    
+
     if (verified === 'true') {
       // Clean up URL params without showing overlay
       const url = new URL(window.location.href);
@@ -62,7 +62,7 @@ export default function Home() {
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newsletterEmail.trim()) {
       setNewsletterMessage(t('validationEmailRequired', { ns: 'common', defaultValue: 'Email is required' }));
       return;
@@ -70,7 +70,7 @@ export default function Home() {
 
     setNewsletterLoading(true);
     setNewsletterMessage('');
-    
+
     try {
       const response = await subscribeToNewsletter({
         email: newsletterEmail.trim(),
@@ -118,13 +118,13 @@ export default function Home() {
           className="object-cover brightness-75"
           sizes="100vw"
         />
-        
+
         <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content">
           <div className="text-center mb-4 xs:mb-6">
             <h1 className="text-xl xs:text-2xl md:text-3xl font-bold text-white mb-2 xs:mb-3">
               {t('heroTitle', { ns: 'home'})}
             </h1>
-            
+
             <p className="text-base xs:text-lg md:text-xl text-white">
               {t('heroSubtitle', { ns: 'home'})}
             </p>
@@ -180,15 +180,15 @@ export default function Home() {
       {/* Newsletter Section */}
       <section className="py-16 container mx-auto pis-4 pie-4" aria-labelledby="newsletter-title">
         <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
-          <h2 id="newsletter-title" className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2> 
-          <p id="newsletter-description" className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p> 
-          
+          <h2 id="newsletter-title" className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2>
+          <p id="newsletter-description" className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p>
+
           {newsletterMessage && (
             <div className={`mb-6 p-3 rounded-md ${newsletterSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
               {newsletterMessage}
             </div>
           )}
-          
+
           <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4" aria-describedby="newsletter-description">
             <label htmlFor="newsletter-email" className="sr-only">
               {t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
@@ -209,7 +209,7 @@ export default function Home() {
               disabled={newsletterLoading}
               className="pis-6 pie-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
             >
-              {newsletterLoading 
+              {newsletterLoading
                 ? t('subscribing', { ns: 'home', defaultValue: 'Subscribing...'})
                 : t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})
               }

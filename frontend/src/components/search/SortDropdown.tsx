@@ -24,7 +24,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       const dropdown = document.querySelector('.sort-dropdown-container');
-      
+
       if (dropdown && !dropdown.contains(target)) {
         setShowSortDropdown(false);
       }
@@ -58,23 +58,23 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
 
   return (
     <div className={`relative sort-dropdown-container ${dirClass}`}>
-      <button 
+      <button
         onClick={() => setShowSortDropdown(!showSortDropdown)}
         className={`flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
         aria-label={t('sortBy', 'Sort by')}
       >
         {/* Sort icon - always at the beginning (left side), normal appearance */}
         <MdSort size={20} className="mr-3" />
-        
+
         {/* Text content - in the middle with extra spacing */}
         <span className={`flex-1 pl-2 ${isRTL ? 'text-right pr-2' : 'text-left'}`}>
           {t('sortBy', 'Sort by')}: {getSortDisplayText(selectedSort, t)}
         </span>
-        
+
         {/* Dropdown arrow - always at the end (right side) */}
         <MdKeyboardArrowDown size={20} className="ml-2" />
       </button>
-      
+
       {/* Dropdown Menu */}
       {showSortDropdown && (
         <div className={`absolute ${isRTL ? 'right-0' : 'left-0'} mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50`}>
@@ -97,4 +97,4 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
   );
 };
 
-export default SortDropdown; 
+export default SortDropdown;

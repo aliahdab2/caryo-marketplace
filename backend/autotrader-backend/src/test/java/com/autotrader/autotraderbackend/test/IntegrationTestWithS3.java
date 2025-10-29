@@ -90,7 +90,7 @@ public abstract class IntegrationTestWithS3 {
                 System.out.println("MinIO container is not running, skipping bucket creation");
                 return;
             }
-            
+
             String endpoint = String.format("http://%s:%d", minioContainer.getHost(), minioContainer.getMappedPort(9000));
             S3Client s3Client = S3Client.builder()
                     .endpointOverride(URI.create(endpoint))

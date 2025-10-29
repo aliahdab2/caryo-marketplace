@@ -233,7 +233,7 @@ Tester: ___________
 Environment: ___________
 
 ✅ Export Functionality: PASS/FAIL
-✅ Import Functionality: PASS/FAIL  
+✅ Import Functionality: PASS/FAIL
 ✅ Data Validation: PASS/FAIL
 ✅ Error Handling: PASS/FAIL
 ✅ UI Responsiveness: PASS/FAIL

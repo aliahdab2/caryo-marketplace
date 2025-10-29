@@ -77,7 +77,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     private static final String ADMIN_PASSWORD = "admin123";
     private static final String USER_USERNAME = "user_test";
     private static final String USER_PASSWORD = "user123";
-    
+
     private Long listingId;
     private String adminToken;
     private String userToken;
@@ -139,7 +139,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         CarListing savedListing = carListingRepository.save(listing);
         listingId = savedListing.getId();
     }
-    
+
     private String getAuthToken(String username, String password) throws Exception {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername(username);
@@ -158,7 +158,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
 
         return response.getToken();
     }
-    
+
     @Test
     @Transactional
     public void adminCanMarkListingAsSold() throws Exception {
@@ -166,7 +166,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         Optional<CarListing> initialListing = carListingRepository.findById(listingId);
         assertTrue(initialListing.isPresent());
         assertFalse(initialListing.get().getSold());
-        
+
         // Admin marks listing as sold
         mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + adminToken)
@@ -174,13 +174,13 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(listingId))
                 .andExpect(jsonPath("$.isSold").value(true));
-        
+
         // Verify database was updated
         Optional<CarListing> updatedListing = carListingRepository.findById(listingId);
         assertTrue(updatedListing.isPresent());
         assertTrue(updatedListing.get().getSold());
     }
-    
+
     @Test
     @Transactional
     public void regularUserCannotAccessAdminMarkAsSold() throws Exception {
@@ -188,20 +188,20 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
                 .header("Authorization", "Bearer " + userToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
-        
+
         // Verify listing wasn't changed
         Optional<CarListing> listing = carListingRepository.findById(listingId);
         assertTrue(listing.isPresent());
         assertFalse(listing.get().getSold());
     }
-    
+
     @Test
     public void adminCanArchiveListing() throws Exception {
         // Verify listing is not archived initially
         Optional<CarListing> initialListing = carListingRepository.findById(listingId);
         assertTrue(initialListing.isPresent());
         assertFalse(initialListing.get().getArchived());
-        
+
         // Admin archives listing
         mockMvc.perform(post("/api/admin/listings/{id}/archive", listingId)
                 .header("Authorization", "Bearer " + adminToken)
@@ -209,13 +209,13 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(listingId))
                 .andExpect(jsonPath("$.isArchived").value(true));
-        
+
         // Verify database was updated
         Optional<CarListing> updatedListing = carListingRepository.findById(listingId);
         assertTrue(updatedListing.isPresent());
         assertTrue(updatedListing.get().getArchived());
     }
-    
+
     @Test
     @Transactional
     public void adminCanUnarchiveListing() throws Exception {
@@ -223,7 +223,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
         listing.setArchived(true);
         carListingRepository.save(listing);
-        
+
         // Admin unarchives listing
         mockMvc.perform(post("/api/admin/listings/{id}/unarchive", listingId)
                 .header("Authorization", "Bearer " + adminToken)
@@ -231,13 +231,13 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(listingId))
                 .andExpect(jsonPath("$.isArchived").value(false));
-        
+
         // Verify database was updated
         Optional<CarListing> updatedListing = carListingRepository.findById(listingId);
         assertTrue(updatedListing.isPresent());
         assertFalse(updatedListing.get().getArchived());
     }
-    
+
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
     @Transactional
@@ -246,7 +246,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
         listing.setArchived(true);
         carListingRepository.save(listing);
-        
+
         // Try to mark archived listing as sold
         mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + adminToken)
@@ -254,7 +254,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").exists());
     }
-    
+
     @Test
     @WithMockUser(username = ADMIN_USERNAME, roles = {"ADMIN"})
     @Transactional
@@ -263,7 +263,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         CarListing listing = carListingRepository.findById(listingId).orElseThrow();
         listing.setArchived(false);
         carListingRepository.save(listing);
-        
+
         // Try to unarchive a non-archived listing
         mockMvc.perform(post("/api/admin/listings/{id}/unarchive", listingId)
                 .header("Authorization", "Bearer " + adminToken)

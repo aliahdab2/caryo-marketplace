@@ -19,7 +19,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     // Find active locations by country code (now using the relationship path)
     @Query("SELECT l FROM Location l WHERE l.governorate.country.countryCode = :countryCode AND (l.isActive = true OR l.isActive IS NULL)")
     List<Location> findByCountryCodeAndIsActiveTrueOrIsActiveIsNull(@Param("countryCode") String countryCode);
-    
+
     // Find by governorate
     List<Location> findByGovernorateIdAndIsActiveTrue(Long governorateId);
 
@@ -29,7 +29,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      * @return Optional containing the location if found
      */
     Optional<Location> findBySlug(String slug);
-    
+
     /**
      * Find locations by country code and region
      * @param countryCode The ISO country code
@@ -38,9 +38,9 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      */
     @Query("SELECT l FROM Location l WHERE l.governorate.country.countryCode = :countryCode AND l.region = :region AND (l.isActive = true OR l.isActive IS NULL)")
     List<Location> findByCountryCodeAndRegionAndIsActiveTrueOrIsActiveIsNull(
-            @Param("countryCode") String countryCode, 
+            @Param("countryCode") String countryCode,
             @Param("region") String region);
-    
+
     /**
      * Search for locations by name in English or Arabic
      * @param query The search term
@@ -52,7 +52,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
            "LOWER(l.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))) " +
            "AND (l.isActive = true OR l.isActive IS NULL)")
     Page<Location> searchByName(@Param("query") String query, Pageable pageable);
-    
+
     /**
      * Check if a location exists with the given English or Arabic display name
      * @param nameEn The English name to check
@@ -63,7 +63,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
            "LOWER(l.displayNameEn) = LOWER(:nameEn) OR " +
            "LOWER(l.displayNameAr) = LOWER(:nameAr)")
     boolean existsByDisplayNameEnOrDisplayNameAr(
-        @Param("nameEn") String nameEn, 
+        @Param("nameEn") String nameEn,
         @Param("nameAr") String nameAr
     );
 }

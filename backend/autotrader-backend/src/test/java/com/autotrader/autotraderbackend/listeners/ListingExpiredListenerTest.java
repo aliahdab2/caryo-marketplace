@@ -22,13 +22,13 @@ class ListingExpiredListenerTest {
 
     @Mock
     private ListingEventUtils eventUtils;
-    
+
     @Mock
     private AsyncTransactionService txService;
 
     @Mock
     private EmailService emailService;
-    
+
     @Captor
     private ArgumentCaptor<Runnable> runnableCaptor;
 
@@ -39,7 +39,7 @@ class ListingExpiredListenerTest {
     @BeforeEach
     void setUp() {
         listener = new ListingExpiredListener(eventUtils, txService, emailService);
-        
+
         seller = new User();
         seller.setId(1L);
         seller.setEmail("seller@example.com");
@@ -56,27 +56,27 @@ class ListingExpiredListenerTest {
         ListingExpiredEvent event = new ListingExpiredEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
-            
+
         // Act
         listener.handleListingExpired(event);
-        
+
         // Assert
         verify(txService).executeInTransaction(runnableCaptor.capture());
-        
+
         // Execute the captured runnable
         runnableCaptor.getValue().run();
-        
+
         // Verify that the transaction block executed correctly
         verify(eventUtils).getListingInfo(carListing);
     }
-    
+
     @Test
     void handleListingExpired_withNullEvent_shouldThrowException() {
         // Act & Assert
         assertThrows(NullPointerException.class, () -> listener.handleListingExpired(null));
         verifyNoInteractions(txService);
     }
-    
+
     @Test
     void handleListingExpired_withNullSeller_shouldHandleGracefully() {
         // Arrange
@@ -84,16 +84,16 @@ class ListingExpiredListenerTest {
         ListingExpiredEvent event = new ListingExpiredEvent(this, carListing, false);
         when(eventUtils.getListingInfo(any(CarListing.class)))
             .thenReturn("listing ID: " + carListing.getId() + ", Title: " + carListing.getTitle());
-        
+
         // Act
         listener.handleListingExpired(event);
-        
+
         // Assert
         verify(txService).executeInTransaction(runnableCaptor.capture());
-        
+
         // Execute the captured runnable - should not throw exception despite null seller
         runnableCaptor.getValue().run();
-        
+
         verify(eventUtils).getListingInfo(carListing);
     }
 }

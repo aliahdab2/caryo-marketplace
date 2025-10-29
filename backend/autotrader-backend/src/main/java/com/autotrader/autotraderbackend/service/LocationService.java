@@ -56,7 +56,7 @@ public class LocationService {
                 .map(LocationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Get active locations by governorate
      * @param governorateId The governorate ID
@@ -77,11 +77,11 @@ public class LocationService {
      */
     public List<LocationResponse> getLocationsByGovernorateSlug(String governorateSlug) {
         log.debug("Fetching locations for governorate slug: {}", governorateSlug);
-        
+
         // First find the governorate by slug
         Governorate governorate = governorateRepository.findBySlug(governorateSlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Governorate", "slug", governorateSlug));
-        
+
         // Then get locations for that governorate
         return locationRepository.findByGovernorateIdAndIsActiveTrue(governorate.getId()).stream()
                 .map(LocationResponse::fromEntity)
@@ -135,20 +135,20 @@ public class LocationService {
     @CacheEvict(value = {"locations", "locationsByCountry"}, allEntries = true)
     public LocationResponse createLocation(LocationRequest request) {
         log.debug("Creating new location: {}", request);
-        
+
         Location location = new Location();
         updateLocationFromRequest(location, request);
-        
+
         // Generate slug from English name
         String slug = SlugUtils.slugify(request.getNameEn());
-        
+
         // Ensure slug is unique
         String uniqueSlug = ensureUniqueSlug(slug);
         location.setSlug(uniqueSlug);
-        
+
         location = locationRepository.save(location);
         log.info("Created new location with ID: {}", location.getId());
-        
+
         return LocationResponse.fromEntity(location);
     }
 
@@ -163,24 +163,24 @@ public class LocationService {
     @CacheEvict(value = {"locations", "locationsByCountry"}, allEntries = true)
     public LocationResponse updateLocation(Long id, LocationRequest request) {
         log.debug("Updating location with ID: {}", id);
-        
+
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location", "id", id));
-        
+
         String originalDisplayNameEn = location.getDisplayNameEn(); // Capture original name before update
-        
+
         updateLocationFromRequest(location, request); // Update all fields from request
-        
+
         // Only update slug if English name has actually changed
         if (request.getNameEn() != null && !request.getNameEn().equals(originalDisplayNameEn)) {
             String slug = SlugUtils.slugify(request.getNameEn());
             String uniqueSlug = ensureUniqueSlug(slug, id);
             location.setSlug(uniqueSlug);
         }
-        
+
         location = locationRepository.save(location);
         log.info("Updated location with ID: {}", location.getId());
-        
+
         return LocationResponse.fromEntity(location);
     }
 
@@ -193,15 +193,15 @@ public class LocationService {
     @CacheEvict(value = {"locations", "locationsByCountry"}, allEntries = true)
     public void deleteLocation(Long id) {
         log.debug("Deleting location with ID: {}", id);
-        
+
         if (!locationRepository.existsById(id)) {
             throw new ResourceNotFoundException("Location", "id", id);
         }
-        
+
         locationRepository.deleteById(id);
         log.info("Deleted location with ID: {}", id);
     }
-    
+
     /**
      * Set a location's active status
      * @param id Location ID
@@ -213,13 +213,13 @@ public class LocationService {
     @CacheEvict(value = {"locations", "locationsByCountry"}, allEntries = true)
     public LocationResponse setLocationActive(Long id, boolean active) {
         log.debug("Setting location {} active status to: {}", id, active);
-        
+
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location", "id", id));
-        
+
         location.setIsActive(active);
         location = locationRepository.save(location);
-        
+
         log.info("Updated location {} active status to: {}", id, active);
         return LocationResponse.fromEntity(location);
     }
@@ -232,20 +232,20 @@ public class LocationService {
     private void updateLocationFromRequest(Location location, LocationRequest request) {
         location.setDisplayNameEn(request.getNameEn());
         location.setDisplayNameAr(request.getNameAr());
-        
+
         // Update to use governorateId instead of countryCode
         if (request.getGovernorateId() != null) {
             Governorate governorate = governorateRepository.findById(request.getGovernorateId())
                 .orElseThrow(() -> new ResourceNotFoundException("Governorate", "id", request.getGovernorateId()));
             location.setGovernorate(governorate);
         }
-        
+
         location.setRegion(request.getRegion());
         location.setLatitude(request.getLatitude());
         location.setLongitude(request.getLongitude());
         location.setIsActive(request.getActive() != null ? request.getActive() : true);
     }
-    
+
     /**
      * Ensure a slug is unique by appending a number if needed
      * @param baseSlug The base slug to make unique
@@ -254,7 +254,7 @@ public class LocationService {
     private String ensureUniqueSlug(String baseSlug) {
         return ensureUniqueSlug(baseSlug, null);
     }
-    
+
     /**
      * Ensure a slug is unique by appending a number if needed
      * @param baseSlug The base slug to make unique
@@ -265,19 +265,19 @@ public class LocationService {
         String slug = baseSlug;
         int counter = 1;
         boolean exists = true;
-        
+
         while (exists) {
             // Check if the current slug exists for any location except the one being updated
             exists = locationRepository.findBySlug(slug)
                     .map(location -> excludeId == null || !location.getId().equals(excludeId))
                     .orElse(false);
-            
+
             if (exists) {
                 // If it exists, append a number and try again
                 slug = baseSlug + "-" + counter++;
             }
         }
-        
+
         return slug;
     }
 }

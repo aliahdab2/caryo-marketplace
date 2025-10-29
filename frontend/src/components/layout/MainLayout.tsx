@@ -19,11 +19,11 @@ const DevNavLink = dynamic(() => import("@/components/dev/DevNavLink"), {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { isLoading } = useOptimizedAuthStatus();
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      
+
       <main className="flex-grow">
         {isLoading ? (
           <div className="flex justify-center items-center h-full py-12">
@@ -35,12 +35,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </div>
         )}
       </main>
-      
+
       <Footer />
-      
+
       {/* DevTools will only render in development mode */}
       <DevTools />
-      
+
       {/* Dev Navigation Link for easy access to test pages */}
       <DevNavLink />
     </div>

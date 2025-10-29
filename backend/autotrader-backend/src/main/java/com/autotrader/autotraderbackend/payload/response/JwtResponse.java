@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor 
+@NoArgsConstructor
 public class JwtResponse {
     private String token;
     private String type = "Bearer";

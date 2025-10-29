@@ -99,7 +99,7 @@ CREATE TABLE newsletter_subscriptions (
 );
 
 -- Optimized indexes for performance
-CREATE INDEX idx_newsletter_active_subscriptions 
+CREATE INDEX idx_newsletter_active_subscriptions
 ON newsletter_subscriptions(active, confirmed_at, unsubscribed_at)
 WHERE active = TRUE AND confirmed_at IS NOT NULL AND unsubscribed_at IS NULL;
 ```

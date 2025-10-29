@@ -42,26 +42,26 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 }) => {
   // RTL support
   const { isRTL } = useLanguageDirection();
-  
+
   // Translation support (using dedicated mediaGallery namespace as per translation guide)
   const { t } = useTranslation('mediaGallery');
-  
+
   // State management
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(initialIndex);
   const [selectedVideo, setSelectedVideo] = useState<CarMedia | null>(null);
   const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
-  
+
   // Swipe state using custom state structure
   const [touchState, setTouchState] = useState<SwipeState>({ start: null, end: null, isActive: false });
   const [mouseState, setMouseState] = useState<SwipeState>({ start: null, end: null, isActive: false });
-  
 
-  
+
+
   // Refs for touch handling
   const mainGalleryRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  
+
   // Memoized computed values for performance
   const mediaStats = useMemo(() => {
     if (!media || !Array.isArray(media)) {
@@ -75,7 +75,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
         isEmpty: true,
       };
     }
-    
+
     const images = media.filter(item => item.type === 'image');
     const videos = media.filter(item => item.type === 'video');
     return {
@@ -111,7 +111,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   // Generic swipe handler
   const handleSwipe = useCallback((startX: number, endX: number) => {
     if (!mediaStats.hasMultiple) return;
-    
+
     const distance = startX - endX;
     const isLeftSwipe = distance > SWIPE_THRESHOLD;
     const isRightSwipe = distance < -SWIPE_THRESHOLD;
@@ -234,7 +234,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
     }
 
     const { embedUrl, isYouTube } = processVideoForGallery(item.url);
-    
+
     if (isYouTube) {
       if (!embedUrl) {
         return (
@@ -245,7 +245,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
       }
 
       // Add autoplay parameter for fullscreen mode to continue playback
-      const fullscreenEmbedUrl = isFullscreen 
+      const fullscreenEmbedUrl = isFullscreen
         ? `${embedUrl}?autoplay=1&rel=0&modestbranding=1`
         : `${embedUrl}?rel=0&modestbranding=1`;
 
@@ -296,7 +296,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
   return (
     <div className={`car-media-gallery ${className}`}>
       {/* Main media viewer - shows current selected media (image or video) */}
-      <div 
+      <div
         ref={mainGalleryRef}
         className="relative h-80 md:h-96 lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden select-none touch-pan-y cursor-grab active:cursor-grabbing"
         onTouchStart={onTouchStart}
@@ -312,15 +312,15 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
           <>
             {currentMedia.type === 'image' ? (
               /* Show current image */
-              <div 
-                className="h-full cursor-pointer" 
+              <div
+                className="h-full cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
                 {renderImageContent(currentMedia, currentMediaIndex, false)}
               </div>
             ) : (
               /* Show inline video player directly */
-              <div 
+              <div
                 className="relative w-full h-full flex items-center justify-center cursor-pointer"
                 onClick={() => {
                   setSelectedVideo(currentMedia);
@@ -395,7 +395,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             )}
 
 
-            
+
             {/* Navigation arrows for all media - AutoTrader style */}
             {mediaStats.hasMultiple && (
               <>
@@ -422,7 +422,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                 </button>
               </>
             )}
-            
+
 
 
 
@@ -440,11 +440,11 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
             'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10'
           }`}>
             {media.map((item, idx) => (
-              <div 
+              <div
                 key={`thumb-${idx}`}
                 className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 ${
-                  currentMediaIndex === idx 
-                    ? 'border-blue-500 ring-2 ring-blue-200' 
+                  currentMediaIndex === idx
+                    ? 'border-blue-500 ring-2 ring-blue-200'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => setCurrentMediaIndex(idx)}
@@ -502,9 +502,9 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
           className="fixed inset-0 z-50"
         >
           <div className="fixed inset-0 bg-black bg-opacity-95" aria-hidden="true" />
-          
+
           <div className="fixed inset-0 flex items-center justify-center">
-            <div 
+            <div
               ref={modalRef}
               className="relative w-full h-full max-w-none bg-black select-none cursor-grab active:cursor-grabbing"
               onTouchStart={onTouchStart}
@@ -566,7 +566,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   </div>
                 ) : null}
               </div>
-                
+
               {/* Modal navigation arrows - for all media */}
               {mediaStats.hasMultiple && (
                 <>
@@ -605,7 +605,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
           className="fixed inset-0 z-50"
         >
           <div className="fixed inset-0 bg-black bg-opacity-95" aria-hidden="true" />
-          
+
           <div className="fixed inset-0 flex items-center justify-center">
             <div className="relative w-full h-full max-w-none bg-black">
               {/* Close button */}
@@ -624,7 +624,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
               <div className="w-full h-full flex items-center justify-center">
                 {renderVideoContent(selectedVideo, true)}
               </div>
-              
+
               {/* Video navigation buttons - Only show if we have multiple videos */}
               {mediaStats.videoCount > 1 && (
                 <>
@@ -669,7 +669,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
                   >
                     {isRTL ? <ChevronLeft className="w-7 h-7" /> : <ChevronRight className="w-7 h-7" />}
                   </button>
-                  
+
                   {/* Video counter in modal */}
                   <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 px-3 py-2 bg-black bg-opacity-20 rounded-md text-white text-lg font-medium">
                     {t('mediaCount', { current: mediaStats.videos.findIndex(v => v.url === selectedVideo.url) + 1, total: mediaStats.videoCount })}

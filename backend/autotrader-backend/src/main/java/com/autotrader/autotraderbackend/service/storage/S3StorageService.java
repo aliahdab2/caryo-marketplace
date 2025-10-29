@@ -37,15 +37,15 @@ public class S3StorageService implements StorageService {
         Objects.requireNonNull(s3Client, "S3Client cannot be null");
         Objects.requireNonNull(configManager, "StorageConfigurationManager cannot be null");
         Objects.requireNonNull(urlGenerator, "StorageUrlGenerator cannot be null");
-        
+
         final String bucketName = configManager.getDefaultBucketName();
         if (!StringUtils.hasText(bucketName)) {
             throw new StorageException("Default bucket name cannot be null or empty");
         }
-        
+
         log.info("Initializing S3StorageService with configuration manager and URL generator. Default bucket: {}, Base URL: {}",
                 bucketName, configManager.getStorageBaseUrl());
-        
+
         try {
             // Verifying if the S3 bucket exists and is accessible
             s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
@@ -54,7 +54,7 @@ public class S3StorageService implements StorageService {
             log.error("S3 bucket '{}' does not exist! Please create it.", bucketName);
             throw new StorageException("S3 bucket not found: " + bucketName, e);
         } catch (S3Exception e) {
-            log.error("Error accessing S3 bucket '{}': {}", bucketName, 
+            log.error("Error accessing S3 bucket '{}': {}", bucketName,
                     Optional.ofNullable(e.awsErrorDetails())
                             .map(AwsErrorDetails::errorMessage)
                             .orElse("Unknown error"), e);
@@ -80,7 +80,7 @@ public class S3StorageService implements StorageService {
         try {
             final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
             log.debug("Storing file with key '{}' to bucket '{}'", key, bucketName);
-            
+
             final PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
@@ -103,11 +103,11 @@ public class S3StorageService implements StorageService {
         if (!StringUtils.hasText(key)) {
             throw new StorageException("Storage key cannot be null or empty");
         }
-        
+
         try {
             final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
             log.debug("Loading file with key '{}' from bucket '{}'", key, bucketName);
-            
+
             final GetObjectRequest request = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
@@ -139,11 +139,11 @@ public class S3StorageService implements StorageService {
             log.warn("Cannot delete file with null or empty key");
             return false;
         }
-        
+
         try {
             final String bucketName = configManager.getBucketName(configManager.getFileTypeFromKey(key));
             log.debug("Deleting file with key '{}' from bucket '{}'", key, bucketName);
-            
+
             final DeleteObjectRequest request = DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
@@ -164,11 +164,11 @@ public class S3StorageService implements StorageService {
         try {
             final String bucketName = configManager.getDefaultBucketName();
             log.warn("Deleting all objects from bucket: {}", bucketName);
-            
+
             ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
                     .bucket(bucketName)
                     .build();
-            
+
             ListObjectsV2Response listResponse;
 
             do {
@@ -223,19 +223,19 @@ public class S3StorageService implements StorageService {
         if (expirationSeconds < 0) {
             throw new StorageException("Expiration seconds cannot be negative");
         }
-        
+
         log.debug("Generating URL for key: {} with expiration: {}", key, expirationSeconds);
-        
+
         try {
             // Use the sophisticated URL generator that handles multiple providers
-            final StorageUrlGenerator.UrlType urlType = configManager.isPublicAccessEnabled() 
-                    ? StorageUrlGenerator.UrlType.PUBLIC 
+            final StorageUrlGenerator.UrlType urlType = configManager.isPublicAccessEnabled()
+                    ? StorageUrlGenerator.UrlType.PUBLIC
                     : StorageUrlGenerator.UrlType.SIGNED;
-            
+
             final String url = urlGenerator.generateUrl(key, urlType, expirationSeconds);
             log.info("Generated {} URL: {}", urlType.name().toLowerCase(), url);
             return url;
-            
+
         } catch (Exception e) {
             throw new StorageException("Failed to generate URL for key: " + key, e);
         }
@@ -243,7 +243,7 @@ public class S3StorageService implements StorageService {
 
     /**
      * Generate a CDN URL for the file if CDN is configured.
-     * 
+     *
      * @param key The storage key (must not be null or empty)
      * @return CDN URL or fallback to public URL
      * @throws StorageException if key is invalid or URL generation fails
@@ -252,7 +252,7 @@ public class S3StorageService implements StorageService {
         if (!StringUtils.hasText(key)) {
             throw new StorageException("Storage key cannot be null or empty");
         }
-        
+
         try {
             final String url = urlGenerator.generateUrl(key, StorageUrlGenerator.UrlType.CDN, 0);
             log.debug("Generated CDN URL for key: {} -> {}", key, url);
@@ -264,7 +264,7 @@ public class S3StorageService implements StorageService {
 
     /**
      * Generate a public URL for direct access (no expiration).
-     * 
+     *
      * @param key The storage key (must not be null or empty)
      * @return Public URL
      * @throws StorageException if key is invalid or URL generation fails
@@ -273,7 +273,7 @@ public class S3StorageService implements StorageService {
         if (!StringUtils.hasText(key)) {
             throw new StorageException("Storage key cannot be null or empty");
         }
-        
+
         try {
             final String url = urlGenerator.generateUrl(key, StorageUrlGenerator.UrlType.PUBLIC, 0);
             log.debug("Generated public URL for key: {} -> {}", key, url);

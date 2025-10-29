@@ -58,7 +58,7 @@ class PasswordResetIntegrationTest {
         // Clean up any existing data
         tokenRepository.deleteAll();
         userRepository.deleteAll();
-        
+
         // Clear rate limiting cache
         passwordResetService.clearRateLimitCache();
 

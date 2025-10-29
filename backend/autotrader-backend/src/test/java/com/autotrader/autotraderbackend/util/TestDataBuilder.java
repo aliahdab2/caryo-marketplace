@@ -26,11 +26,11 @@ public class TestDataBuilder {
         listing.setPrice(BigDecimal.valueOf(25000));
         listing.setCurrency("USD");
         listing.setSeller(seller);
-        
+
         // Set required fields
         listing.setGovernorate(createTestGovernorate());
         listing.setModel(createTestCarModel());
-        
+
         return listing;
     }
 

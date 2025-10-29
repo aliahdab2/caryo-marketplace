@@ -39,7 +39,7 @@ class StorageConfigurationManagerTest {
     void setUp() {
         lenient().when(storageProperties.getS3()).thenReturn(s3Properties);
         lenient().when(storageProperties.getGeneral()).thenReturn(generalProperties);
-        
+
         configurationManager = new StorageConfigurationManager(storageProperties, keyGenerator);
     }
 
@@ -376,11 +376,11 @@ class StorageConfigurationManagerTest {
         // Assert
         assertThat(result).isNotNull();
         assertThat(result).containsKeys(
-                "defaultBucketName", 
-                "storageBaseUrl", 
-                "publicAccessEnabled", 
-                "storageRegion", 
-                "s3StorageEnabled", 
+                "defaultBucketName",
+                "storageBaseUrl",
+                "publicAccessEnabled",
+                "storageRegion",
+                "s3StorageEnabled",
                 "signedUrlExpirationSeconds"
         );
         assertThat(result.get("defaultBucketName")).isEqualTo("test-bucket");

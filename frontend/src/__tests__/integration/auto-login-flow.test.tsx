@@ -100,7 +100,7 @@ describe('Auto-Login Integration Flow', () => {
 
     // Reset location
     mockLocation.href = '';
-    
+
     // Reset storage mocks
     (window.sessionStorage as unknown as { getItem: jest.Mock }).getItem.mockReturnValue(null);
     (window.localStorage as unknown as { getItem: jest.Mock }).getItem.mockReturnValue(null);

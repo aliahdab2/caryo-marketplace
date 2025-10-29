@@ -81,7 +81,7 @@ interface ConversationItemProps {
 
 function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: ConversationItemProps) {
   const { currentLang } = useLanguageSwitching();
-  
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -142,23 +142,23 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
               </span>
             )}
           </div>
-          
+
           {/* Price Display */}
           <div className="mb-1">
             <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-              {formatNumber(parseFloat(conversation.listingPrice), currentLang, { 
-                style: 'currency', 
+              {formatNumber(parseFloat(conversation.listingPrice), currentLang, {
+                style: 'currency',
                 currency: conversation.listingCurrency || 'USD',
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
               })}
             </p>
           </div>
-          
+
           <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">
             {conversation.buyer.username} • {conversation.seller.username}
           </p>
-          
+
           {conversation.recentMessages && conversation.recentMessages.length > 0 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex-1">
@@ -176,7 +176,7 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
               )}
             </div>
           )}
-          
+
           <div className="flex items-center justify-between mt-2">
             {conversation.unreadCount > 0 && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">

@@ -22,34 +22,34 @@ public class AsyncConfig {
     @Bean(name = "emailTaskExecutor")
     public Executor emailTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        
+
         // Core pool size - minimum number of threads to keep alive
         executor.setCorePoolSize(2);
-        
+
         // Maximum pool size - maximum number of threads to create
         executor.setMaxPoolSize(10);
-        
+
         // Queue capacity - how many tasks can wait in the queue
         executor.setQueueCapacity(100);
-        
+
         // Thread name prefix for easy identification in logs
         executor.setThreadNamePrefix("EmailAsync-");
-        
+
         // Allow core threads to timeout and shut down
         executor.setAllowCoreThreadTimeOut(true);
-        
+
         // Keep alive time for idle threads (in seconds)
         executor.setKeepAliveSeconds(60);
-        
+
         // Wait for tasks to complete on shutdown
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        
+
         // Timeout for waiting for tasks to complete (in seconds)
         executor.setAwaitTerminationSeconds(30);
-        
+
         // Initialize the executor
         executor.initialize();
-        
+
         return executor;
     }
 }

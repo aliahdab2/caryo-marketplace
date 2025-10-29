@@ -38,7 +38,7 @@ export const SmoothTransition: React.FC<SmoothTransitionProps> = ({
     } else if (loadingStartTime) {
       const elapsed = Date.now() - loadingStartTime;
       const remainingTime = Math.max(0, minimumLoadingTime - elapsed);
-      
+
       timeoutRef.current = setTimeout(() => {
         setShowLoading(false);
         setLoadingStartTime(null);

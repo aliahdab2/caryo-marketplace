@@ -21,8 +21,8 @@ INSERT INTO car_listings (
     seller_id, transmission, approved, sold, archived,
     brand_name_en, brand_name_ar, model_name_en, model_name_ar,
     created_at, updated_at
-) 
-SELECT 
+)
+SELECT
     'Toyota Camry 2020 - Test Listing 1',
     'This is a sample description for a Toyota Camry. Well-maintained with regular service history. Features include power windows, cruise control, and backup camera.',
     28000, 45000, 2020,
@@ -38,7 +38,7 @@ AND NOT EXISTS (SELECT 1 FROM car_listings WHERE title = 'Toyota Camry 2020 - Te
 
 UNION ALL
 
-SELECT 
+SELECT
     'Toyota Corolla 2019 - Test Listing 2',
     'This is a sample description for a Toyota Corolla. Excellent condition with low mileage. Perfect for city driving.',
     22000, 35000, 2019,
@@ -54,7 +54,7 @@ AND NOT EXISTS (SELECT 1 FROM car_listings WHERE title = 'Toyota Corolla 2019 - 
 
 UNION ALL
 
-SELECT 
+SELECT
     'Honda Civic 2021 - Test Listing 3',
     'This is a sample description for a Honda Civic. Almost new with warranty. Great fuel economy.',
     25000, 15000, 2021,
@@ -70,7 +70,7 @@ AND NOT EXISTS (SELECT 1 FROM car_listings WHERE title = 'Honda Civic 2021 - Tes
 
 UNION ALL
 
-SELECT 
+SELECT
     'Nissan Altima 2018 - Test Listing 4',
     'This is a sample description for a Nissan Altima. Reliable and comfortable with all maintenance records.',
     20000, 60000, 2018,
@@ -86,7 +86,7 @@ AND NOT EXISTS (SELECT 1 FROM car_listings WHERE title = 'Nissan Altima 2018 - T
 
 UNION ALL
 
-SELECT 
+SELECT
     'Hyundai Elantra 2020 - Test Listing 5',
     'This is a sample description for a Hyundai Elantra. Great value with modern features and excellent condition.',
     18000, 40000, 2020,
@@ -105,7 +105,7 @@ INSERT INTO listing_media (
     listing_id, file_key, file_name, content_type, size,
     sort_order, is_primary, media_type, created_at
 )
-SELECT 
+SELECT
     cl.id,
     'sample/car-' || cl.id || '-1.jpg',
     'car-' || cl.id || '-1.jpg',
@@ -115,6 +115,6 @@ SELECT
     true,
     'IMAGE',
     CURRENT_TIMESTAMP
-FROM car_listings cl 
+FROM car_listings cl
 WHERE cl.title LIKE '%Test Listing%'
 LIMIT 5;

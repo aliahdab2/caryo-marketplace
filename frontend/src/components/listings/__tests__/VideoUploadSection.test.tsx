@@ -55,7 +55,7 @@ describe('VideoUploadSection', () => {
     rerender(
       <VideoUploadSection
         {...baseProps}
-        formData={{ ...(baseProps.formData as ListingFormData), videos: [file], videoUrls: [] } as ListingFormData } 
+        formData={{ ...(baseProps.formData as ListingFormData), videos: [file], videoUrls: [] } as ListingFormData }
       />
     );
 

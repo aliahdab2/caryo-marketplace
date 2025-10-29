@@ -81,7 +81,7 @@ public class TestEmailConfig {
             @Override
             public void send(SimpleMailMessage simpleMessage) {
                 // Do nothing - this is a mock implementation
-                System.out.println("Mock email send: " + simpleMessage.getSubject() + " to " + 
+                System.out.println("Mock email send: " + simpleMessage.getSubject() + " to " +
                     (simpleMessage.getTo() != null && simpleMessage.getTo().length > 0 ? simpleMessage.getTo()[0] : "unknown"));
             }
 
@@ -101,13 +101,13 @@ public class TestEmailConfig {
     @Primary
     public TemplateEngine testTemplateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        
+
         StringTemplateResolver templateResolver = new StringTemplateResolver();
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCacheable(false);
-        
+
         templateEngine.setTemplateResolver(templateResolver);
-        
+
         return templateEngine;
     }
 

@@ -34,7 +34,7 @@ class EmailTemplateServiceTest {
     void setUp() {
         // Create service instance
         emailTemplateService = new EmailTemplateService();
-        
+
         // Mock the resource loader to return test YAML data
         String testRegistryYaml = """
             templates:
@@ -66,7 +66,7 @@ class EmailTemplateServiceTest {
                 languages: ["en", "ar"]
                 rtl-support: true
             """;
-            
+
         String testConfigYaml = """
             email-templates:
               welcome:
@@ -81,7 +81,7 @@ class EmailTemplateServiceTest {
                 name: "Caryo Marketplace"
                 logo: "/images/logo.png"
             """;
-        
+
         // Mock the registry resource
         ClassPathResource registryResource = mock(ClassPathResource.class);
         lenient().when(resourceLoader.getResource("classpath:templates/emails/config/template-registry.yml"))
@@ -92,7 +92,7 @@ class EmailTemplateServiceTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to mock registry resource", e);
         }
-        
+
         // Mock the config resource
         ClassPathResource configResource = mock(ClassPathResource.class);
         lenient().when(resourceLoader.getResource("classpath:templates/emails/config/email-templates-config.yml"))
@@ -103,10 +103,10 @@ class EmailTemplateServiceTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to mock config resource", e);
         }
-        
+
         // Set the mocked resource loader
         emailTemplateService.setResourceLoader(resourceLoader);
-        
+
         // Initialize the service
         emailTemplateService.initializeTemplates();
     }
@@ -149,7 +149,7 @@ class EmailTemplateServiceTest {
         Map<String, Object> metadata = result.get();
         assertEquals("Welcome email for new users", metadata.get("description"));
         assertEquals("user-management", metadata.get("category"));
-        
+
         @SuppressWarnings("unchecked")
         List<String> variables = (List<String>) metadata.get("variables");
         assertNotNull(variables);
@@ -327,7 +327,7 @@ class EmailTemplateServiceTest {
         // Then
         assertNotNull(result);
         assertTrue(result.size() > 0);
-        
+
         // Check that we have templates from different categories
         assertTrue(result.containsKey("welcome"));
         assertTrue(result.containsKey("password-reset"));

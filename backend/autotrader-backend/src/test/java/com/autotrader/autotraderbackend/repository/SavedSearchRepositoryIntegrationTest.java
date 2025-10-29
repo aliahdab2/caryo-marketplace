@@ -68,7 +68,7 @@ class SavedSearchRepositoryIntegrationTest {
         // Given
         SavedSearch activeSearch = createSavedSearch("Active Search", true);
         SavedSearch inactiveSearch = createSavedSearch("Inactive Search", false);
-        
+
         entityManager.persistAndFlush(activeSearch);
         entityManager.persistAndFlush(inactiveSearch);
         entityManager.clear();
@@ -124,7 +124,7 @@ class SavedSearchRepositoryIntegrationTest {
         SavedSearch activeSearch1 = createSavedSearch("Active Search 1", true);
         SavedSearch activeSearch2 = createSavedSearch("Active Search 2", true);
         SavedSearch inactiveSearch = createSavedSearch("Inactive Search", false);
-        
+
         entityManager.persistAndFlush(activeSearch1);
         entityManager.persistAndFlush(activeSearch2);
         entityManager.persistAndFlush(inactiveSearch);
@@ -155,7 +155,7 @@ class SavedSearchRepositoryIntegrationTest {
         SavedSearch immediateSearch = createSavedSearchWithNotifications("Immediate", true, immediateNotificationPrefs);
         SavedSearch dailySearch = createSavedSearchWithNotifications("Daily", true, dailyNotificationPrefs);
         SavedSearch noEmailSearch = createSavedSearchWithNotifications("No Email", true, noEmailPrefs);
-        
+
         entityManager.persistAndFlush(immediateSearch);
         entityManager.persistAndFlush(dailySearch);
         entityManager.persistAndFlush(noEmailSearch);
@@ -165,7 +165,7 @@ class SavedSearchRepositoryIntegrationTest {
         List<SavedSearch> result = savedSearchRepository.findActiveSearchesForImmediateNotification();
 
         // Then
-        // Note: Repository returns all active searches; filtering for immediate notifications 
+        // Note: Repository returns all active searches; filtering for immediate notifications
         // is done at the service layer for database compatibility
         assertThat(result).hasSize(3);
         assertThat(result).extracting(SavedSearch::getNameEn)

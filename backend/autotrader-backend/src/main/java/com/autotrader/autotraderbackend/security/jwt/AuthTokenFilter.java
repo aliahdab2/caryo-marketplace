@@ -23,24 +23,24 @@ import java.util.Objects;
 @Slf4j
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
-    
+
     private JwtUtils jwtUtils;
     private UserDetailsServiceImpl userDetailsService;
-    
+
     // Constructor injection to allow proper mocking in tests
     @Autowired
     public AuthTokenFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtils = Objects.requireNonNull(jwtUtils, "jwtUtils cannot be null");
         this.userDetailsService = Objects.requireNonNull(userDetailsService, "userDetailsService cannot be null");
     }
-    
+
     // Default constructor for Spring
     public AuthTokenFilter() {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, 
-                                    @NonNull HttpServletResponse response, 
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
@@ -48,11 +48,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             if (Objects.nonNull(jwt)) {
                 try {
                     // jwtUtils.validateJwtToken now throws CustomJwtException or its subclasses on failure
-                    jwtUtils.validateJwtToken(jwt); 
-                    
+                    jwtUtils.validateJwtToken(jwt);
+
                     // If validateJwtToken does not throw, the token is valid. Proceed to authenticate.
                     String username = jwtUtils.getUserNameFromJwtToken(jwt);
-                    
+
                     try {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                         UsernamePasswordAuthenticationToken authentication =
@@ -61,7 +61,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                         null,
                                         userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-    
+
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     } catch (Exception userException) {
                         // Log errors related to user loading or setting authentication context
@@ -71,9 +71,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 } catch (CustomJwtException e) {
                     // Log specific JWT validation errors
                     String tokenPrefix = jwt.length() > 10 ? jwt.substring(0, 10) + "..." : jwt;
-                    log.error("AuthTokenFilter: JWT validation failed for token starting with \'{}\': {}. Type: {}", 
+                    log.error("AuthTokenFilter: JWT validation failed for token starting with \'{}\': {}. Type: {}",
                               tokenPrefix,
-                              e.getMessage(), 
+                              e.getMessage(),
                               e.getClass().getSimpleName());
                     // Authentication not set, AuthEntryPointJwt will handle it
                 }

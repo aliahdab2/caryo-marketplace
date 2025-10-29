@@ -68,7 +68,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private RoleRepository roleRepository;
 
@@ -101,11 +101,11 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     private String userToken;
     private String adminToken;
     private Long listingId;
-    
+
     // Use the same JWT secret as in application.properties
     @Value("${app.jwtSecret}")
     private String jwtSecret;
-    
+
     private static final long JWT_EXPIRATION = 3600000; // 1 hour
 
     @BeforeEach
@@ -119,7 +119,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         locationRepository.deleteAll();
         governorateRepository.deleteAll();
         countryRepository.deleteAll();
-        
+
         // Ensure all changes are flushed to the database
         entityManager.flush();
         entityManager.clear();
@@ -128,7 +128,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         Country country = TestDataGenerator.createOrFindTestCountry("SY", countryRepository);
         Governorate governorate = TestDataGenerator.createTestGovernorateWithCountry("Damascus", "دمشق", country);
         governorate = governorateRepository.save(governorate);
-        
+
         Location location = TestDataGenerator.createTestLocation(governorate);
         location = locationRepository.save(location);
 
@@ -137,32 +137,32 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
         testUser.setPassword(passwordEncoder.encode("password"));
-        
+
         // Create and set user role
         Role userRole = roleRepository.findByName("ROLE_USER")
             .orElseGet(() -> {
                 Role newRole = new Role("ROLE_USER");
                 return roleRepository.save(newRole);
             });
-            
+
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(userRole);
         testUser.setRoles(userRoles);
         testUser = userRepository.save(testUser);
-        
+
         // Create admin user
         adminUser = new User();
         adminUser.setUsername("admin");
         adminUser.setEmail("admin@example.com");
         adminUser.setPassword(passwordEncoder.encode("password"));
-        
+
         // Create and set admin role
         Role adminRole = roleRepository.findByName("ROLE_ADMIN")
             .orElseGet(() -> {
                 Role newRole = new Role("ROLE_ADMIN");
                 return roleRepository.save(newRole);
             });
-            
+
         Set<Role> adminRoles = new HashSet<>();
         adminRoles.add(adminRole);
         // Also add user role to admin
@@ -198,13 +198,13 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         testListing.setApproved(true);
         testListing.setSeller(testUser);
         testListing.setCreatedAt(LocalDateTime.now());
-        
+
         // Set geographic data
         testListing.setGovernorate(governorate);
         testListing.setGovernorateNameEn(governorate.getDisplayNameEn());
         testListing.setGovernorateNameAr(governorate.getDisplayNameAr());
         testListing.setLocation(location);
-        
+
         testListing = carListingRepository.save(testListing);
         listingId = testListing.getId();
 
@@ -224,7 +224,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         locationRepository.deleteAll();
         countryRepository.deleteAll();
     }
-    
+
     /**
      * Helper method to generate JWT tokens for testing
      */

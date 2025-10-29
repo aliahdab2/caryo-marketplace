@@ -26,7 +26,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
         if (attribute == null || attribute.isEmpty()) {
             return "{}";
         }
-        
+
         try {
             String json = objectMapper.writeValueAsString(attribute);
             log.debug("Converting map to JSON: {} -> {}", attribute, json);
@@ -42,7 +42,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
         if (dbData == null || dbData.trim().isEmpty()) {
             return Map.of();
         }
-        
+
         try {
             Map<String, Object> map = objectMapper.readValue(dbData, mapTypeRef);
             log.debug("Converting JSON to map: {} -> {}", dbData, map);

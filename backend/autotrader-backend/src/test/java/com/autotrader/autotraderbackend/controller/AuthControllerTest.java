@@ -50,7 +50,7 @@ public class AuthControllerTest {
 
     @Mock
     private UserRepository userRepository;
-    
+
     @Mock
     private RoleRepository roleRepository;
 
@@ -111,7 +111,7 @@ public class AuthControllerTest {
                 .password("password")
                 .authorities(authorities)
                 .build();
-                
+
         lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
     }
 
@@ -121,7 +121,7 @@ public class AuthControllerTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(jwtUtils.generateJwtToken(authentication)).thenReturn("test-jwt-token");
-        
+
         // Mock the user repository response
         User mockUser = new User();
         mockUser.setId(1L);
@@ -136,13 +136,13 @@ public class AuthControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertInstanceOf(JwtResponse.class, response.getBody());
-        
+
         JwtResponse jwtResponse = (JwtResponse) response.getBody();
         assertNotNull(jwtResponse);
         assertEquals("test-jwt-token", jwtResponse.getToken());
         assertEquals("testuser", jwtResponse.getUsername());
         assertEquals("test@example.com", jwtResponse.getEmail());
-        
+
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtUtils).generateJwtToken(authentication);
     }
@@ -153,16 +153,16 @@ public class AuthControllerTest {
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(userRepository.existsByEmail("newuser@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        
+
         // Setup role repository mock
         Role userRole = new Role("ROLE_USER");
         when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
-        
+
         User savedUser = new User();
         savedUser.setUsername("newuser");
         savedUser.setEmail("newuser@example.com");
         savedUser.setPassword("encoded-password");
-        
+
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(emailVerificationService.sendVerificationEmail(any(User.class))).thenReturn(true);
 
@@ -172,11 +172,11 @@ public class AuthControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        
+
         // The response can be either JwtResponse (auto-login successful) or MessageResponse (fallback)
         Object responseBody = response.getBody();
         assertNotNull(responseBody);
-        
+
         if (responseBody instanceof JwtResponse) {
             // Auto-login was successful
             JwtResponse jwtResponse = (JwtResponse) responseBody;
@@ -189,7 +189,7 @@ public class AuthControllerTest {
         } else {
             fail("Response body should be either JwtResponse or MessageResponse");
         }
-        
+
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("newuser@example.com");
         verify(passwordEncoder).encode("password");
@@ -209,11 +209,11 @@ public class AuthControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody() instanceof MessageResponse);
-        
+
         MessageResponse messageResponse = (MessageResponse) response.getBody();
         assertNotNull(messageResponse);
         assertEquals("Error: Username is already taken!", messageResponse.getMessage());
-        
+
         verify(userRepository).existsByUsername("newuser");
     }
 
@@ -230,11 +230,11 @@ public class AuthControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertInstanceOf(MessageResponse.class, response.getBody());
-        
+
         MessageResponse messageResponse = (MessageResponse) response.getBody();
         assertNotNull(messageResponse);
         assertEquals("Error: Email is already in use!", messageResponse.getMessage());
-        
+
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("newuser@example.com");
     }
@@ -245,22 +245,22 @@ public class AuthControllerTest {
         when(userRepository.existsByUsername("newadmin")).thenReturn(false);
         when(userRepository.existsByEmail("newadmin@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
-        
+
         // Setup role repository mocks
         Role userRole = new Role("ROLE_USER");
         Role adminRole = new Role("ROLE_ADMIN");
         // Use lenient() for the USER role as it might not be used in this test
         lenient().when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
         when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
-        
+
         User savedUser = new User();
         savedUser.setUsername("newadmin");
         savedUser.setEmail("newadmin@example.com");
         savedUser.setPassword("encoded-password");
-        
+
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(emailVerificationService.sendVerificationEmail(any(User.class))).thenReturn(true);
-        
+
         // Create signup request with admin role
         SignupRequest adminSignupRequest = new SignupRequest();
         adminSignupRequest.setUsername("newadmin");
@@ -278,11 +278,11 @@ public class AuthControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        
+
         // The response can be either JwtResponse (auto-login successful) or MessageResponse (fallback)
         Object responseBody = response.getBody();
         assertNotNull(responseBody);
-        
+
         if (responseBody instanceof JwtResponse) {
             // Auto-login was successful
             JwtResponse jwtResponse = (JwtResponse) responseBody;
@@ -295,7 +295,7 @@ public class AuthControllerTest {
         } else {
             fail("Response body should be either JwtResponse or MessageResponse");
         }
-        
+
         verify(userRepository).existsByUsername("newadmin");
         verify(userRepository).existsByEmail("newadmin@example.com");
         verify(passwordEncoder).encode("password");

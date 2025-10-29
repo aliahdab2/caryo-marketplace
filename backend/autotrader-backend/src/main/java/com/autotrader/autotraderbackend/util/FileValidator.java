@@ -21,7 +21,7 @@ public class FileValidator {
         "image/gif",
         "image/webp"
     );
-    
+
     protected final Set<String> allowedTypes;
     protected final long maxFileSize;
 

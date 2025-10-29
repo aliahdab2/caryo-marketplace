@@ -18,17 +18,17 @@ interface ListingExpiryProps {
  * ListingExpiry component displays expiration information and renewal options
  * for a listing based on its expiry date and status.
  */
-export default function ListingExpiry({ 
-  listingId, 
-  expiryDate, 
-  status, 
-  onRenew 
+export default function ListingExpiry({
+  listingId,
+  expiryDate,
+  status,
+  onRenew
 }: ListingExpiryProps) {
   const { t } = useTranslation('common');
   const { currentLang: currentLanguage } = useLanguageSwitching();
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [renewalDuration, setRenewalDuration] = useState(30); // Default 30 days
-  
+
   // Calculate days remaining until expiry - memoized to avoid unnecessary recalculations
   const daysRemaining = useMemo(() => {
     const today = new Date();
@@ -37,7 +37,7 @@ export default function ListingExpiry({
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   }, [expiryDate]);
-  
+
   // Get status class for styling - memoized based on status and days remaining
   const statusClass = useMemo(() => {
     if (status === 'expired') {
@@ -48,7 +48,7 @@ export default function ListingExpiry({
       return 'text-green-600 dark:text-green-400';
     }
   }, [status, daysRemaining]);
-  
+
   // Get message based on status - memoized for performance
   const statusMessage = useMemo(() => {
     if (status === 'expired') {
@@ -56,12 +56,12 @@ export default function ListingExpiry({
     } else if (daysRemaining <= 7) {
       return t('listings.expiresIn', { days: daysRemaining });
     } else {
-      return t('listings.validUntil', { 
-        date: formatDate(new Date(expiryDate), currentLanguage, {dateStyle: 'medium'}) 
+      return t('listings.validUntil', {
+        date: formatDate(new Date(expiryDate), currentLanguage, {dateStyle: 'medium'})
       });
     }
   }, [status, daysRemaining, expiryDate, t, currentLanguage]);
-  
+
   // Handle renewal submission
   const handleRenewal = () => {
     onRenew(listingId, renewalDuration);
@@ -73,7 +73,7 @@ export default function ListingExpiry({
       <div className={`text-sm font-medium ${statusClass}`}>
         {statusMessage}
       </div>
-      
+
       {/* Show renewal button for expired listings or those expiring soon */}
       {(status === 'expired' || daysRemaining <= 7) && (
         <button
@@ -84,19 +84,19 @@ export default function ListingExpiry({
           {status === 'expired' ? t('listings.renewNow') : t('listings.extendListing')}
         </button>
       )}
-      
+
       {/* Renewal Modal */}
       {isRenewalModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="renewal-modal-title">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
             <h3 id="renewal-modal-title" className="text-xl font-semibold mb-4">{t('listings.renewListing')}</h3>
-            
+
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {status === 'expired' 
-                ? t('listings.expiredRenewalDesc') 
+              {status === 'expired'
+                ? t('listings.expiredRenewalDesc')
                 : t('listings.renewalDesc')}
             </p>
-            
+
             <div className="mb-4">
               <label htmlFor="renewal-duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('listings.renewalDuration')}
@@ -112,7 +112,7 @@ export default function ListingExpiry({
                 <option value={90}>{t('listings.90days')}</option>
               </select>
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"

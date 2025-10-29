@@ -18,7 +18,7 @@ export default function ClientRTLStylesLoader({ className: _className }: Compone
     const dir = document.documentElement.dir;
     setIsRTL(dir === "rtl");
   }, [pathname]); // Re-run when pathname changes to handle language switches
-  
+
   // Second effect handles the stylesheet
   useEffect(() => {
     // Only proceed in RTL mode
@@ -30,13 +30,13 @@ export default function ClientRTLStylesLoader({ className: _className }: Compone
     link.href = '/rtl-specific.css';
     link.setAttribute('data-testid', 'rtl-stylesheet');
     document.head.appendChild(link);
-    
+
     // Cleanup function
     return () => {
       const linkElem = document.querySelector('link[data-testid="rtl-stylesheet"]');
       if (linkElem) linkElem.remove();
     };
   }, [isRTL]);
-  
+
   return null;
 }

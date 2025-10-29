@@ -14,13 +14,13 @@ export default function SimpleSuccessAlert({
 
   useEffect(() => {
     setIsVisible(visible);
-    
+
     if (visible && autoHideDuration) {
       const timer = setTimeout(() => {
         setIsVisible(false);
         if (onComplete) onComplete();
       }, autoHideDuration);
-      
+
       return () => clearTimeout(timer);
     }
   }, [visible, autoHideDuration, onComplete]);
@@ -28,10 +28,10 @@ export default function SimpleSuccessAlert({
   if (!isVisible) return null;
 
   return (
-    <div 
-      id="success" 
-      className={`cb-container ${className}`} 
-      role="alert" 
+    <div
+      id="success"
+      className={`cb-container ${className}`}
+      role="alert"
       style={{
         display: 'grid',
         visibility: 'visible',
@@ -45,32 +45,32 @@ export default function SimpleSuccessAlert({
         padding: '16px',
       }}
     >
-      <svg 
-        id="success-i" 
-        viewBox="0 0 52 52" 
-        aria-hidden="true" 
-        style={{ 
+      <svg
+        id="success-i"
+        viewBox="0 0 52 52"
+        aria-hidden="true"
+        style={{
           display: 'block',
           visibility: 'visible',
           width: '24px',
           height: '24px'
         }}
       >
-        <circle 
-          className="success-circle" 
-          cx="26" 
-          cy="26" 
-          r="25" 
-          style={{ 
+        <circle
+          className="success-circle"
+          cx="26"
+          cy="26"
+          r="25"
+          style={{
             fill: '#22c55e',
             stroke: '#22c55e',
             strokeWidth: '2'
           }}
         />
-        <path 
-          className="p1" 
-          d="m13,26l9.37,9l17.63,-18" 
-          style={{ 
+        <path
+          className="p1"
+          d="m13,26l9.37,9l17.63,-18"
+          style={{
             fill: 'none',
             stroke: 'white',
             strokeWidth: '3',

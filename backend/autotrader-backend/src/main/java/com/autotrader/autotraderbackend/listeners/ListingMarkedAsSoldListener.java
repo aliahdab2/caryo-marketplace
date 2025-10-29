@@ -27,39 +27,39 @@ public class ListingMarkedAsSoldListener {
     private final ListingEventUtils eventUtils;
     private final AsyncTransactionService txService;
     private final EmailService emailService;
-    
+
     /**
      * Handle the listing marked as sold event.
      * This will log the event and trigger any notification processes.
-     * 
+     *
      * Uses transaction management to ensure database operations are consistent.
-     * 
+     *
      * @param event The listing marked as sold event (must not be null)
      */
     @EventListener
     @Async
     public void handleListingMarkedAsSold(@NonNull ListingMarkedAsSoldEvent event) {
         Objects.requireNonNull(event, "ListingMarkedAsSoldEvent cannot be null");
-        
+
         txService.executeInTransaction(() -> {
             CarListing listing = event.getListing();
             User seller = listing.getSeller();
             boolean isAdminAction = event.isAdminAction();
 
             String actionBy = isAdminAction ? "admin" : "seller";
-            log.info("Listing marked as sold event received for {} by {}", 
+            log.info("Listing marked as sold event received for {} by {}",
                     eventUtils.getListingInfo(listing), actionBy);
 
             // Detailed log about the car with safe null handling
             String sellerUsername = Optional.ofNullable(seller)
                     .map(User::getUsername)
                     .orElse("N/A");
-            
+
             String sellerId = Optional.ofNullable(seller)
                     .map(User::getId)
                     .map(Object::toString)
                     .orElse("N/A");
-                    
+
             log.debug("Sold Listing Details: ID: {}, Seller: {} (ID: {}), Make: {}, Model: {}, Year: {}, Price: {}",
                     listing.getId(),
                     sellerUsername,
@@ -79,7 +79,7 @@ public class ListingMarkedAsSoldListener {
                     log.error("Failed to send listing sold confirmation email to seller: {}", seller.getEmail(), e);
                 }
             }
-            
+
             // Send feedback request to seller (after a short delay to avoid email overload)
             if (seller != null && seller.getEmail() != null) {
                 try {

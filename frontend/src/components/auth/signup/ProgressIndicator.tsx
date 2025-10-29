@@ -22,7 +22,7 @@ export default function ProgressIndicator({
     if (stepTitles && stepTitles[step - 1]) {
       return stepTitles[step - 1];
     }
-    
+
     // Default descriptive step titles
     const defaultStepTitles = [
       t('stepChooseAccountType', 'Step 1: Choose Account Type'),
@@ -30,7 +30,7 @@ export default function ProgressIndicator({
       t('stepBusinessInfo', 'Step 3: Business Information'),
       t('stepContactInfo', 'Step 4: Contact Information')
     ];
-    
+
     return defaultStepTitles[step - 1] || `${t('step', 'Step')} ${step}`;
   };
 

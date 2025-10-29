@@ -100,7 +100,7 @@ public class TestDataGenerator {
     public static CarListing createTestListing(User seller, CarModel carModel, Governorate governorate) {
         CarListing listing = new CarListing();
         listing.setTitle("Test Car Listing");
-        
+
         listing.setModel(carModel); // Set the CarModel relationship
         if (carModel != null && carModel.getBrand() != null) {
             listing.setBrandNameEn(carModel.getBrand().getDisplayNameEn());
@@ -108,14 +108,14 @@ public class TestDataGenerator {
             listing.setModelNameEn(carModel.getDisplayNameEn());
             listing.setModelNameAr(carModel.getDisplayNameAr());
         }
-        
+
         // Set the governorate relationship and names
         listing.setGovernorate(governorate);
         if (governorate != null) {
             listing.setGovernorateNameEn(governorate.getDisplayNameEn());
             listing.setGovernorateNameAr(governorate.getDisplayNameAr());
         }
-        
+
         listing.setModelYear(2022);
         listing.setPrice(new BigDecimal("25000.00"));
         listing.setMileage(5000);
@@ -128,7 +128,7 @@ public class TestDataGenerator {
         listing.setUpdatedAt(LocalDateTime.now());
         return listing;
     }
-    
+
     /**
      * Creates a test governorate associated with the specified country
      * @param countryCode The country code to use
@@ -138,7 +138,7 @@ public class TestDataGenerator {
         Country country = TestGeographyUtils.createTestCountry(countryCode);
         return TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", country);
     }
-    
+
     /**
      * Creates a test location associated with the specified governorate
      * @param governorate The governorate for this location
@@ -147,7 +147,7 @@ public class TestDataGenerator {
     public static Location createTestLocation(Governorate governorate) {
         return TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", governorate);
     }
-    
+
     /**
      * Creates a complete hierarchy of test location data (Country > Governorate > Location)
      * @param countryCode The country code to use
@@ -158,7 +158,7 @@ public class TestDataGenerator {
         Governorate governorate = TestGeographyUtils.createTestGovernorate("Test Governorate", "محافظة الاختبار", country);
         return TestGeographyUtils.createTestLocation("Test Location", "موقع الاختبار", governorate);
     }
-    
+
     /**
      * Creates a test country entity
      * @param countryCode ISO country code
@@ -167,7 +167,7 @@ public class TestDataGenerator {
     public static Country createTestCountry(String countryCode) {
         return TestGeographyUtils.createTestCountry(countryCode);
     }
-    
+
     /**
      * Creates a test country for the given country code, checking if one already exists in the repository
      * @param countryCode ISO country code (e.g., "SY" for Syria)
@@ -183,11 +183,11 @@ public class TestDataGenerator {
             return countryRepository.save(testCountry);
         }
     }
-    
+
     /**
      * Creates a test governorate with the given country
      * @param nameEn English name of the governorate
-     * @param nameAr Arabic name of the governorate 
+     * @param nameAr Arabic name of the governorate
      * @param country The country the governorate belongs to
      * @return A test governorate entity
      */
@@ -215,7 +215,7 @@ public class TestDataGenerator {
             return carBrandRepository.save(newBrand);
         }
     }
-    
+
     /**
      * Creates a test car brand for the given slug, checking if one already exists in the repository
      * @param slug The slug for the car brand (e.g., "test-brand")

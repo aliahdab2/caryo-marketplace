@@ -27,7 +27,7 @@ public class BodyStyleService {
     public List<BodyStyle> getAllBodyStyles() {
         return bodyStyleRepository.findAll();
     }
-    
+
     /**
      * Get a body style by its ID
      * @param id Body style ID
@@ -38,7 +38,7 @@ public class BodyStyleService {
         return bodyStyleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "id", id));
     }
-    
+
     /**
      * Get a body style by its name
      * @param name Body style name
@@ -49,7 +49,7 @@ public class BodyStyleService {
         return bodyStyleRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "name", name));
     }
-    
+
     /**
      * Get a body style by its slug
      * @param slug Body style slug
@@ -60,7 +60,7 @@ public class BodyStyleService {
         return bodyStyleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "slug", slug));
     }
-    
+
     /**
      * Search for body styles by name (in English or Arabic)
      * @param query Search query
@@ -72,7 +72,7 @@ public class BodyStyleService {
         }
         return bodyStyleRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new body style
      * @param bodyStyle Body style to create
@@ -83,7 +83,7 @@ public class BodyStyleService {
         log.info("Creating new body style: {}", bodyStyle.getName());
         return bodyStyleRepository.save(bodyStyle);
     }
-    
+
     /**
      * Update an existing body style
      * @param id Body style ID
@@ -94,16 +94,16 @@ public class BodyStyleService {
     @Transactional
     public BodyStyle updateBodyStyle(Long id, BodyStyle bodyStyleDetails) {
         BodyStyle bodyStyle = getBodyStyleById(id);
-        
+
         bodyStyle.setName(bodyStyleDetails.getName());
         bodyStyle.setDisplayNameEn(bodyStyleDetails.getDisplayNameEn());
         bodyStyle.setDisplayNameAr(bodyStyleDetails.getDisplayNameAr());
         bodyStyle.setSlug(bodyStyleDetails.getSlug());
-        
+
         log.info("Updated body style with id: {}", id);
         return bodyStyleRepository.save(bodyStyle);
     }
-    
+
     /**
      * Delete a body style
      * @param id Body style ID

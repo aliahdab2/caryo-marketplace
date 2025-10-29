@@ -18,7 +18,7 @@ class AutotraderBackendApplicationTests {
         // This test verifies that the Spring application context loads successfully
         // If the application context cannot be created, this test will fail
     }
-    
+
     @Test
     void applicationClassExists() {
         // Verify the main application class can be instantiated

@@ -10,9 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface CarConditionRepository extends JpaRepository<CarCondition, Long> {
-    
+
     Optional<CarCondition> findByName(String name);
-    
+
     @Query("SELECT c FROM CarCondition c WHERE " +
            "LOWER(c.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(c.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

@@ -40,7 +40,7 @@ const Step3ContentMedia: React.FC<Step3ContentMediaProps> = ({
       <div className="sr-only" aria-live="polite" role="status">
         {Object.values(formErrors).filter(Boolean).join('. ')}
       </div>
-      
+
       <StepHeader
         title={t('listings:contentMediaTitle', 'Content & Media')}
         subtitle={t('listings:contentMediaSubtitle', 'Create your listing content and add photos')}
@@ -138,7 +138,7 @@ const Step3ContentMedia: React.FC<Step3ContentMediaProps> = ({
           isVideoUrlEnabled={isVideoUrlEnabled}
         />
       </div>
-      
+
       {/* Bottom spacing to separate from navigation buttons */}
       <div className="pb-8"></div>
     </div>

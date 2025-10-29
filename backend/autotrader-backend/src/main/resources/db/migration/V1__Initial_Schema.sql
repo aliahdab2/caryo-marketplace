@@ -75,7 +75,7 @@ CREATE TABLE seller_types (
 
 -- Reference Data
 -- Car Conditions
-INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug) VALUES 
+INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug) VALUES
 ('new', 'New', 'جديد', 'new'),
 ('like_new', 'Like New', 'شبه جديد', 'like-new'),
 ('excellent', 'Excellent', 'ممتاز', 'excellent'),
@@ -84,7 +84,7 @@ INSERT INTO car_conditions (name, display_name_en, display_name_ar, slug) VALUES
 ('fair', 'Fair', 'مقبول', 'fair');
 
 -- Drive Types
-INSERT INTO drive_types (name, display_name_en, display_name_ar, slug) VALUES 
+INSERT INTO drive_types (name, display_name_en, display_name_ar, slug) VALUES
 ('fwd', 'Front-Wheel Drive', 'دفع أمامي', 'fwd'),
 ('rwd', 'Rear-Wheel Drive', 'دفع خلفي', 'rwd'),
 ('awd', 'All-Wheel Drive', 'دفع رباعي', 'awd'),
@@ -274,7 +274,7 @@ CREATE TABLE listing_features (
     value_number DECIMAL(10, 2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT unique_listing_feature UNIQUE (listing_id, feature_id),
     FOREIGN KEY (listing_id) REFERENCES car_listings(id) ON DELETE CASCADE,
     FOREIGN KEY (feature_id) REFERENCES car_features(id) ON DELETE CASCADE

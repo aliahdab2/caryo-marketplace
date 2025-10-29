@@ -55,14 +55,14 @@ class ConversationRepositoryTest {
         // Create and persist dependencies first
         Country country = TestDataBuilder.createTestCountry();
         country = entityManager.persistAndFlush(country);
-        
+
         Governorate governorate = TestDataBuilder.createTestGovernorate();
         governorate.setCountry(country);
         governorate = entityManager.persistAndFlush(governorate);
-        
+
         CarBrand brand = TestDataBuilder.createTestCarBrand();
         brand = entityManager.persistAndFlush(brand);
-        
+
         CarModel model = TestDataBuilder.createTestCarModel();
         model.setBrand(brand);
         model = entityManager.persistAndFlush(model);
@@ -141,7 +141,7 @@ class ConversationRepositoryTest {
         // Assert
         assertEquals(2, buyerConversations.getTotalElements());
         assertEquals(3, sellerConversations.getTotalElements());
-        
+
         // Should be ordered by lastMessageAt DESC
         assertEquals(conversation2.getId(), buyerConversations.getContent().get(0).getId());
         assertEquals(conversation1.getId(), buyerConversations.getContent().get(1).getId());

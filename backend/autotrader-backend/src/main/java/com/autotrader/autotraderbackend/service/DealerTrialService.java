@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 
 /**
  * Service for managing dealer trial periods and subscription limits.
- * 
+ *
  * Business Rules:
  * - Trial duration: 2 months
  * - Trial listing limit: 15 total listings
@@ -51,7 +51,7 @@ public class DealerTrialService {
 
     /**
      * Check if dealer's trial is still active.
-     * 
+     *
      * @param dealer The dealer to check
      * @return true if trial is active (not expired by time or listings)
      */
@@ -72,7 +72,7 @@ public class DealerTrialService {
 
     /**
      * Check if dealer can create a new listing.
-     * 
+     *
      * @param dealer The dealer attempting to create a listing
      * @return true if dealer can create listing
      */
@@ -87,7 +87,7 @@ public class DealerTrialService {
         if (isTrialActive(dealer)) {
             boolean underLimit = dealer.getTrialListingsCount() < trialListingLimit;
             if (!underLimit) {
-                log.info("Dealer {} hit trial listing limit: {}/{}", 
+                log.info("Dealer {} hit trial listing limit: {}/{}",
                     dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
             }
             return underLimit;
@@ -113,7 +113,7 @@ public class DealerTrialService {
 
     /**
      * Increment dealer's trial listing counter.
-     * 
+     *
      * @param dealer The dealer who created a listing
      */
     @Transactional
@@ -121,14 +121,14 @@ public class DealerTrialService {
         if (dealer.isOnTrial()) {
             dealer.setTrialListingsCount(dealer.getTrialListingsCount() + 1);
             dealerRepository.save(dealer);
-            log.info("Dealer {} trial listing count: {}/{}", 
+            log.info("Dealer {} trial listing count: {}/{}",
                 dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
         }
     }
 
     /**
      * Get comprehensive trial status for a dealer.
-     * 
+     *
      * @param dealer The dealer to check
      * @return TrialStatus with all relevant information
      */
@@ -153,7 +153,7 @@ public class DealerTrialService {
             boolean underLimit = dealer.getTrialListingsCount() < trialListingLimit;
             canCreate = withinPeriod && underLimit;
         }
-        
+
         return TrialStatus.builder()
             .active(active)
             .daysRemaining((int) Math.max(0, daysRemaining))
@@ -172,7 +172,7 @@ public class DealerTrialService {
 
     /**
      * Get trial expiry date in dealer's local timezone.
-     * 
+     *
      * @param dealer The dealer
      * @return Trial expiry time in dealer's timezone
      */
@@ -184,7 +184,7 @@ public class DealerTrialService {
 
     /**
      * Extend trial for a dealer (support/admin use case).
-     * 
+     *
      * @param dealer The dealer
      * @param additionalDays Number of days to extend
      * @param reason Reason for extension (audit trail)
@@ -193,12 +193,12 @@ public class DealerTrialService {
     public void extendTrial(Dealer dealer, int additionalDays, String reason) {
         ZonedDateTime currentTrialEnd = getTrialEndDate(dealer);
         ZonedDateTime newTrialEnd = currentTrialEnd.plusDays(additionalDays);
-        
+
         dealer.setTrialExtendedUntil(newTrialEnd);
         dealer.setTrialExpired(false); // Re-activate if expired
         dealerRepository.save(dealer);
 
-        log.info("Extended trial for dealer {} by {} days. Reason: {}. New end: {}", 
+        log.info("Extended trial for dealer {} by {} days. Reason: {}. New end: {}",
             dealer.getId(), additionalDays, reason, newTrialEnd);
 
         // Note: In production, also send notification email
@@ -206,7 +206,7 @@ public class DealerTrialService {
 
     /**
      * Mark trial as expired (called by scheduled job).
-     * 
+     *
      * @param dealer The dealer whose trial expired
      */
     @Transactional
@@ -218,12 +218,12 @@ public class DealerTrialService {
 
     /**
      * Calculate trial end date (UTC).
-     * 
+     *
      * @param dealer The dealer
      * @return Trial end date in UTC
      */
     private ZonedDateTime getTrialEndDate(Dealer dealer) {
-        ZonedDateTime trialStart = dealer.getTrialStartedAt() != null 
+        ZonedDateTime trialStart = dealer.getTrialStartedAt() != null
             ? dealer.getTrialStartedAt().withZoneSameInstant(ZoneId.of("UTC"))
             : ZonedDateTime.now(ZoneId.of("UTC"));
 
@@ -237,16 +237,16 @@ public class DealerTrialService {
 
     /**
      * Check if dealer can create listings based on subscription tier.
-     * 
+     *
      * @param dealer The dealer
      * @return true if under subscription limit
      */
     private boolean checkSubscriptionLimit(Dealer dealer) {
         String tier = dealer.getSubscriptionTier();
-        
+
         // For now, we'll just check if they have an active subscription
         // In future, track total active listings and compare to tier limits
-        
+
         switch (tier) {
             case "basic":
                 // TODO: Count active listings and compare to basicListingLimit
@@ -257,7 +257,7 @@ public class DealerTrialService {
             case "professional":
                 return true; // Unlimited
             case "trial":
-                return isTrialActive(dealer) && 
+                return isTrialActive(dealer) &&
                        dealer.getTrialListingsCount() < trialListingLimit;
             case "suspended":
                 return false;

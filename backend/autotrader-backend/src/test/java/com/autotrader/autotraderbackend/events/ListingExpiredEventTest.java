@@ -16,7 +16,7 @@ class ListingExpiredEventTest {
 
     @Mock private CarListing mockListing;
     @Mock private User mockSeller;
-    
+
     private Object source;
     private static final Long LISTING_ID = 1L;
     private static final String SELLER_USERNAME = "testSeller";
@@ -57,7 +57,7 @@ class ListingExpiredEventTest {
     @Test
     void constructor_ShouldThrowIllegalArgumentException_WhenListingIsNull() {
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> new ListingExpiredEvent(source, null, false));
         assertEquals("CarListing cannot be null", exception.getMessage());
     }

@@ -61,10 +61,10 @@ describe('OAuth Role Integration Tests', () => {
         providerAccountId: '123456789'
       };
 
-      const mockUser = { 
-        id: '1', 
-        name: 'Test User', 
-        email: 'test@example.com' 
+      const mockUser = {
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com'
       };
 
       // Test the signIn callback directly from the real auth config
@@ -79,7 +79,7 @@ describe('OAuth Role Integration Tests', () => {
         });
 
         expect(result).toBe(true);
-        
+
         // Verify the user object was augmented with roles from the correct path
         // This is the critical fix - roles should come from response.roles, not response.user.roles
         expect((mockUser as Record<string, unknown>).roles).toEqual(['ROLE_USER']);
@@ -113,10 +113,10 @@ describe('OAuth Role Integration Tests', () => {
         providerAccountId: '987654321'
       };
 
-      const mockUser = { 
-        id: '2', 
-        name: 'Admin User', 
-        email: 'admin@example.com' 
+      const mockUser = {
+        id: '2',
+        name: 'Admin User',
+        email: 'admin@example.com'
       };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -157,10 +157,10 @@ describe('OAuth Role Integration Tests', () => {
         providerAccountId: '555666777'
       };
 
-      const mockUser = { 
-        id: '3', 
-        name: 'No Roles User', 
-        email: 'noroles@example.com' 
+      const mockUser = {
+        id: '3',
+        name: 'No Roles User',
+        email: 'noroles@example.com'
       };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -201,10 +201,10 @@ describe('OAuth Role Integration Tests', () => {
         providerAccountId: '111222333'
       };
 
-      const mockUser = { 
-        id: '4', 
-        name: 'Missing Roles User', 
-        email: 'missing@example.com' 
+      const mockUser = {
+        id: '4',
+        name: 'Missing Roles User',
+        email: 'missing@example.com'
       };
 
       const signInCallback = authOptions.callbacks?.signIn;

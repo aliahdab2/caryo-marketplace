@@ -123,7 +123,7 @@ const SignInPage: React.FC = () => {
         console.log('🔄 Auto-login requested for verified user:', email);
         setVerificationSuccess(true);
         setShowSuccess(true);
-        
+
         // Show a message that they're verified and can sign in
         setTimeout(() => {
           // Focus on password field since email is pre-filled
@@ -133,7 +133,7 @@ const SignInPage: React.FC = () => {
           }
         }, 100);
       }
-      
+
       // Mark that callback URL has been loaded
       setCallbackUrlLoaded(true);
     }
@@ -146,7 +146,7 @@ const SignInPage: React.FC = () => {
 
   // Reset credentialsCorrect if a new error message appears
   useEffect(() => {
-    if (error && error !== "") { 
+    if (error && error !== "") {
         setCredentialsCorrect(false);
     }
   }, [error]);
@@ -188,7 +188,7 @@ const SignInPage: React.FC = () => {
 
       if (result?.error) {
         if (result.error === 'CredentialsSignin' ||
-            result.error.toLowerCase().includes('invalid') || 
+            result.error.toLowerCase().includes('invalid') ||
             result.error.toLowerCase().includes('credentials') ||
             result.error.toLowerCase().includes('password') ||
             result.error.toLowerCase().includes('user')) {
@@ -221,7 +221,7 @@ const SignInPage: React.FC = () => {
     } catch (e) {
       setError(getErrorMessage(e));
       setLoading(false);
-    } 
+    }
     // No finally block needed for setLoading if all paths handle it.
   };
 
@@ -233,14 +233,14 @@ const SignInPage: React.FC = () => {
     if (user && !redirecting && callbackUrlLoaded) {
       // Add a slight delay to ensure user is fully processed
       setRedirecting(true);
-      
+
       // Log user state for debugging
       console.log('Redirecting with user:', {
         hasUser: !!user,
         hasToken: !!user?.accessToken,
         callbackUrl
       });
-      
+
       setTimeout(() => {
         try {
           router?.push?.(callbackUrl);
@@ -269,15 +269,15 @@ const SignInPage: React.FC = () => {
             <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#signInGradient)" opacity="0.5" />
           </svg>
         </div>
-        
+
         <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
           <div className="flex items-center mb-6">
-            <Image 
-              src="/images/logo.svg" 
+            <Image
+              src="/images/logo.svg"
               alt={t('logo')}
-              width={40} 
-              height={40} 
-              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert" 
+              width={40}
+              height={40}
+              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
             />
             <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
           </div>
@@ -288,7 +288,7 @@ const SignInPage: React.FC = () => {
           <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
         </div>
       </div>
-      
+
       {/* Right section - Sign in form - OPTIMIZED FOR RESPONSIVE */}
       <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
         <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
@@ -313,7 +313,7 @@ const SignInPage: React.FC = () => {
                 {t('signInDescription')}
               </p>
             </div>
-            
+
             {error && (
               <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-red-50 border-is-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -373,8 +373,8 @@ const SignInPage: React.FC = () => {
                     required
                     data-error={t('validationFieldRequired')}
                     className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
-                      usernameError 
-                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500' 
+                      usernameError
+                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
                         : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
                     }`}
                     placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
@@ -399,7 +399,7 @@ const SignInPage: React.FC = () => {
                   </p>
                 )}
               </div>
-              
+
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -429,20 +429,20 @@ const SignInPage: React.FC = () => {
 
 
               </div>
-              
+
               <div className="mb-5">
-                <SimpleVerification 
+                <SimpleVerification
                   onVerified={(verified: boolean) => {
-                    if (verified !== isVerified) { 
+                    if (verified !== isVerified) {
                       setIsVerified(verified);
                       if (verified) {
                         if (error === t('verificationRequired')) {
-                          setError(''); 
+                          setError('');
                         }
                       }
                     }
                   }}
-                  autoStart={true} 
+                  autoStart={true}
                 />
               </div>
 
@@ -468,15 +468,15 @@ const SignInPage: React.FC = () => {
             </form>
 
 
-          
+
             {/* Conditionally render OAuth section */}
             <OAuthSection callbackUrl={callbackUrl} t={t} />
 
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('dontHaveAccount')}{' '}
-                <Link 
-                  href={`/auth/signup${window?.location?.search || ''}`} 
+                <Link
+                  href={`/auth/signup${window?.location?.search || ''}`}
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
                   {t('signUp')}

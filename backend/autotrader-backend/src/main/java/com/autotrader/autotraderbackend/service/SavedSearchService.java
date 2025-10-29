@@ -40,18 +40,18 @@ public class SavedSearchService {
 
     /**
      * Create a new saved search or update existing one with same criteria
-     * 
+     *
      * Logic:
      * - If criteria already exist for this user → Update existing search (name can change)
      * - If criteria are new for this user → Create new search (name can be duplicate)
-     * 
+     *
      * We only care about search criteria, not names. Users can have multiple searches
      * with the same name as long as the criteria are different.
      */
     @Transactional
     public SavedSearchResponse createSavedSearch(SavedSearchRequest request, String username) {
         log.info("Creating/updating saved search for user: {}", username);
-        
+
         if (request == null) {
             throw new IllegalArgumentException("SavedSearchRequest cannot be null");
         }
@@ -64,40 +64,40 @@ public class SavedSearchService {
         if (request.getNameEn().trim().length() > 100) {
             throw new IllegalArgumentException("Search name cannot exceed 100 characters");
         }
-        
+
         User user = findUserByUsername(username);
         String queryHash = generateSearchQueryHash(request.getFilters());
-        
+
         // Validate query hash is not empty
         if (queryHash.isEmpty()) {
             throw new IllegalArgumentException("Invalid search criteria - no meaningful filters provided");
         }
-        
+
         String trimmedName = request.getNameEn().trim();
-        
+
         // Check if user already has a search with same criteria
         SavedSearch existingSearch = savedSearchRepository.findByUserAndSearchQueryHashAndIsActiveTrue(user, queryHash);
-        
+
         if (existingSearch != null) {
             // Update existing search with same criteria (name can be anything)
             log.info("Found existing search with same criteria, updating search ID: {} for user: {}", existingSearch.getId(), username);
-            
+
             existingSearch.setNameEn(trimmedName);
             existingSearch.setNameAr(request.getNameAr() != null ? request.getNameAr().trim() : null);
             existingSearch.setNotificationPreferences(request.getNotificationPreferences());
-            
+
             SavedSearch updated = savedSearchRepository.save(existingSearch);
             return mapToResponse(updated, true); // wasUpdated = true
         }
-        
+
         // Different criteria = create new search (names can be duplicated)
-        
+
         // Check user limits for new searches (max 20 saved searches per user)
         long userSearchCount = savedSearchRepository.countByUserAndIsActiveTrue(user);
         if (userSearchCount >= 20) {
             throw new IllegalArgumentException("You have reached the maximum limit of 20 saved searches. Please delete some existing searches before creating new ones.");
         }
-        
+
         // Create new search
         SavedSearch savedSearch = new SavedSearch(
             user,
@@ -106,10 +106,10 @@ public class SavedSearchService {
             request.getFilters(),
             request.getNotificationPreferences()
         );
-        
+
         savedSearch.setSearchQueryHash(queryHash);
         SavedSearch saved = savedSearchRepository.save(savedSearch);
-        
+
         log.info("Created new saved search with ID: {} for user: {}", saved.getId(), username);
         return mapToResponse(saved, false); // wasUpdated = false
     }
@@ -120,10 +120,10 @@ public class SavedSearchService {
     @Transactional(readOnly = true)
     public List<SavedSearchResponse> getUserSavedSearches(String username) {
         log.debug("Fetching saved searches for user: {}", username);
-        
+
         User user = findUserByUsername(username);
         List<SavedSearch> searches = savedSearchRepository.findByUserAndIsActiveTrueOrderByCreatedAtDesc(user);
-        
+
         log.info("Found {} active saved searches for user: {}", searches.size(), username);
         return searches.stream()
                 .map(this::mapToResponse)
@@ -136,14 +136,14 @@ public class SavedSearchService {
     @Transactional(readOnly = true)
     public SavedSearchResponse getSavedSearchById(UUID id, String username) {
         log.debug("Fetching saved search {} for user: {}", id, username);
-        
+
         User user = findUserByUsername(username);
         SavedSearch savedSearch = savedSearchRepository.findByIdAndUser(id, user);
-        
+
         if (savedSearch == null) {
             throw new ResourceNotFoundException("SavedSearch", "id", id);
         }
-        
+
         return mapToResponse(savedSearch);
     }
 
@@ -153,18 +153,18 @@ public class SavedSearchService {
     @Transactional
     public SavedSearchResponse updateSavedSearch(UUID id, SavedSearchRequest request, String username) {
         log.info("Updating saved search {} for user: {}", id, username);
-        
+
         if (request == null) {
             throw new IllegalArgumentException("SavedSearchRequest cannot be null");
         }
-        
+
         User user = findUserByUsername(username);
         SavedSearch savedSearch = savedSearchRepository.findByIdAndUser(id, user);
-        
+
         if (savedSearch == null) {
             throw new ResourceNotFoundException("SavedSearch", "id", id);
         }
-        
+
         // Update fields if provided
         if (request.getNameEn() != null && !request.getNameEn().trim().isEmpty()) {
             savedSearch.setNameEn(request.getNameEn().trim());
@@ -178,10 +178,10 @@ public class SavedSearchService {
         if (request.getNotificationPreferences() != null) {
             savedSearch.setNotificationPreferences(request.getNotificationPreferences());
         }
-        
+
         SavedSearch updated = savedSearchRepository.save(savedSearch);
         log.info("Updated saved search {} for user: {}", id, username);
-        
+
         return mapToResponse(updated);
     }
 
@@ -191,17 +191,17 @@ public class SavedSearchService {
     @Transactional
     public void deleteSavedSearch(UUID id, String username) {
         log.info("Deleting saved search {} for user: {}", id, username);
-        
+
         User user = findUserByUsername(username);
         SavedSearch savedSearch = savedSearchRepository.findByIdAndUser(id, user);
-        
+
         if (savedSearch == null) {
             throw new ResourceNotFoundException("SavedSearch", "id", id);
         }
-        
+
         savedSearch.setIsActive(false);
         savedSearchRepository.save(savedSearch);
-        
+
         log.info("Deleted saved search {} for user: {}", id, username);
     }
 
@@ -215,35 +215,35 @@ public class SavedSearchService {
             log.warn("Cannot process null listing for notifications");
             return;
         }
-        
+
         log.debug("Processing new listing {} for saved search notifications", newListing.getId());
-        
+
         try {
             // Get all active searches
-            List<SavedSearch> allActiveSearches = 
+            List<SavedSearch> allActiveSearches =
                 savedSearchRepository.findActiveSearchesForImmediateNotification();
-            
+
             // Filter for immediate notifications in service layer
             List<SavedSearch> immediateNotificationSearches = allActiveSearches.stream()
                 .filter(SavedSearch::isEmailNotificationEnabled)
                 .filter(search -> "immediate".equals(search.getNotificationFrequency()))
                 .toList();
-            
-            log.info("Found {} searches for immediate notification processing", 
+
+            log.info("Found {} searches for immediate notification processing",
                     immediateNotificationSearches.size());
-            
+
             // Process each matching search
             for (SavedSearch savedSearch : immediateNotificationSearches) {
                 processNotificationForSearch(savedSearch, newListing);
             }
-            
+
         } catch (Exception e) {
-            log.error("Error processing new listing {} for notifications: {}", 
+            log.error("Error processing new listing {} for notifications: {}",
                      newListing.getId(), e.getMessage(), e);
             // Don't throw the exception to avoid breaking listing creation
         }
     }
-    
+
     /**
      * Process notification for a specific saved search and listing
      */
@@ -254,37 +254,37 @@ public class SavedSearchService {
                 log.debug("Listing {} does not match saved search {}", listing.getId(), savedSearch.getId());
                 return;
             }
-            
+
             // Check if notification already exists for this combination
             if (notificationRepository.existsBySavedSearchAndListing(savedSearch, listing)) {
-                log.debug("Notification already exists for search {} and listing {}", 
+                log.debug("Notification already exists for search {} and listing {}",
                          savedSearch.getId(), listing.getId());
                 return;
             }
-            
+
             // Create notification record
             SavedSearchNotification notification = new SavedSearchNotification();
             notification.setSavedSearch(savedSearch);
             notification.setListing(listing);
             notification.setNotifiedAt(LocalDateTime.now());
             notificationRepository.save(notification);
-            
+
             // Send email notification
             sendEmailNotification(savedSearch, listing);
-            
+
             // Update last notified timestamp
             savedSearch.setLastNotifiedAt(LocalDateTime.now());
             savedSearchRepository.save(savedSearch);
-            
-            log.info("Sent notification for saved search {} and listing {}", 
+
+            log.info("Sent notification for saved search {} and listing {}",
                     savedSearch.getId(), listing.getId());
-            
+
         } catch (Exception e) {
-            log.error("Error processing notification for search {} and listing {}: {}", 
+            log.error("Error processing notification for search {} and listing {}: {}",
                      savedSearch.getId(), listing.getId(), e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send email notification for a matching listing
      */
@@ -306,13 +306,13 @@ public class SavedSearchService {
                 listing.getModelYear(),
                 listing.getMileage()
             ));
-            
+
             mailSender.send(message);
-            log.debug("Email sent to {} for saved search {}", 
+            log.debug("Email sent to {} for saved search {}",
                      savedSearch.getUser().getEmail(), savedSearch.getId());
-            
+
         } catch (Exception e) {
-            log.error("Failed to send email notification for search {} to {}: {}", 
+            log.error("Failed to send email notification for search {} to {}: {}",
                      savedSearch.getId(), savedSearch.getUser().getEmail(), e.getMessage(), e);
         }
     }
@@ -334,21 +334,21 @@ public class SavedSearchService {
         try {
             // Create a specification for the saved search filters
             Specification<CarListing> spec = createSpecificationFromSavedSearch(savedSearch);
-            
+
             // Add the standard filters for approved, not sold, not archived listings
             spec = spec.and(CarListingSpecification.isApproved())
                       .and(CarListingSpecification.isNotSold())
                       .and(CarListingSpecification.isNotArchived())
                       .and(CarListingSpecification.isUserActive());
-            
+
             // Count using the specification (database-level filtering)
             long count = carListingRepository.count(spec);
-            
+
             log.debug("Calculated match count {} for saved search {}", count, savedSearch.getId());
             return (int) count;
 
         } catch (Exception e) {
-            log.error("Error calculating match count for saved search {}: {}", 
+            log.error("Error calculating match count for saved search {}: {}",
                      savedSearch.getId(), e.getMessage(), e);
             return 0;
         }
@@ -381,31 +381,31 @@ public class SavedSearchService {
 
                 // Price range filter
                 if (filters.get("minPrice") instanceof Number) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), 
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"),
                         BigDecimal.valueOf(((Number) filters.get("minPrice")).doubleValue())));
                 }
                 if (filters.get("maxPrice") instanceof Number) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), 
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"),
                         BigDecimal.valueOf(((Number) filters.get("maxPrice")).doubleValue())));
                 }
 
                 // Year range filter
                 if (filters.get("minYear") instanceof Number) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"), 
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("modelYear"),
                         ((Number) filters.get("minYear")).intValue()));
                 }
                 if (filters.get("maxYear") instanceof Number) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("modelYear"), 
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("modelYear"),
                         ((Number) filters.get("maxYear")).intValue()));
                 }
 
                 // Mileage range filter
                 if (filters.get("minMileage") instanceof Number) {
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("mileage"), 
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("mileage"),
                         ((Number) filters.get("minMileage")).intValue()));
                 }
                 if (filters.get("maxMileage") instanceof Number) {
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), 
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("mileage"),
                         ((Number) filters.get("maxMileage")).intValue()));
                 }
 
@@ -481,10 +481,10 @@ public class SavedSearchService {
         response.setCreatedAt(savedSearch.getCreatedAt());
         response.setUpdatedAt(savedSearch.getUpdatedAt());
         response.setWasUpdated(wasUpdated);
-        
+
         // Calculate and set match count
         response.setMatchCount(calculateMatchCount(savedSearch));
-        
+
         return response;
     }
 
@@ -498,20 +498,20 @@ public class SavedSearchService {
         if (filters == null || filters.isEmpty()) {
             return "";
         }
-        
+
         Map<String, String> queryParams = new TreeMap<>(); // TreeMap for sorted keys
-        
+
         try {
             for (Map.Entry<String, Object> entry : filters.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                
+
                 // Skip null, empty, or meaningless values
                 if (value == null) continue;
                 if (value instanceof String && ((String) value).trim().isEmpty()) continue;
                 if (value instanceof List && ((List<?>) value).isEmpty()) continue;
                 if (value instanceof Number && ((Number) value).doubleValue() == 0 && isMinFilter(key)) continue;
-                
+
                 // Handle different value types with better null safety
                 if (value instanceof List) {
                     List<?> list = (List<?>) value;
@@ -531,19 +531,19 @@ public class SavedSearchService {
                     }
                 }
             }
-            
+
             // Build query string with sorted parameters
             return queryParams.entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining("&"));
-                
+
         } catch (Exception e) {
             log.warn("Error generating search query hash for filters: {}", filters, e);
             // Fallback to a simple hash based on filter map structure
             return "fallback_" + filters.hashCode();
         }
     }
-    
+
     /**
      * Check if a filter key represents a minimum value filter
      */

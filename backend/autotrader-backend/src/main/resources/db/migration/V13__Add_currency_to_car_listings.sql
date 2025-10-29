@@ -1,18 +1,18 @@
 -- V13__Add_currency_to_car_listings.sql
 -- Add currency support to car listings table
 -- Compatible with both H2 and PostgreSQL - uses only standard SQL
--- 
+--
 -- Purpose: Enable multi-currency support for the Syrian marketplace
 -- Supports: USD (primary for car sales) and SYP (local transactions)
 -- Default: USD (most common for car sales in Syria)
 
 -- Add currency column to car_listings table with enhanced constraints
-ALTER TABLE car_listings 
+ALTER TABLE car_listings
 ADD COLUMN currency VARCHAR(3) NOT NULL DEFAULT 'USD';
 
 -- Add check constraint with descriptive name (standard SQL)
-ALTER TABLE car_listings 
-ADD CONSTRAINT chk_currency_supported 
+ALTER TABLE car_listings
+ADD CONSTRAINT chk_currency_supported
 CHECK (currency IN ('USD', 'SYP'));
 
 -- Create optimized index for currency-based filtering and reporting
@@ -27,7 +27,7 @@ UPDATE car_listings SET currency = 'USD' WHERE currency IS NULL;
 To rollback this migration safely:
 
 1. Backup data first:
-   CREATE TABLE car_listings_currency_backup AS 
+   CREATE TABLE car_listings_currency_backup AS
    SELECT id, currency FROM car_listings WHERE currency IS NOT NULL;
 
 2. Drop currency index:

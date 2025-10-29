@@ -48,7 +48,7 @@ class SlugUtilsTest {
         // Testing Arabic text transliteration
         String arabicText = "مرحبا بالعالم";
         String result = SlugUtils.slugify(arabicText);
-        
+
         // The exact transliteration may vary but should not contain Arabic characters
         assertFalse(result.matches(".*\\p{InArabic}.*"), "Slug should not contain Arabic characters");
         assertTrue(result.length() > 0, "Slug should not be empty");
@@ -64,7 +64,7 @@ class SlugUtilsTest {
         assertFalse(result.contains("مرحبا"), "Result should not contain Arabic characters");
         assertTrue(result.matches("^[a-z0-9-]+$"), "Result should only contain lowercase letters, numbers, and hyphens");
     }
-    
+
     @Test
     void slugify_withMixedArabicAndLatinText_shouldProcessCorrectly() {
         // Test with mixed Arabic and Latin text

@@ -36,13 +36,13 @@ public class GovernorateController {
     public ResponseEntity<GovernorateResponse> getGovernorateBySlug(
             @PathVariable(required = false) String slug) {
         logger.debug("Received request to get governorate by slug: {}", slug);
-        
+
         // Handle null or empty slug
         if (slug == null || slug.trim().isEmpty()) {
             logger.warn("Slug is null or empty. Returning 404 Not Found.");
             return ResponseEntity.notFound().build();
         }
-        
+
         try {
             GovernorateResponse governorate = governorateService.getGovernorateBySlug(slug.trim());
             if (governorate == null) {
@@ -61,16 +61,16 @@ public class GovernorateController {
     public ResponseEntity<List<GovernorateResponse>> getGovernoratesByCountry(
             @PathVariable(required = false) String countryCode) {
         logger.debug("Received request to get governorates by country code: {}", countryCode);
-        
+
         // Handle null or empty country code
         if (countryCode == null || countryCode.trim().isEmpty()) {
             logger.warn("Country code is null or empty. Returning 200 OK with empty list.");
             return ResponseEntity.ok(List.of());
         }
-        
+
         try {
             List<GovernorateResponse> governorates = governorateService.getGovernoratesByCountry(countryCode.trim());
-            logger.info("Found {} governorates for country code: {}. Returning 200 OK.", 
+            logger.info("Found {} governorates for country code: {}. Returning 200 OK.",
                         governorates.size(), countryCode);
             return ResponseEntity.ok(governorates);
         } catch (Exception e) {

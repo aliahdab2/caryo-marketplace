@@ -137,7 +137,7 @@ class EmailTemplateBuilderTest {
         assertNotNull(result);
         assertEquals("password-reset", result.getTemplateName());
         assertEquals("en", result.getLanguage());
-        
+
         Map<String, Object> variables = result.getVariables();
         assertEquals("testuser", variables.get(EmailTemplateConstants.VAR_USER_NAME));
         assertEquals("test@example.com", variables.get(EmailTemplateConstants.VAR_USER_EMAIL));
@@ -167,7 +167,7 @@ class EmailTemplateBuilderTest {
         // Then
         assertNotNull(result);
         assertEquals("listing-approved", result.getTemplateName());
-        
+
         Map<String, Object> variables = result.getVariables();
         assertEquals("2020 Toyota Camry", variables.get(EmailTemplateConstants.VAR_LISTING_TITLE));
         assertEquals("http://localhost:3000/listings/123", variables.get(EmailTemplateConstants.VAR_LISTING_URL));
@@ -190,7 +190,7 @@ class EmailTemplateBuilderTest {
         // Then
         assertNotNull(result);
         assertEquals("contact-form", result.getTemplateName());
-        
+
         Map<String, Object> variables = result.getVariables();
         assertEquals("John Doe", variables.get(EmailTemplateConstants.VAR_SENDER_NAME));
         assertEquals("john@example.com", variables.get(EmailTemplateConstants.VAR_SENDER_EMAIL));

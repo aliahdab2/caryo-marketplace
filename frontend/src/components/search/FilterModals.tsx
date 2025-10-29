@@ -9,7 +9,7 @@ import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
-import { 
+import {
   ConvertibleIcon,
   CoupeIcon,
   EstateIcon,
@@ -34,7 +34,7 @@ const SEARCH_NAMESPACES = ['common', 'search'];
 
 /**
  * Enhanced FilterModals component with performance optimizations
- * 
+ *
  * Key performance improvements:
  * - Replaced React.createElement in render loop with direct JSX for car icons
  * - Memoized car icon mapping for O(1) lookup performance
@@ -90,16 +90,16 @@ const MakeModelSelector = React.memo<{
   isLoadingBrands: boolean;
   isLoadingModels: boolean;
   t: (key: string, fallback?: string) => string;
-}>(({ 
-  carMakes, 
-  availableModels, 
-  filters, 
-  selectedMake, 
-  onBrandToggle, 
-  onModelToggle, 
-  isLoadingBrands, 
-  isLoadingModels, 
-  t 
+}>(({
+  carMakes,
+  availableModels,
+  filters,
+  selectedMake,
+  onBrandToggle,
+  onModelToggle,
+  isLoadingBrands,
+  isLoadingModels,
+  t
 }) => {
   const filteredMakes = useMemo(() => carMakes.filter(make => make.isActive), [carMakes]);
   const filteredModels = useMemo(() => availableModels.filter(model => model.isActive), [availableModels]);
@@ -220,7 +220,7 @@ export interface AdvancedSearchFilters {
   // Slug-based filters (AutoTrader UK pattern)
   brands?: string[];
   models?: string[];
-  
+
   // Basic filters
   minYear?: number;
   maxYear?: number;
@@ -228,17 +228,17 @@ export interface AdvancedSearchFilters {
   maxPrice?: number;
   minMileage?: number;
   maxMileage?: number;
-  
+
   // Location filters - support multiple locations
   locations?: string[];
-  
+
   // Entity ID filters (for dropdown selections)
   conditionId?: number;
   transmissionId?: number;
   fuelTypeSlugs?: string[]; // Fuel type filtering - multiple selection using slugs
   bodyStyleSlugs?: string[];
   sellerTypeIds?: number[];
-  
+
   // Direct field filters
   exteriorColor?: string;
   doors?: number;
@@ -253,7 +253,7 @@ interface FilterModalsProps {
   onFiltersChange: (updates: Partial<AdvancedSearchFilters>) => void;
   onClose: () => void;
   onClearFilter: (filterType: FilterType) => void;
-  
+
   // Data props
   carMakes?: CarMake[];
   availableModels?: CarModel[];
@@ -261,18 +261,18 @@ interface FilterModalsProps {
   sellerTypeCounts: SellerTypeCounts;
   bodyStyleCounts: BodyStyleCounts;
   fuelTypeCounts: FuelTypeCounts;
-  
+
   // Loading states
   isLoadingBrands?: boolean;
   isLoadingModels?: boolean;
   isLoadingReferenceData?: boolean;
-  
+
   // Selection states
   selectedMake: number | null;
   selectedModel: number | null;
   onSelectedMakeChange: (makeId: number | null) => void;
   onSelectedModelChange: (modelId: number | null) => void;
-  
+
   // UI state
   carListingsCount?: number;
 }
@@ -300,7 +300,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
 }) => {
   const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const currentLanguage = i18n.language;
-  
+
   // 🚀 UX Enhancement: Accessibility and feedback
   const { announce } = useAnnouncements();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -341,28 +341,28 @@ const FilterModals = React.memo<FilterModalsProps>(({
   }, [onClearFilter, announce, t, getModalTitle]);
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders
-  const _getTransmissionDisplayName = useMemo(() => 
+  const _getTransmissionDisplayName = useMemo(() =>
     (id: number): string => {
       const transmission = referenceData?.transmissions?.find(t => t.id === id);
       return transmission ? (currentLanguage === 'ar' ? transmission.displayNameAr : transmission.displayNameEn) : '';
     }, [referenceData?.transmissions, currentLanguage]
   );
 
-  const _getFuelTypeDisplayName = useMemo(() => 
+  const _getFuelTypeDisplayName = useMemo(() =>
     (id: number): string => {
       const fuelType = referenceData?.fuelTypes?.find(f => f.id === id);
       return fuelType ? (currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn) : '';
     }, [referenceData?.fuelTypes, currentLanguage]
   );
 
-  const _getBodyStyleDisplayName = useMemo(() => 
+  const _getBodyStyleDisplayName = useMemo(() =>
     (id: number): string => {
       const bodyStyle = referenceData?.bodyStyles?.find(b => b.id === id);
       return bodyStyle ? (currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn) : '';
     }, [referenceData?.bodyStyles, currentLanguage]
   );
 
-  const _getSellerTypeDisplayName = useMemo(() => 
+  const _getSellerTypeDisplayName = useMemo(() =>
     (id: number): string => {
       const sellerType = referenceData?.sellerTypes?.find(s => s.id === id);
       if (sellerType && typeof sellerType === 'object' && 'displayNameEn' in sellerType && 'displayNameAr' in sellerType) {
@@ -399,7 +399,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
     if (field === 'maxMileage' && newFilters.minMileage && value && (value as number) < newFilters.minMileage) {
       newFilters.minMileage = undefined;
     }
-    
+
     onFiltersChange(newFilters);
   }, [filters, onFiltersChange]);
 
@@ -416,7 +416,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 value={selectedMake || ''}
                 onChange={(e) => {
                   const makeId = e.target.value ? Number(e.target.value) : null;
-                  
+
                   if (selectedMake !== makeId) {
                     if (makeId && carMakes) {
                       const brand = carMakes.find(make => make.id === makeId);
@@ -443,14 +443,14 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 ))}
               </select>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">{t('search:model', 'Model')}</h3>
               <select
                 value={selectedModel || ''}
                 onChange={(e) => {
                   const modelId = e.target.value ? Number(e.target.value) : null;
-                  
+
                   if (selectedModel !== modelId) {
                     if (modelId && availableModels) {
                       const model = availableModels.find(m => m.id === modelId);
@@ -645,8 +645,8 @@ const FilterModals = React.memo<FilterModalsProps>(({
     <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
       <div className="flex min-h-full items-start justify-center p-4 pt-16 text-center sm:items-start sm:pt-20 sm:p-0">
         <div className="fixed inset-0 bg-black/3 transition-opacity pointer-events-auto" onClick={handleEnhancedClose} />
-        
-        <div 
+
+        <div
           ref={modalRef}
           className="relative transform overflow-hidden rounded-xl bg-white px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-gray-100 pointer-events-auto"
           onKeyDown={(e) => {
@@ -682,7 +682,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
 
           <div className="mt-3">
             {renderModalContent()}
-            
+
             <div className="mt-8 flex gap-3">
               <button
                 onClick={() => handleEnhancedClearFilter(activeFilterModal)}
@@ -691,7 +691,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               >
                 {t('search:clearFilter', 'Clear filter')}
               </button>
-              
+
               <button
                 onClick={handleEnhancedClose}
                 className="w-3/4 rounded-lg bg-blue-600 px-6 py-4 text-lg font-semibold text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm"

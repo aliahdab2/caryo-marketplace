@@ -63,7 +63,7 @@ public class OpenAIResponse {
         if (!hasValidTranslation()) {
             return false;
         }
-        
+
         // Usage data is optional, but if present, it must be valid
         return usage == null || usage.hasValidUsageData();
     }

@@ -14,7 +14,7 @@ interface FormErrorBoundaryProps {
 
 /**
  * Specialized Error Boundary for Form Components
- * 
+ *
  * Features:
  * - Form-specific error handling and recovery
  * - Data loss prevention warnings
@@ -22,7 +22,7 @@ interface FormErrorBoundaryProps {
  * - Form reset capabilities
  * - User-friendly form error messages
  * - Integration with form analytics
- * 
+ *
  * Usage:
  * ```tsx
  * <FormErrorBoundary
@@ -70,7 +70,7 @@ export const FormErrorBoundary: React.FC<FormErrorBoundaryProps> = ({
     interface GtagWindow extends Window {
       gtag?: (command: string, action: string, parameters: Record<string, unknown>) => void;
     }
-    
+
     if (typeof window !== 'undefined' && (window as GtagWindow).gtag) {
       (window as GtagWindow).gtag!('event', 'form_error', {
         form_name: formName,
@@ -196,7 +196,7 @@ const FormErrorFallback: React.FC<FormErrorFallbackProps> = ({
           >
             {t('forms:retryForm', 'Retry Form')}
           </button>
-          
+
           <button
             onClick={refreshPage}
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 font-medium"

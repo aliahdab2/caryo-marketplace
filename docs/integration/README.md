@@ -19,7 +19,7 @@ docs/integration/
 
 This index provides clear navigation paths for different user types:
 - **Developers & Implementers** → Technical guide
-- **Stakeholders & Project Managers** → System overview  
+- **Stakeholders & Project Managers** → System overview
 - **Architects & Reviewers** → System analysis
 
 ## 🔧 **Integration Testing**
@@ -56,7 +56,7 @@ interface CarDataProvider {
 
 This ensures:
 - ✅ Easy addition of new data sources
-- ✅ Configuration-based enablement/disablement  
+- ✅ Configuration-based enablement/disablement
 - ✅ Unified monitoring and statistics
 - ✅ Independent testing and maintenance
 

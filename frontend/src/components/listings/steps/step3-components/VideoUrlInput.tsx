@@ -98,7 +98,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
           <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
             {t('listings:videoPreview', 'Video preview')} - External
           </h4>
-          
+
           {/* Video Embed Preview */}
           {(() => {
             const embedUrl = getVideoEmbedUrl(formData.videoUrls[0]?.url || '');
@@ -126,7 +126,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
                 </div>
               );
             }
-            
+
             // Fallback for non-embeddable URLs
             return (
               <div className="relative p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -154,7 +154,7 @@ const VideoUrlInput = memo(function VideoUrlInput({
               </div>
             );
           })()}
-          
+
           {/* URL Info */}
           <div className="text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">

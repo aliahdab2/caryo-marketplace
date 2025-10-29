@@ -25,7 +25,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
           </svg>
           {isDealer ? t('dealer') : t('privateSeller')}
         </h3>
-        
+
         <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
           {/* Seller Avatar */}
           <div className="flex-shrink-0">
@@ -46,7 +46,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
             <h4 className="font-semibold text-gray-900 dark:text-white text-lg">
               {listing.seller?.name || t('sellerNotSpecified')}
             </h4>
-            
+
             {isDealer && (
               <div className="flex items-center mt-1">
                 <svg className="w-4 h-4 text-green-500 mr-1 rtl:ml-1 rtl:mr-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -57,7 +57,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
                 </span>
               </div>
             )}
-            
+
             <div className="flex items-center mt-2 text-sm text-gray-600 dark:text-gray-400">
               <svg className="w-4 h-4 mr-1 rtl:ml-1 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

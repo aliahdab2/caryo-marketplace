@@ -136,9 +136,9 @@ public class EmailTemplateValidationService {
     /**
      * Validate template metadata structure.
      */
-    private void validateTemplateMetadata(String templateName, Map<String, Object> metadata, 
+    private void validateTemplateMetadata(String templateName, Map<String, Object> metadata,
                                         List<String> issues, List<String> warnings) {
-        
+
         // Check required fields
         if (!metadata.containsKey("path")) {
             issues.add("Template '" + templateName + "' missing required field: path");
@@ -180,9 +180,9 @@ public class EmailTemplateValidationService {
     /**
      * Validate variable types and values.
      */
-    private void validateVariableTypes(String templateName, Map<String, Object> variables, 
+    private void validateVariableTypes(String templateName, Map<String, Object> variables,
                                      List<String> issues, List<String> warnings) {
-        
+
         for (Map.Entry<String, Object> entry : variables.entrySet()) {
             String varName = entry.getKey();
             Object varValue = entry.getValue();
@@ -229,7 +229,7 @@ public class EmailTemplateValidationService {
         for (String templateName : allTemplates.keySet()) {
             Map<String, Object> metadata = allTemplates.get(templateName);
             String category = (String) metadata.get("category");
-            
+
             if (category == null) {
                 issues.add("Template '" + templateName + "' missing category");
             } else if (!categories.contains(category)) {

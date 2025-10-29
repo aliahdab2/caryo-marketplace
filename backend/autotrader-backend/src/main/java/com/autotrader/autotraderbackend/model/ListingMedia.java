@@ -23,7 +23,7 @@ public class ListingMedia {
 
     @Column(name = "listing_id", nullable = false, insertable = false, updatable = false)
     private Long listingId;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "listing_id", nullable = false)
     private CarListing carListing;
@@ -81,7 +81,7 @@ public class ListingMedia {
         }
         validateMediaType();
     }
-    
+
     /**
      * Handles pre-update operations:
      * Validates that the media type is valid
@@ -90,7 +90,7 @@ public class ListingMedia {
     protected void preUpdate() {
         validateMediaType();
     }
-    
+
     /**
      * Validates that the media type is either 'image' or 'video'
      * and that required fields are present based on the media source type
@@ -99,7 +99,7 @@ public class ListingMedia {
         if (mediaType != null && !mediaType.equals("image") && !mediaType.equals("video")) {
             throw new IllegalArgumentException("Media type must be either 'image' or 'video'");
         }
-        
+
         // Validate based on video source type
         if ("video".equals(mediaType)) {
             validateVideoSource();
@@ -107,7 +107,7 @@ public class ListingMedia {
             validateImageFields();
         }
     }
-    
+
     /**
      * Validates video-specific fields based on AutoTrader patterns
      */
@@ -115,7 +115,7 @@ public class ListingMedia {
         if (videoSource == null) {
             throw new IllegalArgumentException("Video source must be specified for video media");
         }
-        
+
         switch (videoSource.toLowerCase()) {
             case "upload":
                 // For uploaded videos, file_key and content_type are required
@@ -152,16 +152,16 @@ public class ListingMedia {
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Invalid video source: " + videoSource + 
+                throw new IllegalArgumentException("Invalid video source: " + videoSource +
                     ". Must be 'upload', 'youtube', 'vimeo', or 'external'");
         }
-        
+
         // Validate duration (AutoTrader limit: 3 minutes = 180 seconds)
         if (durationSeconds != null && durationSeconds > 180) {
             throw new IllegalArgumentException("Video duration cannot exceed 3 minutes (180 seconds)");
         }
     }
-    
+
     /**
      * Validates image-specific fields
      */
@@ -173,7 +173,7 @@ public class ListingMedia {
             throw new IllegalArgumentException("Content type is required for images");
         }
     }
-    
+
     /**
      * Validates YouTube URL format following AutoTrader patterns
      */
@@ -181,16 +181,16 @@ public class ListingMedia {
         if (url == null) return false;
         return url.matches("^(https?://)?(www\\.)?(youtube\\.com/watch\\?v=|youtu\\.be/)[a-zA-Z0-9_-]{11}.*$");
     }
-    
+
     /**
      * Checks if this media item is an external video (YouTube, Vimeo, etc.)
      */
     public boolean isExternalVideo() {
-        return "video".equals(mediaType) && 
-               videoSource != null && 
+        return "video".equals(mediaType) &&
+               videoSource != null &&
                !videoSource.equals("upload");
     }
-    
+
     /**
      * Checks if this media item is an uploaded video file
      */

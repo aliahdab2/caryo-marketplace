@@ -31,7 +31,7 @@ const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({
     const newFuelTypes = currentFuelTypes.includes(fuelTypeSlug)
       ? currentFuelTypes.filter(slug => slug !== fuelTypeSlug)
       : [...currentFuelTypes, fuelTypeSlug];
-    
+
     onFuelTypeChange(newFuelTypes.length > 0 ? newFuelTypes : undefined);
   };
 
@@ -86,13 +86,13 @@ const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({
           const isSelected = selectedFuelTypeSlugs.includes(fuelType.slug);
           const displayName = currentLanguage === 'ar' ? fuelType.displayNameAr : fuelType.displayNameEn;
           const count = fuelTypeCounts[fuelType.name.toLowerCase()] || 0;
-          
+
           return (
             <div
               key={fuelType.id}
               className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                isSelected 
-                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
                   : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
               }`}
               onClick={() => handleFuelTypeToggle(fuelType.slug)}
@@ -106,11 +106,11 @@ const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({
                   <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
                 <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                  isSelected 
-                    ? 'border-blue-500 bg-blue-500 scale-110' 
+                  isSelected
+                    ? 'border-blue-500 bg-blue-500 scale-110'
                     : 'border-gray-300 group-hover:border-blue-400'
                 }`}>
                   {isSelected && (
@@ -120,7 +120,7 @@ const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({
                   )}
                 </div>
               </div>
-              
+
               {/* Selection indicator */}
               {isSelected && (
                 <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
@@ -133,4 +133,4 @@ const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({
   );
 };
 
-export default FuelTypeFilter; 
+export default FuelTypeFilter;

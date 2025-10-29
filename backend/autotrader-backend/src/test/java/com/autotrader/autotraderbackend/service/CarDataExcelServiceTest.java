@@ -86,7 +86,7 @@ class CarDataExcelServiceTest {
         // Assert
         assertNotNull(excelData);
         assertTrue(excelData.length > 0);
-        
+
         // Verify service calls
         verify(carBrandService).getAllBrands();
         verify(carModelService).getAllModels();
@@ -104,7 +104,7 @@ class CarDataExcelServiceTest {
         // Assert
         assertNotNull(excelData);
         assertTrue(excelData.length > 0); // Should still generate Excel with headers
-        
+
         // Verify service calls
         verify(carBrandService).getAllBrands();
         verify(carModelService).getAllModels();
@@ -119,7 +119,7 @@ class CarDataExcelServiceTest {
         assertThrows(IOException.class, () -> {
             carDataExcelService.exportCarDataToExcel();
         });
-        
+
         // Verify service call
         verify(carBrandService).getAllBrands();
     }

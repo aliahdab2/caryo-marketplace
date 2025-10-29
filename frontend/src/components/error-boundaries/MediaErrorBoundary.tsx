@@ -14,7 +14,7 @@ interface MediaErrorBoundaryProps {
 
 /**
  * Specialized Error Boundary for Media Upload Components
- * 
+ *
  * Features:
  * - Media-specific error handling and recovery
  * - Graceful degradation for upload failures
@@ -22,7 +22,7 @@ interface MediaErrorBoundaryProps {
  * - Memory leak prevention on errors
  * - Media-specific error messages and guidance
  * - Fallback to basic file input on component failure
- * 
+ *
  * Usage:
  * ```tsx
  * <MediaErrorBoundary
@@ -69,7 +69,7 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
     interface GtagWindow extends Window {
       gtag?: (command: string, action: string, parameters: Record<string, unknown>) => void;
     }
-    
+
     if (typeof window !== 'undefined' && (window as GtagWindow).gtag) {
       (window as GtagWindow).gtag!('event', 'media_upload_error', {
         media_type: mediaType,
@@ -89,12 +89,12 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
         captureException: (error: Error) => void;
       };
     }
-    
+
     interface SentryScope {
       setTag: (key: string, value: string) => void;
       setContext: (key: string, value: unknown) => void;
     }
-    
+
     if (typeof window !== 'undefined' && (window as SentryWindow).Sentry) {
       (window as SentryWindow).Sentry!.withScope((scope: SentryScope) => {
         scope.setTag('mediaType', mediaType);

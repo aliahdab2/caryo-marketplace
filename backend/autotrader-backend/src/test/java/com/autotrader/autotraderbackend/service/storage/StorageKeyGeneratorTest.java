@@ -33,7 +33,7 @@ class StorageKeyGeneratorTest {
         lenient().when(storageProperties.getKeyPatterns()).thenReturn(keyPatterns);
         lenient().when(storageProperties.getGeneral()).thenReturn(general);
         lenient().when(storageProperties.getS3()).thenReturn(s3);
-        
+
         // Default patterns (matching actual StorageProperties)
         lenient().when(keyPatterns.getListingMedia()).thenReturn("listings/{listingId}/{timestamp}_{filename}");
         lenient().when(keyPatterns.getUserAvatar()).thenReturn("users/{userId}/avatar_{timestamp}_{filename}");
@@ -43,11 +43,11 @@ class StorageKeyGeneratorTest {
         lenient().when(keyPatterns.getThumbnails()).thenReturn("thumbnails/{originalPath}/{filename}");
         lenient().when(keyPatterns.getBackups()).thenReturn("backups/{date}/{category}/{filename}");
         lenient().when(keyPatterns.getLogs()).thenReturn("logs/{date}/{level}/{filename}");
-        
+
         // Default bucket names
         lenient().when(general.getDefaultBucketName()).thenReturn("app-assets");
         lenient().when(s3.getBucketName()).thenReturn("production-bucket");
-        
+
         storageKeyGenerator = new StorageKeyGenerator(storageProperties);
     }
 

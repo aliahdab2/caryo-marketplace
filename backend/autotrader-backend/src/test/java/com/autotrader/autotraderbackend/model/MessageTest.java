@@ -76,10 +76,10 @@ class MessageTest {
     void shouldMarkMessageAsRead() {
         // Arrange
         LocalDateTime beforeMark = LocalDateTime.now();
-        
+
         // Act
         message.markAsRead();
-        
+
         // Assert
         assertTrue(message.isRead());
         assertNotNull(message.getReadAt());
@@ -91,7 +91,7 @@ class MessageTest {
     void shouldAddAttachmentToMessage() {
         // Act
         message.addAttachment(attachment);
-        
+
         // Assert
         assertEquals(1, message.getAttachments().size());
         assertTrue(message.getAttachments().contains(attachment));
@@ -103,7 +103,7 @@ class MessageTest {
     void shouldCheckIfMessageHasAttachments() {
         // Initially no attachments
         assertFalse(message.hasAttachments());
-        
+
         // Add attachment
         message.addAttachment(attachment);
         assertTrue(message.hasAttachments());
@@ -114,7 +114,7 @@ class MessageTest {
     void shouldCheckIfMessageIsFromSpecificUser() {
         // Act & Assert
         assertTrue(message.isFromUser(sender));
-        
+
         User otherUser = new User();
         otherUser.setId(999L);
         assertFalse(message.isFromUser(otherUser));
@@ -126,11 +126,11 @@ class MessageTest {
         // Test TEXT type
         message.setMessageType(MessageType.TEXT);
         assertEquals(MessageType.TEXT, message.getMessageType());
-        
+
         // Test IMAGE type
         message.setMessageType(MessageType.IMAGE);
         assertEquals(MessageType.IMAGE, message.getMessageType());
-        
+
         // Test SYSTEM type
         message.setMessageType(MessageType.SYSTEM);
         assertEquals(MessageType.SYSTEM, message.getMessageType());
@@ -141,10 +141,10 @@ class MessageTest {
     void shouldHandleMessageContentChanges() {
         // Arrange
         String newContent = "Updated message content";
-        
+
         // Act
         message.setContent(newContent);
-        
+
         // Assert
         assertEquals(newContent, message.getContent());
     }
@@ -155,12 +155,12 @@ class MessageTest {
         // Initially unread
         assertFalse(message.isRead());
         assertNull(message.getReadAt());
-        
+
         // Mark as read
         message.markAsRead();
         assertTrue(message.isRead());
         assertNotNull(message.getReadAt());
-        
+
         // Mark as unread again
         message.setIsRead(false);
         message.setReadAt(null);
@@ -179,11 +179,11 @@ class MessageTest {
                 .size(2048L)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         // Act
         message.addAttachment(attachment);
         message.addAttachment(attachment2);
-        
+
         // Assert
         assertEquals(2, message.getAttachments().size());
         assertTrue(message.getAttachments().contains(attachment));
@@ -195,10 +195,10 @@ class MessageTest {
     void shouldHandleMessageWithLongContent() {
         // Arrange
         String longContent = "A".repeat(1000); // Max length content
-        
+
         // Act
         message.setContent(longContent);
-        
+
         // Assert
         assertEquals(longContent, message.getContent());
         assertEquals(1000, message.getContent().length());
@@ -209,10 +209,10 @@ class MessageTest {
     void shouldHandleMessageWithEmptyContent() {
         // Arrange
         String emptyContent = "";
-        
+
         // Act
         message.setContent(emptyContent);
-        
+
         // Assert
         assertEquals(emptyContent, message.getContent());
         assertTrue(message.getContent().isEmpty());
@@ -223,10 +223,10 @@ class MessageTest {
     void shouldHandleMessageWithSpecialCharacters() {
         // Arrange
         String specialContent = "Hello! How are you? 😊 This is a test message with special chars: @#$%^&*()";
-        
+
         // Act
         message.setContent(specialContent);
-        
+
         // Assert
         assertEquals(specialContent, message.getContent());
     }
@@ -236,10 +236,10 @@ class MessageTest {
     void shouldHandleMessageTimestampUpdates() {
         // Arrange
         LocalDateTime newTimestamp = LocalDateTime.now().plusHours(1);
-        
+
         // Act
         message.setCreatedAt(newTimestamp);
-        
+
         // Assert
         assertEquals(newTimestamp, message.getCreatedAt());
     }
@@ -249,7 +249,7 @@ class MessageTest {
     void shouldHandleMessageWithNullConversation() {
         // Act
         message.setConversation(null);
-        
+
         // Assert
         assertNull(message.getConversation());
     }
@@ -259,7 +259,7 @@ class MessageTest {
     void shouldHandleMessageWithNullSender() {
         // Act
         message.setSender(null);
-        
+
         // Assert
         assertNull(message.getSender());
     }

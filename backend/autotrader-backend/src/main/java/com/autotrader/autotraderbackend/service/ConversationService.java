@@ -64,9 +64,9 @@ public class ConversationService {
         // Get buyer and seller
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", buyerId));
-        
+
         User seller = listing.getSeller();
-        
+
         // Prevent self-conversation
         if (buyer.getId().equals(seller.getId())) {
             throw new BadRequestException("Cannot start conversation with yourself");
@@ -85,22 +85,22 @@ public class ConversationService {
                     .seller(seller)
                     .status(ConversationStatus.ACTIVE)
                     .build();
-            
+
             conversation = conversationRepository.save(conversation);
-            
+
             // Create participants
             ConversationParticipant buyerParticipant = ConversationParticipant.builder()
                     .conversation(conversation)
                     .user(buyer)
                     .role(ParticipantRole.BUYER)
                     .build();
-            
+
             ConversationParticipant sellerParticipant = ConversationParticipant.builder()
                     .conversation(conversation)
                     .user(seller)
                     .role(ParticipantRole.SELLER)
                     .build();
-            
+
             conversation.addParticipant(buyerParticipant);
             conversation.addParticipant(sellerParticipant);
         }
@@ -115,7 +115,7 @@ public class ConversationService {
 
         conversation.addMessage(initialMessage);
         messageRepository.save(initialMessage);
-        
+
         log.info("Conversation created successfully with ID: {}", conversation.getId());
         return mapToConversationResponse(conversation, buyer);
     }
@@ -130,7 +130,7 @@ public class ConversationService {
 
         // Only return active conversations (exclude archived and blocked)
         Page<Conversation> conversations = conversationRepository.findActiveConversationsByUser(user, ConversationStatus.ACTIVE, pageable);
-        
+
         return conversations.map(conversation -> mapToConversationResponse(conversation, user));
     }
 
@@ -185,7 +185,7 @@ public class ConversationService {
 
         message = messageRepository.save(message);
         conversation.addMessage(message);
-        
+
         log.info("Message sent successfully with ID: {}", message.getId());
         return mapToMessageResponse(message);
     }
@@ -246,12 +246,12 @@ public class ConversationService {
         }
 
         Page<Message> messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, pageable);
-        
+
         // Batch load attachments for all messages to avoid N+1 queries
         List<Long> messageIds = messages.getContent().stream()
                 .map(Message::getId)
                 .collect(Collectors.toList());
-        
+
         final Map<Long, List<MessageAttachment>> attachmentsByMessageId;
         if (!messageIds.isEmpty()) {
             List<MessageAttachment> allAttachments = messageAttachmentRepository.findByMessageIdInOrderByCreatedAtAsc(messageIds);
@@ -260,7 +260,7 @@ public class ConversationService {
         } else {
             attachmentsByMessageId = new HashMap<>();
         }
-        
+
         return messages.map(message -> mapToMessageResponseWithAttachments(message, attachmentsByMessageId.get(message.getId())));
     }
 
@@ -335,7 +335,7 @@ public class ConversationService {
         // Load attachments for this message
         List<MessageAttachment> attachments = messageAttachmentRepository.findByMessageIdOrderByCreatedAtAsc(message.getId());
         log.debug("Message {} has {} attachments", message.getId(), attachments != null ? attachments.size() : 0);
-        
+
         MessageResponse response = MessageResponse.builder()
                 .id(message.getId())
                 .conversationId(message.getConversation().getId())
@@ -350,7 +350,7 @@ public class ConversationService {
                 .isDeleted(message.isDeleted())
                 .sender(mapToMessageUserSummary(message.getSender()))
                 .build();
-        
+
         // Add attachments if any exist
         if (attachments != null && !attachments.isEmpty()) {
             List<MessageResponse.MessageAttachmentResponse> attachmentSummaries = attachments.stream()
@@ -358,7 +358,7 @@ public class ConversationService {
                     .collect(Collectors.toList());
             response.setAttachments(attachmentSummaries);
         }
-        
+
         return response;
     }
 
@@ -414,7 +414,7 @@ public class ConversationService {
         }
 
         String contentType = file.getContentType();
-        
+
         // Check file size first (before expensive Tika validation)
         long maxFileSize = getMaxFileSize(contentType);
         if (file.getSize() > maxFileSize) {
@@ -452,7 +452,7 @@ public class ConversationService {
                 .build();
 
         attachment = messageAttachmentRepository.save(attachment);
-        
+
         if (attachment == null) {
             throw new BadRequestException("Failed to save attachment");
         }
@@ -472,7 +472,7 @@ public class ConversationService {
     /**
      * Send message with attachments
      */
-    public MessageResponse sendMessageWithAttachments(Long conversationId, String content, 
+    public MessageResponse sendMessageWithAttachments(Long conversationId, String content,
                                                     String messageType, MultipartFile[] files, Long userId) {
         log.info("Sending message with attachments in conversation {} by user {}", conversationId, userId);
 
@@ -480,7 +480,7 @@ public class ConversationService {
         SendMessageRequest request = new SendMessageRequest();
         request.setContent(content);
         request.setMessageType(messageType);
-        
+
         MessageResponse messageResponse = sendMessage(conversationId, request, userId);
 
         // If there are files, upload them and link to the message
@@ -490,7 +490,7 @@ public class ConversationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Message", "id", messageId));
 
             List<MessageAttachment> attachments = new ArrayList<>();
-            
+
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     MessageAttachment attachment = createMessageAttachment(message, file);
@@ -549,14 +549,14 @@ public class ConversationService {
 
     private MessageResponse mapToMessageResponseWithAttachments(Message message, List<MessageAttachment> attachments) {
         MessageResponse response = mapToMessageResponse(message);
-        
+
         if (attachments != null && !attachments.isEmpty()) {
             List<MessageResponse.MessageAttachmentResponse> attachmentSummaries = attachments.stream()
                     .map(this::mapToAttachmentSummary)
                     .collect(Collectors.toList());
             response.setAttachments(attachmentSummaries);
         }
-        
+
         return response;
     }
 
@@ -587,7 +587,7 @@ public class ConversationService {
      * Validate that a user is a participant in the conversation
      */
     private void validateUserParticipation(Conversation conversation, User user) {
-        if (!conversation.getBuyer().getId().equals(user.getId()) && 
+        if (!conversation.getBuyer().getId().equals(user.getId()) &&
             !conversation.getSeller().getId().equals(user.getId())) {
             throw new BadRequestException("User is not a participant in this conversation");
         }
@@ -601,14 +601,14 @@ public class ConversationService {
         if (file == null || file.isEmpty()) {
             return false;
         }
-        
+
         String declaredContentType = file.getContentType();
-        
+
         // First check declared content type for obvious rejections
         if (declaredContentType != null) {
             String normalizedDeclared = declaredContentType.toLowerCase().trim();
             // Reject obviously dangerous types based on declared content type
-            if (normalizedDeclared.contains("javascript") || 
+            if (normalizedDeclared.contains("javascript") ||
                 normalizedDeclared.contains("executable") ||
                 normalizedDeclared.contains("script") ||
                 normalizedDeclared.equals("text/html") ||
@@ -618,15 +618,15 @@ public class ConversationService {
                 return false;
             }
         }
-        
+
         try {
             // Use Apache Tika for deep file inspection (security best practice)
             Tika tika = new Tika();
             String detectedType = tika.detect(file.getInputStream()).toLowerCase().trim();
-            
-            log.info("File type detection - Declared: {}, Detected: {} for file: {}", 
+
+            log.info("File type detection - Declared: {}, Detected: {} for file: {}",
                      declaredContentType, detectedType, file.getOriginalFilename());
-            
+
             // Reset input stream for later use
             try {
                 file.getInputStream().reset();
@@ -634,7 +634,7 @@ public class ConversationService {
                 // Input stream might not support reset, that's okay
                 log.debug("Could not reset input stream for file: {}", file.getOriginalFilename());
             }
-            
+
             // Image types (existing support)
             if (detectedType.startsWith("image/")) {
                 return detectedType.equals("image/jpeg") ||
@@ -643,33 +643,33 @@ public class ConversationService {
                        detectedType.equals("image/webp") ||
                        detectedType.equals("image/gif");
             }
-            
+
             // Document types (new support)
             switch (detectedType) {
                 // PDF documents
                 case "application/pdf":
                     return true;
-                
+
                 // Microsoft Word documents
                 case "application/msword": // .doc
                 case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": // .docx
                     return true;
-                
+
                 // Microsoft Excel spreadsheets (for service records, etc.)
                 case "application/vnd.ms-excel": // .xls
                 case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": // .xlsx
                 case "application/x-tika-ooxml": // Sometimes detected by Tika for Office files
                 case "application/x-tika-msoffice": // Sometimes detected by Tika for older Office files
                     return true;
-                
+
                 // Plain text files
                 case "text/plain":
                     return true;
-                
+
                 // Rich Text Format
                 case "application/rtf":
                     return true;
-                    
+
                 default:
                     log.warn("Rejected file type: {} for file: {}", detectedType, file.getOriginalFilename());
                     return false;
@@ -689,28 +689,28 @@ public class ConversationService {
         if (contentType == null) {
             return 10 * 1024 * 1024; // 10MB default
         }
-        
+
         String normalizedType = contentType.toLowerCase().trim();
-        
+
         // Images: 10MB limit
         if (normalizedType.startsWith("image/")) {
             return 10 * 1024 * 1024;
         }
-        
+
         // Documents: 25MB limit (larger for comprehensive documents)
         return 25 * 1024 * 1024;
     }
 
     /**
      * Helper method to retrieve localized messages from the message source.
-     * 
+     *
      * This method provides a centralized way to access translated error messages
      * and other user-facing strings based on the user's locale preferences.
-     * 
+     *
      * @param key The message key to look up in the message properties files
      * @param locale The locale to use for message translation (e.g., en, ar)
      * @return The translated message string, or the key itself if no translation is found
-     * 
+     *
      * @see MessageSource#getMessage(String, Object[], String, Locale)
      */
     private String getMessage(String key, Locale locale) {

@@ -24,7 +24,7 @@ interface AlertSuggestion {
 
 const SmartSuggestions = () => {
   const [suggestions, setSuggestions] = useState<AlertSuggestion[]>([]);
-  
+
   useEffect(() => {
     // Analyze user's search history and browsing patterns
     analyzeUserBehavior().then(patterns => {
@@ -37,8 +37,8 @@ const SmartSuggestions = () => {
     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
       <h3 className="font-medium mb-3">💡 Suggested Alerts</h3>
       {suggestions.map(suggestion => (
-        <SuggestionCard 
-          key={suggestion.id} 
+        <SuggestionCard
+          key={suggestion.id}
           suggestion={suggestion}
           onAccept={createAlertFromSuggestion}
         />
@@ -91,11 +91,11 @@ interface AlertAnalytics {
 
 const AlertAnalyticsCard = ({ alert }: { alert: SavedSearchResponse }) => {
   const analytics = useAlertAnalytics(alert.id);
-  
+
   return (
     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
       <h4 className="font-medium mb-2">📊 Alert Performance</h4>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-3">
         <div>
           <div className="text-sm text-gray-600">Total Matches</div>
@@ -104,7 +104,7 @@ const AlertAnalyticsCard = ({ alert }: { alert: SavedSearchResponse }) => {
         <div>
           <div className="text-sm text-gray-600">Trend</div>
           <div className={`text-sm font-medium ${
-            analytics.matchTrend === 'increasing' ? 'text-green-600' : 
+            analytics.matchTrend === 'increasing' ? 'text-green-600' :
             analytics.matchTrend === 'decreasing' ? 'text-red-600' : 'text-gray-600'
           }`}>
             {analytics.matchTrend === 'increasing' ? '📈 Increasing' :
@@ -112,7 +112,7 @@ const AlertAnalyticsCard = ({ alert }: { alert: SavedSearchResponse }) => {
           </div>
         </div>
       </div>
-      
+
       {analytics.sugggestedImprovements.length > 0 && (
         <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded border-l-4 border-amber-400">
           <div className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
@@ -171,13 +171,13 @@ const NotificationSettings = ({ alert }: { alert: SavedSearchResponse }) => {
   return (
     <div className="space-y-4">
       <h3 className="font-medium">🔔 Notification Settings</h3>
-      
+
       {/* Channel Selection */}
       <div>
         <label className="text-sm font-medium">Notification Channels</label>
         <div className="mt-2 space-y-2">
           {preferences.channels.map(channel => (
-            <ChannelToggle 
+            <ChannelToggle
               key={channel.type}
               channel={channel}
               onChange={updateChannel}
@@ -185,18 +185,18 @@ const NotificationSettings = ({ alert }: { alert: SavedSearchResponse }) => {
           ))}
         </div>
       </div>
-      
+
       {/* Frequency */}
       <div>
         <label className="text-sm font-medium">Frequency</label>
-        <FrequencySelector 
+        <FrequencySelector
           value={preferences.frequency}
           onChange={setFrequency}
         />
       </div>
-      
+
       {/* Quiet Hours */}
-      <QuietHoursSelector 
+      <QuietHoursSelector
         settings={preferences.quietHours}
         onChange={setQuietHours}
       />
@@ -210,63 +210,63 @@ const NotificationSettings = ({ alert }: { alert: SavedSearchResponse }) => {
 // Backend service for intelligent notification filtering
 @Service
 public class SmartNotificationService {
-    
+
     public boolean shouldSendNotification(SavedSearch search, CarListing listing, User user) {
         // Check user's notification history
         if (hasRecentlyIgnoredSimilarListing(user, listing)) {
             return false;
         }
-        
+
         // Check relevance score
         double relevanceScore = calculateRelevanceScore(search, listing);
         if (relevanceScore < user.getMinRelevanceThreshold()) {
             return false;
         }
-        
+
         // Check if it's in quiet hours
         if (isInQuietHours(user.getTimezone())) {
             return false;
         }
-        
+
         // Check notification frequency limits
         if (hasExceededFrequencyLimit(user, search)) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     private double calculateRelevanceScore(SavedSearch search, CarListing listing) {
         double score = 0.0;
-        
+
         // Base match score
         score += 0.4;
-        
+
         // Price proximity bonus
         if (isInOptimalPriceRange(search, listing)) {
             score += 0.2;
         }
-        
+
         // Recency bonus
         if (listing.getCreatedAt().isAfter(LocalDateTime.now().minusHours(24))) {
             score += 0.1;
         }
-        
+
         // Seller reputation bonus
         if (listing.getSeller().hasHighReputation()) {
             score += 0.1;
         }
-        
+
         // Popular model bonus
         if (isPopularModel(listing.getModel())) {
             score += 0.1;
         }
-        
+
         // Feature completeness bonus
         if (listing.hasCompleteInformation()) {
             score += 0.1;
         }
-        
+
         return Math.min(score, 1.0);
     }
 }
@@ -286,7 +286,7 @@ public class SmartNotificationService {
 ```typescript
 const FilterSuggestions = ({ currentFilters }: { currentFilters: SavedSearchFilters }) => {
   const suggestions = useFilterSuggestions(currentFilters);
-  
+
   return (
     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
       <h4 className="font-medium mb-2">🎯 Suggested Improvements</h4>
@@ -297,7 +297,7 @@ const FilterSuggestions = ({ currentFilters }: { currentFilters: SavedSearchFilt
               <div className="text-sm font-medium">{suggestion.title}</div>
               <div className="text-xs text-gray-600">{suggestion.description}</div>
             </div>
-            <button 
+            <button
               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
               onClick={() => applySuggestion(suggestion)}
             >
@@ -314,7 +314,7 @@ const FilterSuggestions = ({ currentFilters }: { currentFilters: SavedSearchFilt
 const useFilterSuggestions = (filters: SavedSearchFilters) => {
   return useMemo(() => {
     const suggestions = [];
-    
+
     // Price range suggestions
     if (filters.priceRange && filters.priceRange.max) {
       const marketData = getMarketData(filters);
@@ -327,7 +327,7 @@ const useFilterSuggestions = (filters: SavedSearchFilters) => {
         });
       }
     }
-    
+
     // Brand expansion
     if (filters.brands && filters.brands.length === 1) {
       const similarBrands = getSimilarBrands(filters.brands[0]);
@@ -338,7 +338,7 @@ const useFilterSuggestions = (filters: SavedSearchFilters) => {
         action: () => addBrands(similarBrands)
       });
     }
-    
+
     return suggestions;
   }, [filters]);
 };
@@ -370,7 +370,7 @@ const FilterPresets = ({ onApplyPreset }: { onApplyPreset: (filters: SavedSearch
       popularity: 85
     },
     {
-      id: '2', 
+      id: '2',
       name: 'Family SUV',
       description: 'Spacious SUVs perfect for families',
       filters: {
@@ -386,7 +386,7 @@ const FilterPresets = ({ onApplyPreset }: { onApplyPreset: (filters: SavedSearch
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {presets.map(preset => (
-        <PresetCard 
+        <PresetCard
           key={preset.id}
           preset={preset}
           onApply={() => onApplyPreset(preset.filters)}
@@ -411,12 +411,12 @@ const FilterPresets = ({ onApplyPreset }: { onApplyPreset: (filters: SavedSearch
 ```typescript
 const TouchOptimizedAlertCard = ({ alert, onSelect }: AlertCardProps) => {
   const [isPressed, setIsPressed] = useState(false);
-  
+
   const handleTouchStart = () => setIsPressed(true);
   const handleTouchEnd = () => setIsPressed(false);
-  
+
   return (
-    <div 
+    <div
       className={`
         alert-card transition-all duration-150
         ${isPressed ? 'scale-95 bg-blue-100' : 'scale-100'}
@@ -430,7 +430,7 @@ const TouchOptimizedAlertCard = ({ alert, onSelect }: AlertCardProps) => {
       <div className="md:hidden flex justify-center mb-2">
         <div className="w-8 h-1 bg-gray-300 rounded-full" />
       </div>
-      
+
       {/* Card content with larger touch targets */}
       <div className="p-4 min-h-[80px] flex items-center">
         {/* Content */}
@@ -457,7 +457,7 @@ const useSwipeGestures = (onSwipeLeft: () => void, onSwipeRight: () => void) => 
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -503,9 +503,9 @@ const usePushNotifications = () => {
         userVisibleOnly: true,
         applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
       });
-      
+
       setSubscription(sub);
-      
+
       // Send subscription to backend
       await api.post('/api/push-subscriptions', {
         subscription: sub.toJSON()
@@ -533,7 +533,7 @@ const usePushNotifications = () => {
 ```typescript
 const AccessibleAlertCard = ({ alert, isSelected, onSelect }: AlertCardProps) => {
   const cardId = `alert-card-${alert.id}`;
-  
+
   return (
     <div
       id={cardId}
@@ -554,7 +554,7 @@ const AccessibleAlertCard = ({ alert, isSelected, onSelect }: AlertCardProps) =>
       <div id={`${cardId}-description`} className="sr-only">
         Search criteria: {formatFiltersForScreenReader(alert.filters)}
       </div>
-      
+
       {/* Visual content */}
       <h3 aria-level={3}>{alert.nameEn}</h3>
       <p aria-label={`${alert.matchCount} matching listings found`}>
@@ -567,7 +567,7 @@ const AccessibleAlertCard = ({ alert, isSelected, onSelect }: AlertCardProps) =>
 // Screen reader optimizations
 const formatFiltersForScreenReader = (filters: SavedSearchFilters) => {
   const parts = [];
-  
+
   if (filters.brands?.length) {
     parts.push(`Brands: ${filters.brands.join(', ')}`);
   }
@@ -577,7 +577,7 @@ const formatFiltersForScreenReader = (filters: SavedSearchFilters) => {
   if (filters.yearRange) {
     parts.push(`Year range: ${filters.yearRange.min || 'any'} to ${filters.yearRange.max || 'any'}`);
   }
-  
+
   return parts.join('. ');
 };
 ```

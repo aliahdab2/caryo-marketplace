@@ -33,15 +33,15 @@ class ParticipantRoleTest {
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("invalid");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("BUYER");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue(null);
         });
@@ -54,11 +54,11 @@ class ParticipantRoleTest {
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("Buyer");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("BUYER");
         });
-        
+
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("Seller");
         });
@@ -69,15 +69,15 @@ class ParticipantRoleTest {
     void shouldHaveAllExpectedEnumValues() {
         // Act
         ParticipantRole[] values = ParticipantRole.values();
-        
+
         // Assert
         assertEquals(3, values.length);
-        
+
         // Check that all expected values are present
         boolean hasBuyer = false;
         boolean hasSeller = false;
         boolean hasParticipant = false;
-        
+
         for (ParticipantRole role : values) {
             switch (role) {
                 case BUYER:
@@ -91,7 +91,7 @@ class ParticipantRoleTest {
                     break;
             }
         }
-        
+
         assertTrue(hasBuyer, "Should have BUYER role");
         assertTrue(hasSeller, "Should have SELLER role");
         assertTrue(hasParticipant, "Should have PARTICIPANT role");
@@ -104,7 +104,7 @@ class ParticipantRoleTest {
         assertEquals("buyer", ParticipantRole.BUYER.getValue());
         assertEquals("seller", ParticipantRole.SELLER.getValue());
         assertEquals("participant", ParticipantRole.PARTICIPANT.getValue());
-        
+
         // Test that the same instance is returned
         ParticipantRole buyer1 = ParticipantRole.fromValue("buyer");
         ParticipantRole buyer2 = ParticipantRole.fromValue("buyer");
@@ -118,12 +118,12 @@ class ParticipantRoleTest {
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue(" buyer ");
         });
-        
+
         // Test with numbers (should fail)
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("123");
         });
-        
+
         // Test with special characters (should fail)
         assertThrows(IllegalArgumentException.class, () -> {
             ParticipantRole.fromValue("buyer!");
@@ -136,10 +136,10 @@ class ParticipantRoleTest {
         // Test that each role has a meaningful value
         assertNotNull(ParticipantRole.BUYER.getValue());
         assertFalse(ParticipantRole.BUYER.getValue().isEmpty());
-        
+
         assertNotNull(ParticipantRole.SELLER.getValue());
         assertFalse(ParticipantRole.SELLER.getValue().isEmpty());
-        
+
         assertNotNull(ParticipantRole.PARTICIPANT.getValue());
         assertFalse(ParticipantRole.PARTICIPANT.getValue().isEmpty());
     }
@@ -186,7 +186,7 @@ class ParticipantRoleTest {
         assertNotEquals(ParticipantRole.BUYER, ParticipantRole.SELLER);
         assertNotEquals(ParticipantRole.BUYER, ParticipantRole.PARTICIPANT);
         assertNotEquals(ParticipantRole.SELLER, ParticipantRole.PARTICIPANT);
-        
+
         // Test that values are distinct
         assertNotEquals(ParticipantRole.BUYER.getValue(), ParticipantRole.SELLER.getValue());
         assertNotEquals(ParticipantRole.BUYER.getValue(), ParticipantRole.PARTICIPANT.getValue());
@@ -199,7 +199,7 @@ class ParticipantRoleTest {
         // Test that BUYER and SELLER are the primary business roles
         assertTrue(ParticipantRole.BUYER.getValue().equals("buyer"));
         assertTrue(ParticipantRole.SELLER.getValue().equals("seller"));
-        
+
         // Test that PARTICIPANT is the generic role
         assertTrue(ParticipantRole.PARTICIPANT.getValue().equals("participant"));
     }
@@ -210,7 +210,7 @@ class ParticipantRoleTest {
         // Test that BUYER and SELLER are specific roles
         assertTrue(ParticipantRole.BUYER.getValue().equals("buyer"));
         assertTrue(ParticipantRole.SELLER.getValue().equals("seller"));
-        
+
         // Test that PARTICIPANT is the generic role that can represent either
         assertTrue(ParticipantRole.PARTICIPANT.getValue().equals("participant"));
     }

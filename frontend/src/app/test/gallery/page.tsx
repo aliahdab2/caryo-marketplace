@@ -181,8 +181,8 @@ export default function GalleryTestPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="flex items-center mb-2">
-              <Link 
-                href="/test" 
+              <Link
+                href="/test"
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 mr-4"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
@@ -204,7 +204,7 @@ export default function GalleryTestPage() {
             <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300 mr-2" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Test Controls</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {/* Scenario Selection */}
             <div>
@@ -277,7 +277,7 @@ export default function GalleryTestPage() {
             <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 text-xs text-gray-600 dark:text-gray-300 border-b">
               <span>Debug: Total media: {currentScenario.media.length} | Images: {currentScenario.media.filter(m => m.type === 'image').length} | Videos: {currentScenario.media.filter(m => m.type === 'video').length} | Scenario: {selectedScenario} | Initial index: {initialIndex}</span>
             </div>
-            
+
             {/* Pure Gallery Component Test */}
             <div className="p-4">
               <CarMediaGallery
@@ -295,16 +295,16 @@ export default function GalleryTestPage() {
           <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-3">
             Testing Instructions
           </h3>
-          
+
           {/* Mixed Media Explanation */}
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
             <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">📹 Mixed Media Behavior:</h4>
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              When you have both images and videos (like &quot;Full Gallery&quot;), images appear in the main slider, 
+              When you have both images and videos (like &quot;Full Gallery&quot;), images appear in the main slider,
               and videos show as clickable thumbnails below with a &quot;Video Content&quot; section header.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-800 dark:text-yellow-200">
             <div>
               <h4 className="font-medium mb-2">Desktop Testing:</h4>

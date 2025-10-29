@@ -37,12 +37,12 @@ Organize translation files by component or route namespace rather than by conten
 pgsql
 Copy
 Edit
-/public/locales/en/login.json  
-/public/locales/ar/login.json  
-/public/locales/en/dashboard.json  
-/public/locales/ar/dashboard.json  
-/public/locales/en/button.json  
-/public/locales/ar/button.json  
+/public/locales/en/login.json
+/public/locales/ar/login.json
+/public/locales/en/dashboard.json
+/public/locales/ar/dashboard.json
+/public/locales/en/button.json
+/public/locales/ar/button.json
 ❌ DON'T:
 
 pgsql
@@ -333,8 +333,8 @@ Resource Bundle Example
 bash
 Copy
 Edit
-/resources/messages/messages_en.properties  
-/resources/messages/messages_ar.properties  
+/resources/messages/messages_en.properties
+/resources/messages/messages_ar.properties
 java
 Copy
 Edit
@@ -363,7 +363,7 @@ Or localized content based on Accept-Language header:
 sql
 Copy
 Edit
-GET /api/cars/1  
+GET /api/cars/1
 Accept-Language: ar
 Response:
 

@@ -49,11 +49,11 @@ public class AsyncEventsConfig {
         executor.setQueueCapacity(25); // Queue capacity before rejecting
         executor.setThreadNamePrefix("async-events-");
         executor.initialize();
-        log.info("Configured async executor for @Async methods with pool size {}-{}", 
+        log.info("Configured async executor for @Async methods with pool size {}-{}",
                 executor.getCorePoolSize(), executor.getMaxPoolSize());
         return executor;
     }
-    
+
     /**
      * Creates a transaction template for programmatic transaction management in async contexts.
      * This allows async operations to properly interact with the database using transactions.

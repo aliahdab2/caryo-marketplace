@@ -104,21 +104,21 @@ const _StepLoadingFallback = memo(function StepLoadingFallback() {
 
 // Upload Progress Component removed - not used in current implementation
 
-export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader?: boolean }>(function ListingWizard({ 
-  mode, 
-  listingId, 
-  initialData = {}, 
+export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader?: boolean }>(function ListingWizard({
+  mode,
+  listingId,
+  initialData = {},
   autoLoad = true,
   autoSave = true,
   showHeader = true,
-  onSuccess, 
-  onCancel: _onCancel 
+  onSuccess,
+  onCancel: _onCancel
 }, ref) {
   const _router = useRouter();
   const { t, i18n, ready } = useLazyTranslation(['listings', 'common', 'validation']);
   const { isRTL } = useDirection();
   const rtl = createRTLHelpers(isRTL);
-  
+
   // Refs for keyboard navigation
   const formRef = useRef<HTMLFormElement>(null);
   const _previousButtonRef = useRef<HTMLButtonElement>(null);
@@ -131,7 +131,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   const [_loadError, setLoadError] = useState<string | null>(null);
   const [_showVideoUpload, _setShowVideoUpload] = useState(false);
   const [_showVideoUrl, _setShowVideoUrl] = useState(false);
-  
+
   // Use the extracted data loading hook
   const {
     governorates,
@@ -150,11 +150,11 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     clearModels: _clearModels,
     clearLocations: _clearLocations
   } = useListingData(t);
-  
 
-  
+
+
   // Media-related UI state is fully handled by ImageUploadSection/VideoUploadSection
-  
+
   // Video configuration - can be moved to environment variables later
   const isVideoUploadEnabled = true;
   const isVideoUrlEnabled = true;
@@ -251,7 +251,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
 
   // Car features removed - not used in current implementation
 
-  // Debounced form data for expensive validations  
+  // Debounced form data for expensive validations
   const debouncedFormData = useDebounce(formData, 300);
 
   // Optimized step configuration with stable references and completion status
@@ -359,7 +359,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       if (newErrors.modelId) delete newErrors.modelId;
       return newErrors;
     });
-    
+
     // Load models when make changes - use prev value instead of formData to avoid stale closure
     if (selectedMake && loadCarModels) {
       loadCarModels(selectedMake.id.toString()).catch(error => {
@@ -447,10 +447,10 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       try {
         setIsLoadingData(true);
         setLoadError(null);
-        
+
         wizardLogger.debug('[ListingWizard] Auto-loading data for mode:', mode, 'listingId:', listingId);
         const loadedData = await ListingDataService.loadFormData(mode, listingId);
-        
+
         setFormData(prevFormData => ({
           ...prevFormData,
           ...loadedData,
@@ -467,7 +467,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
         if (mode === 'edit' && !initialSnapshotRef.current) {
           initialSnapshotRef.current = { ...loadedData };
         }
-        
+
         wizardLogger.debug('[ListingWizard] Data auto-loaded successfully');
       } catch (error) {
         wizardLogger.error('Error auto-loading data');
@@ -480,7 +480,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     loadData();
   }, [mode, listingId, autoLoad, ready]);
 
-  // V2: Complex conversion logic removed! 
+  // V2: Complex conversion logic removed!
   // The enhanced backend now provides complete objects with IDs and slugs directly
   // No more complex useEffect for display name to slug/ID conversion needed ✅
 
@@ -512,24 +512,24 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   const _handleLocationChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSlug = e.target.value;
     wizardLogger.debug('Location dropdown changed to slug ' + selectedSlug);
-    
+
     // Find the location object to get all its properties
     const selectedLocation = locations.find(loc => loc.slug === selectedSlug);
-    
+
     if (selectedLocation) {
-      const locationDisplayName = i18n.language === 'ar' 
-        ? selectedLocation.displayNameAr 
+      const locationDisplayName = i18n.language === 'ar'
+        ? selectedLocation.displayNameAr
         : selectedLocation.displayNameEn;
-        
+
       wizardLogger.debug('Updating location via slug');
-      
+
       setFormData(prev => ({
         ...prev,
         locationId: selectedLocation.id,       // Primary ID for API calls
         locationSlug: selectedLocation.slug,   // For URL generation
         location: locationDisplayName          // For display
       }));
-      
+
       // Clear any existing errors
       if (formErrors.locationSlug) {
         setFormErrors(prev => {
@@ -571,13 +571,13 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
           setIsLoadingData(true);
           setLoadError(null);
           wizardLogger.info(`Loading edit data for listing ID: ${listingId}`);
-          
+
           const data = await ListingDataService.loadFormData(mode, listingId);
           setFormData(prev => ({ ...prev, ...data }));
           if (!initialSnapshotRef.current) {
             initialSnapshotRef.current = { ...data };
           }
-          
+
           // After setting form data, trigger model loading if make is present
           if (data.make && data.makeId) {
             wizardLogger.debug(`Edit mode: Loading models for make: ${data.make} (ID: ${data.makeId})`);
@@ -585,7 +585,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
               wizardLogger.error('Failed to load car models in edit mode:', error);
             });
           }
-          
+
           // Also trigger location loading if governorate is present
           if (data.governorateSlug) {
             wizardLogger.debug(`Edit mode: Loading locations for governorate: ${data.governorateSlug}`);
@@ -593,7 +593,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
               wizardLogger.error('Failed to load locations in edit mode:', error);
             });
           }
-          
+
           wizardLogger.info('Edit data loaded successfully');
         } catch (error) {
           wizardLogger.error('Failed to load edit data:', error);
@@ -603,7 +603,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
           setIsLoadingData(false);
         }
       };
-      
+
       loadEditData();
     }
   }, [autoLoad, mode, listingId, ready, loadCarModels, loadLocations, t]);
@@ -615,13 +615,13 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   // Optimized step accessibility check with debounced validation
   const isStepAccessible = useCallbackPerf((targetStep: number) => {
     wizardLogger.debug(`isStepAccessible targetStep=${targetStep} currentStep=${currentStep}`);
-    
+
     // Always allow going to previous steps
     if (targetStep <= currentStep) {
       wizardLogger.debug(`Step ${targetStep} is accessible`);
       return true;
     }
-    
+
     // For next step, validate all previous steps using debounced data
     for (let step = 1; step < targetStep; step++) {
       wizardLogger.debug(`Validating step ${step} for accessibility`);
@@ -632,7 +632,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
         return false;
       }
     }
-    
+
     // Only allow accessing the next immediate step
     const isNextImmediateStep = targetStep === currentStep + 1;
     wizardLogger.debug(`Step ${targetStep} accessibility: nextImmediate=${isNextImmediateStep}`);
@@ -642,11 +642,11 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
   // Helper function to handle validation errors
   const handleValidationErrors = useCallback((stepErrors: FormErrors) => {
     wizardLogger.debug('handleValidationErrors');
-    
+
     if (Object.keys(stepErrors).length > 0) {
       wizardLogger.debug('Setting form errors');
       setFormErrors(stepErrors);
-      
+
       // Focus and smooth-scroll to first field with error for better UX
       const firstErrorField = Object.keys(stepErrors)[0];
       wizardLogger.debug('Focusing first error field ' + firstErrorField);
@@ -661,7 +661,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
           errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
-      
+
       // Show specific field errors instead of generic message
       const errorMessages = Object.values(stepErrors).filter(Boolean);
       if (errorMessages.length > 0) {
@@ -684,7 +684,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     wizardLogger.debug(`handleStepChange step=${step} currentStep=${currentStep}`);
     wizardLogger.debug(`[ListingWizard] Current form data:`, {
       title: formData.title,
@@ -692,7 +692,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       price: formData.price,
       currency: formData.currency
     });
-    
+
     // Fast-path for moving from Step 1 to Step 2: validate blocking-only fields and proceed
     if (step === currentStep + 1 && currentStep === 1) {
       const navErrors = validateStep(1, formData, t, { mode: 'navigation' });
@@ -704,7 +704,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
         return;
       }
     }
-    
+
     if (!isStepAccessible(step)) {
       wizardLogger.debug(`Step ${step} not accessible`);
       // Show specific message when trying to access locked step
@@ -721,21 +721,21 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
       const stepErrors = validateStep(currentStep, formData, t);
       wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
-      
+
       // DEBUGGING: Log specific Step 3 validation details
       if (currentStep === 3) {
         wizardLogger.debug(`[Step 3 Debug] Title: "${formData.title}", Description: "${formData.description}"`);
         wizardLogger.debug(`[Step 3 Debug] Title empty: ${!formData.title || formData.title.trim().length === 0}`);
         wizardLogger.debug(`[Step 3 Debug] Description empty: ${!formData.description || formData.description.trim().length === 0}`);
       }
-      
+
       if (handleValidationErrors(stepErrors)) {
         wizardLogger.debug('Validation failed, stay on current step');
         return;
       }
       wizardLogger.debug('Current step validation passed');
     }
-    
+
     wizardLogger.debug(`Navigating to step ${step} from ${currentStep}`);
     setCurrentStep(step);
     setFormErrors({}); // Clear errors when changing steps
@@ -772,11 +772,11 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     if (event.key === 'Tab') {
       const form = formRef.current;
       if (!form) return;
-      
+
       const focusableElements = form.querySelectorAll(FOCUSABLE_SELECTOR);
       const firstElement = focusableElements[0] as HTMLElement;
       const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-      
+
       if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement?.focus();

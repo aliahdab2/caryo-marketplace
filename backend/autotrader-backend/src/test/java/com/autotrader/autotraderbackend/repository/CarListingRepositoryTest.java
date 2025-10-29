@@ -115,7 +115,7 @@ class CarListingRepositoryTest {
         createTestListing("Car 3", dieselFuelType, true, false, false);
         createTestListing("Car 4", electricFuelType, true, false, false);
         createTestListing("Car 5", gasolineFuelType, true, false, false);
-        
+
         // Create some listings that should not be counted (not approved, sold, or archived)
         createTestListing("Car 6", gasolineFuelType, false, false, false); // not approved
         createTestListing("Car 7", dieselFuelType, true, true, false); // sold
@@ -133,7 +133,7 @@ class CarListingRepositoryTest {
         for (Object[] result : results) {
             String fuelTypeName = (String) result[0];
             Long count = (Long) result[1];
-            
+
             switch (fuelTypeName) {
                 case "gasoline":
                     assertEquals(3L, count);
@@ -149,7 +149,7 @@ class CarListingRepositoryTest {
                     break;
             }
         }
-        
+
         assertTrue(foundGasoline, "Gasoline fuel type should be found");
         assertTrue(foundDiesel, "Diesel fuel type should be found");
         assertTrue(foundElectric, "Electric fuel type should be found");
@@ -227,7 +227,7 @@ class CarListingRepositoryTest {
         listing.setSold(sold);
         listing.setArchived(archived);
         listing.setFuelType(fuelType);
-        
+
         return entityManager.persistAndFlush(listing);
     }
-} 
+}

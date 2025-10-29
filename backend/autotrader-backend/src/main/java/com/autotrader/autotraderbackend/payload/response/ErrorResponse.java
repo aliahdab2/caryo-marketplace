@@ -21,4 +21,4 @@ public class ErrorResponse {
 
     @Schema(description = "Timestamp of when the error occurred", example = "2024-03-21T10:15:30.123Z")
     private String timestamp;
-} 
+}

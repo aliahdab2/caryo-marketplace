@@ -48,7 +48,7 @@ public class CarListingStatusService {
 
         listing.setSold(true);
         CarListing updatedListing = carListingRepository.save(listing);
-        
+
         eventPublisher.publishEvent(new ListingMarkedAsSoldEvent(this, updatedListing, false));
         log.info("Successfully marked listing ID {} as sold by user {}", listingId, username);
         return carListingMapper.toCarListingResponse(updatedListing);
@@ -236,7 +236,7 @@ public class CarListingStatusService {
     @Transactional
     public CarListingResponse approveListing(Long id) {
         log.info("Attempting to approve listing with ID: {}", id);
-        CarListing carListing = findListingById(id); 
+        CarListing carListing = findListingById(id);
 
         if (Boolean.TRUE.equals(carListing.getApproved())) {
             log.warn("Listing ID {} is already approved. Admin operation aborted.", id);

@@ -27,7 +27,7 @@ public class FuelTypeService {
     public List<FuelType> getAllFuelTypes() {
         return fuelTypeRepository.findAll();
     }
-    
+
     /**
      * Get a fuel type by its ID
      * @param id Fuel type ID
@@ -38,7 +38,7 @@ public class FuelTypeService {
         return fuelTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("FuelType", "id", id));
     }
-    
+
     /**
      * Get a fuel type by its name
      * @param name Fuel type name
@@ -49,7 +49,7 @@ public class FuelTypeService {
         return fuelTypeRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("FuelType", "name", name));
     }
-    
+
     /**
      * Search for fuel types by name (in English or Arabic)
      * @param query Search query
@@ -61,7 +61,7 @@ public class FuelTypeService {
         }
         return fuelTypeRepository.searchByName(query);
     }
-    
+
     /**
      * Create a new fuel type
      * @param fuelType Fuel type to create
@@ -72,7 +72,7 @@ public class FuelTypeService {
         log.info("Creating new fuel type: {}", fuelType.getName());
         return fuelTypeRepository.save(fuelType);
     }
-    
+
     /**
      * Update an existing fuel type
      * @param id Fuel type ID
@@ -83,15 +83,15 @@ public class FuelTypeService {
     @Transactional
     public FuelType updateFuelType(Long id, FuelType fuelTypeDetails) {
         FuelType fuelType = getFuelTypeById(id);
-        
+
         fuelType.setName(fuelTypeDetails.getName());
         fuelType.setDisplayNameEn(fuelTypeDetails.getDisplayNameEn());
         fuelType.setDisplayNameAr(fuelTypeDetails.getDisplayNameAr());
-        
+
         log.info("Updated fuel type with id: {}", id);
         return fuelTypeRepository.save(fuelType);
     }
-    
+
     /**
      * Delete a fuel type
      * @param id Fuel type ID

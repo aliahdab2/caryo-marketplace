@@ -29,21 +29,21 @@ public class GovernorateService {
                 .map(GovernorateResponse::fromEntity)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public List<GovernorateResponse> getGovernoratesByCountryId(Long countryId) {
         return governorateRepository.findByCountry_IdOrderByDisplayNameEnAsc(countryId).stream()
                 .map(GovernorateResponse::fromEntity)
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public GovernorateResponse getGovernorateBySlug(String slug) {
         return governorateRepository.findBySlug(slug)
                 .map(GovernorateResponse::fromEntity)
                 .orElse(null);
     }
-    
+
     @Transactional(readOnly = true)
     public Governorate findGovernorateBySlug(String slug) {
         return governorateRepository.findBySlug(slug).orElse(null);

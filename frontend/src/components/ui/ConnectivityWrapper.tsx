@@ -11,9 +11,9 @@ const ConnectivityStatus = dynamic(
 
 export default function ConnectivityWrapper() {
   // Use reactive mode that only checks when API requests are made
-  return <ConnectivityStatus 
+  return <ConnectivityStatus
     checkInterval={0} // Disable regular interval checking completely
-    autoHide={true} 
-    reactive={true} 
+    autoHide={true}
+    reactive={true}
   />;
 }

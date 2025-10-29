@@ -42,29 +42,29 @@ public class EmailVerificationController {
     @GetMapping("")
     public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
         log.info("Email verification attempt with token: {}", token.substring(0, Math.min(token.length(), 8)) + "...");
-        
+
         if (token == null || token.trim().isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Verification token is required"));
         }
-        
+
         VerificationResult result = emailVerificationService.verifyEmail(token);
-        
+
         if (result.isSuccess() && result.getUser() != null) {
             try {
                 // Auto-login: Generate JWT token for the verified user
                 User user = result.getUser();
                 String jwt = jwtUtils.generateJwtTokenForUser(user);
-                
+
                 // Get user roles with null safety
-                List<String> roles = user.getRoles() != null ? 
+                List<String> roles = user.getRoles() != null ?
                     user.getRoles().stream()
                         .map(role -> role.getName())
-                        .collect(Collectors.toList()) : 
+                        .collect(Collectors.toList()) :
                     List.of("ROLE_USER"); // Default role if none exist
-                
+
                 log.info("Email verified and auto-login successful for user: {}", user.getUsername());
-                
+
                 // Return JWT response for auto-login
                 return ResponseEntity.ok(new JwtResponse(
                     jwt,
@@ -74,7 +74,7 @@ public class EmailVerificationController {
                     roles
                 ));
             } catch (Exception e) {
-                log.error("Failed to generate JWT token for user: {} after email verification. Error: {}", 
+                log.error("Failed to generate JWT token for user: {} after email verification. Error: {}",
                          result.getUser().getUsername(), e.getMessage());
                 // Fallback to regular success message if JWT generation fails
                 return ResponseEntity.ok(new MessageResponse(
@@ -89,16 +89,16 @@ public class EmailVerificationController {
                 if (user != null && user.isEmailVerified()) {
                     // Generate JWT token for already verified user
                     String jwt = jwtUtils.generateJwtTokenForUser(user);
-                    
+
                     // Get user roles with null safety
-                    List<String> roles = user.getRoles() != null ? 
+                    List<String> roles = user.getRoles() != null ?
                         user.getRoles().stream()
                             .map(role -> role.getName())
-                            .collect(Collectors.toList()) : 
+                            .collect(Collectors.toList()) :
                         List.of("ROLE_USER"); // Default role if none exist
-                    
+
                     log.info("Auto-login provided for already verified user: {}", user.getUsername());
-                    
+
                     // Return JWT response for auto-login (same as new verification)
                     return ResponseEntity.ok(new JwtResponse(
                         jwt,
@@ -111,7 +111,7 @@ public class EmailVerificationController {
             } catch (Exception e) {
                 log.warn("Could not provide auto-login for already verified user. Error: {}", e.getMessage());
             }
-            
+
             // Fallback to message response if auto-login fails
             return ResponseEntity.ok(new MessageResponse(result.getMessage()));
         } else {
@@ -132,14 +132,14 @@ public class EmailVerificationController {
     @PostMapping("/resend")
     public ResponseEntity<?> resendVerificationEmail(@RequestParam("email") String email) {
         log.info("Resend verification email request for: {}", email);
-        
+
         if (email == null || email.trim().isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Email address is required"));
         }
-        
+
         boolean sent = emailVerificationService.resendVerificationEmail(email);
-        
+
         if (sent) {
             return ResponseEntity.ok(new MessageResponse("Verification email sent successfully! Please check your inbox."));
         } else {

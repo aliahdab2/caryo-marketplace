@@ -121,7 +121,7 @@ public class AuthenticationExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<MessageResponse> handleJwtException(JwtException ex, WebRequest request) {
         String message = "JWT token error";
-        
+
         if (ex instanceof ExpiredJwtException) {
             message = "JWT token has expired";
         } else if (ex instanceof UnsupportedJwtException) {
@@ -129,7 +129,7 @@ public class AuthenticationExceptionHandler {
         } else if (ex instanceof MalformedJwtException || ex instanceof SignatureException) {
             message = "Invalid JWT token";
         }
-        
+
         log.error("JWT exception: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
@@ -140,7 +140,7 @@ public class AuthenticationExceptionHandler {
      * Handle validation exceptions
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST) 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -148,7 +148,7 @@ public class AuthenticationExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         log.error("Validation error: {}", errors);
         return ResponseEntity.badRequest().body(errors);
     }
@@ -165,7 +165,7 @@ public class AuthenticationExceptionHandler {
             String message = violation.getMessage();
             errors.put(propertyPath, message);
         });
-        
+
         log.error("Constraint violation: {}", errors);
         return ResponseEntity.badRequest().body(errors);
     }

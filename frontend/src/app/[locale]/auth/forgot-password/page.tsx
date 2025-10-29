@@ -39,7 +39,7 @@ const ForgotPasswordPage: React.FC = () => {
 
       if (response.ok) {
         setMessage(
-          t('auth:resetEmailSent', 
+          t('auth:resetEmailSent',
             'If the email exists, a password reset link has been sent. Please check your email.')
         );
         setShowSuccess(true);
@@ -133,9 +133,9 @@ const ForgotPasswordPage: React.FC = () => {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       className={`w-full h-12 ltr:pl-12 ltr:pr-4 rtl:pr-12 rtl:pl-4 rounded-lg border-2 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        email && !emailValid 
-                          ? 'border-red-300 dark:border-red-600 focus:border-red-500' 
-                          : email && emailValid 
+                        email && !emailValid
+                          ? 'border-red-300 dark:border-red-600 focus:border-red-500'
+                          : email && emailValid
                             ? 'border-green-300 dark:border-green-600 focus:border-green-500'
                             : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
@@ -202,8 +202,8 @@ const ForgotPasswordPage: React.FC = () => {
         {/* Footer */}
         {!showSuccess && (
           <div className="text-center mt-6">
-            <Link 
-              href="/auth/signin" 
+            <Link
+              href="/auth/signin"
               className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
             >
               <svg className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

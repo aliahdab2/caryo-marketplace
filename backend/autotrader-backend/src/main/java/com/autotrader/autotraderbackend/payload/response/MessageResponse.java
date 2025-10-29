@@ -34,28 +34,28 @@ public class MessageResponse {
     private boolean isDeleted;
     private LocalDateTime deletedAt;
     private Long version;
-    
+
     private UserSummary sender;
     private List<MessageAttachmentResponse> attachments;
-    
+
     // Helper fields for frontend
     private boolean canBeEdited;
     private boolean canBeDeleted;
     private String displayContent;
     private String statusDescription;
-    
+
     // Simple constructor for backward compatibility with existing code
     public MessageResponse(String message) {
         this.content = message;
         this.messageType = "text";
         this.createdAt = LocalDateTime.now();
     }
-    
+
     // Getter method for backward compatibility with existing tests
     public String getMessage() {
         return content;
     }
-    
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -85,7 +85,7 @@ public class MessageResponse {
         private String errorMessage;
         private LocalDateTime createdAt;
         private boolean isDeleted;
-        
+
         // Helper fields for frontend
         private String humanReadableSize;
         private boolean image;
@@ -95,36 +95,36 @@ public class MessageResponse {
         private String fileExtension;
         private boolean validFileType;
     }
-    
+
     // Helper methods for frontend
     public boolean isTextMessage() {
         return "text".equals(messageType);
     }
-    
+
     public boolean isImageMessage() {
         return "image".equals(messageType);
     }
-    
+
     public boolean isSystemMessage() {
         return "system".equals(messageType);
     }
-    
+
     public boolean hasAttachments() {
         return attachments != null && !attachments.isEmpty();
     }
-    
+
     public boolean isFromCurrentUser(Long currentUserId) {
         return sender != null && sender.getId() != null && sender.getId().equals(currentUserId);
     }
-    
+
     public String getTimeAgo() {
         if (createdAt == null) {
             return "Unknown time";
         }
-        
+
         LocalDateTime now = LocalDateTime.now();
         long minutes = java.time.Duration.between(createdAt, now).toMinutes();
-        
+
         if (minutes < 1) {
             return "Just now";
         } else if (minutes < 60) {
@@ -137,40 +137,40 @@ public class MessageResponse {
             return days + "d ago";
         }
     }
-    
+
     public String getReadStatus() {
         if (isDeleted) {
             return "Deleted";
         }
-        
+
         if (isRead) {
             return "Read";
         }
-        
+
         return "Unread";
     }
-    
+
     public boolean shouldShowEditIndicator() {
         return isEdited && !isDeleted;
     }
-    
+
     public boolean shouldShowDeleteIndicator() {
         return isDeleted;
     }
-    
+
     public String getMessageStatus() {
         if (isDeleted) {
             return "deleted";
         }
-        
+
         if (isEdited) {
             return "edited";
         }
-        
+
         if (isRead) {
             return "read";
         }
-        
+
         return "sent";
     }
 }

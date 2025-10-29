@@ -23,7 +23,7 @@ MERGE INTO car_listings (
     body_style_id, transmission_id, fuel_type_id, drive_type_id
 )
 KEY(title)
-SELECT 
+SELECT
     'Test Car',
     'Test car description',
     50000,
@@ -58,7 +58,7 @@ WHERE
 -- Test Car Image
 MERGE INTO car_images (car_listing_id, image_url, sort_order, is_primary)
 KEY(car_listing_id, image_url)
-SELECT 
+SELECT
     cl.id,
     'https://test-bucket.s3.amazonaws.com/cars/test-car.jpg',
     1,

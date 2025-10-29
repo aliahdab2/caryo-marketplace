@@ -54,7 +54,7 @@ public class CarModelService {
         log.debug("Fetching car models with pageable: {}, search: {}, brandId: {}", pageable, search, brandId);
         return carModelRepository.findAllWithFilters(search, brandId, pageable);
     }
-    
+
     /**
      * Get car models by brand ID
      * @param brandId ID of the brand
@@ -67,7 +67,7 @@ public class CarModelService {
         CarBrand brand = carBrandService.getBrandById(brandId);
         return carModelRepository.findByBrand(brand);
     }
-    
+
     /**
      * Get active car models by brand ID
      * @param brandId ID of the brand
@@ -80,7 +80,7 @@ public class CarModelService {
         CarBrand brand = carBrandService.getBrandById(brandId);
         return carModelRepository.findByBrandAndIsActiveTrue(brand);
     }
-    
+
     /**
      * Get car models by brand slug
      * @param brandSlug Slug of the brand
@@ -91,7 +91,7 @@ public class CarModelService {
         CarBrand brand = carBrandService.getBrandBySlug(brandSlug);
         return carModelRepository.findByBrand(brand);
     }
-    
+
     /**
      * Get active car models by brand slug
      * @param brandSlug Slug of the brand
@@ -102,7 +102,7 @@ public class CarModelService {
         CarBrand brand = carBrandService.getBrandBySlug(brandSlug);
         return carModelRepository.findByBrandAndIsActiveTrue(brand);
     }
-    
+
     /**
      * Get a car model by its ID
      * @param id Model ID
@@ -114,7 +114,7 @@ public class CarModelService {
         return carModelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarModel", "id", id));
     }
-    
+
     /**
      * Get a car model by its slug
      * @param slug Model slug
@@ -126,7 +126,7 @@ public class CarModelService {
         return carModelRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("CarModel", "slug", slug));
     }
-    
+
     /**
      * Search for models by name (in English or Arabic)
      * @param query Search query
@@ -139,7 +139,7 @@ public class CarModelService {
         }
         return carModelRepository.searchByName(query);
     }
-    
+
     /**
      * Search for models by brand and name
      * @param brandId Brand ID
@@ -150,13 +150,13 @@ public class CarModelService {
         if (query == null || query.trim().isEmpty()) {
             return getModelsByBrandId(brandId);
         }
-        
+
         // Filter the search results by brand
         return carModelRepository.searchByName(query).stream()
                 .filter(model -> model.getBrand().getId().equals(brandId))
                 .toList();
     }
-    
+
     /**
      * Create a new car model
      * @param model Model to create
@@ -168,16 +168,16 @@ public class CarModelService {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(model.getBrand().getId());
         model.setBrand(brand);
-        
+
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
         if (model.getIsActive() && !brand.getIsActive()) {
             carHierarchyService.autoActivateBrand(brand.getId(), model.getName());
         }
-        
+
         log.info("Creating new car model: {} for brand: {}", model.getName(), brand.getName());
         return carModelRepository.save(model);
     }
-    
+
     /**
      * Create a new car model using request DTO
      * @param createRequest Model creation details from request
@@ -188,29 +188,29 @@ public class CarModelService {
     public CarModel createModel(CreateModelRequest createRequest) {
         // Ensure the brand exists
         CarBrand brand = carBrandService.getBrandById(createRequest.getBrandId());
-        
+
         // Validate model uniqueness
         validateModelUniqueness(brand, createRequest);
-        
+
         CarModel model = new CarModel();
         model.setName(createRequest.getName());
         model.setDisplayNameEn(createRequest.getDisplayNameEn());
         model.setDisplayNameAr(createRequest.getDisplayNameAr());
         model.setIsActive(createRequest.getIsActive() != null ? createRequest.getIsActive() : true);
         model.setBrand(brand);
-        
+
         // Smart activation: If creating an active model and parent brand is inactive, activate the brand
         if (model.getIsActive() && !brand.getIsActive()) {
             carHierarchyService.autoActivateBrand(brand.getId(), createRequest.getName());
         }
-        
+
         // Generate unique slug from name and brand
         String baseSlug = (brand.getName() + "-" + createRequest.getName()).toLowerCase()
                 .replaceAll("[^a-z0-9\\s-]", "")
                 .replaceAll("\\s+", "-")
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", ""); // Remove leading/trailing dashes
-        
+
         String slug = baseSlug;
         int counter = 1;
         while (carModelRepository.findBySlug(slug).isPresent()) {
@@ -218,11 +218,11 @@ public class CarModelService {
             counter++;
         }
         model.setSlug(slug);
-        
+
         log.info("Creating new car model using request DTO: {} for brand: {}", createRequest.getName(), brand.getName());
         return carModelRepository.save(model);
     }
-    
+
     /**
      * Update an existing car model
      * @param id Model ID
@@ -234,42 +234,42 @@ public class CarModelService {
     @CacheEvict(value = {"carModels", "modelsByBrand"}, allEntries = true)
     public CarModel updateModel(Long id, CarModel modelDetails) {
         CarModel model = getModelById(id);
-        
+
         model.setName(modelDetails.getName());
         model.setDisplayNameEn(modelDetails.getDisplayNameEn());
         model.setDisplayNameAr(modelDetails.getDisplayNameAr());
-        
+
         // If brand has changed, validate and set the new brand first
         CarBrand targetBrand = model.getBrand(); // Default to current brand
         if (!model.getBrand().getId().equals(modelDetails.getBrand().getId())) {
             targetBrand = carBrandService.getBrandById(modelDetails.getBrand().getId());
             model.setBrand(targetBrand);
         }
-        
+
         // Handle activation/deactivation logic
         boolean wasActive = model.getIsActive();
         boolean willBeActive = modelDetails.getIsActive();
-        
+
         // Smart activation: If model is being activated, ensure parent brand is also active
         if (willBeActive && !wasActive) {
             if (!targetBrand.getIsActive()) {
                 carHierarchyService.autoActivateBrand(targetBrand.getId(), model.getDisplayNameEn());
             }
         }
-        
+
         // Cascading deactivation: If model is being deactivated, deactivate its car listings
         if (wasActive && !willBeActive) {
             log.info("Cascading deactivation from model {} to all its car listings", model.getDisplayNameEn());
             carHierarchyService.cascadeDeactivateFromModels(List.of(id));
         }
-        
+
         model.setIsActive(modelDetails.getIsActive());
         // Don't update slug as it should be immutable for URL stability
-        
+
         log.info("Updated car model with id: {}", id);
         return carModelRepository.save(model);
     }
-    
+
     /**
      * Update an existing car model using request DTO
      * @param id Model ID
@@ -281,16 +281,16 @@ public class CarModelService {
     @CacheEvict(value = {"carModels", "modelsByBrand", "carModelsPage"}, allEntries = true)
     public CarModel updateModel(Long id, UpdateModelRequest updateRequest) {
         CarModel model = getModelById(id);
-        
+
         model.setName(updateRequest.getName());
         model.setDisplayNameEn(updateRequest.getDisplayNameEn());
         model.setDisplayNameAr(updateRequest.getDisplayNameAr());
-        
+
         boolean wasActive = model.getIsActive(); // Store previous active status
         model.setIsActive(updateRequest.getIsActive());
-        
+
         // Don't update slug as it should be immutable for URL stability
-        
+
         // If brand has changed, validate the new brand
         CarBrand currentBrand = model.getBrand(); // Store current brand
         if (!currentBrand.getId().equals(updateRequest.getBrandId())) {
@@ -298,25 +298,25 @@ public class CarModelService {
             model.setBrand(newBrand);
             currentBrand = newBrand; // Update currentBrand to the new brand
         }
-        
+
         // Handle activation/deactivation logic
         boolean willBeActive = model.getIsActive();
-        
+
         // Smart activation: If model is becoming active and its brand is inactive, activate the brand
         if (willBeActive && !wasActive && !currentBrand.getIsActive()) {
             carHierarchyService.autoActivateBrand(currentBrand.getId(), model.getDisplayNameEn());
         }
-        
+
         // Cascading deactivation: If model is being deactivated, deactivate its car listings
         if (wasActive && !willBeActive) {
             log.info("Cascading deactivation from model {} to all its car listings", model.getDisplayNameEn());
             carHierarchyService.cascadeDeactivateFromModels(List.of(id));
         }
-        
+
         log.info("Updated car model with id: {} using request DTO", id);
         return carModelRepository.save(model);
     }
-    
+
     /**
      * Change activation status of a model
      * @param id Model ID
@@ -329,20 +329,20 @@ public class CarModelService {
         CarModel model = getModelById(id);
         boolean wasActive = model.getIsActive();
         model.setIsActive(isActive);
-        
+
         // Smart activation: If model is becoming active and its brand is inactive, activate the brand
         if (isActive && !wasActive && !model.getBrand().getIsActive()) {
             CarBrand brand = model.getBrand();
-            log.info("Auto-activating parent brand '{}' because model '{}' is being activated", 
+            log.info("Auto-activating parent brand '{}' because model '{}' is being activated",
                     brand.getDisplayNameEn(), model.getDisplayNameEn());
             brand.setIsActive(true);
             carBrandService.updateBrand(brand.getId(), brand);
         }
-        
+
         log.info("Updated activation status of model with id: {} to: {}", id, isActive);
         return carModelRepository.save(model);
     }
-    
+
     /**
      * Delete a car model
      * @param id Model ID
@@ -354,7 +354,7 @@ public class CarModelService {
         log.info("Deleting car model with id: {}", id);
         carModelRepository.delete(model);
     }
-    
+
     /**
      * Validate that a model doesn't already exist for the given brand
      */
@@ -362,15 +362,15 @@ public class CarModelService {
         String name = modelRequest.getName().trim();
         String displayNameEn = modelRequest.getDisplayNameEn().trim();
         String displayNameAr = modelRequest.getDisplayNameAr().trim();
-        
+
         if (carModelRepository.existsByBrandAndNameIgnoreCase(brand, name)) {
             throw new IllegalArgumentException("Model with name '" + name + "' already exists for brand '" + brand.getName() + "'");
         }
-        
+
         if (carModelRepository.existsByBrandAndDisplayNameEnIgnoreCase(brand, displayNameEn)) {
             throw new IllegalArgumentException("Model with English name '" + displayNameEn + "' already exists for brand '" + brand.getName() + "'");
         }
-        
+
         if (carModelRepository.existsByBrandAndDisplayNameArIgnoreCase(brand, displayNameAr)) {
             throw new IllegalArgumentException("Model with Arabic name '" + displayNameAr + "' already exists for brand '" + brand.getName() + "'");
         }
@@ -382,15 +382,15 @@ public class CarModelService {
      */
     public CarModel updateModelStatus(Long modelId, String status) {
         CarModel model = getModelById(modelId);
-        
+
         // Validate status
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status: " + status + ". Valid values are: ACTIVE, INACTIVE, PENDING");
         }
-        
+
         boolean isActive = "ACTIVE".equalsIgnoreCase(status);
         model.setIsActive(isActive);
-        
+
         return carModelRepository.save(model);
     }
 
@@ -407,9 +407,9 @@ public class CarModelService {
      * Validate status value
      */
     private boolean isValidStatus(String status) {
-        return status != null && 
-               (status.equalsIgnoreCase("ACTIVE") || 
-                status.equalsIgnoreCase("INACTIVE") || 
+        return status != null &&
+               (status.equalsIgnoreCase("ACTIVE") ||
+                status.equalsIgnoreCase("INACTIVE") ||
                 status.equalsIgnoreCase("PENDING"));
     }
 
@@ -420,7 +420,7 @@ public class CarModelService {
     public void validateModelActiveForNewListing(Long modelId) {
         CarModel model = getModelById(modelId);
         if (!model.getIsActive()) {
-            throw new IllegalArgumentException("Cannot create new listings with inactive model: " + model.getDisplayNameEn() + 
+            throw new IllegalArgumentException("Cannot create new listings with inactive model: " + model.getDisplayNameEn() +
                 ". This model is marked as discontinued or under review. Please contact support if you believe this is an error.");
         }
     }

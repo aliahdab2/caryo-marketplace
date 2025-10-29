@@ -20,13 +20,13 @@ public class CarBrandResponse {
     private String displayNameEn;
     private String displayNameAr;
     private Boolean isActive;
-    
+
     // Static factory method to create from entity
     public static CarBrandResponse fromEntity(com.autotrader.autotraderbackend.model.CarBrand brand) {
         if (brand == null) {
             return null;
         }
-        
+
         return new CarBrandResponse(
             brand.getId(),
             brand.getName(),
@@ -36,4 +36,4 @@ public class CarBrandResponse {
             brand.getIsActive()
         );
     }
-} 
+}

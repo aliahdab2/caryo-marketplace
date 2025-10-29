@@ -52,7 +52,7 @@ class SyrianCarsDataServiceTest {
             // Test the exact case that was failing
             String input = "بيجو - Peugeot (57)";
             String result = invokeCleanBrandNameForTranslation(input);
-            
+
             assertEquals("Peugeot", result, "Should extract 'Peugeot' from mixed text");
         }
 
@@ -96,7 +96,7 @@ class SyrianCarsDataServiceTest {
 
             // Multiple parentheses
             assertEquals("BMW 712 extra", invokeCleanBrandNameForTranslation("BMW (712) (extra)"));
-            
+
             // No dash separator
             assertEquals("BMW 712", invokeCleanBrandNameForTranslation("BMW 712"));
         }
@@ -123,8 +123,8 @@ class SyrianCarsDataServiceTest {
          */
         private String invokeCleanBrandNameForTranslation(String input) {
             return (String) ReflectionTestUtils.invokeMethod(
-                syrianCarsDataService, 
-                "cleanBrandNameForTranslation", 
+                syrianCarsDataService,
+                "cleanBrandNameForTranslation",
                 input
             );
         }
@@ -163,17 +163,17 @@ class SyrianCarsDataServiceTest {
         void shouldCallTranslationServiceWithCleanedName() {
             // Mock the translation service to return a valid Arabic translation
             when(arabicTranslationService.translateBrandToArabic("Peugeot")).thenReturn("بيجو");
-            
+
             // This test verifies that our cleaning logic is properly integrated
             // We can't easily test the full scraping flow, but we can verify the cleaning is called
             String cleanedName = (String) ReflectionTestUtils.invokeMethod(
-                syrianCarsDataService, 
-                "cleanBrandNameForTranslation", 
+                syrianCarsDataService,
+                "cleanBrandNameForTranslation",
                 "بيجو - Peugeot (57)"
             );
-            
+
             assertEquals("Peugeot", cleanedName);
-            
+
             // Verify that if we were to call the translation service, it would get the clean name
             String translation = arabicTranslationService.translateBrandToArabic(cleanedName);
             assertEquals("بيجو", translation);
@@ -185,8 +185,8 @@ class SyrianCarsDataServiceTest {
             // Test that brand name cleaning works independently of translation service
             assertDoesNotThrow(() -> {
                 String cleanedName = (String) ReflectionTestUtils.invokeMethod(
-                    syrianCarsDataService, 
-                    "cleanBrandNameForTranslation", 
+                    syrianCarsDataService,
+                    "cleanBrandNameForTranslation",
                     "بيجو - Peugeot (57)"
                 );
                 assertEquals("Peugeot", cleanedName);
@@ -203,38 +203,38 @@ class SyrianCarsDataServiceTest {
         void shouldEnsureCleanedNamesAreSuitableForTranslation() {
             String[] testInputs = {
                 "بيجو - Peugeot (57)",
-                "تويوتا - Toyota (258)", 
+                "تويوتا - Toyota (258)",
                 "BMW (712)",
                 "مرسيدس - Mercedes-Benz (45)"
             };
-            
+
             String[] expectedOutputs = {
                 "Peugeot",
                 "Toyota",
-                "BMW", 
+                "BMW",
                 "Mercedes-Benz"
             };
-            
+
             for (int i = 0; i < testInputs.length; i++) {
                 String result = (String) ReflectionTestUtils.invokeMethod(
-                    syrianCarsDataService, 
-                    "cleanBrandNameForTranslation", 
+                    syrianCarsDataService,
+                    "cleanBrandNameForTranslation",
                     testInputs[i]
                 );
-                
-                assertEquals(expectedOutputs[i], result, 
+
+                assertEquals(expectedOutputs[i], result,
                     String.format("Input '%s' should produce '%s'", testInputs[i], expectedOutputs[i]));
-                
+
                 // Verify the result contains only Latin characters and common punctuation
-                assertTrue(result.matches("^[a-zA-Z0-9\\s\\-\\.]+$"), 
+                assertTrue(result.matches("^[a-zA-Z0-9\\s\\-\\.]+$"),
                     String.format("Cleaned name '%s' should contain only Latin characters", result));
-                
+
                 // Verify no Arabic characters remain
-                assertFalse(result.matches(".*[\\u0600-\\u06FF].*"), 
+                assertFalse(result.matches(".*[\\u0600-\\u06FF].*"),
                     String.format("Cleaned name '%s' should not contain Arabic characters", result));
-                
+
                 // Verify no count numbers remain
-                assertFalse(result.matches(".*\\(\\d+\\).*"), 
+                assertFalse(result.matches(".*\\(\\d+\\).*"),
                     String.format("Cleaned name '%s' should not contain count numbers", result));
             }
         }

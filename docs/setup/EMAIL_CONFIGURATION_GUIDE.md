@@ -263,7 +263,7 @@ curl -X POST http://localhost:8080/api/contact \
 ### Available Templates
 - **Standard Templates**: Basic functionality with multi-language support
   - `welcome.html`, `listing-approved.html`, `contact-confirmation.html`
-  
+
 - **Enhanced Templates**: Professional design with cultural sensitivity
   - `welcome-improved.html` - Islamic greetings, rich content, modern design
   - `listing-approved-improved.html` - Congratulations styling, detailed information
@@ -283,7 +283,7 @@ To use the enhanced templates, update your `EmailService` calls to reference the
 // Instead of "welcome"
 emailService.sendTemplatedEmail(user.getEmail(), subject, "welcome-improved", variables, "ar");
 
-// Instead of "listing-approved"  
+// Instead of "listing-approved"
 emailService.sendTemplatedEmail(user.getEmail(), subject, "listing-approved-improved", variables, "ar");
 ```
 
@@ -299,4 +299,4 @@ The email service now supports:
 - ✅ **Automatic template variable injection**
 - ✅ **Comprehensive testing support**
 
-This makes the email service highly flexible and ready for any marketplace name and language requirements! 
+This makes the email service highly flexible and ready for any marketplace name and language requirements!

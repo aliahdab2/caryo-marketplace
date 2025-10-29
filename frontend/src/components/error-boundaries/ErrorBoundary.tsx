@@ -34,7 +34,7 @@ const errorLogger = createLogger({
 
 /**
  * Enhanced Error Boundary Component
- * 
+ *
  * Features:
  * - Comprehensive error catching and logging
  * - Customizable fallback UI with retry functionality
@@ -43,7 +43,7 @@ const errorLogger = createLogger({
  * - Reset on props change detection
  * - Error reporting and analytics integration
  * - Development vs production error handling
- * 
+ *
  * Usage:
  * ```tsx
  * <ErrorBoundary
@@ -130,12 +130,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         captureException: (error: Error) => void;
       };
     }
-    
+
     interface SentryScope {
       setTag: (key: string, value: string) => void;
       setContext: (key: string, value: unknown) => void;
     }
-    
+
     if (typeof window !== 'undefined' && (window as SentryWindow).Sentry) {
       (window as SentryWindow).Sentry!.withScope((scope: SentryScope) => {
         scope.setTag('errorBoundary', componentName || 'Unknown');
@@ -173,9 +173,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   resetErrorBoundary = () => {
     const { componentName } = this.props;
-    
+
     errorLogger.debug(`Resetting error boundary: ${componentName || 'Unknown'}`);
-    
+
     this.setState({
       hasError: false,
       error: null,
@@ -191,7 +191,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     if (retryCount < maxRetries) {
       errorLogger.debug(`Retrying component: ${componentName || 'Unknown'} (attempt ${retryCount + 1}/${maxRetries})`);
-      
+
       this.setState(prevState => ({
         hasError: false,
         error: null,
@@ -270,7 +270,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
 }) => {
   const isProduction = process.env.NODE_ENV === 'production';
   const canRetry = enableRetry && retryCount < maxRetries;
-  
+
   // Different styling based on error level
   const getLevelStyling = () => {
     switch (level) {
@@ -306,17 +306,17 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
         {/* Error Icon */}
         <div className="flex justify-center mb-4">
           <div className={`${styling.icon} bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center`}>
-            <svg 
-              className="w-8 h-8 text-red-600 dark:text-red-400" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-8 h-8 text-red-600 dark:text-red-400"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
               />
             </svg>
           </div>
@@ -329,7 +329,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
 
         {/* Error Message */}
         <p className="text-gray-600 dark:text-gray-400 mb-4">
-          {isProduction 
+          {isProduction
             ? `The ${componentName.toLowerCase()} encountered an unexpected error. Please try again.`
             : `Error in ${componentName}: ${error.message}`
           }
@@ -352,7 +352,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
               Try Again
             </button>
           )}
-          
+
           <button
             onClick={onReset}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"

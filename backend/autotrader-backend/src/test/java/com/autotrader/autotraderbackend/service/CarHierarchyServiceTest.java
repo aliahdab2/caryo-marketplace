@@ -29,7 +29,7 @@ class CarHierarchyServiceTest {
 
     @Mock
     private CarModelRepository carModelRepository;
-    
+
     @Mock
     private CarListingRepository carListingRepository;
 
@@ -102,7 +102,7 @@ class CarHierarchyServiceTest {
         assertEquals(5L, result.getInitialActiveListings());
         assertEquals(2, result.getDeactivatedModels());
         assertEquals(5, result.getDeactivatedListings());
-        
+
         verify(carModelRepository, times(1)).countActiveByBrandId(1L);
         verify(carListingRepository, times(1)).countActiveByBrandId(1L);
         verify(carModelRepository, times(1)).deactivateByBrandId(1L);
@@ -125,7 +125,7 @@ class CarHierarchyServiceTest {
         assertEquals(0L, result.getInitialActiveListings());
         assertEquals(0, result.getDeactivatedModels());
         assertEquals(0, result.getDeactivatedListings());
-        
+
         verify(carModelRepository, times(1)).countActiveByBrandId(1L);
         verify(carModelRepository, never()).deactivateByBrandId(any());
         verify(carListingRepository, never()).deactivateByBrandId(any());
@@ -146,7 +146,7 @@ class CarHierarchyServiceTest {
         assertEquals(modelIds, result.getModelIds());
         assertEquals(3L, result.getInitialActiveListings());
         assertEquals(3, result.getDeactivatedListings());
-        
+
         verify(carListingRepository, times(1)).countActiveByModelIds(modelIds);
         verify(carListingRepository, times(1)).deactivateByModelIds(modelIds);
     }
@@ -164,7 +164,7 @@ class CarHierarchyServiceTest {
         assertEquals(modelIds, result.getModelIds());
         assertEquals(0L, result.getInitialActiveListings());
         assertEquals(0, result.getDeactivatedListings());
-        
+
         verify(carListingRepository, never()).countActiveByModelIds(any());
         verify(carListingRepository, never()).deactivateByModelIds(any());
     }
@@ -218,7 +218,7 @@ class CarHierarchyServiceTest {
         BrandActivationException exception = assertThrows(BrandActivationException.class, () -> {
             carHierarchyService.validateBrandActivation(1L, "Toyota");
         });
-        
+
         assertTrue(exception.getMessage().contains("Cannot activate brand 'Toyota'"));
         assertTrue(exception.getMessage().contains("no associated models"));
         verify(carModelRepository, times(1)).findByBrandId(1L);

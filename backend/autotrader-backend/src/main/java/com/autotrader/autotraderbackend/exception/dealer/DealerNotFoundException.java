@@ -8,10 +8,10 @@ package com.autotrader.autotraderbackend.exception.dealer;
  * - User is not a dealer (wrong role)
  */
 public class DealerNotFoundException extends RuntimeException {
-    
+
     private final Long userId;
     private final Long dealerId;
-    
+
     /**
      * Constructor for missing dealer by user ID.
      */
@@ -20,7 +20,7 @@ public class DealerNotFoundException extends RuntimeException {
         this.userId = userId;
         this.dealerId = null;
     }
-    
+
     /**
      * Constructor for missing dealer by dealer ID.
      */
@@ -29,7 +29,7 @@ public class DealerNotFoundException extends RuntimeException {
         this.userId = null;
         this.dealerId = dealerId;
     }
-    
+
     /**
      * Constructor with custom message.
      */
@@ -38,11 +38,11 @@ public class DealerNotFoundException extends RuntimeException {
         this.userId = null;
         this.dealerId = null;
     }
-    
+
     public Long getUserId() {
         return userId;
     }
-    
+
     public Long getDealerId() {
         return dealerId;
     }

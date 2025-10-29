@@ -51,7 +51,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
       <div className="sr-only" aria-live="polite" role="status">
         {Object.values(formErrors).filter(Boolean).join('. ')}
       </div>
-      
+
       <StepHeader
         title={t('listings:vehicleDetailsTitle', 'Vehicle Details')}
         subtitle={t('listings:vehicleDetailsSubtitle', "Tell us more about your vehicle's condition and features")}
@@ -59,8 +59,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
 
       {/* Mileage */}
       <div className="space-y-3">
-        <label 
-          htmlFor="mileage" 
+        <label
+          htmlFor="mileage"
           className="block text-sm font-bold text-gray-700 dark:text-gray-300"
         >
           {t('listings:newListingMileage', 'Mileage')} <span className="text-red-500">*</span>
@@ -100,8 +100,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Engine */}
         <div className="space-y-3">
-          <label 
-            htmlFor="engine" 
+          <label
+            htmlFor="engine"
             className="block text-sm font-bold text-gray-700 dark:text-gray-300"
           >
             {t('listings:newListingEngine', 'Engine')}
@@ -134,8 +134,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
 
         {/* Transmission */}
         <div className="space-y-3">
-          <label 
-            htmlFor="transmission" 
+          <label
+            htmlFor="transmission"
             className="block text-sm font-bold text-gray-700 dark:text-gray-300"
           >
             {t('listings:newListingTransmission', 'Transmission')}
@@ -157,8 +157,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
               aria-describedby={formErrors.transmission ? 'transmission-error' : 'transmission-hint'}
             >
               <option value="">
-                {isLoadingReferenceData 
-                  ? t('listings:loadingTransmissions', 'Loading transmissions...') 
+                {isLoadingReferenceData
+                  ? t('listings:loadingTransmissions', 'Loading transmissions...')
                   : t('listings:newListingTransmissionSelect', 'Select transmission type')
                 }
               </option>
@@ -181,8 +181,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Color */}
         <div className="space-y-3">
-          <label 
-            htmlFor="color" 
+          <label
+            htmlFor="color"
             className="block text-sm font-bold text-gray-700 dark:text-gray-300"
           >
             {t('listings:newListingColor', 'Color')}
@@ -215,8 +215,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
 
         {/* Fuel Type */}
         <div className="space-y-3">
-          <label 
-            htmlFor="fuelType" 
+          <label
+            htmlFor="fuelType"
             className="block text-sm font-bold text-gray-700 dark:text-gray-300"
           >
             {t('listings:newListingFuelType', 'Fuel Type')}
@@ -238,8 +238,8 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
               aria-describedby={formErrors.fuelType ? 'fuelType-error' : 'fuelType-hint'}
             >
               <option value="">
-                {isLoadingReferenceData 
-                  ? t('listings:loadingFuelTypes', 'Loading fuel types...') 
+                {isLoadingReferenceData
+                  ? t('listings:loadingFuelTypes', 'Loading fuel types...')
                   : t('listings:newListingFuelTypeSelect', 'Select fuel type')
                 }
               </option>
@@ -257,7 +257,7 @@ const Step2VehicleDetails: React.FC<Step2VehicleDetailsProps> = ({
           </p>
         </div>
       </div>
-      
+
       {/* Bottom spacing to separate from navigation buttons */}
       <div className="pb-8"></div>
     </div>

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Centralized storage configuration manager that provides consistent
  * access to storage settings across the application.
- * 
+ *
  * This service acts as a single source of truth for:
  * - Bucket name resolution
  * - Storage key pattern management
@@ -23,7 +23,7 @@ public class StorageConfigurationManager {
 
     private final StorageProperties storageProperties;
     private final StorageKeyGenerator keyGenerator;
-    
+
     // Cache for frequently accessed configuration values
     private final Map<String, String> configCache = new ConcurrentHashMap<>();
 
@@ -35,21 +35,21 @@ public class StorageConfigurationManager {
 
     /**
      * Get the appropriate bucket name for a given file type or context.
-     * 
+     *
      * @param fileType The type of file (e.g., "listing-media", "user-avatar", "temp")
      * @return The bucket name to use
      */
     public String getBucketName(String fileType) {
         // For now, we use a single bucket, but this can be extended to support
         // multiple buckets based on file type or other criteria
-        return storageProperties.getS3().getBucketName() != null 
-            ? storageProperties.getS3().getBucketName() 
+        return storageProperties.getS3().getBucketName() != null
+            ? storageProperties.getS3().getBucketName()
             : storageProperties.getGeneral().getDefaultBucketName();
     }
 
     /**
      * Get the default bucket name.
-     * 
+     *
      * @return The default bucket name
      */
     public String getDefaultBucketName() {
@@ -58,14 +58,14 @@ public class StorageConfigurationManager {
 
     /**
      * Get the base URL for direct access to storage files.
-     * 
+     *
      * @return The base URL for storage access
      */
     public String getStorageBaseUrl() {
         return configCache.computeIfAbsent("baseUrl", k -> {
             String endpointUrl = storageProperties.getS3().getEndpointUrl();
             String bucketName = getDefaultBucketName();
-            
+
             if (endpointUrl != null && bucketName != null) {
                 // Handle path-style vs virtual-hosted-style URLs
                 if (storageProperties.getS3().isPathStyleAccessEnabled()) {
@@ -75,14 +75,14 @@ public class StorageConfigurationManager {
                     return "https://" + bucketName + ".s3." + storageProperties.getS3().getRegion() + ".amazonaws.com";
                 }
             }
-            
+
             return storageProperties.getGeneral().getBaseUrl();
         });
     }
 
     /**
      * Check if public access is enabled for storage.
-     * 
+     *
      * @return true if public access is enabled
      */
     public boolean isPublicAccessEnabled() {
@@ -91,18 +91,18 @@ public class StorageConfigurationManager {
 
     /**
      * Get the storage region.
-     * 
+     *
      * @return The storage region
      */
     public String getStorageRegion() {
-        return storageProperties.getS3().getRegion() != null 
-            ? storageProperties.getS3().getRegion() 
+        return storageProperties.getS3().getRegion() != null
+            ? storageProperties.getS3().getRegion()
             : storageProperties.getGeneral().getDefaultRegion();
     }
 
     /**
      * Check if S3 storage is enabled.
-     * 
+     *
      * @return true if S3 storage is enabled
      */
     public boolean isS3StorageEnabled() {
@@ -111,7 +111,7 @@ public class StorageConfigurationManager {
 
     /**
      * Get the signed URL expiration time in seconds.
-     * 
+     *
      * @return Expiration time in seconds
      */
     public long getSignedUrlExpirationSeconds() {
@@ -120,7 +120,7 @@ public class StorageConfigurationManager {
 
     /**
      * Generate a storage key for a given file type with parameters.
-     * 
+     *
      * @param fileType The type of file
      * @param parameters Variable parameters for key generation
      * @return Generated storage key
@@ -170,13 +170,13 @@ public class StorageConfigurationManager {
             default:
                 log.warn("Unknown file type for key generation: {}", fileType);
         }
-        
+
         throw new IllegalArgumentException("Invalid file type or parameters for key generation: " + fileType);
     }
 
     /**
      * Get the file type from a storage key.
-     * 
+     *
      * @param storageKey The storage key
      * @return The detected file type
      */
@@ -198,7 +198,7 @@ public class StorageConfigurationManager {
         } else if (storageKey.startsWith("logs/")) {
             return "log";
         }
-        
+
         return "unknown";
     }
 
@@ -212,7 +212,7 @@ public class StorageConfigurationManager {
 
     /**
      * Get all current storage configuration as a map (useful for debugging).
-     * 
+     *
      * @return Map of current configuration values
      */
     public Map<String, Object> getConfigurationSnapshot() {

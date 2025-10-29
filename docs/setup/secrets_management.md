@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Import Secrets from Vault
         uses: hashicorp/vault-action@v2
         with:

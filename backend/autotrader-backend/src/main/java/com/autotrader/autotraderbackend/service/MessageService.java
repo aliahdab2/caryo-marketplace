@@ -14,12 +14,12 @@ import java.util.Locale;
  */
 @Service
 public class MessageService {
-    
+
     @Autowired
     private MessageSource messageSource;
-    
+
     private static final Map<String, Map<String, String>> MESSAGES = new HashMap<>();
-    
+
     static {
         // English messages
         Map<String, String> enMessages = new HashMap<>();
@@ -39,7 +39,7 @@ public class MessageService {
         enMessages.put("password.reset.invalid.token", "Invalid or expired reset token.");
         enMessages.put("password.reset.token.expired", "Reset token has expired. Please request a new one.");
         enMessages.put("password.reset.rate.limited", "Too many password reset attempts. Please try again later.");
-        
+
         // Email subject lines (new format with email. prefix)
         enMessages.put("email.listing_approved.subject", "Your listing has been approved!");
         enMessages.put("email.listing_expired.subject", "Your listing has expired");
@@ -67,7 +67,7 @@ public class MessageService {
         enMessages.put("email.email_change.subject", "Email Change Confirmation - {websiteName}");
         enMessages.put("email.password_reset.security_alert", "Didn't make this change?");
         enMessages.put("email.password_reset.security_message", "If you did not change your password, please contact our support team immediately at {supportEmail} or phone {supportPhone}.");
-        
+
         // Email footer and common elements
         enMessages.put("email.footer.copyright", "© {year} {websiteName}. All rights reserved.");
         enMessages.put("email.footer.visit", "Visit Website");
@@ -78,7 +78,7 @@ public class MessageService {
         enMessages.put("email.welcome.title", "Welcome to {websiteName}!");
         enMessages.put("email.welcome.message", "Thank you for joining our community of car enthusiasts!");
         enMessages.put("email.welcome.browse_cars", "Browse thousands of cars from trusted dealers and private sellers");
-        
+
         // Messaging system messages
         enMessages.put("message.marked.read.success", "Message marked as read successfully");
         enMessages.put("messages.marked.read.all.success", "All messages marked as read successfully");
@@ -86,13 +86,13 @@ public class MessageService {
         enMessages.put("conversation.status.updated.success", "Conversation status updated successfully");
         enMessages.put("conversation.created.success", "Conversation created successfully");
         enMessages.put("message.sent.success", "Message sent successfully");
-        
+
         // Error messages
         enMessages.put("error.resource.not.found", "{resource} not found");
         enMessages.put("error.access.denied", "Access denied");
         enMessages.put("error.validation.failed", "Validation failed: {details}");
         enMessages.put("error.server.internal", "An internal server error occurred");
-        
+
         // Arabic messages
         Map<String, String> arMessages = new HashMap<>();
         arMessages.put("listing.approved.subject", "تمت الموافقة على إعلانك!");
@@ -111,7 +111,7 @@ public class MessageService {
         arMessages.put("password.reset.invalid.token", "رمز إعادة التعيين غير صحيح أو منتهي الصلاحية.");
         arMessages.put("password.reset.token.expired", "انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد.");
         arMessages.put("password.reset.rate.limited", "محاولات كثيرة لإعادة تعيين كلمة المرور. يرجى المحاولة لاحقاً.");
-        
+
         // Email subject lines (Arabic - new format with email. prefix)
         arMessages.put("email.listing_approved.subject", "تمت الموافقة على إعلانك!");
         arMessages.put("email.listing_expired.subject", "انتهت صلاحية إعلانك");
@@ -139,7 +139,7 @@ public class MessageService {
         arMessages.put("email.email_change.subject", "تأكيد تغيير البريد الإلكتروني - {websiteName}");
         arMessages.put("email.password_reset.security_alert", "لم تقم بهذا التغيير؟");
         arMessages.put("email.password_reset.security_message", "إذا لم تقم بتغيير كلمة المرور، يرجى الاتصال بفريق الدعم الفني فوراً على {supportEmail} أو الهاتف {supportPhone}.");
-        
+
         // Email footer and common elements (Arabic)
         arMessages.put("email.footer.copyright", "© {year} {websiteName}. جميع الحقوق محفوظة.");
         arMessages.put("email.footer.visit", "زيارة الموقع");
@@ -150,7 +150,7 @@ public class MessageService {
         arMessages.put("email.welcome.title", "مرحباً بك في {websiteName}!");
         arMessages.put("email.welcome.message", "شكراً لانضمامك إلى مجتمع عشاق السيارات!");
         arMessages.put("email.welcome.browse_cars", "تصفح آلاف السيارات من وكلاء موثوقين وبائعين خاصين");
-        
+
         // Messaging system messages (Arabic)
         arMessages.put("message.marked.read.success", "تم وضع علامة على الرسالة كمقروءة بنجاح");
         arMessages.put("messages.marked.read.all.success", "تم وضع علامة على جميع الرسائل كمقروءة بنجاح");
@@ -158,17 +158,17 @@ public class MessageService {
         arMessages.put("conversation.status.updated.success", "تم تحديث حالة المحادثة بنجاح");
         arMessages.put("conversation.created.success", "تم إنشاء المحادثة بنجاح");
         arMessages.put("message.sent.success", "تم إرسال الرسالة بنجاح");
-        
+
         // Error messages (Arabic)
         arMessages.put("error.resource.not.found", "{resource} غير موجود");
         arMessages.put("error.access.denied", "تم رفض الوصول");
         arMessages.put("error.validation.failed", "فشل في التحقق: {details}");
         arMessages.put("error.server.internal", "حدث خطأ داخلي في الخادم");
-        
+
         MESSAGES.put("en", enMessages);
         MESSAGES.put("ar", arMessages);
     }
-    
+
     /**
      * Get localized message with parameter substitution.
      */
@@ -177,7 +177,7 @@ public class MessageService {
         if (template == null) {
             return key; // Fallback to key if message not found
         }
-        
+
         if (params != null) {
             for (Map.Entry<String, String> entry : params.entrySet()) {
                 // Normalize Arabic text in parameters
@@ -185,23 +185,23 @@ public class MessageService {
                 template = template.replace("{" + entry.getKey() + "}", value);
             }
         }
-        
+
         // Normalize the final template for Arabic text
         return ArabicTextUtils.normalizeArabicText(template);
     }
-    
+
     /**
      * Get localized message without parameters.
      */
     public String getMessage(String key, String language) {
         return getMessage(key, language, null);
     }
-    
+
     /**
      * Note: MessageSource is now configured in Utf8Config.java for centralized UTF-8 handling.
      * This ensures proper encoding for Arabic text and international characters.
      */
-    
+
     /**
      * Get localized message using Spring's MessageSource (preferred method).
      * This method supports proper i18n with .properties files.
@@ -214,7 +214,7 @@ public class MessageService {
         } catch (Exception e) {
             // Log the error for debugging
             System.err.println("Failed to load message for key: " + key + ", language: " + language + ", error: " + e.getMessage());
-            
+
             // Fallback to the old method if message not found in properties
             Map<String, String> params = new HashMap<>();
             if (args != null && args.length > 0) {
@@ -226,7 +226,7 @@ public class MessageService {
             return getMessage(key, language, params);
         }
     }
-    
+
     /**
      * Get localized message with named parameters using Spring's MessageSource.
      */
@@ -234,23 +234,23 @@ public class MessageService {
         if (messageSource != null) {
             try {
                 Locale locale = getLocaleFromLanguage(language);
-                
+
                 // For named parameters, we need to replace them in the template
                 String template = messageSource.getMessage(key, null, locale);
-                
+
                 if (params != null) {
                     for (Map.Entry<String, Object> entry : params.entrySet()) {
                         String value = ArabicTextUtils.normalizeArabicText(String.valueOf(entry.getValue()));
                         template = template.replace("{" + entry.getKey() + "}", value);
                     }
                 }
-                
+
                 return ArabicTextUtils.normalizeArabicText(template);
             } catch (Exception e) {
                 // Fall through to legacy method
             }
         }
-        
+
         // Fallback to the old method
         Map<String, String> stringParams = new HashMap<>();
         if (params != null) {
@@ -258,7 +258,7 @@ public class MessageService {
         }
         return getMessage(key, language, stringParams);
     }
-    
+
     /**
      * Convert language code to Locale.
      */

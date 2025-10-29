@@ -70,7 +70,7 @@ The backend implementation should follow these steps:
 ### Common issues:
 
 1. **Redirect URI mismatch**: Make sure the redirect URI in your Google Cloud Console matches exactly with your application's callback URL
-2. **Invalid credentials**: Verify that your environment variables are correctly set 
+2. **Invalid credentials**: Verify that your environment variables are correctly set
 3. **Backend integration issues**: Check the backend logs for any errors related to the social login endpoint
 
 ## Security Considerations

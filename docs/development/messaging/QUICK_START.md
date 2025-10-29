@@ -45,8 +45,8 @@ cd backend/autotrader-backend
 ### **3. Verify Database Tables**
 ```sql
 -- Check that messaging tables were created
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('conversations', 'messages', 'message_attachments', 'conversation_participants');
 
 -- Expected: 4 tables created ✅

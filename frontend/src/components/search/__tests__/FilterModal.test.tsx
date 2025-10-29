@@ -109,18 +109,18 @@ const mockProps = {
   isLoadingReferenceData: false,
   sellerTypeCounts: { dealer: 5 },
   bodyStyleCounts: { sedan: 3 },
-  transmissionCounts: { 
-    manual: 100, 
-    automatic: 200, 
-    cvt: 50 
+  transmissionCounts: {
+    manual: 100,
+    automatic: 200,
+    cvt: 50
   },
-  carListings: { 
-    totalElements: 10, 
-    content: [], 
-    page: 0, 
-    size: 20, 
-    totalPages: 1, 
-    last: true 
+  carListings: {
+    totalElements: 10,
+    content: [],
+    page: 0,
+    size: 20,
+    totalPages: 1,
+    last: true
   },
   currentLanguage: 'en',
   isRTL: false,
@@ -189,32 +189,32 @@ describe('FilterModal', () => {
   describe('Search Functionality', () => {
     it('filters brands when searching', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'Toyota');
-      
+
       expect(screen.getByText('Toyota')).toBeInTheDocument();
       expect(screen.queryByText('Honda')).not.toBeInTheDocument();
     });
 
     it('shows "Show all brands" link when searching', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'test');
-      
+
       expect(screen.getByText('Show all brands')).toBeInTheDocument();
     });
 
     it('clears search when "Show all brands" is clicked', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'test');
-      
+
       const showAllButton = screen.getByText('Show all brands');
       fireEvent.click(showAllButton);
-      
+
       expect(searchInput).toHaveValue('');
       expect(screen.getByText('Toyota')).toBeInTheDocument();
       expect(screen.getByText('Honda')).toBeInTheDocument();
@@ -227,12 +227,12 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'تويوتا');
-      
+
       expect(screen.getByText('تويوتا')).toBeInTheDocument();
       expect(screen.queryByText('هوندا')).not.toBeInTheDocument();
     });
@@ -244,26 +244,26 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       // Wait for brands to load
       await waitFor(() => {
         expect(screen.getByText('تويوتا')).toBeInTheDocument();
       });
-      
+
       // Expand Toyota to show models
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]);
-      
+
       // Wait for models to appear
       await waitFor(() => {
         expect(screen.getByText('كامري')).toBeInTheDocument();
       });
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'كامري');
-      
+
       expect(screen.getByText('كامري')).toBeInTheDocument();
       expect(screen.queryByText('كورولا')).not.toBeInTheDocument();
     });
@@ -275,12 +275,12 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'Toyota');
-      
+
       expect(screen.getByText('تويوتا')).toBeInTheDocument();
       expect(screen.queryByText('هوندا')).not.toBeInTheDocument();
     });
@@ -292,26 +292,26 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       // Wait for brands to load
       await waitFor(() => {
         expect(screen.getByText('تويوتا')).toBeInTheDocument();
       });
-      
+
       // Expand Toyota to show models
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]);
-      
+
       // Wait for models to appear
       await waitFor(() => {
         expect(screen.getByText('كامري')).toBeInTheDocument();
       });
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'Camry');
-      
+
       expect(screen.getByText('كامري')).toBeInTheDocument();
       expect(screen.queryByText('كورولا')).not.toBeInTheDocument();
     });
@@ -323,7 +323,7 @@ describe('FilterModal', () => {
         ...mockProps,
         filters: { ...mockProps.filters, brands: ['toyota'] }
       };
-      
+
       render(<FilterModal {...propsWithBrands} filterType="makeModel" />);
       expect(screen.getByText('Toyota')).toBeInTheDocument();
     });
@@ -333,7 +333,7 @@ describe('FilterModal', () => {
         ...mockProps,
         filters: { ...mockProps.filters, models: ['camry'] }
       };
-      
+
       render(<FilterModal {...propsWithModels} filterType="makeModel" />);
       expect(screen.getByText('Camry')).toBeInTheDocument();
     });
@@ -343,12 +343,12 @@ describe('FilterModal', () => {
         ...mockProps,
         filters: { ...mockProps.filters, brands: ['toyota'] }
       };
-      
+
       render(<FilterModal {...propsWithBrands} filterType="makeModel" />);
-      
+
       const removeButton = screen.getByLabelText('Remove');
       fireEvent.click(removeButton);
-      
+
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         brands: undefined
       });
@@ -359,12 +359,12 @@ describe('FilterModal', () => {
         ...mockProps,
         filters: { ...mockProps.filters, models: ['camry'] }
       };
-      
+
       render(<FilterModal {...propsWithModels} filterType="makeModel" />);
-      
+
       const removeButton = screen.getByLabelText('Remove');
       fireEvent.click(removeButton);
-      
+
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         models: undefined
       });
@@ -373,19 +373,19 @@ describe('FilterModal', () => {
     it('removes brand chip and all associated model chips when brand chip is removed', () => {
       const propsWithBrandAndModels = {
         ...mockProps,
-        filters: { 
-          ...mockProps.filters, 
-          brands: ['toyota'], 
+        filters: {
+          ...mockProps.filters,
+          brands: ['toyota'],
           models: ['camry', 'corolla', 'civic'] // camry and corolla belong to Toyota, civic to Honda
         }
       };
-      
+
       render(<FilterModal {...propsWithBrandAndModels} filterType="makeModel" />);
-      
+
       // Find and click the remove button for the Toyota brand chip
       const removeButtons = screen.getAllByLabelText('Remove');
       fireEvent.click(removeButtons[0]); // First remove button should be for Toyota
-      
+
       // Should remove Toyota brand and its associated models (camry, corolla)
       // but keep civic since it belongs to Honda
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
@@ -397,24 +397,24 @@ describe('FilterModal', () => {
     it('removes brand chip and all associated model chips when brand checkbox is unchecked', async () => {
       const propsWithBrandAndModels = {
         ...mockProps,
-        filters: { 
-          ...mockProps.filters, 
-          brands: ['toyota'], 
+        filters: {
+          ...mockProps.filters,
+          brands: ['toyota'],
           models: ['camry', 'corolla', 'civic'] // camry and corolla belong to Toyota, civic to Honda
         }
       };
-      
+
       render(<FilterModal {...propsWithBrandAndModels} filterType="makeModel" />);
-      
+
       // Wait for brands to load
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       // Find and click the Toyota checkbox to uncheck it
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]); // First checkbox should be Toyota
-      
+
       // Should remove Toyota brand and its associated models (camry, corolla)
       // but keep civic since it belongs to Honda
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
@@ -427,16 +427,16 @@ describe('FilterModal', () => {
   describe('Brand and Model Selection', () => {
     it('selects brand when checkbox is clicked', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       // Wait for brands to load
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       // Use getAllByRole to get all checkboxes and click the first one (Toyota)
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[0]);
-      
+
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         brands: ['toyota']
       });
@@ -444,25 +444,25 @@ describe('FilterModal', () => {
 
     it('selects model and automatically adds brand', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       // Wait for brands to load
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       // Expand Toyota to show models
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]);
-      
+
       // Wait for models to appear
       await waitFor(() => {
         expect(screen.getByText('Camry')).toBeInTheDocument();
       });
-      
+
       // Get all checkboxes and click the Camry checkbox (should be the second one)
       const checkboxes = screen.getAllByRole('checkbox');
       fireEvent.click(checkboxes[1]); // Camry checkbox
-      
+
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         models: ['camry'],
         brands: ['toyota']
@@ -473,14 +473,14 @@ describe('FilterModal', () => {
   describe('Collapsible Sections', () => {
     it('expands brand to show models when expand button is clicked', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Camry')).toBeInTheDocument();
         expect(screen.getByText('Corolla')).toBeInTheDocument();
@@ -489,23 +489,23 @@ describe('FilterModal', () => {
 
     it('collapses brand to hide models when collapse button is clicked', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       // First expand
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Camry')).toBeInTheDocument();
       });
-      
+
       // Then collapse
       const collapseButtons = screen.getAllByLabelText('Collapse models');
       fireEvent.click(collapseButtons[0]);
-      
+
       await waitFor(() => {
         expect(screen.queryByText('Camry')).not.toBeInTheDocument();
         expect(screen.queryByText('Corolla')).not.toBeInTheDocument();
@@ -519,7 +519,7 @@ describe('FilterModal', () => {
         ...mockProps,
         isLoadingBrands: true
       };
-      
+
       render(<FilterModal {...propsWithLoading} filterType="makeModel" />);
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     });
@@ -529,7 +529,7 @@ describe('FilterModal', () => {
         ...mockProps,
         isLoadingModels: true
       };
-      
+
       render(<FilterModal {...propsWithLoading} filterType="makeModel" />);
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     });
@@ -539,7 +539,7 @@ describe('FilterModal', () => {
         ...mockProps,
         isLoadingAllModels: true
       };
-      
+
       render(<FilterModal {...propsWithLoading} filterType="makeModel" />);
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     });
@@ -551,7 +551,7 @@ describe('FilterModal', () => {
         ...mockProps,
         carMakes: []
       };
-      
+
       render(<FilterModal {...propsWithNoBrands} filterType="makeModel" />);
       // Initially shows loading spinner while fetching counts
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
@@ -559,15 +559,15 @@ describe('FilterModal', () => {
 
     it('shows "No brands or models found" when search has no results', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       // Wait for loading to complete
       await waitFor(() => {
         expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
       });
-      
+
       const searchInput = screen.getByPlaceholderText('Search for make or model');
       await userEvent.type(searchInput, 'nonexistent');
-      
+
       expect(screen.getByText('No brands or models found')).toBeInTheDocument();
     });
   });
@@ -580,9 +580,9 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       expect(screen.getByText('Make & Model')).toBeInTheDocument();
       expect(screen.getByText('إلغاء')).toBeInTheDocument();
     });
@@ -594,14 +594,14 @@ describe('FilterModal', () => {
         isRTL: true,
         dirClass: 'rtl'
       };
-      
+
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
-      
+
       // Wait for loading to complete
       await waitFor(() => {
         expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
       });
-      
+
       expect(screen.getByText('تويوتا')).toBeInTheDocument();
       expect(screen.getByText('هوندا')).toBeInTheDocument();
     });
@@ -610,10 +610,10 @@ describe('FilterModal', () => {
   describe('Filter Actions', () => {
     it('calls handleApplyFilters when apply button is clicked', () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const applyButton = screen.getByText('Show 10 results');
       fireEvent.click(applyButton);
-      
+
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
         brands: undefined,
         models: undefined
@@ -623,10 +623,10 @@ describe('FilterModal', () => {
 
     it('calls handleClearFilters when clear button is clicked', () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const clearButton = screen.getByText('Clear');
       fireEvent.click(clearButton);
-      
+
       expect(mockProps.setFilters).toHaveBeenCalledWith({});
       expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith(
         { brands: [], models: [] },
@@ -636,10 +636,10 @@ describe('FilterModal', () => {
 
     it('calls clearSpecificFilter for non-makeModel filters', () => {
       render(<FilterModal {...mockProps} filterType="price" />);
-      
+
       const clearButton = screen.getByText('Clear all');
       fireEvent.click(clearButton);
-      
+
       expect(mockProps.clearSpecificFilter).toHaveBeenCalledWith('price');
     });
   });
@@ -679,7 +679,7 @@ describe('FilterModal', () => {
   describe('Accessibility', () => {
     it('has proper ARIA labels', () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       expect(screen.getByLabelText('Close filter modal')).toBeInTheDocument();
       expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
       expect(screen.getByRole('dialog')).toHaveAttribute('aria-labelledby', 'filter-modal-title');
@@ -687,10 +687,10 @@ describe('FilterModal', () => {
 
     it('supports keyboard navigation', () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       const dialog = screen.getByRole('dialog');
       fireEvent.keyDown(dialog, { key: 'Escape' });
-      
+
       expect(mockProps.onClose).toHaveBeenCalled();
     });
   });
@@ -698,7 +698,7 @@ describe('FilterModal', () => {
   describe('Count Display', () => {
     it('displays brand counts correctly', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('(150)')).toBeInTheDocument(); // Toyota count
         expect(screen.getByText('(120)')).toBeInTheDocument(); // Honda count
@@ -707,14 +707,14 @@ describe('FilterModal', () => {
 
     it('displays model counts correctly', async () => {
       render(<FilterModal {...mockProps} filterType="makeModel" />);
-      
+
       await waitFor(() => {
         expect(screen.getByText('Toyota')).toBeInTheDocument();
       });
-      
+
       const expandButtons = screen.getAllByLabelText('Expand models');
       fireEvent.click(expandButtons[0]); // Click first expand button (Toyota)
-      
+
       await waitFor(() => {
         expect(screen.getByText('(50)')).toBeInTheDocument(); // Camry count
         expect(screen.getByText('(45)')).toBeInTheDocument(); // Corolla count

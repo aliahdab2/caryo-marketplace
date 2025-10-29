@@ -144,11 +144,11 @@ console.log('User roles:', roles);
 ### Implementation Details
 ```tsx
 // Profile page OAuth detection logic
-const isOAuthUser = session?.user?.provider === 'google' || 
-                   session?.user?.image?.includes('googleusercontent.com') || 
+const isOAuthUser = session?.user?.provider === 'google' ||
+                   session?.user?.image?.includes('googleusercontent.com') ||
                    localStorage.getItem('authMethod') === 'oauth';
 
-// Conditional password management display  
+// Conditional password management display
 {!isOAuthUser && (
   <div>
     <h3>Password</h3>
@@ -168,7 +168,7 @@ const isOAuthUser = session?.user?.provider === 'google' ||
 
 ### Testing Coverage
 - ✅ **Unit tests**: Provider field detection
-- ✅ **Image URL tests**: GoogleUserContent URL detection  
+- ✅ **Image URL tests**: GoogleUserContent URL detection
 - ✅ **Fallback tests**: localStorage auth method detection
 - ✅ **Regular users**: Shows password management for email/password users
 - ✅ **TypeScript compliance**: Proper type definitions, no `any` types

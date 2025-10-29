@@ -152,7 +152,7 @@ describe('useOptimizedSession', () => {
       });
 
       expect(typeof result.current.refreshSession).toBe('function');
-      
+
       // Test refresh function
       await result.current.refreshSession();
       expect(mockUpdate).toHaveBeenCalled();
@@ -302,7 +302,7 @@ describe('useOptimizedSession', () => {
 
     it('should cache session data and not refetch immediately', async () => {
       const wrapper = createWrapper();
-      
+
       (mockUseSession as jest.Mock).mockReturnValue({
         data: { user: { id: '123' } },
         status: 'authenticated',

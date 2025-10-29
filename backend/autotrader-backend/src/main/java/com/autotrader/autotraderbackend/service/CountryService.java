@@ -31,7 +31,7 @@ public class CountryService {
     @Transactional
     public CountryResponse createCountry(@Valid CountryRequest request) {
         log.info("Creating new country with code: {}", request.getCountryCode());
-        
+
         // Check if country already exists with the same code
         if (countryRepository.existsByCountryCode(request.getCountryCode())) {
             throw new ResourceAlreadyExistsException("Country", "countryCode", request.getCountryCode());
@@ -40,7 +40,7 @@ public class CountryService {
         // Create and save the new country
         Country country = countryMapper.toCountry(request);
         Country savedCountry = countryRepository.save(country);
-        
+
         log.info("Successfully created country with ID: {}", savedCountry.getId());
         return countryMapper.toCountryResponse(savedCountry);
     }
@@ -82,18 +82,18 @@ public class CountryService {
     @Transactional
     public CountryResponse updateCountry(Long id, @Valid CountryRequest request) {
         log.info("Updating country with ID: {}", id);
-        
+
         Country country = findCountryById(id);
-        
+
         // Check if new country code conflicts with existing one (excluding current country)
-        if (!country.getCountryCode().equals(request.getCountryCode()) && 
+        if (!country.getCountryCode().equals(request.getCountryCode()) &&
             countryRepository.existsByCountryCode(request.getCountryCode())) {
             throw new ResourceAlreadyExistsException("Country", "countryCode", request.getCountryCode());
         }
-        
+
         countryMapper.updateCountryFromRequest(country, request);
         Country updatedCountry = countryRepository.save(country);
-        
+
         log.info("Successfully updated country with ID: {}", id);
         return countryMapper.toCountryResponse(updatedCountry);
     }

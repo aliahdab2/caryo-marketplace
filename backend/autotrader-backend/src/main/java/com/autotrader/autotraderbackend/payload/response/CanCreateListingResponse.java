@@ -15,23 +15,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CanCreateListingResponse {
-    
+
     /**
      * Whether the dealer can create a listing.
      */
     private boolean canCreate;
-    
+
     /**
      * Reason for the decision.
      * Examples: "Trial active", "Trial expired", "Listing limit reached", "Subscription active"
      */
     private String reason;
-    
+
     /**
      * Full trial status with detailed information.
      */
     private TrialStatus trialStatus;
-    
+
     /**
      * Factory method: Dealer is allowed to create listing (trial active).
      */
@@ -42,7 +42,7 @@ public class CanCreateListingResponse {
             .trialStatus(status)
             .build();
     }
-    
+
     /**
      * Factory method: Trial has expired by time.
      */
@@ -53,7 +53,7 @@ public class CanCreateListingResponse {
             .trialStatus(status)
             .build();
     }
-    
+
     /**
      * Factory method: Listing limit reached.
      */
@@ -64,7 +64,7 @@ public class CanCreateListingResponse {
             .trialStatus(status)
             .build();
     }
-    
+
     /**
      * Factory method: Feature flag disabled.
      */
@@ -75,7 +75,7 @@ public class CanCreateListingResponse {
             .trialStatus(status)
             .build();
     }
-    
+
     /**
      * Factory method: Subscription is active.
      */
@@ -86,7 +86,7 @@ public class CanCreateListingResponse {
             .trialStatus(status)
             .build();
     }
-    
+
     /**
      * Factory method: In grace period.
      */

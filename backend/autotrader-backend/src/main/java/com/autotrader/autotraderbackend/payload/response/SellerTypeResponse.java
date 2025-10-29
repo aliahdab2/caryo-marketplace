@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @Schema(description = "Seller type information")
 public class SellerTypeResponse {
-    
+
     @Schema(description = "Seller type ID", example = "1")
     private Long id;
-    
+
     @Schema(description = "Seller type name", example = "DEALER")
     private String name;
-    
+
     @Schema(description = "Display name in English", example = "Dealer")
     private String displayNameEn;
-    
+
     @Schema(description = "Display name in Arabic", example = "تاجر")
     private String displayNameAr;
-    
+
     @Schema(description = "URL-friendly slug", example = "dealer")
     private String slug;
 
@@ -36,7 +36,7 @@ public class SellerTypeResponse {
         if (sellerType == null) {
             return null;
         }
-        
+
         return SellerTypeResponse.builder()
                 .id(sellerType.getId())
                 .name(sellerType.getName())

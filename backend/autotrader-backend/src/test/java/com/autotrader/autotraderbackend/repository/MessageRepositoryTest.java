@@ -53,14 +53,14 @@ class MessageRepositoryTest {
         // Create and persist dependencies first
         Country country = TestDataBuilder.createTestCountry();
         country = entityManager.persistAndFlush(country);
-        
+
         governorate = TestDataBuilder.createTestGovernorate();
         governorate.setCountry(country);
         governorate = entityManager.persistAndFlush(governorate);
-        
+
         CarBrand brand = TestDataBuilder.createTestCarBrand();
         brand = entityManager.persistAndFlush(brand);
-        
+
         model = TestDataBuilder.createTestCarModel();
         model.setBrand(brand);
         model = entityManager.persistAndFlush(model);
@@ -85,7 +85,7 @@ class MessageRepositoryTest {
         conversation = entityManager.persistAndFlush(conversation);
 
         // Create test messages with fixed timestamps
-        
+
         message1 = Message.builder()
                 .conversation(conversation)
                 .sender(sender1)
@@ -142,7 +142,7 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(4, messages.getTotalElements());
         List<Message> content = messages.getContent();
-        
+
         // Should be ordered by createdAt ASC (oldest first)
         assertEquals(message1.getId(), content.get(0).getId());
         assertEquals(message2.getId(), content.get(1).getId());
@@ -161,7 +161,7 @@ class MessageRepositoryTest {
 
         // Assert
         assertEquals(3, recentMessages.size());
-        
+
         // Should be ordered by createdAt DESC (newest first)
         assertEquals(message4.getId(), recentMessages.get(0).getId());
         assertEquals(message3.getId(), recentMessages.get(1).getId());
@@ -177,7 +177,7 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(3, unreadMessages.size());
         assertTrue(unreadMessages.stream().allMatch(msg -> !msg.isRead()));
-        
+
         // Should be ordered by createdAt ASC
         assertEquals(message1.getId(), unreadMessages.get(0).getId());
         assertEquals(message2.getId(), unreadMessages.get(1).getId());
@@ -194,7 +194,7 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(2, unreadForSender1.size()); // Messages from sender2
         assertEquals(1, unreadForSender2.size()); // Messages from sender1
-        
+
         // All unread messages should be from the other user
         assertTrue(unreadForSender1.stream().allMatch(msg -> msg.getSender().getId().equals(sender2.getId())));
         assertTrue(unreadForSender2.stream().allMatch(msg -> msg.getSender().getId().equals(sender1.getId())));
@@ -225,7 +225,7 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(2, sender1Messages.getTotalElements());
         assertEquals(2, sender2Messages.getTotalElements());
-        
+
         // Should be ordered by createdAt DESC (newest first)
         List<Message> sender1Content = sender1Messages.getContent();
         assertEquals(message3.getId(), sender1Content.get(0).getId());
@@ -242,11 +242,11 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(2, sender1Messages.size());
         assertEquals(2, sender2Messages.size());
-        
+
         // Should be ordered by createdAt ASC
         assertEquals(message1.getId(), sender1Messages.get(0).getId());
         assertEquals(message3.getId(), sender1Messages.get(1).getId());
-        
+
         assertEquals(message2.getId(), sender2Messages.get(0).getId());
         assertEquals(message4.getId(), sender2Messages.get(1).getId());
     }
@@ -266,7 +266,7 @@ class MessageRepositoryTest {
         Message updatedMessage = entityManager.find(Message.class, message1.getId());
         assertTrue(updatedMessage.isRead());
         // Compare with microsecond precision to avoid nanosecond timing issues
-        assertEquals(readAt.truncatedTo(ChronoUnit.MICROS), 
+        assertEquals(readAt.truncatedTo(ChronoUnit.MICROS),
                     updatedMessage.getReadAt().truncatedTo(ChronoUnit.MICROS));
     }
 
@@ -283,12 +283,12 @@ class MessageRepositoryTest {
 
         // Assert
         List<Message> allMessages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversation.getId(), PageRequest.of(0, 10)).getContent();
-        
+
         // Messages from sender2 should now be read
         assertTrue(allMessages.stream()
                 .filter(msg -> msg.getSender().getId().equals(sender2.getId()))
                 .allMatch(Message::isRead));
-        
+
         // Messages from sender1 should remain unchanged
         assertTrue(allMessages.stream()
                 .filter(msg -> msg.getSender().getId().equals(sender1.getId()))
@@ -309,8 +309,8 @@ class MessageRepositoryTest {
         // Assert
         assertEquals(2, recentMessages.size());
         assertTrue(recentMessages.stream().allMatch(msg -> msg.getCreatedAt().isAfter(afterTime)));
-        
-        // Should be ordered by createdAt ASC - since messages are created sequentially, 
+
+        // Should be ordered by createdAt ASC - since messages are created sequentially,
         // message3 and message4 should be after message2
         assertTrue(recentMessages.stream().anyMatch(msg -> msg.getId().equals(message3.getId())));
         assertTrue(recentMessages.stream().anyMatch(msg -> msg.getId().equals(message4.getId())));

@@ -195,7 +195,7 @@ class SavedSearchServiceTest {
         UUID searchId = testSavedSearch.getId();
         SavedSearchRequest updateRequest = new SavedSearchRequest();
         updateRequest.setNameEn("Updated Toyota Search");
-        
+
         Map<String, Object> updatedFilters = new HashMap<>();
         updatedFilters.put("brandSlugs", Arrays.asList("toyota"));
         updatedFilters.put("minPrice", 15000);

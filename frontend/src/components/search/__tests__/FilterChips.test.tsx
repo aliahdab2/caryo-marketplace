@@ -65,9 +65,9 @@ describe('FilterChips', () => {
       isFilterActive: jest.fn(() => true),
       filterCount: 5
     };
-    
+
     render(<FilterChips {...propsWithActiveFilters} />);
-    
+
     expect(screen.getByText('Toyota')).toBeInTheDocument();
     expect(screen.getByText('Camry')).toBeInTheDocument();
     expect(screen.getByText('Clear (5)')).toBeInTheDocument();
@@ -80,12 +80,12 @@ describe('FilterChips', () => {
       isFilterActive: jest.fn(() => true),
       filterCount: 5
     };
-    
+
     render(<FilterChips {...propsWithActiveFilters} />);
-    
+
     const clearAllButton = screen.getByText('Clear (5)');
     fireEvent.click(clearAllButton);
-    
+
     expect(mockProps.updateFiltersAndState).toHaveBeenCalledWith({
       brands: undefined,
       models: undefined,
@@ -111,12 +111,12 @@ describe('FilterChips', () => {
       filters: { brands: ['toyota'] },
       isFilterActive: jest.fn(() => true)
     };
-    
+
     render(<FilterChips {...propsWithBrand} />);
-    
+
     const removeButton = screen.getAllByTestId('close-icon')[0];
     fireEvent.click(removeButton.parentElement!);
-    
+
     expect(mockProps.updateFiltersAndState).toHaveBeenCalled();
   });
 
@@ -126,12 +126,12 @@ describe('FilterChips', () => {
       filters: { models: ['camry'] },
       isFilterActive: jest.fn(() => true)
     };
-    
+
     render(<FilterChips {...propsWithModel} />);
-    
+
     const removeButton = screen.getAllByTestId('close-icon')[0];
     fireEvent.click(removeButton.parentElement!);
-    
+
     expect(mockProps.updateFiltersAndState).toHaveBeenCalled();
   });
 
@@ -142,9 +142,9 @@ describe('FilterChips', () => {
       isFilterActive: jest.fn((filterType: FilterType) => filterType === 'price'),
       getFilterDisplayText: jest.fn(() => '$10,000 - $50,000')
     };
-    
+
     render(<FilterChips {...propsWithPrice} />);
-    
+
     expect(screen.getByText('$10,000 - $50,000')).toBeInTheDocument();
   });
 
@@ -154,9 +154,9 @@ describe('FilterChips', () => {
       filters: { transmissionId: 1 },
       isFilterActive: jest.fn((filterType: FilterType) => filterType === 'transmission')
     };
-    
+
     render(<FilterChips {...propsWithTransmission} />);
-    
+
     expect(screen.getByText('Automatic')).toBeInTheDocument();
   });
 
@@ -166,9 +166,9 @@ describe('FilterChips', () => {
       filters: { sellerTypeIds: [1, 2] },
       isFilterActive: jest.fn((filterType: FilterType) => filterType === 'sellerType')
     };
-    
+
     render(<FilterChips {...propsWithSellerTypes} />);
-    
+
     const dealerChips = screen.getAllByText('Dealer');
     expect(dealerChips).toHaveLength(2);
   });
@@ -179,9 +179,9 @@ describe('FilterChips', () => {
       filters: { bodyType: ['sedan'] },
       isFilterActive: jest.fn((filterType: FilterType) => filterType === 'bodyStyle')
     };
-    
+
     render(<FilterChips {...propsWithBodyStyles} />);
-    
+
     expect(screen.getByText('Sedan')).toBeInTheDocument();
   });
 

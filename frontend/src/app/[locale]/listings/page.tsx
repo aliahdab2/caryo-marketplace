@@ -35,7 +35,7 @@ const ListingsPage = () => {
   const { t } = useLazyTranslation(TRANSLATION_NAMESPACES);
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // Build filters from URL params
   const initialFilters: Filters = {
     page: parseInt(searchParams?.get('page') || '1', 10),
@@ -57,7 +57,7 @@ const ListingsPage = () => {
 
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [currentPage, setCurrentPage] = useState<number>(initialFilters.page || 1);
-  
+
   // Update filters when URL changes
   useEffect(() => {
     const updatedFilters: Filters = {
@@ -77,7 +77,7 @@ const ListingsPage = () => {
       model: searchParams?.get('model') || undefined,
       sellerTypeId: searchParams?.get('sellerTypeId') ? parseInt(searchParams?.get('sellerTypeId') || '', 10) : undefined,
     };
-    
+
     setFilters(updatedFilters);
     setCurrentPage(updatedFilters.page);
   }, [searchParams]);
@@ -120,7 +120,7 @@ const ListingsPage = () => {
   // Track the previous URL to avoid unnecessary updates
   const prevUrlRef = React.useRef<string | null>(null);
   const isFirstRenderRef = React.useRef(true);
-  
+
   useEffect(() => {
     // Skip the initial render to avoid unnecessary URL update on mount
     if (isFirstRenderRef.current) {
@@ -130,7 +130,7 @@ const ListingsPage = () => {
 
     // Update URL when filters change (but not on first render)
     const queryParams = new URLSearchParams();
-    
+
     // Use currentPage for the 'page' query parameter
     queryParams.set('page', String(currentPage));
     if (filters.limit) queryParams.set('limit', String(filters.limit));
@@ -149,7 +149,7 @@ const ListingsPage = () => {
     if (filters.sellerTypeId) queryParams.set('sellerTypeId', String(filters.sellerTypeId));
 
     const newUrl = `/listings?${queryParams.toString()}`;
-    
+
     // Only update URL if it has changed, preventing infinite loops
     if (newUrl !== prevUrlRef.current) {
       prevUrlRef.current = newUrl;
@@ -197,18 +197,18 @@ const ListingsPage = () => {
         {error ? (
           <div className="col-span-full min-h-[60vh] flex items-center justify-center text-red-500">
             <div className="text-center">
-              <svg 
-                className="w-12 h-12 mx-auto mb-4 text-red-500" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
               <p className="text-lg">{error}</p>
@@ -248,18 +248,18 @@ const ListingsPage = () => {
         ) : (
           <div className="col-span-full min-h-[60vh] flex items-center justify-center">
             <div className="text-center">
-              <svg 
-                className="w-12 h-12 mx-auto mb-4 text-gray-400" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                 />
               </svg>
               <p className="text-lg">{t('noListingsFound')}</p>

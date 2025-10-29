@@ -25,7 +25,7 @@ class CarBrandServiceTest {
 
     @Mock
     private CarBrandRepository carBrandRepository;
-    
+
     @Mock
     private CarHierarchyService carHierarchyService;
 
@@ -36,7 +36,7 @@ class CarBrandServiceTest {
     @BeforeEach
     void setUp() {
         carBrandService = new CarBrandService(carBrandRepository, carHierarchyService);
-        
+
         testBrand = new CarBrand();
         testBrand.setId(1L);
         testBrand.setName("Toyota");
@@ -189,7 +189,7 @@ class CarBrandServiceTest {
         updatedBrand.setDisplayNameEn("Toyota Updated");
         updatedBrand.setDisplayNameAr("تويوتا محدث");
         updatedBrand.setIsActive(false);
-        
+
         when(carBrandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
         when(carBrandRepository.save(any(CarBrand.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(carHierarchyService.cascadeDeactivateFromBrand(1L)).thenReturn(new CarHierarchyService.HierarchyOperationResult());
@@ -205,7 +205,7 @@ class CarBrandServiceTest {
         assertEquals(updatedBrand.getIsActive(), result.getIsActive());
         // Verify slug is not updated
         assertEquals(testBrand.getSlug(), result.getSlug());
-        
+
         verify(carBrandRepository, times(1)).findById(1L);
         verify(carBrandRepository, times(1)).save(any(CarBrand.class));
         verify(carHierarchyService, times(1)).cascadeDeactivateFromBrand(1L);
@@ -216,10 +216,10 @@ class CarBrandServiceTest {
         // Arrange
         when(carBrandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
         when(carBrandRepository.save(any(CarBrand.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
+
         // Act
         CarBrand result = carBrandService.updateBrandActivation(1L, false);
-        
+
         // Assert
         assertFalse(result.getIsActive());
         verify(carBrandRepository, times(1)).findById(1L);
@@ -231,10 +231,10 @@ class CarBrandServiceTest {
         // Arrange
         when(carBrandRepository.findById(1L)).thenReturn(Optional.of(testBrand));
         doNothing().when(carBrandRepository).delete(testBrand);
-        
+
         // Act
         carBrandService.deleteBrand(1L);
-        
+
         // Assert
         verify(carBrandRepository, times(1)).findById(1L);
         verify(carBrandRepository, times(1)).delete(testBrand);

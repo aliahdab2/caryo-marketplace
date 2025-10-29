@@ -106,9 +106,9 @@ export default function PasswordStrengthMeter({ password, className = '' }: Pass
           {strength.label}
         </span>
       </div>
-      
+
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
-        <div 
+        <div
           className={`h-2 rounded-full transition-all duration-300 ${strength.bgColor}`}
           style={{ width: `${strength.score}%` }}
         />

@@ -116,7 +116,7 @@ public class SavedSearch {
     /**
      * Constructor for creating a new saved search
      */
-    public SavedSearch(User user, String nameEn, String nameAr, Map<String, Object> filters, 
+    public SavedSearch(User user, String nameEn, String nameAr, Map<String, Object> filters,
                       Map<String, Object> notificationPreferences) {
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
@@ -124,7 +124,7 @@ public class SavedSearch {
         if (filters == null || filters.isEmpty()) {
             throw new IllegalArgumentException("Filters cannot be null or empty");
         }
-        
+
         this.user = user;
         this.nameEn = nameEn;
         this.nameAr = nameAr;

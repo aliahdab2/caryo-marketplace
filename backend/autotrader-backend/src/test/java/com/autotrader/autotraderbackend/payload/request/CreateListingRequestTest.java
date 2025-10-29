@@ -18,13 +18,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class CreateListingRequestTest {
 
     private Validator validator;
-    
+
     @BeforeEach
     void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
-    
+
     private CreateListingRequest createValidRequest() {
         CreateListingRequest request = new CreateListingRequest();
         request.setTitle("Valid Title");
@@ -36,152 +36,152 @@ class CreateListingRequestTest {
         request.setDescription("Valid description.");
         return request;
     }
-    
+
     @Test
     void whenAllFieldsValid_thenNoViolations() {
         // Arrange
         CreateListingRequest request = createValidRequest();
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(0, violations.size());
     }
-    
+
     @Test
     void whenTitleIsBlank_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setTitle(""); // Blank title
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Title is required", violations.iterator().next().getMessage());
     }
-    
+
     @Test
     void whenModelIdIsNull_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setModelId(null); // Null modelId
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Model is required", violations.iterator().next().getMessage());
     }
-    
+
     @ParameterizedTest
     @ValueSource(ints = {1919, 1800, 1000})
     void whenModelYearTooOld_thenViolationOccurs(int year) {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setModelYear(year);
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Year must be 1920 or later", violations.iterator().next().getMessage());
     }
-    
+
     @Test
     void whenModelYearInFuture_thenViolationOccurs() {
         // Arrange
         int futureYear = LocalDate.now().getYear() + 1;
         CreateListingRequest request = createValidRequest();
         request.setModelYear(futureYear);
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Year must not be later than the current year", violations.iterator().next().getMessage());
     }
-    
+
     @Test
     void whenModelYearNotFourDigits_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setModelYear(20200); // Invalid year (5 digits)
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertTrue(violations.stream()
                 .anyMatch(v -> "Year must be a 4-digit number".equals(v.getMessage())));
     }
-    
+
     @Test
     void whenMileageIsNegative_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setMileage(-10); // Invalid mileage
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Mileage must be a positive number or zero", violations.iterator().next().getMessage());
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {"0", "-1", "-100.50"})
     void whenPriceIsNotPositive_thenViolationOccurs(String price) {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setPrice(new BigDecimal(price)); // Invalid price
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Price must be a positive number", violations.iterator().next().getMessage());
     }
-    
+
     @Test
     void whenLocationIsBlank_thenViolationOccurs() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setLocationId(null); // Invalid location - should be null to trigger @NotNull
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(1, violations.size());
         assertEquals("Location is required", violations.iterator().next().getMessage());
     }
-    
+
     @Test
     void whenDescriptionIsNullOrEmpty_thenNoViolations() {
         // Arrange
         CreateListingRequest request = createValidRequest();
         request.setDescription(null); // Can be null
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(0, violations.size());
-        
+
         // Test with empty string
         request.setDescription("");
         violations = validator.validate(request);
         assertEquals(0, violations.size());
     }
-    
+
     @Test
     void whenGettersAndSettersWork_thenFieldsAreAccessibleAndModifiable() {
         // Arrange
@@ -193,7 +193,7 @@ class CreateListingRequestTest {
         BigDecimal price = new BigDecimal("15000.00");
         Long locationId = 1L; // Changed from String location to Long locationId
         String description = "Test Description";
-        
+
         // Act - Set values
         request.setTitle(title);
         request.setModelId(modelId); // Use setModelId
@@ -202,7 +202,7 @@ class CreateListingRequestTest {
         request.setPrice(price);
         request.setLocationId(locationId); // Use setLocationId
         request.setDescription(description);
-        
+
         // Assert - Get values
         assertEquals(title, request.getTitle());
         assertEquals(modelId, request.getModelId()); // Use getModelId
@@ -212,18 +212,18 @@ class CreateListingRequestTest {
         assertEquals(locationId, request.getLocationId()); // Use getLocationId and assert against locationId
         assertEquals(description, request.getDescription());
     }
-    
+
     @Test
     void whenRequiredFieldsNull_thenViolationsOccur() {
         // Arrange
         CreateListingRequest request = new CreateListingRequest();
-        
+
         // Act
         Set<ConstraintViolation<CreateListingRequest>> violations = validator.validate(request);
-        
+
         // Assert
         assertEquals(6, violations.size()); // Check for exactly 6 violations for the required fields
-        
+
         // Check for specific violations
         boolean hasTitleViolation = false;
         boolean hasModelIdViolation = false;
@@ -231,7 +231,7 @@ class CreateListingRequestTest {
         boolean hasMileageViolation = false;
         boolean hasPriceViolation = false;
         boolean hasLocationViolation = false;
-        
+
         for (ConstraintViolation<CreateListingRequest> violation : violations) {
             String path = violation.getPropertyPath().toString();
             switch (path) {
@@ -243,7 +243,7 @@ class CreateListingRequestTest {
                 case "locationId": hasLocationViolation = true; break;
             }
         }
-        
+
         assertTrue(hasTitleViolation, "Missing title violation");
         assertTrue(hasModelIdViolation, "Missing modelId violation");
         assertTrue(hasYearViolation, "Missing modelYear violation");

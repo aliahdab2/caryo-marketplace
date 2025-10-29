@@ -298,7 +298,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
               const { apiRequest } = await import('@/services/auth/session-manager');
               const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
               const url = `${API_URL}/api/favorites/${listingId}`;
-              
+
               if (pendingAction.action === 'add') {
                 setIsFavorite(true); // Optimistic update
                 if (onToggle) onToggle(true);
@@ -314,7 +314,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
               console.error('[FAVORITE] Error executing pending favorite action:', err);
               // Explicitly call checkFavoriteStatus to sync to actual state after failure
               await checkFavoriteStatus(true);
-              
+
               // Update UI based on the actual state
               if (onToggle) onToggle(isFavorite);
             } finally {
@@ -350,7 +350,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         // Don't redirect during auto-login process - just show loading state
         setIsLoading(true);
         console.log('[FAVORITE] Auto-login in progress, waiting for authentication...');
-        
+
         // Wait a bit and try again
         setTimeout(() => {
           setIsLoading(false);
@@ -366,12 +366,12 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         try {
           // Show brief loading state to indicate action is happening
           setIsLoading(true);
-          
+
           localStorage.setItem('pendingFavoriteAction', JSON.stringify(pendingActionData));
-          
+
           // Store the current page URL to redirect back after sign-in
           const currentUrl = window.location.pathname + window.location.search + window.location.hash;
-          
+
           // Small delay to show loading state, then redirect with returnUrl parameter
           setTimeout(() => {
             router.push(`/auth/signin?returnUrl=${encodeURIComponent(currentUrl)}`);
@@ -457,9 +457,9 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       type="button"
       onClick={handleToggleFavorite}
       disabled={isLoading || !listingId} // Disable if no listingId
-      className={`${showText ? 'rounded-lg px-3' : 'rounded-full'} flex items-center justify-center shadow-sm 
+      className={`${showText ? 'rounded-lg px-3' : 'rounded-full'} flex items-center justify-center shadow-sm
         ${showText ? '' : sizeClasses[size]} ${variantClasses[variant]} ${className}
-        ${isAnimating ? 'scale-110' : 'scale-100'} 
+        ${isAnimating ? 'scale-110' : 'scale-100'}
         transition-all duration-200 ease-in-out
         hover:scale-105 active:scale-95`}
       aria-label={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
@@ -472,18 +472,18 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         </svg>
       ) : (
         <>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 transition-colors duration-200"
             viewBox="0 0 24 24"
             fill={isFavorite ? 'currentColor' : 'none'}
             stroke="currentColor"
             strokeWidth="2"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
             />
           </svg>
           {showText && (

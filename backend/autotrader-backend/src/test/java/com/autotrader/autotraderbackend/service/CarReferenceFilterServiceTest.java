@@ -24,10 +24,10 @@ class CarReferenceFilterServiceTest {
 
     @Mock
     private CarBrandService carBrandService;
-    
+
     @Mock
     private CarModelService carModelService;
-    
+
     @Mock
     private CarTrimService carTrimService;
 
@@ -99,11 +99,11 @@ class CarReferenceFilterServiceTest {
         testTrim2.setDisplayNameEn("EX");
         testTrim2.setDisplayNameAr("إي إكس");
         testTrim2.setIsActive(true);
-        
+
         // Link models to brands
         testBrand1.getModels().add(testModel1);
         testBrand2.getModels().add(testModel2);
-        
+
         // Link trims to models
         testModel1.getTrims().add(testTrim1);
         testModel2.getTrims().add(testTrim2);
@@ -117,7 +117,7 @@ class CarReferenceFilterServiceTest {
         List<CarModel> activeModelsForBrand2 = Collections.singletonList(testModel2);
         List<CarTrim> activeTrimsForModel1 = Collections.singletonList(testTrim1);
         List<CarTrim> activeTrimsForModel2 = Collections.singletonList(testTrim2);
-        
+
         when(carBrandService.getActiveBrands()).thenReturn(activeBrands);
         when(carModelService.getActiveModelsByBrandId(1L)).thenReturn(activeModelsForBrand1);
         when(carModelService.getActiveModelsByBrandId(2L)).thenReturn(activeModelsForBrand2);
@@ -129,29 +129,29 @@ class CarReferenceFilterServiceTest {
 
         // Assert
         assertEquals(2, result.size());
-        
+
         // Check brand 1
         assertEquals(testBrand1.getName(), result.get(0).getName());
         assertEquals(1, result.get(0).getModels().size());
-        
+
         // Check model of brand 1
         assertEquals(testModel1.getName(), result.get(0).getModels().get(0).getName());
         assertEquals(1, result.get(0).getModels().get(0).getTrims().size());
-        
+
         // Check trim of model 1
         assertEquals(testTrim1.getName(), result.get(0).getModels().get(0).getTrims().get(0).getName());
-        
+
         // Check brand 2
         assertEquals(testBrand2.getName(), result.get(1).getName());
         assertEquals(1, result.get(1).getModels().size());
-        
+
         // Check model of brand 2
         assertEquals(testModel2.getName(), result.get(1).getModels().get(0).getName());
         assertEquals(1, result.get(1).getModels().get(0).getTrims().size());
-        
+
         // Check trim of model 2
         assertEquals(testTrim2.getName(), result.get(1).getModels().get(0).getTrims().get(0).getName());
-        
+
         // Verify calls
         verify(carBrandService, times(1)).getActiveBrands();
         verify(carModelService, times(1)).getActiveModelsByBrandId(1L);
@@ -166,10 +166,10 @@ class CarReferenceFilterServiceTest {
         List<CarBrand> activeBrands = Arrays.asList(testBrand1, testBrand2);
         when(carBrandService.getActiveBrands()).thenReturn(activeBrands);
         when(carModelService.getActiveModelsByBrandId(anyLong())).thenReturn(Collections.emptyList());
-        
+
         // Act
         List<CarBrand> result = carReferenceFilterService.searchCarHierarchy("");
-        
+
         // Assert
         assertEquals(2, result.size());
         verify(carBrandService, times(1)).getActiveBrands();
@@ -198,7 +198,7 @@ class CarReferenceFilterServiceTest {
         assertEquals(testBrand1.getId(), result.get(0).getId());
         assertEquals(testBrand1.getName(), result.get(0).getName());
         assertEquals(Collections.emptyList(), result.get(0).getModels());
-        
+
         verify(carBrandService, times(1)).searchBrands(query);
         verify(carModelService, times(1)).searchModels(query);
         verify(carTrimService, times(1)).searchTrims(query);
@@ -211,14 +211,14 @@ class CarReferenceFilterServiceTest {
         List<CarBrand> matchingBrands = Collections.emptyList();
         List<CarModel> matchingModels = Collections.singletonList(testModel1);
         List<CarTrim> matchingTrims = Collections.emptyList();
-        
+
         when(carBrandService.searchBrands(query)).thenReturn(matchingBrands);
         when(carModelService.searchModels(query)).thenReturn(matchingModels);
         when(carTrimService.searchTrims(query)).thenReturn(matchingTrims);
-        
+
         // Act
         List<CarBrand> result = carReferenceFilterService.searchCarHierarchy(query);
-        
+
         // Assert
         assertEquals(1, result.size());
         assertEquals(testBrand1.getId(), result.get(0).getId());
@@ -226,7 +226,7 @@ class CarReferenceFilterServiceTest {
         assertEquals(testModel1.getId(), result.get(0).getModels().get(0).getId());
         assertEquals(testModel1.getName(), result.get(0).getModels().get(0).getName());
         assertEquals(Collections.emptyList(), result.get(0).getModels().get(0).getTrims());
-        
+
         verify(carBrandService, times(1)).searchBrands(query);
         verify(carModelService, times(1)).searchModels(query);
         verify(carTrimService, times(1)).searchTrims(query);
@@ -239,25 +239,25 @@ class CarReferenceFilterServiceTest {
         List<CarBrand> matchingBrands = Collections.emptyList();
         List<CarModel> matchingModels = Collections.emptyList();
         List<CarTrim> matchingTrims = Collections.singletonList(testTrim1);
-        
+
         when(carBrandService.searchBrands(query)).thenReturn(matchingBrands);
         when(carModelService.searchModels(query)).thenReturn(matchingModels);
         when(carTrimService.searchTrims(query)).thenReturn(matchingTrims);
-        
+
         // Act
         List<CarBrand> result = carReferenceFilterService.searchCarHierarchy(query);
-        
+
         // Assert
         assertEquals(1, result.size());
         assertEquals(testBrand1.getId(), result.get(0).getId());
-        
+
         assertEquals(1, result.get(0).getModels().size());
         assertEquals(testModel1.getId(), result.get(0).getModels().get(0).getId());
-        
+
         assertEquals(1, result.get(0).getModels().get(0).getTrims().size());
         assertEquals(testTrim1.getId(), result.get(0).getModels().get(0).getTrims().get(0).getId());
         assertEquals(testTrim1.getName(), result.get(0).getModels().get(0).getTrims().get(0).getName());
-        
+
         verify(carBrandService, times(1)).searchBrands(query);
         verify(carModelService, times(1)).searchModels(query);
         verify(carTrimService, times(1)).searchTrims(query);

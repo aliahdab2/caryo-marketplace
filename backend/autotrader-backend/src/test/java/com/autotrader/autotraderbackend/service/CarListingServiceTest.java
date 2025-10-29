@@ -118,14 +118,14 @@ class CarListingServiceTest {
         country.setCountryCode("SY");
         country.setDisplayNameEn("Syria");
         country.setDisplayNameAr("سوريا");
-        
+
         Governorate governorate = new Governorate();
         governorate.setId(1L);
         governorate.setDisplayNameEn("Damascus");
         governorate.setDisplayNameAr("دمشق");
         governorate.setSlug("damascus");
         governorate.setCountry(country);
-        
+
         testLocation = new Location();
         testLocation.setId(1L);
         testLocation.setDisplayNameEn("Test Location");
@@ -164,7 +164,7 @@ class CarListingServiceTest {
         testListingResponse.setBrandNameAr(testCarBrand.getDisplayNameAr());
         testListingResponse.setModelNameEn(testCarModel.getDisplayNameEn());
         testListingResponse.setModelNameAr(testCarModel.getDisplayNameAr());
-        
+
         // Setup StorageKeyGenerator mock (lenient to avoid unnecessary stubbing exceptions)
         lenient().when(storageKeyGenerator.generateListingMediaKey(anyLong(), anyString()))
                 .thenAnswer(invocation -> {
@@ -189,7 +189,7 @@ class CarListingServiceTest {
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         // Mock that user is NOT a dealer (private seller)
         when(dealerService.isDealer(testUser)).thenReturn(false);
-        
+
         when(crudService.createListingInternal(request, "testuser")).thenReturn(testListingResponse);
 
         CarListingResponse response = carListingService.createListing(request, "testuser");
@@ -204,7 +204,7 @@ class CarListingServiceTest {
         // Arrange
         CreateListingRequest request = new CreateListingRequest(); // Populate as needed
         String username = "nonexistentuser";
-        
+
         // Mock user not found during validation
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
@@ -235,26 +235,26 @@ class CarListingServiceTest {
         mockCountry.setCountryCode("SY");
         mockCountry.setDisplayNameEn("Syria");
         mockCountry.setDisplayNameAr("سوريا");
-        
+
         Governorate mockGovernorate = new Governorate();
         mockGovernorate.setId(1L);
         mockGovernorate.setDisplayNameEn("Damascus");
         mockGovernorate.setDisplayNameAr("دمشق");
         mockGovernorate.setSlug("damascus");
         mockGovernorate.setCountry(mockCountry);
-        
+
         Location mockLocation = new Location();
         mockLocation.setId(1L);
         mockLocation.setDisplayNameEn("Test Location");
         mockLocation.setDisplayNameAr("موقع اختبار");
         mockLocation.setSlug("test-location");
         mockLocation.setGovernorate(mockGovernorate);
-        
+
         // Mock user lookup for validation
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(testUser));
         // Mock that user is NOT a dealer (private seller)
         when(dealerService.isDealer(testUser)).thenReturn(false);
-        
+
         when(crudService.createListingInternal(request, username)).thenThrow(dbException);
 
         // Act & Assert
@@ -549,7 +549,7 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(2L, result.get("BUSINESS")); // Two business listings
         assertEquals(1L, result.get("PRIVATE"));  // One private listing
-        
+
         verify(analyticsService).getCountsBySellerType(filterRequest);
     }
 
@@ -572,7 +572,7 @@ class CarListingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1L, result.get("BUSINESS"));
         assertEquals(1L, result.get("PRIVATE"));
-        
+
         // Verify that analytics service is called
         verify(analyticsService).getCountsBySellerType(filterRequest);
     }
@@ -603,7 +603,7 @@ class CarListingServiceTest {
     void getCountsBySellerType_WithException_ShouldReturnEmptyMap() {
         // Arrange
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        
+
         when(analyticsService.getCountsBySellerType(filterRequest))
             .thenThrow(new RuntimeException("Database error"));
 
@@ -633,7 +633,7 @@ class CarListingServiceTest {
     void getCountsByFuelType_WithNoFilters_ShouldUseDirectDatabaseQuery() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        
+
         Map<String, Long> expectedResult = Map.of(
             "gasoline", 150L,
             "diesel", 80L,
@@ -662,7 +662,7 @@ class CarListingServiceTest {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
         filterRequest.setBrandSlugs(Arrays.asList("toyota", "honda"));
-        
+
         Map<String, Long> expectedResult = Map.of("gasoline", 2L, "diesel", 1L);
 
         when(analyticsService.getCountsByFuelType(filterRequest)).thenReturn(expectedResult);
@@ -688,7 +688,7 @@ class CarListingServiceTest {
         filterRequest.setMaxYear(2023);
         filterRequest.setMinPrice(new BigDecimal("10000"));
         filterRequest.setMaxPrice(new BigDecimal("50000"));
-        
+
         Map<String, Long> expectedResult = Map.of(
             "gasoline", 2L,
             "hybrid", 1L,
@@ -714,7 +714,7 @@ class CarListingServiceTest {
     void getCountsByFuelType_WithNullFuelType_ShouldFilterOutNullFuelTypes() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        
+
         Map<String, Long> expectedResult = new HashMap<>();
         expectedResult.put("gasoline", 150L);
         expectedResult.put("diesel", 80L);
@@ -771,7 +771,7 @@ class CarListingServiceTest {
     void getCountsByFuelType_WithZeroCounts_ShouldFilterOutZeroCounts() {
         // Given
         ListingFilterRequest filterRequest = new ListingFilterRequest();
-        
+
         Map<String, Long> expectedResult = Map.of(
             "gasoline", 150L,
             "electric", 20L

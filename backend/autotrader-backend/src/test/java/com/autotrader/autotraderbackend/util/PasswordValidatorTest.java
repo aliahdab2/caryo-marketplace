@@ -115,7 +115,7 @@ class PasswordValidatorTest {
     void validatePassword_WithTwoCharacterTypes_ShouldReturnValid() {
         // Arrange - Use passwords that aren't in the common passwords list
         String password1 = "MySecret"; // Uppercase + lowercase (2 types) - 8 chars
-        String password2 = "mysecret456"; // Lowercase + digits (2 types)  
+        String password2 = "mysecret456"; // Lowercase + digits (2 types)
         String password3 = "MYSECRET!!!"; // Uppercase + special (2 types)
 
         // Act
@@ -128,12 +128,12 @@ class PasswordValidatorTest {
         assertTrue(result2.isValid(), "mysecret456 should be valid");
         assertTrue(result3.isValid(), "MYSECRET!!! should be valid");
     }
-    
+
     @Test
     void validatePassword_PreviouslyStrictPasswords_ShouldNowBeValid() {
         // Arrange - These were invalid under strict rules but should be valid now (avoid common passwords)
         String password1 = "mysecret456!"; // lowercase + digits + special (3 types)
-        String password2 = "MYSECRET456!"; // uppercase + digits + special (3 types)  
+        String password2 = "MYSECRET456!"; // uppercase + digits + special (3 types)
         String password3 = "MySecret!"; // uppercase + lowercase + special (3 types)
         String password4 = "MySecret456"; // uppercase + lowercase + digits (3 types)
 
@@ -225,7 +225,7 @@ class PasswordValidatorTest {
     // Removed sequential character tests - too restrictive
 
     // Removed sequential character tests - too restrictive
-    
+
     @Test
     void validatePassword_WithNonObviousSequence_ShouldReturnValid() {
         // Arrange - Non-obvious sequences should be allowed
@@ -237,7 +237,7 @@ class PasswordValidatorTest {
         // Assert
         assertTrue(result.isValid());
     }
-    
+
     @Test
     void validatePassword_WithShortSequences_ShouldReturnValid() {
         // Arrange - Short sequences (3-4 chars) should now be allowed - make sure 8+ chars
@@ -267,7 +267,7 @@ class PasswordValidatorTest {
         // Assert
         assertFalse(result.isValid());
         assertTrue(result.getErrors().size() > 1);
-        
+
         // Should have errors for: length and character types
         assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("at least 8 characters")));
         assertTrue(result.getErrors().stream().anyMatch(error -> error.contains("2 different character types")));
@@ -293,7 +293,7 @@ class PasswordValidatorTest {
     void validatePassword_WithSpecialCharacters_ShouldAcceptVariousSpecialChars() {
         // Test various special characters
         String[] specialChars = {"!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "-", "=", "[", "]", "{", "}", ";", "'", ":", "\"", "\\", "|", ",", ".", "<", ">", "/", "?"};
-        
+
         for (String specialChar : specialChars) {
             String password = "MySecret1" + specialChar;
             PasswordValidator.PasswordValidationResult result = passwordValidator.validatePassword(password);

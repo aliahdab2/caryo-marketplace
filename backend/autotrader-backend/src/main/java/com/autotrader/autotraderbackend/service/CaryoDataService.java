@@ -103,7 +103,7 @@ public class CaryoDataService implements CarDataProvider {
     @Override
     public ValidationResult validateData() {
         ValidationResult result = new ValidationResult();
-        
+
         if (!isEnabled()) {
             result.setValid(false);
             result.setMessage("Caryo provider is disabled");
@@ -115,7 +115,7 @@ public class CaryoDataService implements CarDataProvider {
         result.setValid(true);
         result.setMessage("Caryo provider validation not yet implemented");
         result.addWarning("This is a placeholder implementation for future Caryo API");
-        
+
         return result;
     }
 

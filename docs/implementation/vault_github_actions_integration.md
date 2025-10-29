@@ -9,7 +9,7 @@ This guide explains how to integrate HashiCorp Vault with GitHub Actions for sec
 Add these secrets to your GitHub repository:
 
 1. `VAULT_ADDR`: The URL of your Vault server (e.g., `https://vault.example.com:8200`)
-2. `VAULT_ROLE_ID`: The AppRole Role ID for CI/CD access 
+2. `VAULT_ROLE_ID`: The AppRole Role ID for CI/CD access
 3. `VAULT_SECRET_ID`: The AppRole Secret ID for CI/CD access
 
 ### CI/CD Pipeline Integration
@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Import Secrets from Vault
         uses: hashicorp/vault-action@v2
         id: vault
@@ -50,7 +50,7 @@ jobs:
             kv/data/cicd/dockerhub username | DOCKERHUB_USERNAME ;
             kv/data/cicd/dockerhub token | DOCKERHUB_TOKEN ;
             kv/data/cicd/sonar token | SONAR_TOKEN
-      
+
       # The rest of your build workflow steps here
       # You can now use the secrets as environment variables
       # e.g., ${{ env.POSTGRES_PASSWORD }}
@@ -90,7 +90,7 @@ jobs:
             kv/data/redis/main password | REDIS_PASSWORD ;
             kv/data/storage/minio access_key | MINIO_ACCESS_KEY ;
             kv/data/storage/minio secret_key | MINIO_SECRET_KEY
-            
+
       # Docker Compose setup with secrets injected from Vault
       - name: Set up Docker Compose
         run: |
@@ -98,7 +98,7 @@ jobs:
           echo "REDIS_PASSWORD=${{ env.REDIS_PASSWORD }}" >> .env
           echo "MINIO_ACCESS_KEY=${{ env.MINIO_ACCESS_KEY }}" >> .env
           echo "MINIO_SECRET_KEY=${{ env.MINIO_SECRET_KEY }}" >> .env
-          
+
       # The rest of your integration tests workflow
 ```
 
@@ -142,7 +142,7 @@ vault write auth/approle/role/github-actions \
     token_policies="ci-cd-policy" \
     token_ttl=60m \
     token_max_ttl=120m
-    
+
 # Get credentials for GitHub Actions
 GITHUB_ROLE_ID=$(vault read -field=role_id auth/approle/role/github-actions/role-id)
 GITHUB_SECRET_ID=$(vault write -force -field=secret_id auth/approle/role/github-actions/secret-id)

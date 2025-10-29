@@ -83,8 +83,8 @@ public class Location {
      * @return The ISO 3166-1 alpha-2 country code
      */
     public String getCountryCode() {
-        return governorate != null && governorate.getCountry() != null 
-            ? governorate.getCountry().getCountryCode() 
+        return governorate != null && governorate.getCountry() != null
+            ? governorate.getCountry().getCountryCode()
             : null;
     }
 }

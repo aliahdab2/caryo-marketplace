@@ -49,7 +49,7 @@ const Step4PricingContact = memo(function Step4PricingContact({
       <div className="sr-only" aria-live="polite" role="status">
         {Object.values(formErrors).filter(Boolean).join('. ')}
       </div>
-      
+
       <StepHeader
         title={t('listings:pricingContactTitle', 'Pricing & Contact')}
         subtitle={t('listings:pricingContactSubtitle', 'Set your price and contact information')}
@@ -60,12 +60,12 @@ const Step4PricingContact = memo(function Step4PricingContact({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
           {t('listings:newListingPricing', 'Pricing Information')}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Price */}
           <div className="space-y-3">
-            <label 
-              htmlFor="price" 
+            <label
+              htmlFor="price"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingPrice', 'Price')} <span className="text-red-500">*</span>
@@ -106,8 +106,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
 
           {/* Currency */}
           <div className="space-y-3">
-            <label 
-              htmlFor="currency" 
+            <label
+              htmlFor="currency"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingCurrency', 'Currency')} <span className="text-red-500">*</span>
@@ -144,12 +144,12 @@ const Step4PricingContact = memo(function Step4PricingContact({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
           {t('listings:newListingLocationInfo', 'Location Information')}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Governorate */}
           <div className="space-y-3">
-            <label 
-              htmlFor="governorateSlug" 
+            <label
+              htmlFor="governorateSlug"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingGovernorate', 'Governorate')} <span className="text-red-500">*</span>
@@ -171,8 +171,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
                 aria-describedby={formErrors.governorateSlug ? 'governorateSlug-error' : 'governorateSlug-hint'}
               >
                 <option value="">
-                  {isLoadingGovernorates 
-                    ? t('listings:newListingLoadingGovernorates', 'Loading governorates...') 
+                  {isLoadingGovernorates
+                    ? t('listings:newListingLoadingGovernorates', 'Loading governorates...')
                     : t('listings:newListingSelectGovernorate', 'Select a governorate')
                   }
                 </option>
@@ -192,8 +192,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
 
           {/* Location */}
           <div className="space-y-3">
-            <label 
-              htmlFor="locationSlug" 
+            <label
+              htmlFor="locationSlug"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingLocation', 'Location')} <span className="text-red-500">*</span>
@@ -217,7 +217,7 @@ const Step4PricingContact = memo(function Step4PricingContact({
                 <option value="">
                   {!formData.governorateSlug || formData.governorateSlug.trim() === ''
                     ? t('listings:newListingSelectGovernorateFirst', 'Select governorate first')
-                    : isLoadingLocations 
+                    : isLoadingLocations
                       ? t('listings:newListingLoadingLocations', 'Loading locations...')
                       : t('listings:newListingSelectLocation', 'Select a location')
                   }
@@ -243,12 +243,12 @@ const Step4PricingContact = memo(function Step4PricingContact({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
           {t('listings:newListingContactInfo', 'Contact Information')}
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Contact Name */}
           <div className="space-y-3">
-            <label 
-              htmlFor="contactName" 
+            <label
+              htmlFor="contactName"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingContactName', 'Contact Name')} <span className="text-red-500">*</span>
@@ -289,8 +289,8 @@ const Step4PricingContact = memo(function Step4PricingContact({
 
           {/* Contact Phone */}
           <div className="space-y-3">
-            <label 
-              htmlFor="contactPhone" 
+            <label
+              htmlFor="contactPhone"
               className="block text-sm font-bold text-gray-700 dark:text-gray-300"
             >
               {t('listings:newListingContactPhone', 'Contact Phone')} <span className="text-red-500">*</span>

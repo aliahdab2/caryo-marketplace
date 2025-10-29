@@ -43,8 +43,8 @@ jest.mock('next/image', () => {
     [key: string]: unknown;
   }) {
     return (
-      <div 
-        data-testid="next-image-container" 
+      <div
+        data-testid="next-image-container"
         className={className}
         style={{
           position: 'relative',
@@ -53,7 +53,7 @@ jest.mock('next/image', () => {
           background: 'lightgray',
         }}
       >
-        <span 
+        <span
           style={{
             position: 'absolute',
             top: '50%',
@@ -81,12 +81,12 @@ jest.mock('keen-slider/react', () => ({
         track: { details: { rel: 0 } },
       },
     };
-    
+
     // Simulate the created callback being called
     if (config && config.created) {
       setTimeout(() => config.created && config.created(mockInstanceRef.current), 0);
     }
-    
+
     return [
       mockSliderRef, // ref callback
       mockInstanceRef, // instanceRef
@@ -105,7 +105,7 @@ jest.mock('@headlessui/react', () => {
     open: boolean;
     children: React.ReactNode;
     className?: string;
-    onClose?: () => void; 
+    onClose?: () => void;
   }) => {
     if (!open) {
       return null;
@@ -118,7 +118,7 @@ jest.mock('@headlessui/react', () => {
     );
   };
 
-  DialogComponent.Overlay = function DialogOverlay(props: React.HTMLAttributes<HTMLDivElement>) { 
+  DialogComponent.Overlay = function DialogOverlay(props: React.HTMLAttributes<HTMLDivElement>) {
     return <div data-testid="dialog-overlay" {...props} />;
   };
 
@@ -165,20 +165,20 @@ describe('CarMediaGallery', () => {
 
   it('renders correctly with images and video', () => {
     render(<CarMediaGallery media={sampleMedia} />);
-    
+
     // Should display the main gallery container and thumbnails
     const frontViewImages = screen.getAllByText('Car front view');
     expect(frontViewImages.length).toBeGreaterThan(0); // Both main view and thumbnail
-    
+
     // Should show play icon on video thumbnail
     const playIcons = screen.getAllByTestId('play-icon');
     expect(playIcons.length).toBeGreaterThan(0);
-    
+
     // Should render all media items (both in main view and thumbnails)
     expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
-    
+
     // Should show the main gallery area (no longer has "View gallery" button)
     const mainGalleryArea = screen.getByText('1 of 3').closest('div');
     expect(mainGalleryArea).toBeInTheDocument();
@@ -191,17 +191,17 @@ describe('CarMediaGallery', () => {
 
   it('shows position indicators for navigation', () => {
     render(<CarMediaGallery media={sampleMedia} />);
-    
+
     // Check that the gallery container exists
     expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
-    
+
     // Should show navigation arrows (since we have multiple media items)
     expect(screen.getByLabelText('Previous media')).toBeInTheDocument();
     expect(screen.getByLabelText('Next media')).toBeInTheDocument();
-    
+
     // Should show media counter (1 of 3 format)
     expect(screen.getByText('1 of 3')).toBeInTheDocument();
-    
+
     // Verify all media items are rendered in thumbnails
     expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
@@ -209,19 +209,19 @@ describe('CarMediaGallery', () => {
 
   it('respects initialIndex prop', () => {
     render(<CarMediaGallery media={sampleMedia} initialIndex={1} />);
-    
+
     // Verify the component renders with the media
     expect(screen.getAllByText('Car front view').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Car interior').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Car video tour').length).toBeGreaterThan(0);
-    
+
     // Should show media counter starting at index 1 (which is 2 of 3)
     expect(screen.getByText('2 of 3')).toBeInTheDocument();
   });
 
   it('navigates between images using navigation arrows', () => {
     render(<CarMediaGallery media={sampleMedia} />);
-    
+
     // Verify initial state shows first media item
     expect(screen.getByText('1 of 3')).toBeInTheDocument();
 
@@ -242,16 +242,16 @@ describe('CarMediaGallery', () => {
 
   it('opens the modal when clicking on the main image', () => {
     render(<CarMediaGallery media={sampleMedia} />);
-    
+
     // Click on the main gallery area to open modal
     const mainViews = screen.getAllByText('Car front view');
     const mainView = mainViews[0].closest('div[class*="cursor-pointer"]'); // Get the first one (main view)
     fireEvent.click(mainView as HTMLElement);
-    
+
     // Verify the modal is open
     const modal = screen.getByTestId('modal-dialog');
     expect(modal).toBeInTheDocument();
-    
+
     // Close the modal
     const closeButton = screen.getByText('Close Modal');
     fireEvent.click(closeButton);
@@ -259,7 +259,7 @@ describe('CarMediaGallery', () => {
 
   it('displays photo counter when there are multiple media items', async () => {
     render(<CarMediaGallery media={sampleMedia} />);
-    
+
     // Should show the media counter in new format (1 of 3)
     const photoCounter = await screen.findByText('1 of 3');
     expect(photoCounter).toBeInTheDocument();
@@ -275,9 +275,9 @@ describe('CarMediaGallery', () => {
         height: 600
       }
     ];
-    
+
     render(<CarMediaGallery media={singleMedia} />);
-    
+
     // Single items don't show position indicators (clean interface)
     expect(screen.queryByText('1 / 1')).not.toBeInTheDocument();
 

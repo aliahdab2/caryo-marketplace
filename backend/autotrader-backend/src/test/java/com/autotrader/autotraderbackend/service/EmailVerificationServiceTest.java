@@ -42,7 +42,7 @@ class EmailVerificationServiceTest {
         testUser.setId(1L);
         testUser.setEmailVerified(false);
         testUser.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
-        
+
         // Set test configuration values
         ReflectionTestUtils.setField(emailVerificationService, "tokenExpiryHours", 24);
         ReflectionTestUtils.setField(emailVerificationService, "maxVerificationAttempts", 3);
@@ -87,7 +87,7 @@ class EmailVerificationServiceTest {
         String token = "valid-token-123";
         testUser.setEmailVerificationToken(token);
         testUser.setEmailVerificationSentAt(LocalDateTime.now().minusHours(1));
-        
+
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
@@ -126,7 +126,7 @@ class EmailVerificationServiceTest {
         String token = "expired-token-123";
         testUser.setEmailVerificationToken(token);
         testUser.setEmailVerificationSentAt(LocalDateTime.now().minusHours(25)); // Expired
-        
+
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
 
         // When
@@ -147,7 +147,7 @@ class EmailVerificationServiceTest {
         testUser.setEmailVerificationSentAt(LocalDateTime.now().minusHours(1));
         testUser.setEmailVerified(true); // Already verified
         testUser.setAccountStatus(AccountStatus.VERIFIED);
-        
+
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.of(testUser));
 
         // When
@@ -165,7 +165,7 @@ class EmailVerificationServiceTest {
         // Given
         String email = "test@example.com";
         testUser.setEmailVerificationSentAt(LocalDateTime.now().minusMinutes(10)); // Not rate limited
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         doNothing().when(emailService).sendEmailVerificationEmail(any(User.class), anyString());
@@ -200,7 +200,7 @@ class EmailVerificationServiceTest {
         String email = "test@example.com";
         testUser.setEmailVerified(true);
         testUser.setAccountStatus(AccountStatus.VERIFIED);
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
 
         // When
@@ -217,7 +217,7 @@ class EmailVerificationServiceTest {
         // Given
         String email = "test@example.com";
         testUser.setEmailVerificationSentAt(LocalDateTime.now().minusMinutes(2)); // Recently sent
-        
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
 
         // When
@@ -301,7 +301,7 @@ class EmailVerificationServiceTest {
         recentlyVerifiedUser.setEmail("recent@example.com");
         recentlyVerifiedUser.setEmailVerified(true);
         recentlyVerifiedUser.setEmailVerifiedAt(LocalDateTime.now().minusMinutes(2));
-        
+
         when(userRepository.findByEmailVerificationToken(token)).thenReturn(Optional.empty());
         when(userRepository.findTopByEmailVerifiedTrueAndEmailVerifiedAtAfterOrderByEmailVerifiedAtDesc(any()))
             .thenReturn(Optional.of(recentlyVerifiedUser));

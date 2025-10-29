@@ -57,7 +57,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
     setImporting(true);
     await onImport(file);
     setImporting(false);
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -79,7 +79,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
             {t('datamanagement:manualManagementDesc')}
           </p>
         </div>
-        
+
         <div className={`flex flex-wrap items-center ${isRTL ? 'gap-x-reverse' : ''} gap-3`}>
           <button
             onClick={handleExport}
@@ -89,7 +89,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
             <MdDownload className="w-4 h-4" />
             {exporting ? t('datamanagement:exporting') : t('datamanagement:exportExcel')}
           </button>
-          
+
           <button
             onClick={triggerFileSelect}
             disabled={importing}
@@ -98,9 +98,9 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
             <MdUpload className="w-4 h-4" />
             {importing ? t('datamanagement:importing') : t('datamanagement:importExcel')}
           </button>
-          
+
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-          
+
           <button
             onClick={() => setShowAddBrandModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -108,7 +108,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
             <MdAdd className="w-4 h-4" />
             {t('datamanagement:addBrandWithModel')}
           </button>
-          
+
           <button
             onClick={() => setShowAddModelModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -116,9 +116,9 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
             <MdAdd className="w-4 h-4" />
             {t('datamanagement:addModel')}
           </button>
-          
+
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-          
+
           <button
             onClick={onRefresh}
             disabled={loading}
@@ -141,7 +141,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
 
       {/* Brands Table */}
       <div className="mb-8">
-        <BrandsTable 
+        <BrandsTable
           brands={brands}
           onUpdate={onUpdateBrand}
         />
@@ -149,7 +149,7 @@ export const ManualManagement: React.FC<ManualManagementProps> = ({
 
       {/* Models Table */}
       <div>
-        <ModelsTable 
+        <ModelsTable
           models={models}
           brands={brands}
           onUpdate={onUpdateModel}

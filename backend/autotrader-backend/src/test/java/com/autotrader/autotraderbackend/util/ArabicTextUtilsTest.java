@@ -28,7 +28,7 @@ class ArabicTextUtilsTest {
             assertTrue(ArabicTextUtils.containsArabic("أوتو تريدر"));
             assertTrue(ArabicTextUtils.containsArabic("طلب إعادة تعيين كلمة المرور"));
             assertTrue(ArabicTextUtils.containsArabic("تم تغيير كلمة المرور بنجاح"));
-            
+
             // Mixed text
             assertTrue(ArabicTextUtils.containsArabic("Hello مرحبا"));
             assertTrue(ArabicTextUtils.containsArabic("Password Reset - أوتو تريدر"));
@@ -41,11 +41,11 @@ class ArabicTextUtilsTest {
             assertFalse(ArabicTextUtils.containsArabic("Hello World"));
             assertFalse(ArabicTextUtils.containsArabic("Password Reset Request"));
             assertFalse(ArabicTextUtils.containsArabic("AutoTrader"));
-            
+
             // Numbers and symbols
             assertFalse(ArabicTextUtils.containsArabic("123456"));
             assertFalse(ArabicTextUtils.containsArabic("!@#$%^&*()"));
-            
+
             // Other languages
             assertFalse(ArabicTextUtils.containsArabic("Bonjour le monde"));
             assertFalse(ArabicTextUtils.containsArabic("Hola mundo"));
@@ -69,7 +69,7 @@ class ArabicTextUtilsTest {
         void shouldEncodeArabicEmailSubjects() {
             String arabicSubject = "طلب إعادة تعيين كلمة المرور - أوتو تريدر";
             String encoded = ArabicTextUtils.encodeForEmailSubject(arabicSubject);
-            
+
             assertNotNull(encoded);
             assertNotEquals(arabicSubject, encoded); // Should be encoded
             assertTrue(encoded.startsWith("=?UTF-8?B?")); // Should use Base64 encoding
@@ -81,7 +81,7 @@ class ArabicTextUtilsTest {
         void shouldHandleEnglishTextInEmailSubjects() {
             String englishSubject = "Password Reset Request - AutoTrader";
             String encoded = ArabicTextUtils.encodeForEmailSubject(englishSubject);
-            
+
             assertNotNull(encoded);
             // English text might or might not be encoded depending on MimeUtility implementation
             // The important thing is that it doesn't throw an exception
@@ -92,7 +92,7 @@ class ArabicTextUtilsTest {
         void shouldHandleMixedArabicAndEnglishText() {
             String mixedSubject = "Password Reset - طلب إعادة تعيين كلمة المرور";
             String encoded = ArabicTextUtils.encodeForEmailSubject(mixedSubject);
-            
+
             assertNotNull(encoded);
             // Mixed text should be encoded
             assertTrue(encoded.startsWith("=?UTF-8?B?"));
@@ -117,7 +117,7 @@ class ArabicTextUtilsTest {
         void shouldNormalizeArabicText() {
             String arabicText = "أوتو تريدر";
             String normalized = ArabicTextUtils.normalizeArabicText(arabicText);
-            
+
             assertNotNull(normalized);
             assertEquals(arabicText, normalized); // Should maintain the same content
         }
@@ -127,7 +127,7 @@ class ArabicTextUtilsTest {
         void shouldHandleEnglishTextNormalization() {
             String englishText = "AutoTrader";
             String normalized = ArabicTextUtils.normalizeArabicText(englishText);
-            
+
             assertNotNull(normalized);
             assertEquals(englishText, normalized);
         }
@@ -152,9 +152,9 @@ class ArabicTextUtilsTest {
             String baseText = "طلب إعادة تعيين كلمة المرور";
             String websiteName = "أوتو تريدر";
             String language = "ar";
-            
+
             String subject = ArabicTextUtils.createEmailSubject(baseText, websiteName, language);
-            
+
             assertNotNull(subject);
             assertTrue(subject.startsWith("=?UTF-8?B?")); // Should be encoded
             // The subject should contain both base text and website name
@@ -166,9 +166,9 @@ class ArabicTextUtilsTest {
             String baseText = "Password Reset Request";
             String websiteName = "AutoTrader";
             String language = "en";
-            
+
             String subject = ArabicTextUtils.createEmailSubject(baseText, websiteName, language);
-            
+
             assertNotNull(subject);
             // Should contain the expected format
         }
@@ -176,13 +176,13 @@ class ArabicTextUtilsTest {
         @Test
         @DisplayName("Should throw exception for null parameters")
         void shouldThrowExceptionForNullParameters() {
-            assertThrows(IllegalArgumentException.class, () -> 
+            assertThrows(IllegalArgumentException.class, () ->
                 ArabicTextUtils.createEmailSubject(null, "website", "en"));
-            
-            assertThrows(IllegalArgumentException.class, () -> 
+
+            assertThrows(IllegalArgumentException.class, () ->
                 ArabicTextUtils.createEmailSubject("base", null, "en"));
-            
-            assertThrows(IllegalArgumentException.class, () -> 
+
+            assertThrows(IllegalArgumentException.class, () ->
                 ArabicTextUtils.createEmailSubject("base", "website", null));
         }
     }
@@ -258,21 +258,21 @@ class ArabicTextUtilsTest {
         @Test
         @DisplayName("Should not throw exception when debugging Arabic text")
         void shouldNotThrowExceptionWhenDebuggingArabicText() {
-            assertDoesNotThrow(() -> 
+            assertDoesNotThrow(() ->
                 ArabicTextUtils.debugArabicEncoding("أوتو تريدر", "test-context"));
         }
 
         @Test
         @DisplayName("Should not throw exception when debugging English text")
         void shouldNotThrowExceptionWhenDebuggingEnglishText() {
-            assertDoesNotThrow(() -> 
+            assertDoesNotThrow(() ->
                 ArabicTextUtils.debugArabicEncoding("AutoTrader", "test-context"));
         }
 
         @Test
         @DisplayName("Should handle null text in debug")
         void shouldHandleNullTextInDebug() {
-            assertDoesNotThrow(() -> 
+            assertDoesNotThrow(() ->
                 ArabicTextUtils.debugArabicEncoding(null, "test-context"));
         }
     }
@@ -286,11 +286,11 @@ class ArabicTextUtilsTest {
         void shouldBeUtilityClass() {
             // Verify that ArabicTextUtils is a final class (utility class pattern)
             assertTrue(java.lang.reflect.Modifier.isFinal(ArabicTextUtils.class.getModifiers()));
-            
+
             // Verify it has only static methods (utility class pattern)
             var methods = ArabicTextUtils.class.getDeclaredMethods();
             for (var method : methods) {
-                assertTrue(java.lang.reflect.Modifier.isStatic(method.getModifiers()), 
+                assertTrue(java.lang.reflect.Modifier.isStatic(method.getModifiers()),
                     "Method " + method.getName() + " should be static");
             }
         }
@@ -305,16 +305,16 @@ class ArabicTextUtilsTest {
         void shouldHandleCompleteEmailSubjectWorkflowForArabic() {
             String baseText = "طلب إعادة تعيين كلمة المرور";
             String websiteName = "أوتو تريدر";
-            
+
             // Test the complete workflow
             assertTrue(ArabicTextUtils.containsArabic(baseText));
             assertTrue(ArabicTextUtils.containsArabic(websiteName));
             assertTrue(ArabicTextUtils.isValidArabicText(baseText));
             assertTrue(ArabicTextUtils.isValidArabicText(websiteName));
-            
+
             String normalizedBase = ArabicTextUtils.normalizeArabicText(baseText);
             String normalizedWebsite = ArabicTextUtils.normalizeArabicText(websiteName);
-            
+
             String subject = ArabicTextUtils.createEmailSubject(normalizedBase, normalizedWebsite, "ar");
             assertNotNull(subject);
             assertTrue(subject.startsWith("=?UTF-8?B?"));
@@ -325,16 +325,16 @@ class ArabicTextUtilsTest {
         void shouldHandleCompleteEmailSubjectWorkflowForEnglish() {
             String baseText = "Password Reset Request";
             String websiteName = "AutoTrader";
-            
+
             // Test the complete workflow
             assertFalse(ArabicTextUtils.containsArabic(baseText));
             assertFalse(ArabicTextUtils.containsArabic(websiteName));
             assertTrue(ArabicTextUtils.isValidArabicText(baseText));
             assertTrue(ArabicTextUtils.isValidArabicText(websiteName));
-            
+
             String normalizedBase = ArabicTextUtils.normalizeArabicText(baseText);
             String normalizedWebsite = ArabicTextUtils.normalizeArabicText(websiteName);
-            
+
             String subject = ArabicTextUtils.createEmailSubject(normalizedBase, normalizedWebsite, "en");
             assertNotNull(subject);
         }

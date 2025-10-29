@@ -7,22 +7,22 @@ type ErrorBoundaryConfig = Omit<ErrorBoundaryProps, 'children'>;
 
 /**
  * Higher-Order Component for Error Boundary Integration
- * 
+ *
  * This HOC makes it easy to wrap any component with an error boundary
  * without needing to manually wrap it in JSX every time.
- * 
+ *
  * Features:
  * - Automatic error boundary wrapping
  * - Configurable error boundary options
  * - Preserves component props and refs
  * - TypeScript support with proper type inference
  * - Display name preservation for debugging
- * 
+ *
  * Usage:
  * ```tsx
  * // Basic usage
  * const SafeComponent = withErrorBoundary(MyComponent);
- * 
+ *
  * // With configuration
  * const SafeFormComponent = withErrorBoundary(FormComponent, {
  *   componentName: 'User Form',
@@ -33,7 +33,7 @@ type ErrorBoundaryConfig = Omit<ErrorBoundaryProps, 'children'>;
  *     analytics.track('component_error', { component: 'User Form', errorId });
  *   }
  * });
- * 
+ *
  * // As a decorator (if using experimental decorators)
  * @withErrorBoundary({
  *   componentName: 'Product Catalog',
@@ -50,9 +50,9 @@ export function withErrorBoundary<T = Record<string, unknown>>(
   errorBoundaryConfig: ErrorBoundaryConfig = {}
 ): ComponentType<T> {
   const WithErrorBoundaryComponent: React.FC<T> = (props) => {
-    const componentName = errorBoundaryConfig.componentName || 
-                         WrappedComponent.displayName || 
-                         WrappedComponent.name || 
+    const componentName = errorBoundaryConfig.componentName ||
+                         WrappedComponent.displayName ||
+                         WrappedComponent.name ||
                          'Component';
 
     const config: ErrorBoundaryProps = {
@@ -78,7 +78,7 @@ export function withErrorBoundary<T = Record<string, unknown>>(
 
 /**
  * Decorator version of withErrorBoundary for class components
- * 
+ *
  * Usage:
  * ```tsx
  * @errorBoundary({ componentName: 'UserProfile', level: 'section' })
@@ -150,13 +150,13 @@ export const withMediaErrorBoundary = <T = Record<string, unknown>>(
   resetOnPropsChange: true,
   onError: (error, errorInfo, errorId) => {
     console.warn('Media component error:', { error: error.message, errorId });
-    
+
     // Clear any stored media URLs to prevent memory leaks
     if (typeof window !== 'undefined') {
       // This would be implemented based on your media management system
       console.log('Cleaning up media resources due to error');
     }
-    
+
     config.onError?.(error, errorInfo, errorId);
   },
   ...config
@@ -164,10 +164,10 @@ export const withMediaErrorBoundary = <T = Record<string, unknown>>(
 
 /**
  * Hook for conditional error boundary wrapping
- * 
+ *
  * Useful when you want to conditionally apply error boundaries
  * based on environment or feature flags.
- * 
+ *
  * Usage:
  * ```tsx
  * const SafeComponent = useConditionalErrorBoundary(

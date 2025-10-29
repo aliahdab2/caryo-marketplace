@@ -69,9 +69,9 @@ const VideoSection = memo(function VideoSection({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>
-            {isVideoUploadEnabled && isVideoUrlEnabled 
+            {isVideoUploadEnabled && isVideoUrlEnabled
               ? t('listings:videoSectionTitleBoth', "Choose how you'd like to add videos to your listing")
-              : isVideoUploadEnabled 
+              : isVideoUploadEnabled
                 ? t('listings:videoSectionTitleUploadOnly', "Upload a video file to showcase your vehicle")
                 : t('listings:videoSectionTitleUrlOnly', "Add a video URL to showcase your vehicle")
             }
@@ -80,8 +80,8 @@ const VideoSection = memo(function VideoSection({
 
         {/* Enhanced Toggle Buttons - Responsive grid based on available options */}
         <div className={`grid gap-4 ${
-          isVideoUploadEnabled && isVideoUrlEnabled 
-            ? 'grid-cols-1 md:grid-cols-2' 
+          isVideoUploadEnabled && isVideoUrlEnabled
+            ? 'grid-cols-1 md:grid-cols-2'
             : 'grid-cols-1'
         }`}>
           {/* Video Upload Toggle */}
@@ -251,9 +251,9 @@ const VideoSection = memo(function VideoSection({
                     💡 {t('listings:videoProTip', 'Pro tip: Videos increase listing engagement by 3x')}
                   </h5>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {isVideoUploadEnabled && isVideoUrlEnabled 
+                    {isVideoUploadEnabled && isVideoUrlEnabled
                       ? t('listings:videoSectionSubtitleBoth', "Upload a video file for the best quality, or add a YouTube link for easy sharing")
-                      : isVideoUploadEnabled 
+                      : isVideoUploadEnabled
                         ? t('listings:videoSectionSubtitleUploadOnly', "Upload a video file to show your vehicle in action")
                         : t('listings:videoSectionSubtitleUrlOnly', "Add a YouTube link to showcase your vehicle")
                     }

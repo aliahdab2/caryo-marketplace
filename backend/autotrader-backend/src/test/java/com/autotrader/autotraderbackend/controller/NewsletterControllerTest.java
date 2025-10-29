@@ -58,7 +58,7 @@ class NewsletterControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         newsletterRepository.deleteAll();
-        
+
         // Mock email service to avoid actual email sending during tests
         doNothing().when(emailService).sendTemplatedEmail(anyString(), anyString(), anyString(), any(), anyString());
     }

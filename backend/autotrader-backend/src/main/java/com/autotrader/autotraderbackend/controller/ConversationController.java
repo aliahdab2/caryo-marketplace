@@ -48,8 +48,8 @@ public class ConversationController {
             @Valid @RequestBody CreateConversationRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String acceptLanguage) {
-        
-        log.info("Creating conversation for listing {} by user {}", 
+
+        log.info("Creating conversation for listing {} by user {}",
                 request.getListingId(), userDetails.getId());
 
         ConversationResponse response = conversationService.createConversation(request, userDetails.getId());
@@ -73,9 +73,9 @@ public class ConversationController {
 
         log.info("Getting conversations for user {}", userDetails.getId());
 
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+        Sort sort = sortDir.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        
+
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<ConversationResponse> conversations = conversationService.getUserConversations(
                 userDetails.getId(), pageable);
@@ -111,9 +111,9 @@ public class ConversationController {
 
         log.info("Getting messages for conversation {} by user {}", id, userDetails.getId());
 
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+        Sort sort = sortDir.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        
+
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<MessageResponse> messages = conversationService.getConversationMessages(
                 id, userDetails.getId(), pageable);

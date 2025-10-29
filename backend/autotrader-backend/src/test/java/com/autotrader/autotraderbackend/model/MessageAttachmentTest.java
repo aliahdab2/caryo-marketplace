@@ -54,20 +54,20 @@ class MessageAttachmentTest {
         // Test various image types
         attachment.setContentType("image/jpeg");
         assertTrue(attachment.isImage());
-        
+
         attachment.setContentType("image/png");
         assertTrue(attachment.isImage());
-        
+
         attachment.setContentType("image/gif");
         assertTrue(attachment.isImage());
-        
+
         attachment.setContentType("image/webp");
         assertTrue(attachment.isImage());
-        
+
         // Test non-image types
         attachment.setContentType("text/plain");
         assertFalse(attachment.isImage());
-        
+
         attachment.setContentType("application/pdf");
         assertFalse(attachment.isImage());
     }
@@ -78,18 +78,18 @@ class MessageAttachmentTest {
         // Test PDF
         attachment.setContentType("application/pdf");
         assertTrue(attachment.isDocument());
-        
+
         // Test Word documents
         attachment.setContentType("application/msword");
         assertTrue(attachment.isDocument());
-        
+
         attachment.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         assertTrue(attachment.isDocument());
-        
+
         // Test non-document types
         attachment.setContentType("image/jpeg");
         assertFalse(attachment.isDocument());
-        
+
         attachment.setContentType("text/plain");
         assertFalse(attachment.isDocument());
     }
@@ -100,19 +100,19 @@ class MessageAttachmentTest {
         // Test various file extensions
         attachment.setFileName("test.jpg");
         assertEquals("jpg", attachment.getFileExtension());
-        
+
         attachment.setFileName("document.pdf");
         assertEquals("pdf", attachment.getFileExtension());
-        
+
         attachment.setFileName("image.png");
         assertEquals("png", attachment.getFileExtension());
-        
+
         attachment.setFileName("file.with.multiple.dots.txt");
         assertEquals("txt", attachment.getFileExtension());
-        
+
         attachment.setFileName("noextension");
         assertEquals("", attachment.getFileExtension());
-        
+
         attachment.setFileName(".hiddenfile");
         assertEquals("hiddenfile", attachment.getFileExtension());
     }
@@ -122,7 +122,7 @@ class MessageAttachmentTest {
     void shouldHandleFileUrlGeneration() {
         // Act
         String fileUrl = attachment.getFileUrl();
-        
+
         // Assert
         assertEquals("test-file-key.jpg", fileUrl);
         // Note: In production, this would be transformed by MinIO URL utilities
@@ -134,11 +134,11 @@ class MessageAttachmentTest {
         // Test small file
         attachment.setSize(100L);
         assertEquals(100L, attachment.getSize());
-        
+
         // Test large file
         attachment.setSize(1048576L); // 1MB
         assertEquals(1048576L, attachment.getSize());
-        
+
         // Test zero size
         attachment.setSize(0L);
         assertEquals(0L, attachment.getSize());
@@ -151,21 +151,21 @@ class MessageAttachmentTest {
         attachment.setContentType("image/jpeg");
         assertTrue(attachment.isImage());
         assertFalse(attachment.isDocument());
-        
+
         attachment.setContentType("image/png");
         assertTrue(attachment.isImage());
         assertFalse(attachment.isDocument());
-        
+
         // Test document types
         attachment.setContentType("application/pdf");
         assertFalse(attachment.isImage());
         assertTrue(attachment.isDocument());
-        
+
         // Test other types
         attachment.setContentType("text/plain");
         assertFalse(attachment.isImage());
         assertFalse(attachment.isDocument());
-        
+
         attachment.setContentType("video/mp4");
         assertFalse(attachment.isImage());
         assertFalse(attachment.isDocument());
@@ -176,10 +176,10 @@ class MessageAttachmentTest {
     void shouldHandleFileNameChanges() {
         // Arrange
         String newFileName = "updated-image.png";
-        
+
         // Act
         attachment.setFileName(newFileName);
-        
+
         // Assert
         assertEquals(newFileName, attachment.getFileName());
         assertEquals("png", attachment.getFileExtension());
@@ -190,10 +190,10 @@ class MessageAttachmentTest {
     void shouldHandleContentTypeChanges() {
         // Arrange
         String newContentType = "image/png";
-        
+
         // Act
         attachment.setContentType(newContentType);
-        
+
         // Assert
         assertEquals(newContentType, attachment.getContentType());
         assertTrue(attachment.isImage());
@@ -205,10 +205,10 @@ class MessageAttachmentTest {
     void shouldHandleFileKeyChanges() {
         // Arrange
         String newFileKey = "new-file-key.png";
-        
+
         // Act
         attachment.setFileKey(newFileKey);
-        
+
         // Assert
         assertEquals(newFileKey, attachment.getFileKey());
         assertEquals(newFileKey, attachment.getFileUrl());
@@ -219,10 +219,10 @@ class MessageAttachmentTest {
     void shouldHandleTimestampUpdates() {
         // Arrange
         LocalDateTime newTimestamp = LocalDateTime.now().plusHours(1);
-        
+
         // Act
         attachment.setCreatedAt(newTimestamp);
-        
+
         // Assert
         assertEquals(newTimestamp, attachment.getCreatedAt());
     }
@@ -232,7 +232,7 @@ class MessageAttachmentTest {
     void shouldHandleNullMessage() {
         // Act
         attachment.setMessage(null);
-        
+
         // Assert
         assertNull(attachment.getMessage());
     }
@@ -242,7 +242,7 @@ class MessageAttachmentTest {
     void shouldHandleNullFileName() {
         // Act
         attachment.setFileName(null);
-        
+
         // Assert
         assertNull(attachment.getFileName());
         assertEquals("", attachment.getFileExtension());
@@ -253,7 +253,7 @@ class MessageAttachmentTest {
     void shouldHandleNullContentType() {
         // Act
         attachment.setContentType(null);
-        
+
         // Assert
         assertNull(attachment.getContentType());
         assertFalse(attachment.isImage());
@@ -265,7 +265,7 @@ class MessageAttachmentTest {
     void shouldHandleEmptyFileName() {
         // Act
         attachment.setFileName("");
-        
+
         // Assert
         assertEquals("", attachment.getFileName());
         assertEquals("", attachment.getFileExtension());
@@ -276,10 +276,10 @@ class MessageAttachmentTest {
     void shouldHandleSpecialCharactersInFileName() {
         // Arrange
         String specialFileName = "test-file_123 (copy).jpg";
-        
+
         // Act
         attachment.setFileName(specialFileName);
-        
+
         // Assert
         assertEquals(specialFileName, attachment.getFileName());
         assertEquals("jpg", attachment.getFileExtension());
@@ -290,10 +290,10 @@ class MessageAttachmentTest {
     void shouldHandleVeryLongFileNames() {
         // Arrange
         String longFileName = "a".repeat(255) + ".txt";
-        
+
         // Act
         attachment.setFileName(longFileName);
-        
+
         // Assert
         assertEquals(longFileName, attachment.getFileName());
         assertEquals("txt", attachment.getFileExtension());

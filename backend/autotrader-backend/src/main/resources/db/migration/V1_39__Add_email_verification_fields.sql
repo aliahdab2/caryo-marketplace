@@ -29,8 +29,8 @@ CREATE INDEX idx_users_verification_method ON users(verification_method);
 
 -- Update existing users to have VERIFIED status (for backward compatibility)
 -- This ensures existing users can continue to create listings
-UPDATE users 
-SET email_verified = TRUE, 
+UPDATE users
+SET email_verified = TRUE,
     account_status = 'VERIFIED',
     email_verified_at = created_at,
     verification_method = 'MANUAL'

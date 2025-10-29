@@ -62,7 +62,7 @@ class ListingRenewalInitiatedEventTest {
         int negativeDuration = -1;
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             new ListingRenewalInitiatedEvent(source, mockListing, negativeDuration),
             "Should reject negative duration"
         );
@@ -75,7 +75,7 @@ class ListingRenewalInitiatedEventTest {
         int zeroDuration = 0;
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             new ListingRenewalInitiatedEvent(source, mockListing, zeroDuration),
             "Should reject zero duration"
         );
@@ -88,7 +88,7 @@ class ListingRenewalInitiatedEventTest {
         int duration = 30;
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             new ListingRenewalInitiatedEvent(source, null, duration),
             "Should reject null listing"
         );
@@ -100,7 +100,7 @@ class ListingRenewalInitiatedEventTest {
         int duration = 30;
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             new ListingRenewalInitiatedEvent(null, mockListing, duration),
             "Should reject null source"
         );
@@ -126,7 +126,7 @@ class ListingRenewalInitiatedEventTest {
         int excessiveDuration = 366; // More than maximum allowed
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             new ListingRenewalInitiatedEvent(source, mockListing, excessiveDuration),
             "Should reject durations longer than 365 days"
         );

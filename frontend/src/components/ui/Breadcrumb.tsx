@@ -36,8 +36,8 @@ export default function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
           const label = getLabel(item);
           const hideOnMobile = items.length > 2 && index > 0 && index < items.length - 1;
           return (
-            <li 
-              key={`${item.label}-${index}`} 
+            <li
+              key={`${item.label}-${index}`}
               className={`flex items-center ${hideOnMobile ? 'hidden md:flex' : ''}`}
               aria-current={isLast ? 'page' : undefined}
             >
@@ -45,8 +45,8 @@ export default function Breadcrumb({ items, className = "" }: BreadcrumbProps) {
                 <MdChevronRight className="mx-1.5 text-gray-400 rtl:rotate-180" size={16} />
               )}
               {!isLast && item.href ? (
-                <Link 
-                  href={item.href} 
+                <Link
+                  href={item.href}
                   className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors group"
                   title={label}
                 >

@@ -122,7 +122,7 @@ class NewsletterServiceTest {
         testSubscription.setConfirmedAt(LocalDateTime.now().minusDays(1));
         testSubscription.setUnsubscribedAt(LocalDateTime.now().minusHours(1));
         testSubscription.setActive(false);
-        
+
         when(subscriptionRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testSubscription));
         when(subscriptionRepository.save(any(NewsletterSubscription.class))).thenReturn(testSubscription);
         doNothing().when(emailService).sendTemplatedEmail(anyString(), anyString(), anyString(), any(), anyString());
@@ -136,7 +136,7 @@ class NewsletterServiceTest {
         assertTrue(result.isRequiresConfirmation());
         verify(subscriptionRepository).save(testSubscription);
         verify(emailService).sendTemplatedEmail(anyString(), anyString(), anyString(), any(), anyString());
-        
+
         // Verify subscription was reactivated
         assertTrue(testSubscription.getActive());
         assertNull(testSubscription.getUnsubscribedAt());
@@ -330,7 +330,7 @@ class NewsletterServiceTest {
         // Assert
         assertTrue(result.isSuccess());
         verify(subscriptionRepository).findByEmail("test@example.com");
-        verify(subscriptionRepository).save(argThat(subscription -> 
+        verify(subscriptionRepository).save(argThat(subscription ->
             subscription.getEmail().equals("test@example.com")));
     }
 }

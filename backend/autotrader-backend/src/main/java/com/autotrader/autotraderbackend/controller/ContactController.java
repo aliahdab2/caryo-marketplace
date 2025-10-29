@@ -34,7 +34,7 @@ public class ContactController {
 
     /**
      * Submit a contact form message with language support.
-     * 
+     *
      * @param request The contact form request with optional language parameter
      * @return Success or error response in the specified language
      */
@@ -56,7 +56,7 @@ public class ContactController {
                         value = "{\"message\":\"Thank you for your message. We'll get back to you soon!\",\"status\":\"success\"}"
                     ),
                     @ExampleObject(
-                        name = "Arabic Success", 
+                        name = "Arabic Success",
                         value = "{\"message\":\"شكراً لك على رسالتك. سنرد عليك قريباً!\",\"status\":\"success\"}"
                     )
                 }
@@ -94,41 +94,41 @@ public class ContactController {
     public ResponseEntity<ContactResponse> submitContactForm(@Valid @RequestBody ContactFormRequest request) {
         // Validate and normalize language outside try block for error handling
         String language = normalizeLanguage(request.getLanguage());
-        
+
         try {
-            log.info("Contact form submission received from: {} ({}) [Language: {}]", 
+            log.info("Contact form submission received from: {} ({}) [Language: {}]",
                     request.getName(), request.getEmail(), request.getLanguage());
-            
+
             // Send email to support team
             emailService.sendContactFormEmail(request.getName(), request.getEmail(), request.getMessage(), language);
-            
+
             // Send confirmation email to sender
             emailService.sendContactFormConfirmation(request.getName(), request.getEmail(), language);
-            
+
             log.info("Contact form processed successfully for: {} [Language: {}]", request.getEmail(), language);
-            
+
             String successMessage = messageService.getMessage("success.contact.form", language);
-            
+
             return ResponseEntity.ok(new ContactResponse(successMessage, "success"));
-            
+
         } catch (IllegalArgumentException e) {
             log.warn("Invalid contact form submission: {}", e.getMessage());
             Map<String, String> errorParams = Map.of("error", e.getMessage());
             String errorMessage = messageService.getMessage("error.invalid.data", language, errorParams);
             return ResponseEntity.badRequest().body(new ContactResponse(errorMessage, "error"));
-            
+
         } catch (Exception e) {
             log.error("Failed to process contact form submission from: {}", request.getEmail(), e);
-            
+
             String errorMessage = messageService.getMessage("error.server", language);
-            
+
             return ResponseEntity.internalServerError().body(new ContactResponse(errorMessage, "error"));
         }
     }
-    
+
     /**
      * Normalize language code to supported values.
-     * 
+     *
      * @param language The input language code
      * @return Normalized language code (en or ar)
      */
@@ -136,29 +136,29 @@ public class ContactController {
         if (language == null || language.trim().isEmpty()) {
             return "en"; // Default to English
         }
-        
+
         String normalized = language.trim().toLowerCase();
         return normalized.equals("ar") ? "ar" : "en"; // Only support en and ar
     }
-    
+
     /**
      * Response class for contact form submissions.
      */
     public static class ContactResponse {
         private final String message;
         private final String status;
-        
+
         public ContactResponse(String message, String status) {
             this.message = message;
             this.status = status;
         }
-        
+
         public String getMessage() {
             return message;
         }
-        
+
         public String getStatus() {
             return status;
         }
     }
-} 
+}

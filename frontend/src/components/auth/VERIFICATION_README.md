@@ -22,13 +22,13 @@ The verification component provides a frictionless, user-friendly verification p
 import SASVerification from '@/components/auth/SASVerification';
 
 // Manual verification mode (default for signup) - user needs to click to verify
-<SASVerification 
+<SASVerification
   onVerified={(isVerified) => handleVerification(isVerified)}
-  autoVerify={false} 
+  autoVerify={false}
 />
 
 // Auto-verify mode (default for login) - automatically verifies without user interaction
-<SASVerification 
+<SASVerification
   onVerified={(isVerified) => handleVerification(isVerified)}
   autoVerify={true}
 />

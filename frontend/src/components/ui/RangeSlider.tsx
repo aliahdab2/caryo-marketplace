@@ -15,19 +15,19 @@ export interface RangeSliderProps {
   className?: string;
   showInputs?: boolean;
   disabled?: boolean;
-  
+
   // Formatting options
   formatValue?: (value: number) => string;
   locale?: string;
   unit?: string; // Unit display (currency, km, years, etc.)
-  
+
   // Labels
   minLabel?: string;
   maxLabel?: string;
   anyPlaceholder?: string;
   minPlaceholder?: string;
   maxPlaceholder?: string;
-  
+
   // Accessibility
   ariaLabelMin?: string;
   ariaLabelMax?: string;
@@ -89,7 +89,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   // Dragging state
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [hoveredThumb, setHoveredThumb] = useState<'min' | 'max' | null>(null);
-  
+
   // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout>();
@@ -126,7 +126,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
-    
+
     debounceTimer.current = setTimeout(() => {
       const currentMin = min === minRange ? undefined : min;
       const currentMax = max === maxRange ? undefined : max;
@@ -156,31 +156,31 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   // Get value from mouse position with RTL support
   const getValueFromPosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return minRange;
-    
+
     const rect = sliderRef.current.getBoundingClientRect();
     let percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    
+
     // Flip percentage for RTL
     if (dir === 'rtl') {
       percent = 100 - percent;
     }
-    
+
     const value = (percent / 100) * (maxRange - minRange) + minRange;
-    
+
     return Math.round(value / step) * step;
   }, [minRange, maxRange, step, dir]);
 
   // Handle mouse down on thumbs
   const handleThumbMouseDown = useCallback((thumb: 'min' | 'max') => (e: React.MouseEvent) => {
     if (disabled) return;
-    
+
     e.preventDefault();
     setIsDragging(thumb);
     setHoveredThumb(null);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const value = getValueFromPosition(moveEvent.clientX);
-      
+
       if (thumb === 'min') {
         const newMin = Math.max(minRange, Math.min(value, maxVal - step));
         setMinVal(newMin);
@@ -242,11 +242,11 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   // Handle input field changes
   const handleInputChange = useCallback((type: 'min' | 'max', inputValue: string) => {
     isUserTyping.current[type] = true;
-    
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
-    
+
     debounceTimer.current = setTimeout(() => {
       if (inputValue === '') {
         if (type === 'min') {
@@ -272,7 +272,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
           }
         }
       }
-      
+
       isUserTyping.current[type] = false;
     }, 500); // Reduced from 800ms for better UX
   }, [minVal, maxVal, minRange, maxRange, step, debouncedOnChange]);
@@ -282,8 +282,8 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
   }`;
 
   return (
-    <div 
-      className={`${SLIDER_CLASSES.CONTAINER} ${className} ${LAYOUT_CLASSES.MODAL_COMPATIBLE}`} 
+    <div
+      className={`${SLIDER_CLASSES.CONTAINER} ${className} ${LAYOUT_CLASSES.MODAL_COMPATIBLE}`}
       dir={dir}
       role="group"
       aria-label="Price range selector"
@@ -362,13 +362,13 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
 
       {/* Slider - MOVED BELOW INPUTS like Blocket design */}
       <div className={`${SLIDER_CLASSES.TRACK_CONTAINER} overflow-visible`}>
-        <div 
+        <div
           ref={sliderRef}
           className={`${SLIDER_CLASSES.TRACK_BASE} ${disabled ? SLIDER_CLASSES.DISABLED : ''} relative`}
           onClick={handleTrackClick}
         >
           {/* Active track */}
-          <div 
+          <div
             className={SLIDER_CLASSES.TRACK_ACTIVE}
             style={{
               left: `${trackLeft}%`,
@@ -379,9 +379,9 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
           {/* Min thumb */}
           <div
             className={`${thumbClassName} ${
-              isDragging === 'min' 
+              isDragging === 'min'
                 ? SLIDER_CLASSES.THUMB_ACTIVE
-                : hoveredThumb === 'min' 
+                : hoveredThumb === 'min'
                   ? SLIDER_CLASSES.THUMB_HOVER
                   : ''
             }`}
@@ -389,10 +389,10 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
               left: `${adjustedMinPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
-                isDragging === 'min' 
-                  ? 'scale(1.1)' 
-                  : hoveredThumb === 'min' 
-                    ? 'scale(1.05)' 
+                isDragging === 'min'
+                  ? 'scale(1.1)'
+                  : hoveredThumb === 'min'
+                    ? 'scale(1.05)'
                     : 'scale(1)'
               }`,
               // Prevent layout shifts by ensuring consistent positioning
@@ -420,15 +420,15 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             }}
             onKeyDown={(e) => {
               if (disabled) return;
-              
+
               // In RTL, left arrow should increase and right arrow should decrease
-              const isDecrease = dir === 'rtl' 
+              const isDecrease = dir === 'rtl'
                 ? (e.key === 'ArrowRight' || e.key === 'ArrowDown')
                 : (e.key === 'ArrowLeft' || e.key === 'ArrowDown');
               const isIncrease = dir === 'rtl'
                 ? (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
                 : (e.key === 'ArrowRight' || e.key === 'ArrowUp');
-              
+
               if (isDecrease) {
                 e.preventDefault();
                 const newValue = Math.max(minRange, minVal - step);
@@ -446,9 +446,9 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
           {/* Max thumb */}
           <div
             className={`${thumbClassName} ${
-              isDragging === 'max' 
+              isDragging === 'max'
                 ? SLIDER_CLASSES.THUMB_ACTIVE
-                : hoveredThumb === 'max' 
+                : hoveredThumb === 'max'
                   ? SLIDER_CLASSES.THUMB_HOVER
                   : ''
             }`}
@@ -456,10 +456,10 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
               left: `${adjustedMaxPosition}%`,
               top: '50%',
               transform: `translate(-50%, -50%) ${
-                isDragging === 'max' 
-                  ? 'scale(1.1)' 
-                  : hoveredThumb === 'max' 
-                    ? 'scale(1.05)' 
+                isDragging === 'max'
+                  ? 'scale(1.1)'
+                  : hoveredThumb === 'max'
+                    ? 'scale(1.05)'
                     : 'scale(1)'
               }`,
               // Prevent layout shifts by ensuring consistent positioning
@@ -487,15 +487,15 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             }}
             onKeyDown={(e) => {
               if (disabled) return;
-              
+
               // In RTL, left arrow should increase and right arrow should decrease
-              const isDecrease = dir === 'rtl' 
+              const isDecrease = dir === 'rtl'
                 ? (e.key === 'ArrowRight' || e.key === 'ArrowDown')
                 : (e.key === 'ArrowLeft' || e.key === 'ArrowDown');
               const isIncrease = dir === 'rtl'
                 ? (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
                 : (e.key === 'ArrowRight' || e.key === 'ArrowUp');
-              
+
               if (isDecrease) {
                 e.preventDefault();
                 const newValue = Math.max(minVal + step, maxVal - step);
@@ -510,14 +510,14 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
             }}
           />
         </div>
-        
+
         {/* Range labels aligned with slider track */}
         <div className="flex justify-between text-sm text-gray-500 mt-2 px-3">
           <span>{formatValue ? formatValue(minRange) : minRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
           <span>{formatValue ? formatValue(maxRange) : maxRange.toLocaleString()}{unit ? ` ${unit}` : ''}</span>
         </div>
       </div>
-      
+
     </div>
   );
 });

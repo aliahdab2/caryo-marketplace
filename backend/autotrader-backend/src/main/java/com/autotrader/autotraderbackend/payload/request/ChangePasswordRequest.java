@@ -16,20 +16,20 @@ public class ChangePasswordRequest {
     private String newPassword;
 
     // Explicit Getters
-    public String getCurrentPassword() { 
-        return currentPassword; 
+    public String getCurrentPassword() {
+        return currentPassword;
     }
-    
-    public String getNewPassword() { 
-        return newPassword; 
+
+    public String getNewPassword() {
+        return newPassword;
     }
 
     // Explicit Setters
-    public void setCurrentPassword(String currentPassword) { 
-        this.currentPassword = currentPassword; 
+    public void setCurrentPassword(String currentPassword) {
+        this.currentPassword = currentPassword;
     }
-    
-    public void setNewPassword(String newPassword) { 
-        this.newPassword = newPassword; 
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
 }

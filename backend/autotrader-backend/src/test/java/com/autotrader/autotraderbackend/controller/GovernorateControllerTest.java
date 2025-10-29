@@ -55,7 +55,7 @@ class GovernorateControllerTest {
 
     @MockBean
     private com.autotrader.autotraderbackend.security.jwt.JwtUtils jwtUtils;
-    
+
     @MockBean
     private com.autotrader.autotraderbackend.security.services.UserDetailsServiceImpl userDetailsService;
 
@@ -101,10 +101,10 @@ class GovernorateControllerTest {
     private void validateTestData() {
         assertNotNull(damascusGovernorate, "Damascus governorate must not be null");
         assertNotNull(aleppoGovernorate, "Aleppo governorate must not be null");
-        
+
         Objects.requireNonNull(damascusGovernorate.getId(), "Damascus governorate ID must not be null");
         Objects.requireNonNull(aleppoGovernorate.getId(), "Aleppo governorate ID must not be null");
-        
+
         // Validate that required strings are not empty
         validateGovernorateStrings(damascusGovernorate);
         validateGovernorateStrings(aleppoGovernorate);
@@ -160,10 +160,10 @@ class GovernorateControllerTest {
     @WithMockUser
     @ValueSource(strings = {"SY", "JO", "AE"})
     void getGovernoratesByCountry_shouldHandleValidCountryCodes(String countryCode) throws Exception {
-        List<GovernorateResponse> governorates = COUNTRY_CODE_SY.equals(countryCode) 
-            ? syrianGovernorates 
+        List<GovernorateResponse> governorates = COUNTRY_CODE_SY.equals(countryCode)
+            ? syrianGovernorates
             : Collections.emptyList();
-            
+
         given(governorateService.getGovernoratesByCountry(countryCode))
             .willReturn(governorates);
 
@@ -193,13 +193,13 @@ class GovernorateControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
-    
+
     @Test
     @WithMockUser
     void getGovernoratesByEmptyCountryCode_shouldReturn200WithEmptyList() throws Exception {
         given(governorateService.getGovernoratesByCountry(""))
             .willReturn(Collections.emptyList());
-            
+
         mockMvc.perform(get(BASE_URL + "/country/{countryCode}", ""))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -233,13 +233,13 @@ class GovernorateControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
-    
+
     @Test
     @WithMockUser
     void getGovernorateByEmptySlug_shouldReturn404() throws Exception {
         given(governorateService.getGovernorateBySlug(""))
             .willReturn(null);
-            
+
         mockMvc.perform(get(BASE_URL + "/{slug}", ""))
                 .andDo(print())
                 .andExpect(status().isNotFound());

@@ -166,7 +166,7 @@ class FuelTypeServiceTest {
         updatedFuelType.setName("diesel");
         updatedFuelType.setDisplayNameEn("Diesel");
         updatedFuelType.setDisplayNameAr("ديزل");
-        
+
         when(fuelTypeRepository.findById(1L)).thenReturn(Optional.of(testFuelType));
         when(fuelTypeRepository.save(any(FuelType.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,7 +178,7 @@ class FuelTypeServiceTest {
         assertEquals(updatedFuelType.getName(), result.getName());
         assertEquals(updatedFuelType.getDisplayNameEn(), result.getDisplayNameEn());
         assertEquals(updatedFuelType.getDisplayNameAr(), result.getDisplayNameAr());
-        
+
         verify(fuelTypeRepository, times(1)).findById(1L);
         verify(fuelTypeRepository, times(1)).save(any(FuelType.class));
     }
@@ -188,10 +188,10 @@ class FuelTypeServiceTest {
         // Arrange
         when(fuelTypeRepository.findById(1L)).thenReturn(Optional.of(testFuelType));
         doNothing().when(fuelTypeRepository).delete(testFuelType);
-        
+
         // Act
         fuelTypeService.deleteFuelType(1L);
-        
+
         // Assert
         verify(fuelTypeRepository, times(1)).findById(1L);
         verify(fuelTypeRepository, times(1)).delete(testFuelType);

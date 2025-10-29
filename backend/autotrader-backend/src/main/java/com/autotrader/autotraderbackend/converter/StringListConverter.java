@@ -27,7 +27,7 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
         if (attribute == null || attribute.isEmpty()) {
             return "[]";
         }
-        
+
         try {
             String json = objectMapper.writeValueAsString(attribute);
             log.debug("Converting list to JSON: {} -> {}", attribute, json);
@@ -43,7 +43,7 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
         if (dbData == null || dbData.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         // Handle edge case where database has double-encoded JSON string like "[]" instead of []
         String cleanedData = dbData.trim();
         if (cleanedData.startsWith("\"") && cleanedData.endsWith("\"") && cleanedData.length() >= 2) {
@@ -51,7 +51,7 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
             cleanedData = cleanedData.substring(1, cleanedData.length() - 1);
             log.debug("Removed outer quotes from JSON: {} -> {}", dbData, cleanedData);
         }
-        
+
         try {
             List<String> list = objectMapper.readValue(cleanedData, listTypeRef);
             log.debug("Converting JSON to list: {} -> {}", cleanedData, list);

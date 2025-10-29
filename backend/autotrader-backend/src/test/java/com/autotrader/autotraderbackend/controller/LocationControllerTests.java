@@ -45,8 +45,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = LocationController.class, 
-    includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, 
+@WebMvcTest(controllers = LocationController.class,
+    includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
         classes = com.autotrader.autotraderbackend.exception.GlobalExceptionHandler.class))
 @Import(com.autotrader.autotraderbackend.config.TestSecurityConfig.class)
 class LocationControllerTests {
@@ -56,7 +56,7 @@ class LocationControllerTests {
 
     @MockBean
     private LocationService locationService;
-    
+
     // We need JwtUtils and UserDetailsServiceImpl for security context, even if not directly used in LocationController
     // If WebMvcTest loads security configuration, these might be needed.
     @MockBean private com.autotrader.autotraderbackend.security.jwt.JwtUtils jwtUtils;
@@ -86,7 +86,7 @@ class LocationControllerTests {
         locationResponse1.setLatitude(10.0);
         locationResponse1.setLongitude(20.0);
         locationResponse1.setActive(true);
-        
+
         locationResponse2 = new LocationResponse();
         locationResponse2.setId(2L);
         locationResponse2.setDisplayNameEn("City B");
@@ -153,7 +153,7 @@ class LocationControllerTests {
         mockMvc.perform(get("/api/locations/1"))
                 .andExpect(status().isNotFound());
     }
-    
+
     @Test
     @WithMockUser
     void getLocationBySlug_shouldReturnLocation_whenFound() throws Exception {
@@ -191,7 +191,7 @@ class LocationControllerTests {
                 .andExpect(jsonPath("$.size", is(1)))
                 .andExpect(jsonPath("$.totalElements", is(1)));
     }
-    
+
     // Admin-only endpoints
 
     @Test
@@ -206,7 +206,7 @@ class LocationControllerTests {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.displayNameEn", is("City A")));
     }
-    
+
     @Test
     @WithMockUser(roles = "USER") // Test with non-admin user
     void createLocation_asUser_shouldReturnForbidden() throws Exception {
@@ -216,7 +216,7 @@ class LocationControllerTests {
                         .content(objectMapper.writeValueAsString(locationRequest)))
                 .andExpect(status().isForbidden());
     }
-    
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void createLocation_asAdmin_withInvalidData_shouldReturnBadRequest() throws Exception {
@@ -243,7 +243,7 @@ class LocationControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.displayNameEn", is("City A")));
     }
-    
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void updateLocation_asAdmin_whenNotFound_shouldReturnNotFound() throws Exception {
@@ -265,7 +265,7 @@ class LocationControllerTests {
         mockMvc.perform(delete("/api/locations/1").with(csrf()))
                 .andExpect(status().isNoContent());
     }
-    
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteLocation_asAdmin_whenNotFound_shouldReturnNotFound() throws Exception {
@@ -293,7 +293,7 @@ class LocationControllerTests {
         updatedLocationResponse.setLatitude(10.0);
         updatedLocationResponse.setLongitude(20.0);
         updatedLocationResponse.setActive(false); // Status changed to false
-        
+
         given(locationService.setLocationActive(1L, false)).willReturn(updatedLocationResponse);
 
         Map<String, Boolean> statusUpdate = Map.of("active", false);
@@ -305,13 +305,13 @@ class LocationControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active", is(false)));
     }
-    
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void updateLocationStatus_asAdmin_whenLocationNotFound_shouldReturnNotFound() throws Exception {
         given(locationService.setLocationActive(1L, false))
             .willThrow(new ResourceNotFoundException("Location", "id", 1L));
-        
+
         Map<String, Boolean> statusUpdate = Map.of("active", false);
 
         mockMvc.perform(patch("/api/locations/1/status")

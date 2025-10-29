@@ -16,48 +16,48 @@ describe('FilterChip', () => {
 
   it('calls onRemove when remove button is clicked', () => {
     render(<FilterChip label="Test Filter" onRemove={mockOnRemove} />);
-    
+
     const removeButton = screen.getByRole('button', { name: /remove filter/i });
     fireEvent.click(removeButton);
-    
+
     expect(mockOnRemove).toHaveBeenCalledTimes(1);
   });
 
   it('renders with custom remove button label', () => {
     render(
-      <FilterChip 
-        label="Test Filter" 
-        onRemove={mockOnRemove} 
+      <FilterChip
+        label="Test Filter"
+        onRemove={mockOnRemove}
         removeButtonLabel="Remove test filter"
       />
     );
-    
+
     expect(screen.getByRole('button', { name: /remove test filter/i })).toBeInTheDocument();
   });
 
   it('renders with icon when provided', () => {
     const TestIcon = () => <div data-testid="test-icon">🚗</div>;
-    
+
     render(
-      <FilterChip 
-        label="Test Filter" 
-        onRemove={mockOnRemove} 
+      <FilterChip
+        label="Test Filter"
+        onRemove={mockOnRemove}
         icon={<TestIcon />}
       />
     );
-    
+
     expect(screen.getByTestId('test-icon')).toBeInTheDocument();
   });
 
   it('applies custom className when provided', () => {
     const { container } = render(
-      <FilterChip 
-        label="Test Filter" 
-        onRemove={mockOnRemove} 
+      <FilterChip
+        label="Test Filter"
+        onRemove={mockOnRemove}
         className="custom-class"
       />
     );
-    
+
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
@@ -65,7 +65,7 @@ describe('FilterChip', () => {
     const { container } = render(
       <FilterChip label="Test Filter" onRemove={mockOnRemove} />
     );
-    
+
     const chip = container.firstChild as HTMLElement;
     expect(chip).toHaveClass(
       'group',
@@ -85,7 +85,7 @@ describe('FilterChip', () => {
 
   it('renders close icon', () => {
     render(<FilterChip label="Test Filter" onRemove={mockOnRemove} />);
-    
+
     // The MdClose icon should be present
     const removeButton = screen.getByRole('button');
     expect(removeButton.querySelector('svg')).toBeInTheDocument();
@@ -93,13 +93,13 @@ describe('FilterChip', () => {
 
   it('applies brand variant styling when variant is brand', () => {
     const { container } = render(
-      <FilterChip 
-        label="Brand Filter" 
-        onRemove={mockOnRemove} 
+      <FilterChip
+        label="Brand Filter"
+        onRemove={mockOnRemove}
         variant="brand"
       />
     );
-    
+
     const chip = container.firstChild as HTMLElement;
     expect(chip).toHaveClass(
       'bg-gradient-to-r',
@@ -112,13 +112,13 @@ describe('FilterChip', () => {
 
   it('applies default variant styling when variant is default', () => {
     const { container } = render(
-      <FilterChip 
-        label="Default Filter" 
-        onRemove={mockOnRemove} 
+      <FilterChip
+        label="Default Filter"
+        onRemove={mockOnRemove}
         variant="default"
       />
     );
-    
+
     const chip = container.firstChild as HTMLElement;
     expect(chip).toHaveClass(
       'bg-gray-100',
@@ -126,4 +126,4 @@ describe('FilterChip', () => {
       'text-gray-700'
     );
   });
-}); 
+});

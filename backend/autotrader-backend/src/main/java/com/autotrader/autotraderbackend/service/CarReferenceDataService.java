@@ -31,11 +31,11 @@ public class CarReferenceDataService {
      */
     public Map<String, Object> getAllReferenceData() {
         Map<String, Object> referenceData = new HashMap<>();
-        
+
         // Get hierarchical car data (brands, models, trims)
         List<CarBrand> carHierarchy = carReferenceFilterService.getActiveCarHierarchy();
         referenceData.put("carHierarchy", carHierarchy);
-        
+
         // Get simple reference data lists
         referenceData.put("conditions", carConditionService.getAllConditions());
         referenceData.put("driveTypes", driveTypeService.getAllDriveTypes());
@@ -43,10 +43,10 @@ public class CarReferenceDataService {
         referenceData.put("fuelTypes", fuelTypeService.getAllFuelTypes());
         referenceData.put("transmissions", transmissionService.getAllTransmissions());
         referenceData.put("sellerTypes", sellerTypeService.getAllSellerTypes());
-        
+
         return referenceData;
     }
-    
+
     /**
      * Get filtered reference data based on a search query
      * @param query Search query
@@ -54,11 +54,11 @@ public class CarReferenceDataService {
      */
     public Map<String, Object> searchReferenceData(String query) {
         Map<String, Object> referenceData = new HashMap<>();
-        
+
         // Search hierarchical car data
         List<CarBrand> carHierarchy = carReferenceFilterService.searchCarHierarchy(query);
         referenceData.put("carHierarchy", carHierarchy);
-        
+
         // Search simple reference data lists
         referenceData.put("conditions", carConditionService.searchConditions(query));
         referenceData.put("driveTypes", driveTypeService.searchDriveTypes(query));
@@ -66,10 +66,10 @@ public class CarReferenceDataService {
         referenceData.put("fuelTypes", fuelTypeService.searchFuelTypes(query));
         referenceData.put("transmissions", transmissionService.searchTransmissions(query));
         referenceData.put("sellerTypes", sellerTypeService.searchSellerTypes(query));
-        
+
         return referenceData;
     }
-    
+
     /**
      * Get only the basic car reference data (brands, models, trims)
      * @return Car hierarchy data

@@ -20,7 +20,7 @@ import { useRTL } from '@/hooks/useRTL';
 
 function MyComponent() {
   const { isRTL, dir, textAlign, marginStart, getInlineStyles } = useRTL();
-  
+
   return (
     <div dir={dir} className={textAlign} style={getInlineStyles()}>
       <span className={marginStart('2')}>Content</span>
@@ -101,7 +101,7 @@ return (
 
 Currently supported RTL languages:
 - Arabic (`ar`)
-- Hebrew (`he`) 
+- Hebrew (`he`)
 - Persian/Farsi (`fa`)
 - Urdu (`ur`)
 
@@ -117,7 +117,7 @@ Instead of hardcoding `ml-4` or `mr-4`, use semantic utilities:
 // ❌ Bad
 <div className="ml-4"> // Always left margin
 
-// ✅ Good  
+// ✅ Good
 <div className={marginStart('4')}> // Contextual margin
 ```
 
@@ -192,7 +192,7 @@ jest.mock('react-i18next', () => ({
 test('RTL utilities work correctly', () => {
   const TestComponent = () => {
     const { isRTL, textAlign, marginStart } = useRTL();
-    
+
     return (
       <div data-testid="container" className={textAlign}>
         <span data-testid="element" className={marginStart('4')}>
@@ -201,9 +201,9 @@ test('RTL utilities work correctly', () => {
       </div>
     );
   };
-  
+
   const { getByTestId } = render(<TestComponent />);
-  
+
   expect(getByTestId('container')).toHaveClass('text-right');
   expect(getByTestId('element')).toHaveClass('mr-4');
 });

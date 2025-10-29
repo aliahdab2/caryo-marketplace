@@ -240,7 +240,7 @@ export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormPro
   function handleSubmit() {
     // Ensure validation flag is set before submission
     updateUIState({ hasAttemptedValidation: true });
-    
+
     // Run final validation before submission
     const validation = validateCurrentStep();
     if (!validation.isValid) {
@@ -278,7 +278,7 @@ export default function SignupForm({ callbackUrl = '/dashboard' }: SignupFormPro
       }
       return; // Don't proceed with submission if validation fails
     }
-    
+
     submitSignup();
   }
 

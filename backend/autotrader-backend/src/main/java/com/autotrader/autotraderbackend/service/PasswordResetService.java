@@ -23,42 +23,42 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @Transactional
 public class PasswordResetService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetService.class);
     private static final int TOKEN_EXPIRY_HOURS = 1; // Reduced to 1 hour for security
     private static final int TOKEN_LENGTH = 32; // 32 bytes = 256 bits
     private static final int MAX_ATTEMPTS_PER_EMAIL = 3; // Max attempts per email per hour
     private static final int MAX_ATTEMPTS_PER_IP = 10; // Max attempts per IP per hour
-    
+
     // Rate limiting maps (in production, use Redis or database)
     private final ConcurrentHashMap<String, AttemptTracker> emailAttempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AttemptTracker> ipAttempts = new ConcurrentHashMap<>();
-    
+
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private PasswordValidator passwordValidator;
-    
+
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
-    
+
     /**
      * Helper class to track rate limiting attempts
      */
     private static class AttemptTracker {
         private final AtomicInteger count = new AtomicInteger(0);
         private volatile LocalDateTime resetTime = LocalDateTime.now().plusHours(1);
-        
+
         public boolean canAttempt(int maxAttempts) {
             LocalDateTime now = LocalDateTime.now();
             if (now.isAfter(resetTime)) {
@@ -67,7 +67,7 @@ public class PasswordResetService {
             }
             return count.incrementAndGet() <= maxAttempts;
         }
-        
+
         public int getAttemptCount() {
             return count.get();
         }
@@ -84,65 +84,65 @@ public class PasswordResetService {
                 logger.warn("Password reset attempted with empty email from IP: {}", clientIp);
                 return PasswordResetResult.error("Invalid email address");
             }
-            
+
             String normalizedEmail = email.trim().toLowerCase();
-            
+
             // Rate limiting checks
             if (!canAttemptForEmail(normalizedEmail)) {
                 logger.warn("Rate limit exceeded for email: {} from IP: {}", normalizedEmail, clientIp);
                 return PasswordResetResult.rateLimited("Too many password reset attempts. Please try again later.");
             }
-            
+
             if (!canAttemptForIp(clientIp)) {
                 logger.warn("Rate limit exceeded for IP: {}", clientIp);
                 return PasswordResetResult.rateLimited("Too many password reset attempts from this location. Please try again later.");
             }
-            
+
             Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
-            
+
             if (userOpt.isEmpty()) {
                 // For security, we don't reveal if email exists or not
                 logger.info("Password reset requested for non-existent email: {} from IP: {}", normalizedEmail, clientIp);
                 // Still return success to not reveal email existence
                 return PasswordResetResult.success("If the email exists, a password reset link has been sent.");
             }
-            
+
             User user = userOpt.get();
-            
+
             // Check if user has too many recent tokens
             Optional<PasswordResetToken> recentToken = tokenRepository.findValidTokenByUser(user, LocalDateTime.now());
             if (recentToken.isPresent()) {
                 logger.info("User {} already has a valid token, not creating new one", user.getUsername());
                 return PasswordResetResult.success("If the email exists, a password reset link has been sent.");
             }
-            
+
             // Invalidate any existing tokens for this user
             tokenRepository.invalidateAllUserTokens(user);
-            
+
             // Generate secure token
             String token = generateSecureToken();
             LocalDateTime expiryDate = LocalDateTime.now().plusHours(TOKEN_EXPIRY_HOURS);
-            
+
             // Create and save token
             PasswordResetToken resetToken = new PasswordResetToken(token, user, expiryDate);
             tokenRepository.save(resetToken);
-            
+
             // Send email with reset link (do not fail the flow if email sending fails)
             String resetUrl = frontendUrl + "/auth/reset-password?token=" + token;
             try {
                 String userLanguage = detectUserLanguage(user, clientIp);
                 emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetUrl, userLanguage);
-                logger.info("Password reset email sent to user: {} from IP: {} in language: {}", 
+                logger.info("Password reset email sent to user: {} from IP: {} in language: {}",
                     user.getUsername(), clientIp, userLanguage);
             } catch (Exception emailError) {
-                logger.error("Password reset token created but email sending failed for user {}: {}", 
+                logger.error("Password reset token created but email sending failed for user {}: {}",
                     user.getUsername(), emailError.getMessage());
                 // Continue without failing - token is still valid
             }
-            
+
             logger.info("Password reset token created for user: {} from IP: {}", user.getUsername(), clientIp);
             return PasswordResetResult.success("If the email exists, a password reset link has been sent.");
-            
+
         } catch (Exception e) {
             logger.error("Error initiating password reset for email: {} from IP: {}", email, clientIp, e);
             return PasswordResetResult.error("An error occurred while processing your request. Please try again later.");
@@ -154,11 +154,11 @@ public class PasswordResetService {
      */
     public boolean validateResetToken(String token) {
         Optional<PasswordResetToken> tokenOpt = tokenRepository.findByTokenAndUsedFalse(token);
-        
+
         if (tokenOpt.isEmpty()) {
             return false;
         }
-        
+
         PasswordResetToken resetToken = tokenOpt.get();
         return resetToken.isValid();
     }
@@ -173,68 +173,68 @@ public class PasswordResetService {
                 logger.warn("Password reset attempted with empty token from IP: {}", clientIp);
                 return PasswordResetResult.error("Invalid token");
             }
-            
+
             if (newPassword == null || newPassword.trim().isEmpty()) {
                 logger.warn("Password reset attempted with empty password from IP: {}", clientIp);
                 return PasswordResetResult.error("Password cannot be empty");
             }
-            
+
             // Validate password strength
             PasswordValidator.PasswordValidationResult validationResult = passwordValidator.validatePassword(newPassword);
             if (!validationResult.isValid()) {
                 logger.warn("Password reset attempted with weak password from IP: {}", clientIp);
                 return PasswordResetResult.error("Password does not meet security requirements: " + validationResult.getErrorMessage());
             }
-            
+
             Optional<PasswordResetToken> tokenOpt = tokenRepository.findByTokenAndUsedFalse(token.trim());
-            
+
             if (tokenOpt.isEmpty()) {
                 logger.warn("Invalid or used password reset token from IP: {}", clientIp);
                 return PasswordResetResult.error("Invalid or expired reset token");
             }
-            
+
             PasswordResetToken resetToken = tokenOpt.get();
-            
+
             if (!resetToken.isValid()) {
                 logger.warn("Expired password reset token from IP: {}", clientIp);
                 return PasswordResetResult.error("Invalid or expired reset token");
             }
-            
+
             User user = resetToken.getUser();
-            
+
             // Check if new password is same as current password
             if (passwordEncoder.matches(newPassword, user.getPassword())) {
                 logger.warn("User {} attempted to reset password to same password from IP: {}", user.getUsername(), clientIp);
                 return PasswordResetResult.error("New password must be different from your current password");
             }
-            
+
             // Update password
             String encodedPassword = passwordEncoder.encode(newPassword);
             user.setPassword(encodedPassword);
             userRepository.save(user);
-            
+
             // Mark token as used
             resetToken.setUsed(true);
             tokenRepository.save(resetToken);
-            
+
             // Invalidate all other tokens for this user
             tokenRepository.invalidateAllUserTokens(user);
-            
+
             // Send confirmation email (don't fail if email fails)
             try {
                 String userLanguage = detectUserLanguage(user, clientIp);
                 emailService.sendPasswordResetConfirmationEmail(user.getEmail(), user.getUsername(), userLanguage);
-                logger.info("Password reset confirmation email sent to user: {} from IP: {} in language: {}", 
+                logger.info("Password reset confirmation email sent to user: {} from IP: {} in language: {}",
                     user.getUsername(), clientIp, userLanguage);
             } catch (Exception emailError) {
-                logger.error("Failed to send password reset confirmation email to user {}: {}", 
+                logger.error("Failed to send password reset confirmation email to user {}: {}",
                     user.getUsername(), emailError.getMessage());
                 // Continue without failing - password was successfully reset
             }
-            
+
             logger.info("Password successfully reset for user: {} from IP: {}", user.getUsername(), clientIp);
             return PasswordResetResult.success("Password has been reset successfully!");
-            
+
         } catch (Exception e) {
             logger.error("Error resetting password from IP: {}", clientIp, e);
             return PasswordResetResult.error("An error occurred while resetting your password. Please try again later.");
@@ -262,7 +262,7 @@ public class PasswordResetService {
         secureRandom.nextBytes(tokenBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
-    
+
     /**
      * Check if email can attempt password reset (rate limiting)
      */
@@ -270,7 +270,7 @@ public class PasswordResetService {
         return emailAttempts.computeIfAbsent(email, k -> new AttemptTracker())
                           .canAttempt(MAX_ATTEMPTS_PER_EMAIL);
     }
-    
+
     /**
      * Detect user's preferred language based on various factors
      * Implements multi-factor language detection for better UX
@@ -386,7 +386,7 @@ public class PasswordResetService {
 
         return null; // Could not determine language from IP
     }
-    
+
     /**
      * Check if IP can attempt password reset (rate limiting)
      */
@@ -394,7 +394,7 @@ public class PasswordResetService {
         return ipAttempts.computeIfAbsent(ip, k -> new AttemptTracker())
                         .canAttempt(MAX_ATTEMPTS_PER_IP);
     }
-    
+
     /**
      * Get current attempt count for email (for monitoring)
      */
@@ -402,7 +402,7 @@ public class PasswordResetService {
         AttemptTracker tracker = emailAttempts.get(email);
         return tracker != null ? tracker.getAttemptCount() : 0;
     }
-    
+
     /**
      * Get current attempt count for IP (for monitoring)
      */
@@ -410,7 +410,7 @@ public class PasswordResetService {
         AttemptTracker tracker = ipAttempts.get(ip);
         return tracker != null ? tracker.getAttemptCount() : 0;
     }
-    
+
     /**
      * Result class for password reset operations
      */
@@ -418,46 +418,46 @@ public class PasswordResetService {
         private final boolean success;
         private final String message;
         private final ResultType type;
-        
+
         private PasswordResetResult(boolean success, String message, ResultType type) {
             this.success = success;
             this.message = message;
             this.type = type;
         }
-        
+
         public static PasswordResetResult success(String message) {
             return new PasswordResetResult(true, message, ResultType.SUCCESS);
         }
-        
+
         public static PasswordResetResult error(String message) {
             return new PasswordResetResult(false, message, ResultType.ERROR);
         }
-        
+
         public static PasswordResetResult rateLimited(String message) {
             return new PasswordResetResult(false, message, ResultType.RATE_LIMITED);
         }
-        
+
         public boolean isSuccess() {
             return success;
         }
-        
+
         public String getMessage() {
             return message;
         }
-        
+
         public ResultType getType() {
             return type;
         }
-        
+
         public boolean isRateLimited() {
             return type == ResultType.RATE_LIMITED;
         }
-        
+
         public enum ResultType {
             SUCCESS, ERROR, RATE_LIMITED
         }
     }
-    
+
     /**
      * Clear rate limiting cache - useful for testing
      */

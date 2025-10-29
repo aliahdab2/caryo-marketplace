@@ -30,9 +30,9 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
   const galleryRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -40,7 +40,7 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
     const readDate = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - readDate.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) {
       return 'Just now';
     } else if (diffInMinutes < 60) {
@@ -49,8 +49,8 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
       const hours = Math.floor(diffInMinutes / 60);
       return `${hours}h ago`;
     } else {
-      return readDate.toLocaleDateString([], { 
-        month: 'short', 
+      return readDate.toLocaleDateString([], {
+        month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
@@ -60,7 +60,7 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
 
   const getReadStatusIcon = () => {
     if (!isOwn) return null;
-    
+
     if (message.isRead) {
       return (
         <div className="relative group">
@@ -92,7 +92,7 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
   };
 
   // Extract all images from attachments for gallery
-  const imageAttachments = message.attachments?.filter(attachment => 
+  const imageAttachments = message.attachments?.filter(attachment =>
     attachment.image || attachment.contentType?.startsWith('image/')
   ) || [];
 
@@ -105,7 +105,7 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
   const handleImageClick = (clickedAttachment: AttachmentType) => {
     const clickedIndex = imageAttachments.findIndex(att => att.id === clickedAttachment.id);
     setSelectedImageIndex(clickedIndex >= 0 ? clickedIndex : 0);
-    
+
     // Trigger the CarMediaGallery modal by simulating a click on the gallery
     setTimeout(() => {
       if (galleryRef.current) {
@@ -167,7 +167,7 @@ export default function MessageBubble({ message, isOwn, isRTL: _isRTL, onDownloa
 
       {/* CarMediaGallery with built-in modal - hidden but functional */}
       {galleryMedia.length > 0 && (
-        <div 
+        <div
           ref={galleryRef}
           className="fixed top-0 left-0 w-0 h-0 overflow-hidden opacity-0"
           style={{ zIndex: -1 }}
@@ -216,7 +216,7 @@ function AttachmentDisplay({ attachment, isOwn, onDownloadDocument, onImageClick
 
   // Document attachment
   return (
-    <div 
+    <div
       className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
       onClick={() => onDownloadDocument(attachment.fileUrl, attachment.fileName)}
       title={`Download ${attachment.fileName}`}
@@ -247,7 +247,7 @@ function DocumentIcon({ contentType }: { contentType?: string }) {
       </div>
     );
   }
-  
+
   if (contentType?.includes('word')) {
     return (
       <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center">
@@ -255,7 +255,7 @@ function DocumentIcon({ contentType }: { contentType?: string }) {
       </div>
     );
   }
-  
+
   if (contentType?.includes('excel') || contentType?.includes('spreadsheet')) {
     return (
       <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded flex items-center justify-center">
@@ -263,7 +263,7 @@ function DocumentIcon({ contentType }: { contentType?: string }) {
       </div>
     );
   }
-  
+
   return (
     <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center">
       <span className="text-gray-600 dark:text-gray-400 text-xs font-medium">TXT</span>

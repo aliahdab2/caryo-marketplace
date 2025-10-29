@@ -12,11 +12,11 @@ import java.util.List;
 
 /**
  * Enhanced JPA Specifications for CarListing filtering with slug-based brand/model support.
- * 
+ *
  * Implements AutoTrader UK style filtering using repeated query parameters:
  * - ?brandSlugs=toyota&brandSlugs=honda
  * - ?modelSlugs=camry&modelSlugs=accord
- * 
+ *
  * This approach provides maximum flexibility for filtering by multiple brands and models
  * across different brands, supporting complex search scenarios.
  */
@@ -25,7 +25,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for filtering car listings based on the provided filter criteria.
-     * 
+     *
      * @param filter The filter request containing search criteria
      * @param governorateEntity Optional governorate entity for location filtering
      * @return Specification for filtering car listings
@@ -37,7 +37,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for filtering car listings based on the provided filter criteria with multiple governorates.
-     * 
+     *
      * @param filter The filter request containing search criteria
      * @param governorateEntities Optional list of governorate entities for location filtering
      * @return Specification for filtering car listings
@@ -69,8 +69,8 @@ public class CarListingSpecification {
             addTransmissionFilter(filter, root, criteriaBuilder, predicates);
             addFuelTypeFilter(filter, root, criteriaBuilder, predicates);
             addBodyStyleFilter(filter, root, criteriaBuilder, predicates);
-            
-            
+
+
             // Add text search filter
             addSearchQueryFilter(filter, root, criteriaBuilder, predicates);
 
@@ -144,12 +144,12 @@ public class CarListingSpecification {
         // Validate slug filters (new fields don't need complex validation)
         List<String> brandSlugs = filter.getNormalizedBrandSlugs();
         List<String> modelSlugs = filter.getNormalizedModelSlugs();
-        
+
         // Basic validation - no need for complex brand filter validation anymore
         if (brandSlugs.size() > 50) {
             throw new IllegalArgumentException("Too many brand slugs provided (max 50)");
         }
-        
+
         if (modelSlugs.size() > 50) {
             throw new IllegalArgumentException("Too many model slugs provided (max 50)");
         }
@@ -159,29 +159,29 @@ public class CarListingSpecification {
     /**
      * Adds brand and model predicates using slug-based filtering.
      */
-    private static void addBrandModelPredicates(ListingFilterRequest filter, 
+    private static void addBrandModelPredicates(ListingFilterRequest filter,
                                               jakarta.persistence.criteria.Root<CarListing> root,
                                               jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                               List<Predicate> predicates) {
-        
+
         // Use slug-based filtering (AutoTrader UK pattern)
         List<String> brandSlugs = filter.getNormalizedBrandSlugs();
         List<String> modelSlugs = filter.getNormalizedModelSlugs();
-        
+
         // Brand filtering (supports multiple brands)
         if (!brandSlugs.isEmpty()) {
             Predicate brandPredicate = root.get("model").get("brand").get("slug").in(brandSlugs);
             predicates.add(brandPredicate);
-            
+
             // Log for debugging
             // Brand slug filter added
         }
-        
+
         // Model filtering (supports multiple models, can span multiple brands)
         if (!modelSlugs.isEmpty()) {
             Predicate modelPredicate = root.get("model").get("slug").in(modelSlugs);
             predicates.add(modelPredicate);
-            
+
             // Log for debugging
             // Model slug filter added
         }
@@ -189,13 +189,13 @@ public class CarListingSpecification {
 
     /**
      * NOTE: Removed automatic hiding of listings with inactive brands/models.
-     * 
+     *
      * Industry best practice (AutoTrader.co.uk, etc.) is to:
      * 1. Keep existing listings visible (historical accuracy)
      * 2. Prevent NEW listings with inactive brands/models
      * 3. Use status badges to indicate legacy/discontinued items
      * 4. Provide migration tools for bulk updates
-     * 
+     *
      * Automatically hiding listings causes:
      * - User confusion (listings disappear without explanation)
      * - Revenue loss (hidden active listings)
@@ -347,7 +347,7 @@ public class CarListingSpecification {
         if (filter.getBodyStyleIds() != null && !filter.getBodyStyleIds().isEmpty()) {
             predicates.add(root.get("bodyStyle").get("id").in(filter.getBodyStyleIds()));
         }
-        
+
         // Handle slug-based filtering
         if (filter.getBodyStyleSlugs() != null && !filter.getBodyStyleSlugs().isEmpty()) {
             predicates.add(root.get("bodyStyle").get("slug").in(filter.getBodyStyleSlugs()));
@@ -356,7 +356,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for approved listings only.
-     * 
+     *
      * @return Specification filtering for approved listings
      */
     public static Specification<CarListing> isApproved() {
@@ -365,7 +365,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for non-sold listings only.
-     * 
+     *
      * @return Specification filtering for non-sold listings
      */
     public static Specification<CarListing> isNotSold() {
@@ -374,7 +374,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for non-archived listings only.
-     * 
+     *
      * @return Specification filtering for non-archived listings
      */
     public static Specification<CarListing> isNotArchived() {
@@ -383,7 +383,7 @@ public class CarListingSpecification {
 
     /**
      * Creates a specification for listings with active users only.
-     * 
+     *
      * @return Specification filtering for active user listings
      */
     public static Specification<CarListing> isUserActive() {
@@ -401,34 +401,34 @@ public class CarListingSpecification {
                                            List<Predicate> predicates) {
         if (filter.getSearchQuery() != null && !filter.getSearchQuery().trim().isEmpty()) {
             String searchTerm = "%" + filter.getSearchQuery().trim().toLowerCase() + "%";
-            
+
             // Create predicates for searching in different fields
             List<Predicate> searchPredicates = new ArrayList<>();
-            
+
             // Search in listing title and description
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("title")), searchTerm));
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("description")), searchTerm));
-            
+
             // Search in brand names (English and Arabic)
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("brandNameEn")), searchTerm));
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("brandNameAr")), searchTerm));
-            
+
             // Search in model names (English and Arabic)
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("modelNameEn")), searchTerm));
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("modelNameAr")), searchTerm));
-            
+
             // Search in governorate names (English and Arabic)
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("governorateNameEn")), searchTerm));
             searchPredicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("governorateNameAr")), searchTerm));
-            
+
             // Combine all search predicates with OR (any field match is valid)
             predicates.add(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0])));
         }

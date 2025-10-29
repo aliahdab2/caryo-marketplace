@@ -34,12 +34,12 @@ export default function AuthDataHandler() {
         try {
           localStorage.setItem('authToken', user.accessToken);
           localStorage.setItem('username', user.name || '');
-          
+
           // Use roles from session (server-side auth provides these)
-          const roles = user.roles && Array.isArray(user.roles) && user.roles.length > 0 
-            ? user.roles 
+          const roles = user.roles && Array.isArray(user.roles) && user.roles.length > 0
+            ? user.roles
             : ['ROLE_USER']; // Default fallback
-          
+
           localStorage.setItem('userRoles', JSON.stringify(roles));
         } catch (error) {
           console.error('Error storing auth data in localStorage:', error);

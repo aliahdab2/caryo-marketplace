@@ -9,7 +9,7 @@ import '../mocks/i18n-mock';
 
 // Import the type for the mock and the mock itself for calling static methods
 // Corrected import path for SimpleVerificationProps
-import { type SimpleVerificationProps } from '@/types/components'; 
+import { type SimpleVerificationProps } from '@/types/components';
 import SimpleVerificationDefault from '@/components/auth/SimpleVerification';
 
 // Mock next-auth/react
@@ -147,9 +147,9 @@ describe('SignInPage', () => {
 
     (useSession as jest.Mock).mockReturnValue({ data: null, status: 'unauthenticated' });
     (signIn as jest.Mock).mockResolvedValue({ ok: true, error: null, url: '/dashboard' });
-    
+
     // Reset state for SimpleVerification mock
-    mockIsVerified = true; 
+    mockIsVerified = true;
     mockOnVerified.mockClear();
     lastOnVerifiedProp = null; // Reset the stored onVerified callback
 
@@ -183,28 +183,28 @@ describe('SignInPage', () => {
         <SignInPage />
       </QueryClientProvider>
     );
-    
+
     // Wait for initial verification to complete
     await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
-    
+
     // Get the form directly
     const form = container.querySelector('form');
     expect(form).toBeTruthy();
-    
+
     // Submit the form directly using fireEvent.submit
     await rtlAct(async () => {
       if (form) {
         fireEvent.submit(form);
       }
     });
-    
+
     // Check that error message is shown and sign in function not called
     await waitFor(() => {
       const errorAlert = screen.queryByRole('alert');
       expect(errorAlert).toBeTruthy();
       expect(errorAlert).toHaveTextContent(/Required fields are missing/i);
     });
-    
+
     expect(signIn).not.toHaveBeenCalled();
   });
 
@@ -233,7 +233,7 @@ describe('SignInPage', () => {
     await rtlAct(async () => { // Use renamed rtlAct here
       await userEvent.click(submitButton);
     });
-    
+
     // Check that signIn was called with the right parameters
     await waitFor(() => {
       expect(signIn).toHaveBeenCalledWith('credentials', expect.objectContaining({
@@ -242,7 +242,7 @@ describe('SignInPage', () => {
         password: 'password123',
       }));
     });
-    
+
     // Check successful login message
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(/login successful/i);
@@ -275,7 +275,7 @@ describe('SignInPage', () => {
     await rtlAct(async () => { // Use renamed rtlAct here
       await userEvent.click(submitButton);
     });
-    
+
     // Check error message (should show the translated error or the translation key)
     await waitFor(() => {
       const errorElement = screen.getByRole('alert');
@@ -285,7 +285,7 @@ describe('SignInPage', () => {
 
   test('button is disabled when verification is not complete', async () => {
     // Set initial state for this specific test
-    mockIsVerified = false; 
+    mockIsVerified = false;
 
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
     render(
@@ -297,9 +297,9 @@ describe('SignInPage', () => {
     // Initial state: verification not complete.
     let button = screen.getByRole('button', { name: /sign_in/i });
     await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(false));
-    
+
     expect(button).toBeDisabled();
-    expect(button).toHaveClass('opacity-70'); 
+    expect(button).toHaveClass('opacity-70');
     expect(button).toHaveClass('cursor-not-allowed');
 
     // Simulate verification completion by calling the static method on the imported mock
@@ -310,12 +310,12 @@ describe('SignInPage', () => {
     // Wait for the button to become enabled and all classes to update correctly
     await waitFor(() => {
       // Re-query the button inside waitFor to ensure we have the latest state
-      button = screen.getByRole('button', { name: /sign_in/i }); 
+      button = screen.getByRole('button', { name: /sign_in/i });
       expect(button).toBeEnabled();
       expect(button).not.toHaveClass('opacity-70');
       expect(button).not.toHaveClass('cursor-not-allowed');
       // The button receives 'hover-lift' when enabled, not 'opacity-100'
-      expect(button).toHaveClass('hover-lift'); 
+      expect(button).toHaveClass('hover-lift');
     });
   });
 });

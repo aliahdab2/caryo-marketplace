@@ -14,10 +14,10 @@ import java.util.Set;
 @Slf4j
 public class FileValidationService {
     private final Tika tika = new Tika();
-    
+
     @Value("${app.upload.max-file-size:5242880}") // 5MB default
     private long maxFileSize;
-    
+
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "image/jpeg",
         "image/png",

@@ -50,24 +50,24 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CarListingRepository carListingRepository;
 
     @Autowired
     private LocationRepository locationRepository;
-    
+
     @Autowired
     private CountryRepository countryRepository;
-    
+
     @Autowired
     private GovernorateRepository governorateRepository;
-    
+
     @Autowired
     private CarBrandRepository carBrandRepository;
-    
+
     @Autowired
-    private CarModelRepository carModelRepository; 
+    private CarModelRepository carModelRepository;
 
     private String baseUrl;
     private Long testLocationId;
@@ -87,13 +87,13 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         // Create a test location with country and governorate hierarchy
         // Save entities in the correct order to avoid constraint violations
         Location location = TestDataGenerator.createTestLocationWithHierarchy("XX");
-        
+
         // Save country first
         countryRepository.save(location.getGovernorate().getCountry());
-        
+
         // Save governorate second
         governorateRepository.save(location.getGovernorate());
-        
+
         // Finally save location
         Location savedLocation = locationRepository.save(location);
         testLocationId = savedLocation.getId();
@@ -106,7 +106,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         testBrand.setSlug("test-brand");
         testBrand.setIsActive(true);
         CarBrand savedBrand = carBrandRepository.save(testBrand);
-        
+
         CarModel testModel = new CarModel();
         testModel.setName("TestModel");
         testModel.setDisplayNameEn("Test Model");
@@ -159,7 +159,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
     }
 
     @Test
-    public void testCreateRetrieveApproveRetrieveCarListing() { 
+    public void testCreateRetrieveApproveRetrieveCarListing() {
         HttpHeaders userHeaders = getAuthHeaders("testuser", "password");
         Map<String, Object> createPayload = new HashMap<>();
         createPayload.put("title", "Test Car for Approval");

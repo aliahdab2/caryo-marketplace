@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Comprehensive test suite for {@link ValidCurrencyValidator}.
- * 
+ *
  * <p>Tests cover various scenarios including:</p>
  * <ul>
  *   <li>Valid currency codes (USD, SYP)</li>
@@ -65,7 +65,7 @@ class ValidCurrencyValidatorTest {
         void shouldAcceptSupportedCurrencies(String currency) {
             TestCurrencyHolder holder = new TestCurrencyHolder(currency);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
 
@@ -75,7 +75,7 @@ class ValidCurrencyValidatorTest {
         void shouldHandleCaseVariationsAndWhitespace(String currency) {
             TestCurrencyHolder holder = new TestCurrencyHolder(currency);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
 
@@ -84,7 +84,7 @@ class ValidCurrencyValidatorTest {
         void shouldAllowNullCurrency() {
             TestCurrencyHolder holder = new TestCurrencyHolder(null);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
     }
@@ -99,7 +99,7 @@ class ValidCurrencyValidatorTest {
         void shouldRejectUnsupportedCurrencies(String currency) {
             TestCurrencyHolder holder = new TestCurrencyHolder(currency);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).hasSize(1);
             assertThat(violations.iterator().next().getMessage())
                 .contains("Unsupported currency")
@@ -114,10 +114,10 @@ class ValidCurrencyValidatorTest {
         void shouldRejectInvalidFormats(String currency) {
             TestCurrencyHolder holder = new TestCurrencyHolder(currency);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).hasSize(1);
             ConstraintViolation<TestCurrencyHolder> violation = violations.iterator().next();
-            
+
             if (currency.trim().isEmpty()) {
                 assertThat(violation.getMessage()).contains("ISO 4217 format");
             } else if (!currency.matches("^[A-Z]{3}$") && !currency.trim().isEmpty()) {
@@ -130,10 +130,10 @@ class ValidCurrencyValidatorTest {
         void shouldProvideDetailedErrorMessage() {
             TestCurrencyHolder holder = new TestCurrencyHolder("EUR");
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).hasSize(1);
             String errorMessage = violations.iterator().next().getMessage();
-            
+
             assertThat(errorMessage)
                 .contains("Unsupported currency: 'EUR'")
                 .contains("Syrian marketplace supports: USD, SYP")
@@ -146,10 +146,10 @@ class ValidCurrencyValidatorTest {
         void shouldProvideFormatErrorMessage() {
             TestCurrencyHolder holder = new TestCurrencyHolder("US");
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).hasSize(1);
             String errorMessage = violations.iterator().next().getMessage();
-            
+
             assertThat(errorMessage)
                 .contains("Currency code must be exactly 3 letters")
                 .contains("ISO 4217 format")
@@ -165,7 +165,7 @@ class ValidCurrencyValidatorTest {
         @DisplayName("Should return correct supported currencies")
         void shouldReturnCorrectSupportedCurrencies() {
             Set<String> supportedCurrencies = ValidCurrencyValidator.getSupportedCurrencies();
-            
+
             assertThat(supportedCurrencies)
                 .hasSize(2)
                 .containsExactlyInAnyOrder("USD", "SYP");
@@ -202,13 +202,13 @@ class ValidCurrencyValidatorTest {
             // Test that USD is accepted (primary currency for car sales in Syria)
             TestCurrencyHolder usdHolder = new TestCurrencyHolder("USD");
             Set<ConstraintViolation<TestCurrencyHolder>> usdViolations = validator.validate(usdHolder);
-            
+
             assertThat(usdViolations).isEmpty();
-            
+
             // Test that SYP is also accepted (local currency)
             TestCurrencyHolder sypHolder = new TestCurrencyHolder("SYP");
             Set<ConstraintViolation<TestCurrencyHolder>> sypViolations = validator.validate(sypHolder);
-            
+
             assertThat(sypViolations).isEmpty();
         }
 
@@ -217,9 +217,9 @@ class ValidCurrencyValidatorTest {
         void shouldSuggestAppropriateCurrenciesInErrorMessage() {
             TestCurrencyHolder holder = new TestCurrencyHolder("EUR");
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             String errorMessage = violations.iterator().next().getMessage();
-            
+
             assertThat(errorMessage)
                 .contains("USD is recommended for car sales")
                 .contains("SYP for local transactions");
@@ -235,7 +235,7 @@ class ValidCurrencyValidatorTest {
         void shouldHandleCurrencyWithWhitespace() {
             TestCurrencyHolder holder = new TestCurrencyHolder("  USD  ");
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
 
@@ -244,7 +244,7 @@ class ValidCurrencyValidatorTest {
         void shouldHandleMixedCaseCurrency() {
             TestCurrencyHolder holder = new TestCurrencyHolder("uSd");
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
 
@@ -254,7 +254,7 @@ class ValidCurrencyValidatorTest {
         void shouldHandleCurrencyWithSpecialWhitespace(String currency) {
             TestCurrencyHolder holder = new TestCurrencyHolder(currency);
             Set<ConstraintViolation<TestCurrencyHolder>> violations = validator.validate(holder);
-            
+
             assertThat(violations).isEmpty();
         }
     }

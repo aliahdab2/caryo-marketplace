@@ -37,7 +37,7 @@ public class ImageService {
     private String generateUniqueFileName(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename != null && originalFilename.contains(".")) {
-            return UUID.randomUUID().toString() + 
+            return UUID.randomUUID().toString() +
                    originalFilename.substring(originalFilename.lastIndexOf("."));
         }
         return UUID.randomUUID().toString() + fileValidator.getFileExtension(Objects.requireNonNull(file.getContentType()));

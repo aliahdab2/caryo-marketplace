@@ -30,14 +30,14 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
   isLoadingModels = false
 }) => {
   const { t } = useLazyTranslation(['common', 'search']);
-  
-  const filteredMakes = useMemo(() => 
-    carMakes.filter(make => make.isActive), 
+
+  const filteredMakes = useMemo(() =>
+    carMakes.filter(make => make.isActive),
     [carMakes]
   );
-  
-  const filteredModels = useMemo(() => 
-    availableModels.filter(model => model.isActive), 
+
+  const filteredModels = useMemo(() =>
+    availableModels.filter(model => model.isActive),
     [availableModels]
   );
 
@@ -52,7 +52,7 @@ const MakeModelFilter: React.FC<MakeModelFilterProps> = ({
           value={selectedMake || ''}
           onChange={(e) => {
             const makeId = e.target.value ? Number(e.target.value) : null;
-            
+
             if (selectedMake !== makeId) {
               if (makeId && carMakes) {
                 const brand = carMakes.find(make => make.id === makeId);

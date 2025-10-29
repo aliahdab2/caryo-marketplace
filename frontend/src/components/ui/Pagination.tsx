@@ -166,8 +166,8 @@ const Pagination: React.FC<PaginationProps> = ({
       )}
 
       {/* Pagination controls */}
-      <nav 
-        className={`flex items-center justify-center ${isRTL ? 'space-x-reverse' : ''}`} 
+      <nav
+        className={`flex items-center justify-center ${isRTL ? 'space-x-reverse' : ''}`}
         aria-label={t('common:pagination', 'Pagination')}
         dir={isRTL ? 'rtl' : 'ltr'}
       >

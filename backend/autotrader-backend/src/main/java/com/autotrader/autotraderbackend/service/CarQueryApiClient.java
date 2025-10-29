@@ -46,21 +46,21 @@ public class CarQueryApiClient {
     @PostConstruct
     public void validateConfiguration() {
         log.info("Initializing CarQuery API client...");
-        
+
         if (config.getBaseUrl() == null || config.getBaseUrl().trim().isEmpty()) {
             throw new IllegalStateException("CarQuery API base URL is not configured. Please set 'carquery.api.base-url' property.");
         }
-        
+
         if (config.getTimeout() <= 0) {
             throw new IllegalStateException("CarQuery API timeout must be positive. Current value: " + config.getTimeout());
         }
-        
+
         log.info("CarQuery API client configured successfully:");
         log.info("  - Base URL: {}", config.getBaseUrl());
         log.info("  - Timeout: {}s", config.getTimeout());
         log.info("  - Max Retry Attempts: {}", config.getRetry().getMaxAttempts());
         log.info("  - Retry Delay: {}ms", config.getRetry().getDelayMs());
-        
+
         // CarQuery API client is configured and ready for on-demand use
         log.info("✅ CarQuery API client: CONFIGURED - Connection testing will be done on-demand");
     }
@@ -213,7 +213,7 @@ public class CarQueryApiClient {
 
         } catch (RestClientException e) {
             String url = buildUrl("?cmd=getModels&make=" + makeId);
-            String errorContext = String.format("CarQuery API call failed - URL: %s, Timeout: %ds, Operation: getModelsByMake, MakeId: %s", 
+            String errorContext = String.format("CarQuery API call failed - URL: %s, Timeout: %ds, Operation: getModelsByMake, MakeId: %s",
                 url, config.getTimeout(), makeId);
             log.error("{}, Error: {}", errorContext, e.getMessage(), e);
             throw new CarQueryConnectionException("getModelsByMake:" + makeId, url, config.getTimeout(), e);

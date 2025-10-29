@@ -1,7 +1,7 @@
 # 🚀 Caryo Marketplace - Future Features Roadmap
 
-**Document Purpose**: Track features we're **NOT building in MVP** but plan for future phases  
-**Last Updated**: January 2025  
+**Document Purpose**: Track features we're **NOT building in MVP** but plan for future phases
+**Last Updated**: January 2025
 **Status**: After completing Phases 1-5, these are the gaps vs AutoTrader/Blocket
 
 ---
@@ -28,9 +28,9 @@
 
 ### **Category 1: Mobile Native Apps** 📱
 
-**Status**: ❌ Not in MVP (Phases 1-5)  
-**Priority**: 🔥🔥🔥 HIGH (Phase 6)  
-**Impact**: 25-35% of users prefer native apps over web  
+**Status**: ❌ Not in MVP (Phases 1-5)
+**Priority**: 🔥🔥🔥 HIGH (Phase 6)
+**Impact**: 25-35% of users prefer native apps over web
 **Competitors**: AutoTrader ✅ | Blocket ✅ | Caryo ❌
 
 #### **Why It Matters**
@@ -78,17 +78,17 @@ Option 2: Flutter
 Recommended: React Native (team already knows React)
 ```
 
-**Timeline**: 3-4 months  
-**Budget**: $40k-60k (2 developers)  
+**Timeline**: 3-4 months
+**Budget**: $40k-60k (2 developers)
 **ROI**: +25% user engagement, +15% dealer retention
 
 ---
 
 ### **Category 2: AI/ML Features** 🤖
 
-**Status**: ❌ Not in MVP (Phases 1-5)  
-**Priority**: 🔥🔥 MEDIUM (Phase 7)  
-**Impact**: 15-20% better conversion, pricing accuracy  
+**Status**: ❌ Not in MVP (Phases 1-5)
+**Priority**: 🔥🔥 MEDIUM (Phase 7)
+**Impact**: 15-20% better conversion, pricing accuracy
 **Competitors**: AutoTrader ✅ Advanced | Blocket ✅ Good | Caryo ❌
 
 #### **Why It Matters**
@@ -176,17 +176,17 @@ from tensorflow.keras.applications import MobileNetV2
 - 50k+ images for training
 - User interaction data (views, clicks, conversions)
 
-**Timeline**: 4-6 months  
-**Budget**: $60k-100k (ML engineer + data scientist)  
+**Timeline**: 4-6 months
+**Budget**: $60k-100k (ML engineer + data scientist)
 **ROI**: +15% conversion rate, +20% pricing accuracy, -30% fraud
 
 ---
 
 ### **Category 3: Advanced Integrations** 🔌
 
-**Status**: ⚠️ Partial (basic APIs only)  
-**Priority**: 🔥🔥 MEDIUM (Phase 8)  
-**Impact**: 10-15% operational efficiency  
+**Status**: ⚠️ Partial (basic APIs only)
+**Priority**: 🔥🔥 MEDIUM (Phase 8)
+**Impact**: 10-15% operational efficiency
 **Competitors**: AutoTrader ✅ 100+ | Blocket ✅ 50+ | Caryo ⚠️ 5-10
 
 #### **Why It Matters**
@@ -286,17 +286,17 @@ Phase 8 Integration Priorities:
    - White-label partnerships
 ```
 
-**Timeline**: 6-12 months (ongoing)  
-**Budget**: $50k-80k/year (integration team)  
+**Timeline**: 6-12 months (ongoing)
+**Budget**: $50k-80k/year (integration team)
 **ROI**: +10% dealer efficiency, +5% revenue (referrals)
 
 ---
 
 ### **Category 4: Enterprise Features** 🏢
 
-**Status**: ❌ Not in MVP  
-**Priority**: 🔥 LOW (Phase 9)  
-**Impact**: 5-10% large dealers  
+**Status**: ❌ Not in MVP
+**Priority**: 🔥 LOW (Phase 9)
+**Impact**: 5-10% large dealers
 **Competitors**: AutoTrader ✅ | Blocket ⚠️ | Caryo ❌
 
 #### **Why It Matters**
@@ -353,17 +353,17 @@ Phase 8 Integration Priorities:
 - Auction houses
 - Government fleets
 
-**Timeline**: 6-8 months  
-**Budget**: $80k-120k  
+**Timeline**: 6-8 months
+**Budget**: $80k-120k
 **ROI**: +$50k-100k MRR from 5-10 enterprise clients
 
 ---
 
 ### **Category 5: Advanced Buyer Features** 👥
 
-**Status**: ⚠️ Partial  
-**Priority**: 🔥🔥 MEDIUM (Phase 10)  
-**Impact**: 20-30% buyer engagement  
+**Status**: ⚠️ Partial
+**Priority**: 🔥🔥 MEDIUM (Phase 10)
+**Impact**: 20-30% buyer engagement
 **Competitors**: AutoTrader ✅ | Blocket ✅ | Caryo ⚠️
 
 #### **What to Build**
@@ -401,17 +401,17 @@ Phase 8 Integration Priorities:
   - Negotiation assistance
   - Paperwork help
 
-**Timeline**: 4-6 months  
-**Budget**: $50k-70k  
+**Timeline**: 4-6 months
+**Budget**: $50k-70k
 **ROI**: +20% buyer retention, +10% repeat purchases
 
 ---
 
 ### **Category 6: Auction Features** 🔨
 
-**Status**: ❌ Not planned  
-**Priority**: 🔥 LOW (Phase 11)  
-**Impact**: 5-10% niche market  
+**Status**: ❌ Not planned
+**Priority**: 🔥 LOW (Phase 11)
+**Impact**: 5-10% niche market
 **Competitors**: AutoTrader ❌ | Blocket ✅ | Caryo ❌
 
 #### **Why It Matters**
@@ -447,17 +447,17 @@ Phase 8 Integration Priorities:
   - Refund policy
   - Dispute resolution
 
-**Timeline**: 4-6 months  
-**Budget**: $60k-80k  
+**Timeline**: 4-6 months
+**Budget**: $60k-80k
 **ROI**: +$10k-20k MRR, +5% inventory turnover
 
 ---
 
 ### **Category 7: Microservices & Scale** 🏗️
 
-**Status**: ⚠️ Monolith (good for 0-10k dealers)  
-**Priority**: 🔥 LOW (Phase 12 - only if needed)  
-**Impact**: Support 50k+ dealers, 99.99% uptime  
+**Status**: ⚠️ Monolith (good for 0-10k dealers)
+**Priority**: 🔥 LOW (Phase 12 - only if needed)
+**Impact**: Support 50k+ dealers, 99.99% uptime
 **Competitors**: AutoTrader ✅ | Blocket ✅ | Caryo ⚠️
 
 #### **When to Migrate**
@@ -494,8 +494,8 @@ Phase 8 Integration Priorities:
   - CQRS (Command Query Responsibility Segregation)
   - Distributed transactions (Saga pattern)
 
-**Timeline**: 12-18 months  
-**Budget**: $200k-400k  
+**Timeline**: 12-18 months
+**Budget**: $200k-400k
 **ROI**: Support 10x scale, 99.99% uptime
 
 ---
@@ -746,9 +746,9 @@ Low Impact + Low Urgency = Maybe Never (Phase 11-12)
 
 ---
 
-**Document Maintained By**: Product Team  
-**Review Cycle**: Quarterly  
-**Last Review**: January 2025  
+**Document Maintained By**: Product Team
+**Review Cycle**: Quarterly
+**Last Review**: January 2025
 **Next Review**: April 2025
 
 ---
@@ -756,20 +756,20 @@ Low Impact + Low Urgency = Maybe Never (Phase 11-12)
 ## 📌 **QUICK REFERENCE**
 
 ### **What We Have (After Phase 1-5)**
-✅ Dealer signup, trial, payments, dashboard  
-✅ Bulk imports, multi-branch, CRM  
-✅ Marketing tools (featured, bump, ads)  
-✅ Buyer experience (search, compare, reviews)  
-✅ Analytics & reporting  
+✅ Dealer signup, trial, payments, dashboard
+✅ Bulk imports, multi-branch, CRM
+✅ Marketing tools (featured, bump, ads)
+✅ Buyer experience (search, compare, reviews)
+✅ Analytics & reporting
 
 ### **What We're Missing (Phases 6-12)**
-❌ Native mobile apps (Phase 6)  
-❌ AI/ML features (Phase 7)  
-❌ Advanced integrations (Phase 8)  
-❌ Enterprise features (Phase 9)  
-❌ Advanced buyer UX (Phase 10)  
-❌ Auctions (Phase 11)  
-❌ Microservices (Phase 12)  
+❌ Native mobile apps (Phase 6)
+❌ AI/ML features (Phase 7)
+❌ Advanced integrations (Phase 8)
+❌ Enterprise features (Phase 9)
+❌ Advanced buyer UX (Phase 10)
+❌ Auctions (Phase 11)
+❌ Microservices (Phase 12)
 
 ### **When to Build Each Phase**
 - **Phase 6-7**: Year 2 (critical for growth)

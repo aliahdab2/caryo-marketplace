@@ -47,8 +47,8 @@ export default function FilterChips({
 
 
   // Show filter chips only when there are active filters
-  const hasActiveFilters = isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') || 
-    isFilterActive('mileage') || isFilterActive('transmission') || isFilterActive('fuelType') || 
+  const hasActiveFilters = isFilterActive('makeModel') || isFilterActive('price') || isFilterActive('year') ||
+    isFilterActive('mileage') || isFilterActive('transmission') || isFilterActive('fuelType') ||
     isFilterActive('bodyStyle') || isFilterActive('sellerType');
 
   if (!hasActiveFilters) {
@@ -62,7 +62,7 @@ export default function FilterChips({
         <button
           onClick={() => {
             // Clear all filters
-            updateFiltersAndState({ 
+            updateFiltersAndState({
               brands: undefined,
               models: undefined,
               minPrice: undefined,
@@ -94,7 +94,7 @@ export default function FilterChips({
             label={getBrandDisplayNameFromSlug(brandSlug)}
             onRemove={() => {
               const updatedBrands = filters.brands?.filter(b => b !== brandSlug) || [];
-              updateFiltersAndState({ 
+              updateFiltersAndState({
                 brands: updatedBrands.length > 0 ? updatedBrands : undefined,
                 models: updatedBrands.length === 0 ? undefined : filters.models
               }, {
@@ -106,7 +106,7 @@ export default function FilterChips({
             variant="brand"
           />
         ))}
-        
+
         {/* Model Chips */}
         {filters.models && filters.models.map((modelSlug) => (
           <FilterChip
@@ -114,7 +114,7 @@ export default function FilterChips({
             label={getModelDisplayNameFromSlug(modelSlug)}
             onRemove={() => {
               const updatedModels = filters.models?.filter(m => m !== modelSlug) || [];
-              updateFiltersAndState({ 
+              updateFiltersAndState({
                 models: updatedModels.length > 0 ? updatedModels : undefined
               }, {
                 selectedModel: updatedModels.length === 0 ? null : selectedModel
@@ -167,7 +167,7 @@ export default function FilterChips({
             label={getFuelTypeDisplayNameFromSlug(fuelTypeSlug)}
             onRemove={() => {
               const updatedFuelTypes = filters.fuelTypeSlugs?.filter(slug => slug !== fuelTypeSlug) || [];
-              updateFiltersAndState({ 
+              updateFiltersAndState({
                 fuelTypeSlugs: updatedFuelTypes.length > 0 ? updatedFuelTypes : undefined
               });
             }}
@@ -183,7 +183,7 @@ export default function FilterChips({
             label={getBodyStyleDisplayName(bodyStyleSlug)}
             onRemove={() => {
               const updatedBodyTypes = filters.bodyType?.filter(type => type !== bodyStyleSlug) || [];
-              updateFiltersAndState({ 
+              updateFiltersAndState({
                 bodyType: updatedBodyTypes.length > 0 ? updatedBodyTypes : undefined
               });
             }}
@@ -199,7 +199,7 @@ export default function FilterChips({
             label={getSellerTypeDisplayName(sellerTypeId)}
             onRemove={() => {
               const updatedSellerTypes = filters.sellerTypeIds?.filter(id => id !== sellerTypeId) || [];
-              updateFiltersAndState({ 
+              updateFiltersAndState({
                 sellerTypeIds: updatedSellerTypes.length > 0 ? updatedSellerTypes : undefined
               });
             }}

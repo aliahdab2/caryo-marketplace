@@ -63,10 +63,10 @@ class LoginRequestTest {
     @Test
     void testGetterAndSetter() {
         LoginRequest loginRequest = new LoginRequest();
-        
+
         loginRequest.setUsername("testuser");
         assertEquals("testuser", loginRequest.getUsername());
-        
+
         loginRequest.setPassword("password123");
         assertEquals("password123", loginRequest.getPassword());
     }

@@ -92,37 +92,37 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
-        
+
         // Handle both standard UserDetails and our custom UserDetailsImpl
         Object principal = authentication.getPrincipal();
-        
+
         if (principal instanceof UserDetailsImpl) {
-            UserDetailsImpl userDetails = (UserDetailsImpl) principal;        
+            UserDetailsImpl userDetails = (UserDetailsImpl) principal;
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
-                    
-            return ResponseEntity.ok(new JwtResponse(jwt, 
-                                                    userDetails.getId(), 
-                                                    userDetails.getUsername(), 
-                                                    userDetails.getEmail(), 
+
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                                                    userDetails.getId(),
+                                                    userDetails.getUsername(),
+                                                    userDetails.getEmail(),
                                                     roles));
         } else if (principal instanceof org.springframework.security.core.userdetails.User) {
-            org.springframework.security.core.userdetails.User springUser = 
+            org.springframework.security.core.userdetails.User springUser =
                     (org.springframework.security.core.userdetails.User) principal;
-            
+
             // For tests where we use the standard User, fetch our User entity to get ID and email
             User user = userRepository.findByUsername(springUser.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found in repository"));
-                    
+
             List<String> roles = springUser.getAuthorities().stream()
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
-                    
-            return ResponseEntity.ok(new JwtResponse(jwt, 
+
+            return ResponseEntity.ok(new JwtResponse(jwt,
                                                     user.getId(),
-                                                    user.getUsername(), 
-                                                    user.getEmail(), 
+                                                    user.getUsername(),
+                                                    user.getEmail(),
                                                     roles));
         } else {
             throw new RuntimeException("Unknown principal type: " + principal.getClass());
@@ -261,7 +261,7 @@ public class AuthController {
     public ResponseEntity<?> socialLogin(@Valid @RequestBody com.autotrader.autotraderbackend.model.dto.SocialLoginRequest request) {
         // Check if user exists by email
         User user;
-        
+
         if (userRepository.existsByEmail(request.getEmail())) {
             // User exists, use existing account
             user = userRepository.findByEmail(request.getEmail())
@@ -309,20 +309,20 @@ public class AuthController {
             // Create new user with info from social provider
             // Generate a username from the email or name
             String username = request.getEmail().split("@")[0];
-            
+
             // Ensure username is unique
             int counter = 1;
             String baseUsername = username;
             while (userRepository.existsByUsername(username)) {
                 username = baseUsername + counter++;
             }
-            
+
             // Create the user without a password (social login users don't need one)
             user = new User();
             user.setUsername(username);
             user.setEmail(request.getEmail());
             user.setPassword(encoder.encode(java.util.UUID.randomUUID().toString())); // Random password
-            
+
             // Add default role
             Set<Role> roles = new HashSet<>();
             Role userRole = roleRepository.findByName("ROLE_USER")
@@ -332,7 +332,7 @@ public class AuthController {
                 });
             roles.add(userRole);
             user.setRoles(roles);
-            
+
             // Set default seller type to "private" for social login users
             try {
                 user.setSellerType(sellerTypeService.getSellerTypeEntityById(1L)); // Assuming private has ID 1
@@ -362,7 +362,7 @@ public class AuthController {
 
             // Save the new user once
             User savedUser = userRepository.save(user);
-            
+
             // Send welcome email to new Google users
             try {
                 emailService.sendWelcomeEmail(savedUser);
@@ -375,17 +375,17 @@ public class AuthController {
 
         // Generate token
         String jwt = jwtUtils.generateJwtTokenForUser(user);
-        
+
         // Return response with token and user details
         List<String> roles = user.getRoles().stream()
             .map(role -> role.getName())
             .collect(Collectors.toList());
-            
+
         return ResponseEntity.ok(new JwtResponse(
-            jwt, 
-            user.getId(), 
-            user.getUsername(), 
-            user.getEmail(), 
+            jwt,
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
             roles
         ));
     }
@@ -400,18 +400,18 @@ public class AuthController {
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         // Get the current authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse("Error: User not authenticated!"));
         }
 
         String username = authentication.getName();
-        
+
         // Find the user in the database
         User user = userRepository.findByUsername(username)
             .orElse(null);
-            
+
         if (user == null) {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse("Error: User not found!"));
@@ -438,16 +438,16 @@ public class AuthController {
     public ResponseEntity<?> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest,
             HttpServletRequest request) {
-        
+
         String clientIp = getClientIpAddress(request);
         PasswordResetService.PasswordResetResult result = passwordResetService.initiatePasswordReset(
             forgotPasswordRequest.getEmail(), clientIp);
-        
+
         if (result.isRateLimited()) {
             return ResponseEntity.status(429) // Too Many Requests
                 .body(new MessageResponse(result.getMessage()));
         }
-        
+
         // Always return 200 OK for success/error to avoid user enumeration
         return ResponseEntity.ok(new MessageResponse(result.getMessage()));
     }
@@ -459,7 +459,7 @@ public class AuthController {
     @GetMapping("/reset-password/validate")
     public ResponseEntity<?> validateResetToken(@RequestParam String token) {
         boolean isValid = passwordResetService.validateResetToken(token);
-        
+
         if (isValid) {
             return ResponseEntity.ok(new MessageResponse("Token is valid"));
         } else {
@@ -476,19 +476,19 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(
             @Valid @RequestBody ResetPasswordRequest resetPasswordRequest,
             HttpServletRequest request) {
-        
+
         String clientIp = getClientIpAddress(request);
         PasswordResetService.PasswordResetResult result = passwordResetService.resetPassword(
-            resetPasswordRequest.getToken(), 
+            resetPasswordRequest.getToken(),
             resetPasswordRequest.getNewPassword(),
             clientIp
         );
-        
+
         if (result.isRateLimited()) {
             return ResponseEntity.status(429) // Too Many Requests
                 .body(new MessageResponse(result.getMessage()));
         }
-        
+
         if (result.isSuccess()) {
             return ResponseEntity.ok(new MessageResponse(result.getMessage()));
         } else {
@@ -496,7 +496,7 @@ public class AuthController {
                 .body(new MessageResponse(result.getMessage()));
         }
     }
-    
+
     /**
      * Helper method to extract client IP address from request
      */
@@ -505,12 +505,12 @@ public class AuthController {
         if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
             return xForwardedFor.split(",")[0].trim();
         }
-        
+
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
             return xRealIp;
         }
-        
+
         return request.getRemoteAddr();
     }
 }

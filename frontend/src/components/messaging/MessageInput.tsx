@@ -157,7 +157,7 @@ export default function MessageInput({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             {/* Separate images and documents for better visibility - with max height and scroll */}
             <div className="space-y-3 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-600 dark:scrollbar-track-blue-800">
               {/* Images Section */}
@@ -183,7 +183,7 @@ export default function MessageInput({
                   </div>
                 </div>
               )}
-              
+
               {/* Documents Section */}
               {selectedFiles.filter(file => !file.type.startsWith('image/')).length > 0 && (
                 <div>
@@ -223,7 +223,7 @@ export default function MessageInput({
               onDocumentSelect={onDocumentSelect}
             />
           </div>
-          
+
           {/* Text Input */}
           <textarea
             placeholder={t('writeMessage')}
@@ -232,9 +232,9 @@ export default function MessageInput({
             onKeyDown={onKeyPress}
             rows={1}
             className="flex-1 p-3 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none resize-none text-sm max-h-20 overflow-y-auto overflow-x-hidden w-full"
-            style={{ 
-              minHeight: '44px', 
-              wordWrap: 'break-word', 
+            style={{
+              minHeight: '44px',
+              wordWrap: 'break-word',
               whiteSpace: 'pre-wrap',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
@@ -243,7 +243,7 @@ export default function MessageInput({
             }}
             dir={isRTL ? 'rtl' : 'ltr'}
           />
-          
+
           {/* Send Button */}
           {shouldShowSendButton && (
             <div className="flex items-end p-2">

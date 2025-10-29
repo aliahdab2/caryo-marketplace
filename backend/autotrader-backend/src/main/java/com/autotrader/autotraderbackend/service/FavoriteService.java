@@ -52,10 +52,10 @@ public class FavoriteService {
     @CacheEvict(value = "favorites", key = "#username + '-' + #listingId")
     public FavoriteResponse addToFavorites(String username, Long listingId) {
         log.debug("Adding listing {} to favorites for user {}", listingId, username);
-        
+
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-        
+
         CarListing listing = carListingRepository.findById(listingId)
             .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", listingId));
 
@@ -71,11 +71,11 @@ public class FavoriteService {
             Favorite favorite = new Favorite();
             favorite.setUser(user);
             favorite.setCarListing(listing);
-            
+
             favorite = favoriteRepository.save(favorite);
-            
+
             log.info("Successfully added listing {} to favorites for user {}", listingId, username);
-            
+
             return toFavoriteResponse(favorite);
         } catch (Exception e) {
             log.error("Error adding listing {} to favorites for user {}: {}", listingId, username, e.getMessage());
@@ -90,17 +90,17 @@ public class FavoriteService {
     @CacheEvict(value = "favorites", key = "#username + '-' + #listingId")
     public void removeFromFavorites(String username, Long listingId) {
         log.debug("Removing listing {} from favorites for user {}", listingId, username);
-        
+
         try {
             User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-            
+
             CarListing listing = carListingRepository.findById(listingId)
                 .orElseThrow(() -> new ResourceNotFoundException("CarListing", "id", listingId));
 
             // Use repository method instead of direct EntityManager
             favoriteRepository.deleteByUserAndCarListing(user, listing);
-            
+
             log.info("Successfully removed listing {} from favorites for user {}", listingId, username);
         } catch (Exception e) {
             log.error("Error removing listing {} from favorites for user {}: {}", listingId, username, e.getMessage());
@@ -114,7 +114,7 @@ public class FavoriteService {
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<FavoriteResponse> getUserFavorites(String username) {
         log.debug("Fetching favorites for user {}", username);
-        
+
         try {
             User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
@@ -124,7 +124,7 @@ public class FavoriteService {
                 .stream()
                 .map(this::toFavoriteResponse)
                 .collect(Collectors.toList());
-            
+
             log.info("Found {} favorites for user {}", favorites.size(), username);
             return favorites;
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class FavoriteService {
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<CarListing> getUserFavoriteListings(String username) {
         log.debug("Fetching favorite car listings for user {}", username);
-        
+
         try {
             User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
@@ -150,7 +150,7 @@ public class FavoriteService {
                 .stream()
                 .map(Favorite::getCarListing)
                 .collect(Collectors.toList());
-            
+
             log.info("Found {} favorite listings for user {}", favoriteListings.size(), username);
             return favoriteListings;
         } catch (Exception e) {
@@ -158,18 +158,18 @@ public class FavoriteService {
             throw new IllegalStateException("Error fetching favorite listings", e);
         }
     }
-    
+
     /**
      * Get all favorite car listings for a user as CarListingResponse DTOs.
      * This avoids serialization issues with Hibernate proxies.
-     * 
+     *
      * @param username The username of the user
      * @return List of CarListingResponse DTOs
      */
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<CarListingResponse> getUserFavoriteListingResponses(String username) {
         log.debug("Fetching favorite car listing responses for user {}", username);
-        
+
         try {
             User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
@@ -179,7 +179,7 @@ public class FavoriteService {
                 .stream()
                 .map(favorite -> carListingMapper.toCarListingResponse(favorite.getCarListing()))
                 .collect(Collectors.toList());
-            
+
             log.info("Found {} favorite listing responses for user {}", favoriteListingResponses.size(), username);
             return favoriteListingResponses;
         } catch (Exception e) {
@@ -198,11 +198,11 @@ public class FavoriteService {
     @Cacheable(value = "favorites", key = "#username + '-' + #listingId")
     public boolean isFavorite(String username, Long listingId) {
         log.debug("Checking if listing {} is favorite for user {}", listingId, username);
-        
+
         try {
             // Use a count query for better performance
             boolean exists = favoriteRepository.existsByUserUsernameAndCarListingId(username, listingId);
-            
+
             log.debug("Listing {} is {} favorite for user {}", listingId, exists ? "a" : "not a", username);
             return exists;
         } catch (Exception e) {

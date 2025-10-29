@@ -80,7 +80,7 @@ export default function Toast({
   useEffect(() => {
     setIsVisible(visible);
     setIsLeaving(false);
-    
+
     if (visible && autoHideDuration > 0) {
       const timer = setTimeout(handleClose, autoHideDuration);
       return () => clearTimeout(timer);
@@ -115,12 +115,12 @@ export default function Toast({
       <div className="p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <IconComponent 
-              className={`text-xl ${config.iconColor}`} 
-              aria-hidden="true" 
+            <IconComponent
+              className={`text-xl ${config.iconColor}`}
+              aria-hidden="true"
             />
           </div>
-          
+
           <div className="ltr:ml-3 rtl:mr-3 flex-1">
             {title && (
               <h3 className={`text-sm font-medium ${config.titleColor} mb-1`}>
@@ -131,7 +131,7 @@ export default function Toast({
               {message}
             </p>
           </div>
-          
+
           {dismissible && (
             <div className="ltr:ml-4 rtl:mr-4 flex-shrink-0">
               <button

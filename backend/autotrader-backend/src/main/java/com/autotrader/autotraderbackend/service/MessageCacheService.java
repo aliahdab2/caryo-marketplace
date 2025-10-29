@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MessageCacheService {
-    
+
     /**
      * Cache conversation list for user
      */
@@ -30,7 +30,7 @@ public class MessageCacheService {
         log.debug("Caching conversations for user {}", userId);
         return null; // Will be populated by actual service call
     }
-    
+
     /**
      * Cache messages for conversation
      */
@@ -39,7 +39,7 @@ public class MessageCacheService {
         log.debug("Caching messages for conversation {} page {}", conversationId, pageable.getPageNumber());
         return null; // Will be populated by actual service call
     }
-    
+
     /**
      * Invalidate conversation cache when new message is sent
      */
@@ -47,7 +47,7 @@ public class MessageCacheService {
     public void invalidateConversationCaches(Long conversationId) {
         log.debug("Invalidating caches for conversation {}", conversationId);
     }
-    
+
     /**
      * Update conversation cache with new message
      */
@@ -56,7 +56,7 @@ public class MessageCacheService {
         log.debug("Updating message cache for conversation {}", conversationId);
         return messages;
     }
-    
+
     /**
      * Cache unread message counts
      */
@@ -65,7 +65,7 @@ public class MessageCacheService {
         log.debug("Caching unread count for user {}", userId);
         return 0L; // Will be populated by actual service call
     }
-    
+
     /**
      * Invalidate unread count cache
      */

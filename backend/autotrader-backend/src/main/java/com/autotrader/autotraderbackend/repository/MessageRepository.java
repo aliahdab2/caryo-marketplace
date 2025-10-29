@@ -19,59 +19,59 @@ import java.util.List;
  */
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    
+
     /**
      * Find messages by conversation ID, ordered by creation time
      */
     Page<Message> findByConversationIdOrderByCreatedAtAsc(Long conversationId, Pageable pageable);
-    
+
     /**
      * Find recent messages by conversation ID (for conversation list)
      */
     @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId ORDER BY m.createdAt DESC")
     List<Message> findRecentMessagesByConversationId(@Param("conversationId") Long conversationId, Pageable pageable);
-    
+
     /**
      * Find unread messages by conversation ID
      */
     List<Message> findByConversationIdAndIsReadFalseOrderByCreatedAtAsc(Long conversationId);
-    
+
     /**
      * Find unread messages for a user in a conversation
      */
     @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sender != :user AND m.isRead = false ORDER BY m.createdAt ASC")
     List<Message> findUnreadMessagesForUser(@Param("conversationId") Long conversationId, @Param("user") User user);
-    
+
     /**
      * Count unread messages for a user in a conversation
      */
     @Query("SELECT COUNT(m) FROM Message m WHERE m.conversation.id = :conversationId AND m.sender != :user AND m.isRead = false")
     long countUnreadMessagesForUser(@Param("conversationId") Long conversationId, @Param("user") User user);
-    
+
     /**
      * Find messages by sender
      */
     Page<Message> findBySenderOrderByCreatedAtDesc(User sender, Pageable pageable);
-    
+
     /**
      * Find messages by conversation and sender
      */
     List<Message> findByConversationIdAndSenderIdOrderByCreatedAtAsc(Long conversationId, Long senderId);
-    
+
     /**
      * Mark messages as read
      */
     @Modifying
     @Query("UPDATE Message m SET m.isRead = true, m.readAt = :readAt WHERE m.id = :messageId")
     void markMessageAsRead(@Param("messageId") Long messageId, @Param("readAt") LocalDateTime readAt);
-    
+
     /**
      * Mark all messages in a conversation as read for a user
      */
     @Modifying
     @Query("UPDATE Message m SET m.isRead = true, m.readAt = :readAt WHERE m.conversation.id = :conversationId AND m.sender != :user AND m.isRead = false")
     void markAllMessagesAsReadInConversation(@Param("conversationId") Long conversationId, @Param("user") User user, @Param("readAt") LocalDateTime readAt);
-    
+
     /**
      * Find messages created after a specific time
      */

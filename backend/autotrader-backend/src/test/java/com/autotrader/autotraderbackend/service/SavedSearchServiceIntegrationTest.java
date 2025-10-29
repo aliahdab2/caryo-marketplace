@@ -240,7 +240,7 @@ class SavedSearchServiceIntegrationTest {
         // Create searches for test user with different filters
         SavedSearchRequest request1 = createSavedSearchRequest("Search 1", "toyota");
         SavedSearchRequest request2 = createSavedSearchRequest("Search 2", "honda");
-        
+
         savedSearchService.createSavedSearch(request1, testUser.getUsername());
         savedSearchService.createSavedSearch(request2, testUser.getUsername());
 
@@ -259,7 +259,7 @@ class SavedSearchServiceIntegrationTest {
 
         // Assert
         assertEquals(2, userSearches.size());
-        assertTrue(userSearches.stream().allMatch(search -> 
+        assertTrue(userSearches.stream().allMatch(search ->
             search.getNameEn().equals("Search 1") || search.getNameEn().equals("Search 2")));
     }
 

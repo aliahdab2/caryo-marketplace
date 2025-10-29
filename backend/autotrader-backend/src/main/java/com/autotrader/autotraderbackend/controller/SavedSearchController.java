@@ -51,9 +51,9 @@ public class SavedSearchController {
     public ResponseEntity<SavedSearchResponse> createSavedSearch(
             @Valid @RequestBody SavedSearchRequest request,
             Authentication authentication) {
-        
+
         log.info("Creating saved search for user: {}", authentication.getName());
-        
+
         SavedSearchResponse response = savedSearchService.createSavedSearch(request, authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -70,7 +70,7 @@ public class SavedSearchController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<SavedSearchResponse>> getUserSavedSearches(
             Authentication authentication) {
-        
+
         List<SavedSearchResponse> savedSearches = savedSearchService.getUserSavedSearches(authentication.getName());
         return ResponseEntity.ok(savedSearches);
     }
@@ -91,7 +91,7 @@ public class SavedSearchController {
     public ResponseEntity<SavedSearchResponse> getSavedSearch(
             @Parameter(description = "Saved search ID") @PathVariable UUID id,
             Authentication authentication) {
-        
+
         try {
             SavedSearchResponse response = savedSearchService.getSavedSearchById(id, authentication.getName());
             return ResponseEntity.ok(response);
@@ -117,7 +117,7 @@ public class SavedSearchController {
             @Parameter(description = "Saved search ID") @PathVariable UUID id,
             @Valid @RequestBody SavedSearchRequest request,
             Authentication authentication) {
-        
+
         try {
             SavedSearchResponse response = savedSearchService.updateSavedSearch(id, request, authentication.getName());
             return ResponseEntity.ok(response);
@@ -141,7 +141,7 @@ public class SavedSearchController {
     public ResponseEntity<Void> deactivateSavedSearch(
             @Parameter(description = "Saved search ID") @PathVariable UUID id,
             Authentication authentication) {
-        
+
         try {
             savedSearchService.deleteSavedSearch(id, authentication.getName());
             return ResponseEntity.noContent().build();
@@ -165,7 +165,7 @@ public class SavedSearchController {
     public ResponseEntity<Void> deleteSavedSearch(
             @Parameter(description = "Saved search ID") @PathVariable UUID id,
             Authentication authentication) {
-        
+
         try {
             savedSearchService.deleteSavedSearch(id, authentication.getName());
             return ResponseEntity.noContent().build();

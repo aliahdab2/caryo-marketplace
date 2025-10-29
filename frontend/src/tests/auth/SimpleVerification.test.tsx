@@ -40,13 +40,13 @@ describe('SimpleVerification Component', () => {
   test('calls onVerified, shows success icon, then hides it when autoStart is true', async () => {
     const mockOnVerified = jest.fn();
     render(<SimpleVerification onVerified={mockOnVerified} autoStart={true} />);
-    
+
     expect(screen.getByTestId('verifying-spinner')).toBeInTheDocument();
-    
+
     act(() => {
       jest.advanceTimersByTime(1500); // Verification duration
     });
-    
+
     await waitFor(() => {
       expect(mockOnVerified).toHaveBeenCalledWith(true);
     });
@@ -88,12 +88,12 @@ describe('SimpleVerification Component', () => {
 
     // Advance time to trigger auto-verify (total 3000ms or slightly more)
     act(() => {
-      jest.advanceTimersByTime(200); 
+      jest.advanceTimersByTime(200);
     });
 
     await waitFor(() => expect(screen.getByTestId('verifying-spinner')).toBeInTheDocument());
     expect(screen.queryByTestId('placeholder-div')).not.toBeInTheDocument();
-    
+
     // Advance time for the verification process itself
     act(() => {
       jest.advanceTimersByTime(1500);

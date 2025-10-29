@@ -49,25 +49,25 @@ public class CarDataInitializer implements CommandLineRunner {
      */
     private void initializeBrandsAndModels() {
         log.info("Initializing car brands and models with intelligent validation...");
-        
+
         // First, collect all brand-model data
         Map<String, List<ModelData>> brandModelMap = collectAllBrandModelData();
-        
+
         // Create brands only if they have models
         createBrandsWithModels(brandModelMap);
-        
+
         // Create models for each brand
         createModelsForBrands(brandModelMap);
-        
+
         log.info("✅ Intelligent brand-model initialization completed");
     }
-    
+
     /**
      * Collect all brand-model data by introspection of model initialization methods
      */
     private Map<String, List<ModelData>> collectAllBrandModelData() {
         Map<String, List<ModelData>> brandModelMap = new HashMap<>();
-        
+
         // Toyota models
         brandModelMap.put("toyota", Arrays.asList(
             new ModelData("corolla", "Corolla", "كورولا"),
@@ -78,7 +78,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("yaris", "Yaris", "ياريس"),
             new ModelData("hilux", "Hilux", "هيلكس")
         ));
-        
+
         // Honda models
         brandModelMap.put("honda", Arrays.asList(
             new ModelData("civic", "Civic", "سيفيك"),
@@ -86,7 +86,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("crv", "CR-V", "سي آر في"),
             new ModelData("pilot", "Pilot", "بايلوت")
         ));
-        
+
         // Hyundai models
         brandModelMap.put("hyundai", Arrays.asList(
             new ModelData("elantra", "Elantra", "إلنترا"),
@@ -95,7 +95,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("santa-fe", "Santa Fe", "سانتا في"),
             new ModelData("i10", "i10", "آي 10")
         ));
-        
+
         // Kia models
         brandModelMap.put("kia", Arrays.asList(
             new ModelData("rio", "Rio", "ريو"),
@@ -103,7 +103,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("cerato", "Cerato", "سيراتو"),
             new ModelData("sorento", "Sorento", "سورنتو")
         ));
-        
+
         // Mercedes models
         brandModelMap.put("mercedes-benz", Arrays.asList(
             new ModelData("c-class", "C-Class", "الفئة سي"),
@@ -112,7 +112,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("ml-class", "ML-Class", "الفئة إم إل"),
             new ModelData("gle-class", "GLE-Class", "الفئة جي إل إي")
         ));
-        
+
         // BMW models
         brandModelMap.put("bmw", Arrays.asList(
             new ModelData("3-series", "3 Series", "الفئة الثالثة"),
@@ -121,7 +121,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("x3", "X3", "إكس 3"),
             new ModelData("x5", "X5", "إكس 5")
         ));
-        
+
         // Volkswagen models
         brandModelMap.put("volkswagen", Arrays.asList(
             new ModelData("jetta", "Jetta", "جيتا"),
@@ -130,7 +130,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("passat", "Passat", "باسات"),
             new ModelData("tiguan", "Tiguan", "تيغوان")
         ));
-        
+
         // Peugeot models
         brandModelMap.put("peugeot", Arrays.asList(
             new ModelData("208", "208", "208"),
@@ -139,7 +139,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("2008", "2008", "2008"),
             new ModelData("3008", "3008", "3008")
         ));
-        
+
         // Chevrolet models
         brandModelMap.put("chevrolet", Arrays.asList(
             new ModelData("cruze", "Cruze", "كروز"),
@@ -147,14 +147,14 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("spark", "Spark", "سبارك"),
             new ModelData("trailblazer", "Trailblazer", "ترايبليزر")
         ));
-        
+
         // Jeep models
         brandModelMap.put("jeep", Arrays.asList(
             new ModelData("grand-cherokee", "Grand Cherokee", "غراند شيروكي"),
             new ModelData("wrangler", "Wrangler", "رانغلر"),
             new ModelData("compass", "Compass", "كومباس")
         ));
-        
+
         // Subaru models
         brandModelMap.put("subaru", Arrays.asList(
             new ModelData("forester", "Forester", "فوريستر"),
@@ -166,7 +166,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("crosstrek", "Crosstrek", "كروس تريك"),
             new ModelData("xv", "XV", "إكس في")
         ));
-        
+
         // Mazda models
         brandModelMap.put("mazda", Arrays.asList(
             new ModelData("3", "3", "3"),
@@ -178,7 +178,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("cx-30", "CX-30", "سي إكس 30"),
             new ModelData("miata", "Miata", "مياتا")
         ));
-        
+
         // SsangYong models
         brandModelMap.put("ssangyong", Arrays.asList(
             new ModelData("korando", "Korando", "كوراندو"),
@@ -188,30 +188,30 @@ public class CarDataInitializer implements CommandLineRunner {
             new ModelData("xlv", "XLV", "إكس إل في"),
             new ModelData("actyon", "Actyon", "أكتيون")
         ));
-        
+
         log.info("Collected model data for {} brands", brandModelMap.size());
         return brandModelMap;
     }
-    
+
     /**
      * Create brands only if they have models defined
      */
     private void createBrandsWithModels(Map<String, List<ModelData>> brandModelMap) {
         log.info("Creating brands that have models...");
-        
+
         // Get all brand definitions
         Map<String, BrandData> allBrands = getAllBrandDefinitions();
-        
+
         int createdCount = 0;
         int skippedCount = 0;
-        
+
         for (String brandSlug : brandModelMap.keySet()) {
             BrandData brandData = allBrands.get(brandSlug);
             if (brandData == null) {
                 log.warn("No brand definition found for slug: {}", brandSlug);
                 continue;
             }
-            
+
             try {
                 CarBrand existingBrand = null;
                 try {
@@ -244,20 +244,20 @@ public class CarDataInitializer implements CommandLineRunner {
                 log.warn("Failed to create brand '{}': {}", brandData.getName(), e.getMessage());
             }
         }
-        
+
         log.info("Brands creation completed - Created: {}, Skipped: {}", createdCount, skippedCount);
     }
-    
+
     /**
      * Create models for all brands in the map
      */
     private void createModelsForBrands(Map<String, List<ModelData>> brandModelMap) {
         log.info("Creating models for {} brands...", brandModelMap.size());
-        
+
         for (Map.Entry<String, List<ModelData>> entry : brandModelMap.entrySet()) {
             String brandSlug = entry.getKey();
             List<ModelData> models = entry.getValue();
-            
+
             try {
                 createModelsForBrand(brandSlug, models);
                 log.debug("Created {} models for brand {}", models.size(), brandSlug);
@@ -265,10 +265,10 @@ public class CarDataInitializer implements CommandLineRunner {
                 log.warn("Failed to create models for brand '{}': {}", brandSlug, e.getMessage());
             }
         }
-        
+
         log.info("Models creation completed");
     }
-    
+
     /**
      * Get all brand definitions as a map for lookup
      */
@@ -313,7 +313,7 @@ public class CarDataInitializer implements CommandLineRunner {
             new BrandData("chrysler", "Chrysler", "كرايسلر"),
             new BrandData("gmc", "GMC", "جي إم سي")
         );
-        
+
         return brands.stream().collect(Collectors.toMap(BrandData::getSlug, brand -> brand));
     }
 

@@ -22,15 +22,15 @@ export default function ResponsiveCard({
       default: return typeof aspectRatio === 'string' ? `aspect-[${aspectRatio}]` : '';
     }
   })();
-  
+
   // Build hover effect classes
-  const hoverClasses = hover ? 
+  const hoverClasses = hover ?
     'transition-transform duration-200 hover:scale-[1.02] hover:shadow-md' : '';
-  
+
   return (
-    <div 
+    <div
       className={`
-        bg-white dark:bg-gray-800 rounded-lg shadow 
+        bg-white dark:bg-gray-800 rounded-lg shadow
         ${aspectRatioClass}
         ${hoverClasses}
         ${className}

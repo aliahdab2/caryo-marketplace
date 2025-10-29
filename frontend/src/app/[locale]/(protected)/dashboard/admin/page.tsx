@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  MdCheckCircle, 
-  MdCancel, 
-  MdPendingActions, 
+import {
+  MdCheckCircle,
+  MdCancel,
+  MdPendingActions,
   MdRefresh,
   MdSearch,
   MdFilterList,
@@ -41,10 +41,10 @@ interface Listing {
   username?: string;
   createdAt: string;
   imageUrls?: string[]; // Keep for backward compatibility
-  media?: { 
-    url: string; 
-    isPrimary?: boolean; 
-    contentType?: string; 
+  media?: {
+    url: string;
+    isPrimary?: boolean;
+    contentType?: string;
   }[];
   views?: number;
   favoriteCount?: number;
@@ -132,27 +132,27 @@ const useAdminPanel = () => {
   // Memoized computed values
   const computedValues = useMemo(() => {
     const safeListings = Array.isArray(state.listings) ? state.listings : [];
-    
+
     // Apply filters
     const filteredListings = safeListings.filter(listing => {
-      const matchesSearch = !state.searchTerm || 
+      const matchesSearch = !state.searchTerm ||
         listing.title?.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
         (typeof listing.make === 'string' ? listing.make : listing.make?.displayNameEn || '')
           .toLowerCase().includes(state.searchTerm.toLowerCase()) ||
         (typeof listing.model === 'string' ? listing.model : listing.model?.displayNameEn || '')
           .toLowerCase().includes(state.searchTerm.toLowerCase());
-      
-      const matchesStatus = state.statusFilter === 'all' || 
+
+      const matchesStatus = state.statusFilter === 'all' ||
         (state.statusFilter === 'pending' && !listing.approved) ||
         (state.statusFilter === 'approved' && listing.approved);
-      
+
       return matchesSearch && matchesStatus;
     });
 
     // Apply sorting
     filteredListings.sort((a, b) => {
       let aValue: string | number, bValue: string | number;
-      
+
       switch (state.sortBy) {
         case 'title':
           aValue = a.title || '';
@@ -171,7 +171,7 @@ const useAdminPanel = () => {
           aValue = a.createdAt;
           bValue = b.createdAt;
       }
-      
+
       if (aValue < bValue) return state.sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return state.sortOrder === 'asc' ? 1 : -1;
       return 0;
@@ -275,9 +275,9 @@ export default function AdminPanel() {
     }
 
     // Show confirmation modal
-    updateState({ 
-      showBulkConfirmModal: true, 
-      bulkActionType: action 
+    updateState({
+      showBulkConfirmModal: true,
+      bulkActionType: action
     });
   }, [selectedItems, listings, updateState, showError]);
 
@@ -292,7 +292,7 @@ export default function AdminPanel() {
 
     try {
       updateState({ processing: -1, showBulkConfirmModal: false });
-      
+
       const headers = await getAuthHeaders();
       if (!headers.Authorization) {
         throw new Error('Not authenticated');
@@ -304,39 +304,39 @@ export default function AdminPanel() {
           method: 'PUT',
           headers
         });
-        
+
         if (!response.ok) {
           throw new Error(`Failed to ${bulkActionType} listing ${id}: ${response.statusText}`);
         }
-        
+
         return id;
       });
-      
+
       await Promise.all(promises);
-      
+
       // Update state based on action
       if (bulkActionType === 'approve') {
         updateState({
-          listings: listings.map(listing => 
-            pendingSelectedItems.includes(listing.id) 
-              ? { ...listing, approved: true } 
+          listings: listings.map(listing =>
+            pendingSelectedItems.includes(listing.id)
+              ? { ...listing, approved: true }
               : listing
           ),
-          selectedItems: [], 
-          processing: null, 
-          bulkActionType: null 
+          selectedItems: [],
+          processing: null,
+          bulkActionType: null
         });
       } else {
         // Remove rejected listings
         updateState({
           listings: listings.filter(listing => !pendingSelectedItems.includes(listing.id)),
-          selectedItems: [], 
-          processing: null, 
-          bulkActionType: null 
+          selectedItems: [],
+          processing: null,
+          bulkActionType: null
         });
       }
-      
-      showSuccess(t(`admin.bulk${bulkActionType.charAt(0).toUpperCase() + bulkActionType.slice(1)}Success`, 
+
+      showSuccess(t(`admin.bulk${bulkActionType.charAt(0).toUpperCase() + bulkActionType.slice(1)}Success`,
         `${pendingSelectedItems.length} listings ${bulkActionType}d successfully`));
     } catch (_err) {
       updateState({ processing: null, bulkActionType: null });
@@ -345,9 +345,9 @@ export default function AdminPanel() {
   }, [bulkActionType, selectedItems, listings, updateState, showSuccess, showError, t]);
 
   const cancelBulkAction = useCallback(() => {
-    updateState({ 
-      showBulkConfirmModal: false, 
-      bulkActionType: null 
+    updateState({
+      showBulkConfirmModal: false,
+      bulkActionType: null
     });
   }, [updateState]);
 
@@ -372,7 +372,7 @@ export default function AdminPanel() {
 
       // Update the listing in state
       updateState({
-        listings: listings.map(listing => 
+        listings: listings.map(listing =>
           listing.id === listingId ? { ...listing, approved: true } : listing
         ),
         processing: null
@@ -441,14 +441,14 @@ export default function AdminPanel() {
 
       const data = await response.json();
       // Extract the content array from the paginated response
-      updateState({ 
+      updateState({
         listings: Array.isArray(data.content) ? data.content : [],
-        loading: false 
+        loading: false
       });
     } catch (err) {
-      updateState({ 
+      updateState({
         error: err instanceof Error ? err.message : 'Failed to fetch listings',
-        loading: false 
+        loading: false
       });
       console.error('Error fetching listings:', err);
     }
@@ -480,7 +480,7 @@ export default function AdminPanel() {
     if (listing && listing.approved) {
       return; // Don't allow selection of approved listings
     }
-    
+
     updateState({
       selectedItems: selectedItems.includes(id)
         ? selectedItems.filter(item => item !== id)
@@ -490,12 +490,12 @@ export default function AdminPanel() {
 
   const toggleSelectAll = useCallback(() => {
     const pendingListings = filteredListings.filter(listing => !listing.approved);
-    const allPendingSelected = pendingListings.length > 0 && 
+    const allPendingSelected = pendingListings.length > 0 &&
       pendingListings.every(listing => selectedItems.includes(listing.id));
-    
+
     updateState({
-      selectedItems: allPendingSelected 
-        ? [] 
+      selectedItems: allPendingSelected
+        ? []
         : pendingListings.map(listing => listing.id)
     });
   }, [selectedItems, filteredListings, updateState]);
@@ -532,12 +532,12 @@ export default function AdminPanel() {
                 {t('admin.subtitle', 'Manage listings and platform content')}
           </p>
         </div>
-            
+
             <div className="flex items-center gap-3">
               <button
                 onClick={() => updateState({ showFilters: !showFilters })}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 ${
-                  showFilters 
+                  showFilters
                     ? 'bg-blue-600 text-white shadow-lg'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
@@ -679,11 +679,11 @@ export default function AdminPanel() {
                         {t('admin.actions', 'Actions')}
                       </label>
                       <button
-                        onClick={() => updateState({ 
-                          searchTerm: '', 
-                          statusFilter: 'all', 
-                          sortBy: 'createdAt', 
-                          sortOrder: 'desc' 
+                        onClick={() => updateState({
+                          searchTerm: '',
+                          statusFilter: 'all',
+                          sortBy: 'createdAt',
+                          sortOrder: 'desc'
                         })}
                         className="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 font-medium"
                       >
@@ -706,12 +706,12 @@ export default function AdminPanel() {
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   {filteredListings.length} listings
                 </span>
-                
+
                 {(() => {
                   const pendingListings = filteredListings.filter(listing => !listing.approved);
-                  const allPendingSelected = pendingListings.length > 0 && 
+                  const allPendingSelected = pendingListings.length > 0 &&
                     pendingListings.every(listing => selectedItems.includes(listing.id));
-                  
+
                   return pendingListings.length > 0 ? (
                     <button
                       onClick={toggleSelectAll}
@@ -728,7 +728,7 @@ export default function AdminPanel() {
                   const listing = listings.find(l => l.id === id);
                   return listing && !listing.approved;
                 }).length;
-                
+
                 return pendingSelectedCount > 0 ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -786,15 +786,15 @@ export default function AdminPanel() {
                   {t('admin.noListingsFound', 'No listings found')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
-                  {searchTerm || statusFilter !== 'all' 
+                  {searchTerm || statusFilter !== 'all'
                     ? t('admin.noListingsMatchFilter', 'No listings match your current filters')
                     : t('admin.noListingsYet', 'No listings have been submitted yet')
                   }
                 </p>
               </div>
             ) : (
-              <div className={viewMode === 'grid' 
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3" 
+              <div className={viewMode === 'grid'
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3"
                 : "bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
               }>
                 {filteredListings.map((listing) => (
@@ -827,8 +827,8 @@ export default function AdminPanel() {
             const listing = listings.find(l => l.id === id);
             return listing && !listing.approved;
           }).length;
-          
-          return bulkActionType === 'approve' 
+
+          return bulkActionType === 'approve'
             ? t('admin.confirmBulkApproveMessage', `Are you sure you want to approve ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This will make them visible to all users.`)
             : t('admin.confirmBulkRejectMessage', `Are you sure you want to reject ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This action cannot be undone.`);
         })()}
@@ -893,15 +893,15 @@ interface EnhancedListingCardProps {
   t: ReturnType<typeof useTranslation>['t'];
 }
 
-function EnhancedListingCard({ 
-  listing, 
-  viewMode, 
-  isSelected, 
-  onSelect, 
-  onApprove, 
-  onReject, 
+function EnhancedListingCard({
+  listing,
+  viewMode,
+  isSelected,
+  onSelect,
+  onApprove,
+  onReject,
   processing,
-  t 
+  t
 }: EnhancedListingCardProps) {
   const getStatusBadge = () => {
     if (listing.approved) {
@@ -944,12 +944,12 @@ function EnhancedListingCard({
       const imageUrl = primaryImage?.url || listing.media[0]?.url;
       return imageUrl ? transformMinioUrl(imageUrl) : null;
     }
-    
+
     // Fallback to imageUrls array (old format)
     if (listing.imageUrls && listing.imageUrls.length > 0) {
       return transformMinioUrl(listing.imageUrls[0]);
     }
-    
+
     return null;
   };
 
@@ -962,8 +962,8 @@ function EnhancedListingCard({
             onClick={listing.approved ? undefined : onSelect}
             disabled={listing.approved}
             className={`p-1 bg-white dark:bg-gray-800 rounded-md shadow-sm transition-colors ${
-              listing.approved 
-                ? 'cursor-not-allowed opacity-50' 
+              listing.approved
+                ? 'cursor-not-allowed opacity-50'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -991,7 +991,7 @@ function EnhancedListingCard({
           <div className="relative h-32 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-t-xl">
             {(() => {
               const imageUrl = getImageUrl();
-              
+
 
 
               if (imageUrl) {
@@ -1022,7 +1022,7 @@ function EnhancedListingCard({
                 );
               }
             })()}
-            
+
             {/* Needs Review Overlay - Bottom Center */}
             {!listing.approved && (
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20">
@@ -1049,27 +1049,27 @@ function EnhancedListingCard({
             {/* Vehicle Details */}
             <div className="mb-4 space-y-2">
               <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                {typeof listing.make === 'string' 
-                  ? listing.make 
+                {typeof listing.make === 'string'
+                  ? listing.make
                   : listing.make?.displayNameEn || 'N/A'} {' '}
-                {typeof listing.model === 'string' 
-                  ? listing.model 
+                {typeof listing.model === 'string'
+                  ? listing.model
                   : listing.model?.displayNameEn || 'N/A'} {' '}
                 {listing.year && `(${listing.year})`}
               </div>
-              
+
               {/* Key Info */}
               <div className="flex flex-wrap gap-1.5">
                 <div className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-[10px] font-medium">
                   <MdSpeed className="w-3 h-3" />
                   {formatMileage(listing.mileage)}
                 </div>
-                
+
                 <div className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-md text-[10px] font-medium">
                   <MdLocationOn className="w-3 h-3" />
                   <span className="truncate max-w-20">{getLocationDisplay()}</span>
                 </div>
-                
+
                 {listing.views !== undefined && (
                   <div className="inline-flex items-center gap-1 bg-gray-50 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md text-[10px] font-medium">
                     <MdRemoveRedEye className="w-3 h-3" />
@@ -1095,12 +1095,12 @@ function EnhancedListingCard({
             <div className="flex items-center gap-4">
               {/* Selection checkbox */}
               <div className="flex-shrink-0">
-                <button 
-                  onClick={listing.approved ? undefined : onSelect} 
+                <button
+                  onClick={listing.approved ? undefined : onSelect}
                   disabled={listing.approved}
                   className={`p-1 rounded-md transition-colors ${
-                    listing.approved 
-                      ? 'cursor-not-allowed opacity-50' 
+                    listing.approved
+                      ? 'cursor-not-allowed opacity-50'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -1120,13 +1120,13 @@ function EnhancedListingCard({
                   {(() => {
                     const imageUrl = getImageUrl();
                     return imageUrl ? (
-                      <Image 
-                        src={imageUrl} 
-                        alt={listing.title || 'Car'} 
-                        fill 
-                        className="object-cover" 
-                        sizes="96px" 
-                        unoptimized 
+                      <Image
+                        src={imageUrl}
+                        alt={listing.title || 'Car'}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                        unoptimized
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
@@ -1143,15 +1143,15 @@ function EnhancedListingCard({
                   {listing.title}
                 </h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {typeof listing.make === 'string' 
-                    ? listing.make 
+                  {typeof listing.make === 'string'
+                    ? listing.make
                     : listing.make?.displayNameEn || 'N/A'} {' '}
-                  {typeof listing.model === 'string' 
-                    ? listing.model 
+                  {typeof listing.model === 'string'
+                    ? listing.model
                     : listing.model?.displayNameEn || 'N/A'} {' '}
                   {listing.year && `• ${listing.year}`}
                 </div>
-                
+
                 {/* Info Chips */}
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <div className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-xs font-medium">

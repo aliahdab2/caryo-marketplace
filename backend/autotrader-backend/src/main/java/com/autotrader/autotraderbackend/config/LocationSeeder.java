@@ -47,19 +47,19 @@ public class LocationSeeder {
             }
 
             log.info("Seeding location data...");
-            
+
             // Get Syrian governorates for reference
             List<Governorate> syrianGovernorates = governorateRepository.findByCountry_CountryCodeOrderByDisplayNameEnAsc("SY");
-            
+
             if (syrianGovernorates.isEmpty()) {
                 log.error("No Syrian governorates found. Cannot seed locations. Make sure governorates are initialized first.");
                 return;
             }
-            
+
             // Create a map of governorate name -> governorate for easy lookup
             Map<String, Governorate> governorateMap = syrianGovernorates.stream()
                     .collect(Collectors.toMap(Governorate::getDisplayNameEn, Function.identity()));
-            
+
             // Default to Damascus governorate if specific governorate not found
             Governorate defaultGovernorate = governorateMap.getOrDefault("Damascus", syrianGovernorates.get(0));
 
@@ -67,7 +67,7 @@ public class LocationSeeder {
             List<LocationData> locationDataList = createLocationDataList();
 
             log.info("Seeding {} Syrian cities", locationDataList.size());
-            
+
             // Use streaming with batch saving for better performance
             List<Location> locations = locationDataList.stream()
                 .map(data -> createLocation(data, governorateMap, defaultGovernorate))
@@ -78,40 +78,40 @@ public class LocationSeeder {
             log.info("Successfully created {} locations", locations.size());
         };
     }
-    
+
     /**
      * Creates a Location entity from the provided data
      */
     private Location createLocation(LocationData data, Map<String, Governorate> governorateMap, Governorate defaultGovernorate) {
         Objects.requireNonNull(data, "Location data cannot be null");
-        
+
         if (StringUtils.isBlank(data.getNameEn())) {
             throw new IllegalArgumentException("English name cannot be blank");
         }
         if (StringUtils.isBlank(data.getNameAr())) {
             throw new IllegalArgumentException("Arabic name cannot be blank");
         }
-        
+
         Location location = new Location();
         location.setDisplayNameEn(data.getNameEn());
         location.setDisplayNameAr(data.getNameAr());
         location.setSlug(SlugUtils.slugify(data.getNameEn()));
-        
+
         // Find the appropriate governorate or use default
         Governorate governorate = governorateMap.getOrDefault(
-            StringUtils.trimToEmpty(data.getGovernorateNameEn()), 
+            StringUtils.trimToEmpty(data.getGovernorateNameEn()),
             defaultGovernorate
         );
         location.setGovernorate(governorate);
-        
+
         location.setRegion(StringUtils.trimToNull(data.getRegion()));
         location.setLatitude(data.getLatitude());
         location.setLongitude(data.getLongitude());
         location.setIsActive(true);
-        
+
         return location;
     }
-    
+
     /**
      * Creates a list of location data for seeding
      */
@@ -125,7 +125,7 @@ public class LocationSeeder {
                 .latitude(33.5138)
                 .longitude(36.2765)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Aleppo")
                 .nameAr("حلب")
@@ -134,7 +134,7 @@ public class LocationSeeder {
                 .latitude(36.2021)
                 .longitude(37.1343)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Homs")
                 .nameAr("حمص")
@@ -143,7 +143,7 @@ public class LocationSeeder {
                 .latitude(34.7324)
                 .longitude(36.7137)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Latakia")
                 .nameAr("اللاذقية")
@@ -152,7 +152,7 @@ public class LocationSeeder {
                 .latitude(35.5317)
                 .longitude(35.7915)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Hama")
                 .nameAr("حماة")
@@ -161,7 +161,7 @@ public class LocationSeeder {
                 .latitude(35.1353)
                 .longitude(36.7520)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Deir ez-Zor")
                 .nameAr("دير الزور")
@@ -170,7 +170,7 @@ public class LocationSeeder {
                 .latitude(35.3359)
                 .longitude(40.1408)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Al-Hasakah")
                 .nameAr("الحسكة")
@@ -179,7 +179,7 @@ public class LocationSeeder {
                 .latitude(36.5024)
                 .longitude(40.7477)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Raqqa")
                 .nameAr("الرقة")
@@ -188,7 +188,7 @@ public class LocationSeeder {
                 .latitude(35.9528)
                 .longitude(39.0100)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Daraa")
                 .nameAr("درعا")
@@ -197,7 +197,7 @@ public class LocationSeeder {
                 .latitude(32.6189)
                 .longitude(36.1060)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Idlib")
                 .nameAr("إدلب")
@@ -206,7 +206,7 @@ public class LocationSeeder {
                 .latitude(35.9306)
                 .longitude(36.6339)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Al-Bab")
                 .nameAr("الباب")
@@ -215,7 +215,7 @@ public class LocationSeeder {
                 .latitude(36.3705)
                 .longitude(37.5176)
                 .build(),
-                
+
             LocationData.builder()
                 .nameEn("Douma")
                 .nameAr("دوما")

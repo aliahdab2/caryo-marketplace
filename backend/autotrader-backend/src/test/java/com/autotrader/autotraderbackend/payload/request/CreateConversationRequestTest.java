@@ -207,7 +207,7 @@ class CreateConversationRequestTest {
         CreateConversationRequest request1 = new CreateConversationRequest();
         request1.setListingId(1L);
         request1.setInitialMessage("A");
-        
+
         Set<ConstraintViolation<CreateConversationRequest>> violations1 = validator.validate(request1);
         assertTrue(violations1.isEmpty(), "Should accept single character message");
 
@@ -215,7 +215,7 @@ class CreateConversationRequestTest {
         CreateConversationRequest request2 = new CreateConversationRequest();
         request2.setListingId(1L);
         request2.setInitialMessage("A".repeat(1000));
-        
+
         Set<ConstraintViolation<CreateConversationRequest>> violations2 = validator.validate(request2);
         assertTrue(violations2.isEmpty(), "Should accept exactly 1000 character message");
     }

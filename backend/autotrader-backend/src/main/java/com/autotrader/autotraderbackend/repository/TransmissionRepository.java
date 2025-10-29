@@ -10,9 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface TransmissionRepository extends JpaRepository<Transmission, Long> {
-    
+
     Optional<Transmission> findByName(String name);
-    
+
     @Query("SELECT t FROM Transmission t WHERE " +
            "LOWER(t.displayNameEn) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(t.displayNameAr) LIKE LOWER(CONCAT('%', :query, '%'))")

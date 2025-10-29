@@ -47,7 +47,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
     @BeforeEach
     void setUp() {
         baseUrl = "http://localhost:" + port; // Removed "/api"
-        
+
         // Configure TestRestTemplate for error handling
         // Use a more modern approach without deprecated methods
         restTemplate = new TestRestTemplate(
@@ -63,17 +63,17 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("nonexistent_user");
         loginRequest.setPassword("wrong_password");
-        
+
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signin",
                 loginRequest,
                 String.class
         );
-        
+
         // Verify unauthorized status
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), "Invalid credentials should return 401 Unauthorized");
     }
-    
+
     @Test
     public void testDuplicateUsername() {
         // Register a user first
@@ -87,16 +87,16 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         signupRequest.setPassword(password);
         signupRequest.setConfirmPassword(password);
         signupRequest.setSellerTypeId(1);
-        
+
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
                 signupRequest,
                 String.class
         );
-        
+
         assertEquals(HttpStatus.OK, response.getStatusCode(), "First registration should succeed");
-        
+
         // Try to register with the same username
         SignupRequest duplicateUserRequest = new SignupRequest();
         duplicateUserRequest.setUsername(username);
@@ -104,17 +104,17 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateUserRequest.setPassword(password);
         duplicateUserRequest.setConfirmPassword(password);
         duplicateUserRequest.setSellerTypeId(1);
-        
+
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
                 duplicateUserRequest,
                 String.class
         );
-        
+
         // Verify that duplicate username is rejected
         assertEquals(HttpStatus.BAD_REQUEST, duplicateResponse.getStatusCode(), "Duplicate username should be rejected");
     }
-    
+
     @Test
     public void testDuplicateEmail() {
         // Register a user first
@@ -128,16 +128,16 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         signupRequest.setPassword(password);
         signupRequest.setConfirmPassword(password);
         signupRequest.setSellerTypeId(1);
-        
+
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
                 signupRequest,
                 String.class
         );
-        
+
         assertEquals(HttpStatus.OK, response.getStatusCode(), "First registration should succeed");
-        
+
         // Try to register with the same email
         SignupRequest duplicateEmailRequest = new SignupRequest();
         duplicateEmailRequest.setUsername("different_" + username);
@@ -145,50 +145,50 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateEmailRequest.setPassword(password);
         duplicateEmailRequest.setConfirmPassword(password);
         duplicateEmailRequest.setSellerTypeId(1);
-        
+
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
                 duplicateEmailRequest,
                 String.class
         );
-        
+
         // Verify that duplicate email is rejected
         assertEquals(HttpStatus.BAD_REQUEST, duplicateResponse.getStatusCode(), "Duplicate email should be rejected");
     }
-    
+
     @Test
     public void testNonExistentUser() {
         // Try to login with a non-existent user
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("user_that_doesnt_exist_" + UUID.randomUUID());
         loginRequest.setPassword("some_password");
-        
+
         ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signin",
                 loginRequest,
                 String.class
         );
-        
+
         // Verify unauthorized status
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode(), "Non-existent user login should be unauthorized");
     }
-    
+
     @Test
     public void testValidationErrors() {
         // Create an invalid signup request with empty fields
         SignupRequest invalidRequest = new SignupRequest();
         // Leave all fields empty to trigger validation errors
-        
+
         ResponseEntity<String> invalidResponse = restTemplate.postForEntity(
                 baseUrl + "/api/auth/signup",
                 invalidRequest,
                 String.class
         );
-        
+
         // Verify registration fails with 400 Bad Request due to validation
         assertEquals(HttpStatus.BAD_REQUEST, invalidResponse.getStatusCode(), "Invalid data should fail validation");
     }
-    
+
     @Test
     public void testUnauthorizedResourceAccess() {
         // Try to access protected resource without authentication
@@ -196,18 +196,18 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
                 baseUrl + "/api/test/user",
                 String.class
         );
-        
+
         // Verify access is denied with 401 Unauthorized
         assertEquals(HttpStatus.UNAUTHORIZED, unauthorizedResponse.getStatusCode(), "Unauthenticated access should be denied");
     }
-    
+
     @Test
     public void testForbiddenResourceAccess() {
         // Use a simple username that definitely meets the validation requirements (between 3 and 20 chars)
         String username = "testuser123";
         String email = username + "@example.com";
         String password = "password123";
-        
+
         try {
             // Register the user
             SignupRequest signupRequest = new SignupRequest();
@@ -216,47 +216,47 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             signupRequest.setSellerTypeId(1);
             signupRequest.setEmail(email);
             signupRequest.setPassword(password);
-            
+
             ResponseEntity<String> signupResponse = restTemplate.postForEntity(
                     baseUrl + "/api/auth/signup",
                     signupRequest,
                     String.class
             );
-            
+
             // Verify signup was successful
-            assertEquals(HttpStatus.OK, signupResponse.getStatusCode(), 
+            assertEquals(HttpStatus.OK, signupResponse.getStatusCode(),
                 "User registration should succeed. Response body: " + signupResponse.getBody());
-            
+
             // Mark user as email verified for testing (since this test is about authorization, not email verification)
             User registeredUser = userRepository.findByUsername(username).orElseThrow();
             registeredUser.markEmailAsVerified();
             userRepository.save(registeredUser);
-            
+
             // Login to get JWT token
             LoginRequest loginRequest = new LoginRequest();
             loginRequest.setUsername(username);
             loginRequest.setPassword(password);
-            
+
             ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
                     baseUrl + "/api/auth/signin",
                     loginRequest,
                     JwtResponse.class
             );
-            
+
             // Verify login was successful
             assertEquals(HttpStatus.OK, loginResponse.getStatusCode(), "Login should succeed");
             assertThat(loginResponse.getBody()).isNotNull();
-            
+
             // Extract token and ensure it's not null or empty
             JwtResponse jwtResponse = loginResponse.getBody();
             assertThat(jwtResponse).isNotNull();
             String token = java.util.Objects.requireNonNull(jwtResponse).getToken();
             assertThat(token).isNotBlank();
-            
+
             // Create headers with token
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token); // Use setBearerAuth instead of manually adding the header
-            
+
             // Try to access admin resource as regular user
             ResponseEntity<String> forbiddenResponse = restTemplate.exchange(
                     baseUrl + "/api/test/admin",
@@ -264,7 +264,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
                     new HttpEntity<>(headers),
                     String.class
             );
-            
+
             // Verify access is forbidden (403)
             assertEquals(HttpStatus.FORBIDDEN, forbiddenResponse.getStatusCode(), "Regular user should be forbidden from admin resources");
         } finally {

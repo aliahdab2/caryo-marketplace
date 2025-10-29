@@ -24,7 +24,7 @@ public class TestGeographyUtils {
         country.setIsActive(true);
         return country;
     }
-    
+
     /**
      * Creates a test governorate associated with a country
      *
@@ -45,7 +45,7 @@ public class TestGeographyUtils {
         governorate.setIsActive(true);
         return governorate;
     }
-    
+
     /**
      * Creates a test location associated with a governorate
      *
@@ -66,7 +66,7 @@ public class TestGeographyUtils {
         location.setIsActive(true);
         return location;
     }
-    
+
     /**
      * Gets the English name for a country code
      */
@@ -86,7 +86,7 @@ public class TestGeographyUtils {
             default: return "Test Country " + countryCode;
         }
     }
-    
+
     /**
      * Gets the Arabic name for a country code
      */

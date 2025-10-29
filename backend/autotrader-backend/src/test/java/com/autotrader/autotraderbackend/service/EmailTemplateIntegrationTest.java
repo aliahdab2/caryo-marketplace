@@ -63,7 +63,7 @@ class EmailTemplateIntegrationTest {
         assertEquals("Welcome email for new users", templateMetadata.get("description"));
         assertEquals("user-management", templateMetadata.get("category"));
         assertEquals("user-management/welcome.html", templateMetadata.get("path"));
-        
+
         @SuppressWarnings("unchecked")
         var variables = (java.util.List<String>) templateMetadata.get("variables");
         assertNotNull(variables);
@@ -83,7 +83,7 @@ class EmailTemplateIntegrationTest {
         Map<String, Object> templateMetadata = metadata.get();
         assertEquals("Password reset email with secure token", templateMetadata.get("description"));
         assertEquals("user-management", templateMetadata.get("category"));
-        
+
         @SuppressWarnings("unchecked")
         var variables = (java.util.List<String>) templateMetadata.get("variables");
         assertNotNull(variables);
@@ -137,7 +137,7 @@ class EmailTemplateIntegrationTest {
         assertNotNull(templateData);
         assertEquals("welcome", templateData.getTemplateName());
         assertEquals("en", templateData.getLanguage());
-        
+
         Map<String, Object> variables = templateData.getVariables();
         assertEquals("testuser", variables.get("userName"));
         assertEquals("test@example.com", variables.get("userEmail"));
@@ -161,7 +161,7 @@ class EmailTemplateIntegrationTest {
         // Then
         assertNotNull(templateData);
         assertEquals("password-reset", templateData.getTemplateName());
-        
+
         Map<String, Object> variables = templateData.getVariables();
         assertEquals("http://localhost:3000/reset?token=abc123", variables.get("resetUrl"));
         assertEquals(24, variables.get("expiryHours"));
@@ -215,7 +215,7 @@ class EmailTemplateIntegrationTest {
         // Then
         assertNotNull(allTemplates);
         assertTrue(allTemplates.size() > 0);
-        
+
         // Check that we have templates from all categories
         assertTrue(allTemplates.containsKey("welcome"));
         assertTrue(allTemplates.containsKey("password-reset"));
@@ -234,10 +234,10 @@ class EmailTemplateIntegrationTest {
         // Then
         assertTrue(welcomePath.isPresent());
         assertEquals("user-management/welcome.html", welcomePath.get());
-        
+
         assertTrue(passwordResetPath.isPresent());
         assertEquals("user-management/password-reset.html", passwordResetPath.get());
-        
+
         assertFalse(nonExistentPath.isPresent());
     }
 
@@ -253,7 +253,7 @@ class EmailTemplateIntegrationTest {
         // Then
         assertNotNull(templateData);
         assertEquals("contact-form", templateData.getTemplateName());
-        
+
         Map<String, Object> variables = templateData.getVariables();
         assertEquals("John Doe", variables.get("senderName"));
         assertEquals("john@example.com", variables.get("senderEmail"));
@@ -276,7 +276,7 @@ class EmailTemplateIntegrationTest {
         // Then
         assertNotNull(templateData);
         assertEquals("listing-approved", templateData.getTemplateName());
-        
+
         Map<String, Object> variables = templateData.getVariables();
         assertEquals("2020 Toyota Camry", variables.get("listingTitle"));
         assertEquals("http://localhost:3000/listings/123", variables.get("listingUrl"));

@@ -12,14 +12,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SendMessageRequest {
-    
+
     /**
      * The content of the message to send.
      * Optional when sending attachments, must be between 1 and 1000 characters if provided.
      */
     @Size(max = 1000, message = "Message cannot exceed 1000 characters")
     private String content;
-    
+
     /**
      * The type of message being sent.
      * Optional, defaults to TEXT.

@@ -33,10 +33,10 @@ public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
     private final StorageService storageService;
-    
+
     @Value("${app.upload.video-upload-enabled:true}")
     private boolean videoUploadEnabled;
-    
+
     @Value("${app.upload.max-video-size:104857600}")
     private long maxVideoSize;
 
@@ -47,7 +47,7 @@ public class FileController {
     /**
      * Upload a file for a car listing.
      * Requires authentication.
-     * 
+     *
      * @param file The file to upload
      * @param listingId The ID of the car listing (optional)
      * @return A map containing the file URL and key
@@ -67,49 +67,49 @@ public class FileController {
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "listingId", required = false) Long listingId) {
-        
-        logger.info("Received file upload request: {}, size: {}, listingId: {}", 
+
+        logger.info("Received file upload request: {}, size: {}, listingId: {}",
                 file.getOriginalFilename(), file.getSize(), listingId);
-        
+
         if (file.isEmpty()) {
             throw new StorageException("Failed to store empty file");
         }
-        
+
         // Check file type
         String contentType = file.getContentType();
         if (contentType == null || !isAllowedFileType(contentType)) {
             throw new StorageException("Unsupported file type: " + contentType);
         }
-        
+
         // Additional validation for video files
         validateVideoFile(file);
-        
+
         // Generate a unique key for the file
         String originalFilename = file.getOriginalFilename();
         String fileExtension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        
+
         // Create a path based on listing ID (if provided) or a generic "uploads" folder
         String path = listingId != null ? "listings/" + listingId : "uploads";
         String key = path + "/" + UUID.randomUUID().toString() + fileExtension;
-        
+
         // Store the file
         String url = storageService.store(file, key);
         logger.info("File stored with key: {}, URL: {}", key, url);
-        
+
         // Return the URL and key
         Map<String, String> result = new HashMap<>();
         result.put("url", url);
         result.put("key", key);
-        
+
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Download a file by its key.
-     * 
+     *
      * @param key The key of the file to download
      * @return The file as a resource
      */
@@ -125,7 +125,7 @@ public class FileController {
     public ResponseEntity<Resource> getFile(@PathVariable String key) {
         logger.info("Received file download request for key: {}", key);
         Resource resource = storageService.loadAsResource(key);
-        
+
         // Try to determine content type
         String contentType = "application/octet-stream";
         String filename = resource.getFilename();
@@ -139,17 +139,17 @@ public class FileController {
                 contentType = "application/pdf";
             }
         }
-        
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(resource);
     }
-    
+
     /**
      * Get a signed URL for a file.
      * This is useful for private/sensitive files that need temporary access.
-     * 
+     *
      * @param key The key of the file
      * @param expiration The expiration time in seconds
      * @return A map containing the signed URL
@@ -168,20 +168,20 @@ public class FileController {
     public ResponseEntity<Map<String, String>> getSignedUrl(
             @RequestParam("key") String key,
             @RequestParam(value = "expiration", defaultValue = "3600") long expiration) {
-        
+
         logger.info("Generating signed URL for key: {} with expiration: {}", key, expiration);
         String signedUrl = storageService.getSignedUrl(key, expiration);
-        
+
         Map<String, String> result = new HashMap<>();
         result.put("url", signedUrl);
-        
+
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Delete a file.
      * Requires admin role.
-     * 
+     *
      * @param key The key of the file to delete
      * @return A map containing a success message
      */
@@ -200,7 +200,7 @@ public class FileController {
     public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String key) {
         logger.info("Received file deletion request for key: {}", key);
         boolean deleted = storageService.delete(key);
-        
+
         Map<String, String> result = new HashMap<>();
         if (deleted) {
             result.put("message", "File deleted successfully");
@@ -209,13 +209,13 @@ public class FileController {
             result.put("message", "File not found or could not be deleted");
             logger.warn("File not found or could not be deleted: {}", key);
         }
-        
+
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Check if the file type is allowed.
-     * 
+     *
      * @param contentType The content type of the file
      * @return true if the file type is allowed, false otherwise
      */
@@ -231,14 +231,14 @@ public class FileController {
         );
         return allowedTypes.contains(contentType);
     }
-    
+
     /**
      * Checks if the content type is a video format
      */
     private boolean isVideoFile(String contentType) {
         return contentType != null && contentType.startsWith("video/");
     }
-    
+
     /**
      * Validates video file constraints following AutoTrader best practices
      */
@@ -246,18 +246,18 @@ public class FileController {
         if (!isVideoFile(file.getContentType())) {
             return; // Not a video, skip validation
         }
-        
+
         // Check if video uploads are enabled
         if (!videoUploadEnabled) {
             throw new StorageException("Video file uploads are currently disabled. Please use external video URLs instead.");
         }
-        
+
         // Check file size
         if (file.getSize() > maxVideoSize) {
             long maxVideoSizeMB = maxVideoSize / (1024 * 1024);
             throw new StorageException("Video file size exceeds maximum limit of " + maxVideoSizeMB + "MB");
         }
-        
+
         // Note: Duration validation will be handled by external tools or frontend
         // as it requires video metadata extraction which is complex in Java
     }

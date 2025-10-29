@@ -38,21 +38,21 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
 }) => {
   // Determine RTL internally like the grid component does
   const { isRTL } = useLanguageDirection();
-  
+
   // Use year or modelYear - prioritize modelYear as it's more specific
   const displayYear = listing.modelYear || listing.year;
 
   // Helper function to get translated transmission text
   const getTransmissionText = (transmission?: string) => {
     if (!transmission) return t('search:notSpecified', 'N/A');
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.transmissionNameEn || listing.transmissionNameAr) {
-      return isRTL ? 
+      return isRTL ?
         (listing.transmissionNameAr || listing.transmissionNameEn || transmission) :
         (listing.transmissionNameEn || listing.transmissionNameAr || transmission);
     }
-    
+
     // Fallback to translation lookup for backwards compatibility
     const normalized = transmission.toLowerCase();
     const keyPatterns = [
@@ -60,28 +60,28 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
       `search:transmissions${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
       `${normalized}`
     ];
-    
+
     for (const key of keyPatterns) {
       const translated = t(key, '');
       if (translated && translated !== key && translated !== '') {
         return translated;
       }
     }
-    
+
     return transmission;
   };
 
   // Helper function to get translated fuel type text
   const getFuelTypeText = (fuelType?: string) => {
     if (!fuelType) return t('search:notSpecified', 'N/A');
-    
+
     // Use bilingual fields directly from backend if available
     if (listing.fuelTypeNameEn || listing.fuelTypeNameAr) {
-      return isRTL ? 
+      return isRTL ?
         (listing.fuelTypeNameAr || listing.fuelTypeNameEn || fuelType) :
         (listing.fuelTypeNameEn || listing.fuelTypeNameAr || fuelType);
     }
-    
+
     // Fallback to translation lookup for backwards compatibility
     const normalized = fuelType.toLowerCase();
     const keyPatterns = [
@@ -89,14 +89,14 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
       `search:fuelTypes${normalized.charAt(0).toUpperCase() + normalized.slice(1)}`,
       `${normalized}`
     ];
-    
+
     for (const key of keyPatterns) {
       const translated = t(key, '');
       if (translated && translated !== key && translated !== '') {
         return translated;
       }
     }
-    
+
     return fuelType;
   };
 
@@ -120,7 +120,7 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
             />
             {/* Gradient overlay for better text contrast */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            
+
             {/* Favorite Button - Same as grid mode */}
             <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} z-10`} onClick={(e) => e.stopPropagation()}>
               <FavoriteButton
@@ -133,12 +133,12 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
                 user={user}
               />
             </div>
-            
+
             {/* Year Badge */}
-            <YearBadge 
-              year={displayYear} 
-              size="lg" 
-              position="bottom-left" 
+            <YearBadge
+              year={displayYear}
+              size="lg"
+              position="bottom-left"
               zIndex={20}
             />
           </div>
@@ -160,7 +160,7 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
             </div>
 
             {/* Location & Date */}
-            <div className={`flex items-center gap-3 mb-4 ${isRTL ? 'flex-row-reverse justify-end' : 'justify-start'}`}> 
+            <div className={`flex items-center gap-3 mb-4 ${isRTL ? 'flex-row-reverse justify-end' : 'justify-start'}`}>
               {(listing.governorateNameEn || listing.governorateNameAr || listing.governorateDetails) && (
                 <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-2 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded-xl`}>
                   <MdLocationOn className="w-4 h-4 flex-shrink-0 text-blue-600" />
@@ -168,14 +168,14 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
                     {(() => {
                       // Try direct fields first
                       if (listing.governorateNameEn || listing.governorateNameAr) {
-                        return isRTL ? 
-                          (listing.governorateNameAr || listing.governorateNameEn) : 
+                        return isRTL ?
+                          (listing.governorateNameAr || listing.governorateNameEn) :
                           (listing.governorateNameEn || listing.governorateNameAr);
                       }
                       // Fallback to governorateDetails
                       if (listing.governorateDetails) {
-                        return isRTL ? 
-                          (listing.governorateDetails.displayNameAr || listing.governorateDetails.displayNameEn) : 
+                        return isRTL ?
+                          (listing.governorateDetails.displayNameAr || listing.governorateDetails.displayNameEn) :
                           (listing.governorateDetails.displayNameEn || listing.governorateDetails.displayNameAr);
                       }
                       return '';
@@ -191,28 +191,28 @@ const CarListingListItem: React.FC<CarListingListItemProps> = ({
             </div>
 
             {/* Vehicle details */}
-            <div className={`flex flex-wrap gap-2 md:gap-3`}> 
+            <div className={`flex flex-wrap gap-2 md:gap-3`}>
               {listing.year && (
-                <div className={`flex items-center flex-row gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-2.5 rounded-xl border border-purple-100 dark:border-purple-800/30 flex-shrink-0`}> 
+                <div className={`flex items-center flex-row gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-2.5 rounded-xl border border-purple-100 dark:border-purple-800/30 flex-shrink-0`}>
                   <MdDateRange className="w-4 h-4 flex-shrink-0 text-purple-600 dark:text-purple-400" />
                   <span className="text-sm font-medium text-purple-700 dark:text-purple-300 whitespace-nowrap">
                     {listing.year}
                   </span>
                 </div>
               )}
-              <div className={`flex items-center flex-row gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-2.5 rounded-xl border border-blue-100 dark:border-blue-800/30 flex-shrink-0`}> 
+              <div className={`flex items-center flex-row gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-2.5 rounded-xl border border-blue-100 dark:border-blue-800/30 flex-shrink-0`}>
                 <MdLocalGasStation className="w-4 h-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300 whitespace-nowrap">
                   {getFuelTypeText(listing.fuelType)}
                 </span>
               </div>
-              <div className={`flex items-center flex-row gap-2 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0`}> 
+              <div className={`flex items-center flex-row gap-2 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0`}>
                 <MdSettings className="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
                   {getTransmissionText(listing.transmission)}
                 </span>
               </div>
-              <div className={`flex items-center flex-row gap-2 bg-orange-50 dark:bg-orange-900/20 px-3 py-2.5 rounded-xl border border-orange-100 dark:border-orange-800/30 flex-shrink-0`}> 
+              <div className={`flex items-center flex-row gap-2 bg-orange-50 dark:bg-orange-900/20 px-3 py-2.5 rounded-xl border border-orange-100 dark:border-orange-800/30 flex-shrink-0`}>
                 <div className="w-4 h-4 flex-shrink-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full shadow-sm"></div>
                 <span className="text-sm font-medium text-orange-700 dark:text-orange-300 whitespace-nowrap">
                   {listing.mileage ? listing.mileage.toLocaleString() : t('search:notSpecified', 'N/A')} {t('search:km', 'km')}

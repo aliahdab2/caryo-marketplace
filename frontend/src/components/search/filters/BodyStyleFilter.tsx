@@ -31,7 +31,7 @@ const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({
     const newBodyStyleSlugs = isSelected
       ? selectedBodyStyleSlugs.filter(slug => slug !== bodyStyleSlug)
       : [...selectedBodyStyleSlugs, bodyStyleSlug];
-    
+
     onBodyStyleChange(newBodyStyleSlugs.length > 0 ? newBodyStyleSlugs : undefined);
   };
 
@@ -95,13 +95,13 @@ const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({
           const isSelected = selectedBodyStyleSlugs.includes(bodyStyle.slug);
           const displayName = currentLanguage === 'ar' ? bodyStyle.displayNameAr : bodyStyle.displayNameEn;
           const count = bodyStyleCounts[bodyStyle.name.toLowerCase()] || 0;
-          
+
           return (
             <div
               key={bodyStyle.id}
               className={`group relative flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                isSelected 
-                  ? 'border-blue-500 bg-blue-50 shadow-sm' 
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
                   : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm'
               }`}
               onClick={() => handleBodyStyleToggle(bodyStyle.slug)}
@@ -115,11 +115,11 @@ const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({
                   <span className="text-gray-500 text-sm">({count.toLocaleString()})</span>
                 </div>
               </div>
-              
+
               <div className="flex items-center">
                 <div className={`w-5 h-5 border-2 rounded transition-all duration-200 ${
-                  isSelected 
-                    ? 'border-blue-500 bg-blue-500 scale-110' 
+                  isSelected
+                    ? 'border-blue-500 bg-blue-500 scale-110'
                     : 'border-gray-300 group-hover:border-blue-400'
                 }`}>
                   {isSelected && (
@@ -129,7 +129,7 @@ const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({
                   )}
                 </div>
               </div>
-              
+
               {/* Selection indicator */}
               {isSelected && (
                 <div className="absolute inset-0 border-2 border-blue-500 rounded-xl pointer-events-none animate-pulse"></div>
@@ -142,4 +142,4 @@ const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({
   );
 };
 
-export default BodyStyleFilter; 
+export default BodyStyleFilter;

@@ -24,7 +24,7 @@ class ApiSyncTrackingServiceTest {
     @BeforeEach
     void setUp() {
         apiSyncTrackingService = new ApiSyncTrackingService();
-        
+
         // Clear any existing sync times for clean test state
         Map<String, LocalDateTime> lastSyncTimes = new ConcurrentHashMap<>();
         ReflectionTestUtils.setField(apiSyncTrackingService, "lastSyncTimes", lastSyncTimes);
@@ -38,7 +38,7 @@ class ApiSyncTrackingServiceTest {
         @DisplayName("Should allow CarQuery sync when no previous sync exists")
         void shouldAllowCarQuerySyncWhenNoPreviousSync() {
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkCarQuerySyncStatus();
-            
+
             assertTrue(status.isAllowed(), "Should allow sync when no previous sync exists");
             assertNull(status.getLastSyncTime(), "Last sync time should be null");
             assertEquals(0, status.getHoursSinceLastSync(), "Hours since last sync should be 0");
@@ -50,14 +50,14 @@ class ApiSyncTrackingServiceTest {
         void shouldBlockCarQuerySyncWhenRecentlySynced() {
             // Record a sync 1 hour ago - cooldown is 2 hours so should block
             apiSyncTrackingService.recordCarQuerySync();
-            
+
             // Simulate 1 hour passing by setting last sync time to 1 hour ago
             LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("CARQUERY", oneHourAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkCarQuerySyncStatus();
-            
+
             assertFalse(status.isAllowed(), "Should block sync when within cooldown period");
             assertEquals(oneHourAgo, status.getLastSyncTime(), "Should return correct last sync time");
             assertEquals(1, status.getHoursSinceLastSync(), "Should calculate correct hours since last sync");
@@ -71,9 +71,9 @@ class ApiSyncTrackingServiceTest {
             LocalDateTime threeHoursAgo = LocalDateTime.now().minusHours(3);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("CARQUERY", threeHoursAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkCarQuerySyncStatus();
-            
+
             assertTrue(status.isAllowed(), "Should allow sync after cooldown expires");
             assertEquals(threeHoursAgo, status.getLastSyncTime(), "Should return correct last sync time");
             assertEquals(3, status.getHoursSinceLastSync(), "Should calculate correct hours since last sync");
@@ -84,15 +84,15 @@ class ApiSyncTrackingServiceTest {
         @DisplayName("Should record CarQuery sync time correctly")
         void shouldRecordCarQuerySyncTimeCorrectly() {
             LocalDateTime beforeSync = LocalDateTime.now().minusSeconds(1);
-            
+
             apiSyncTrackingService.recordCarQuerySync();
-            
+
             LocalDateTime afterSync = LocalDateTime.now().plusSeconds(1);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             LocalDateTime recordedTime = lastSyncTimes.get("CARQUERY");
-            
+
             assertNotNull(recordedTime, "Sync time should be recorded");
-            assertTrue(recordedTime.isAfter(beforeSync) && recordedTime.isBefore(afterSync), 
+            assertTrue(recordedTime.isAfter(beforeSync) && recordedTime.isBefore(afterSync),
                 "Recorded time should be within expected range");
         }
     }
@@ -105,7 +105,7 @@ class ApiSyncTrackingServiceTest {
         @DisplayName("Should allow SyrianCars sync when no previous sync exists")
         void shouldAllowSyrianCarsSyncWhenNoPreviousSync() {
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-            
+
             assertTrue(status.isAllowed(), "Should allow sync when no previous sync exists");
             assertNull(status.getLastSyncTime(), "Last sync time should be null");
             assertEquals(0, status.getHoursSinceLastSync(), "Hours since last sync should be 0");
@@ -119,9 +119,9 @@ class ApiSyncTrackingServiceTest {
             LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("SYRIANCARS", thirtyMinutesAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-            
+
             assertFalse(status.isAllowed(), "Should block sync when within cooldown period");
             assertEquals(thirtyMinutesAgo, status.getLastSyncTime(), "Should return correct last sync time");
             assertEquals(0, status.getHoursSinceLastSync(), "Should show 0 hours for partial hour");
@@ -135,9 +135,9 @@ class ApiSyncTrackingServiceTest {
             LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("SYRIANCARS", twoHoursAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-            
+
             assertTrue(status.isAllowed(), "Should allow sync after cooldown expires");
             assertEquals(twoHoursAgo, status.getLastSyncTime(), "Should return correct last sync time");
             assertEquals(2, status.getHoursSinceLastSync(), "Should calculate correct hours since last sync");
@@ -149,15 +149,15 @@ class ApiSyncTrackingServiceTest {
         @DisplayName("Should record SyrianCars sync time correctly")
         void shouldRecordSyrianCarsSyncTimeCorrectly() {
             LocalDateTime beforeSync = LocalDateTime.now().minusSeconds(1);
-            
+
             apiSyncTrackingService.recordSyrianCarsSync();
-            
+
             LocalDateTime afterSync = LocalDateTime.now().plusSeconds(1);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             LocalDateTime recordedTime = lastSyncTimes.get("SYRIANCARS");
-            
+
             assertNotNull(recordedTime, "Sync time should be recorded");
-            assertTrue(recordedTime.isAfter(beforeSync) && recordedTime.isBefore(afterSync), 
+            assertTrue(recordedTime.isAfter(beforeSync) && recordedTime.isBefore(afterSync),
                 "Recorded time should be within expected range");
         }
     }
@@ -170,13 +170,13 @@ class ApiSyncTrackingServiceTest {
         @DisplayName("Should return all sync statuses when no syncs have occurred")
         void shouldReturnAllSyncStatusesWhenNoSyncs() {
             Map<String, ApiSyncTrackingService.SyncStatus> allStatuses = apiSyncTrackingService.getAllSyncStatuses();
-            
+
             assertNotNull(allStatuses, "All statuses map should not be null");
             assertEquals(2, allStatuses.size(), "Should contain statuses for both APIs");
-            
+
             assertTrue(allStatuses.containsKey("carquery"), "Should contain CarQuery status");
             assertTrue(allStatuses.containsKey("syriancars"), "Should contain SyrianCars status");
-            
+
             // Both should be allowed initially
             assertTrue(allStatuses.get("carquery").isAllowed(), "CarQuery should be allowed initially");
             assertTrue(allStatuses.get("syriancars").isAllowed(), "SyrianCars should be allowed initially");
@@ -188,16 +188,16 @@ class ApiSyncTrackingServiceTest {
             // Record syncs for both APIs
             apiSyncTrackingService.recordCarQuerySync();
             apiSyncTrackingService.recordSyrianCarsSync();
-            
+
             Map<String, ApiSyncTrackingService.SyncStatus> allStatuses = apiSyncTrackingService.getAllSyncStatuses();
-            
+
             assertNotNull(allStatuses, "All statuses map should not be null");
             assertEquals(2, allStatuses.size(), "Should contain statuses for both APIs");
-            
+
             // Both should be blocked after recent syncs (within cooldown periods)
             assertFalse(allStatuses.get("carquery").isAllowed(), "CarQuery should be blocked within cooldown period");
             assertFalse(allStatuses.get("syriancars").isAllowed(), "SyrianCars should be blocked within cooldown period");
-            
+
             // Both should have last sync times
             assertNotNull(allStatuses.get("carquery").getLastSyncTime(), "CarQuery should have last sync time");
             assertNotNull(allStatuses.get("syriancars").getLastSyncTime(), "SyrianCars should have last sync time");
@@ -219,7 +219,7 @@ class ApiSyncTrackingServiceTest {
                     apiSyncTrackingService.recordSyrianCarsSync();
                 }
             }, "Should handle concurrent sync recordings without exceptions");
-            
+
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             assertNotNull(lastSyncTimes.get("CARQUERY"), "CarQuery sync time should be recorded");
             assertNotNull(lastSyncTimes.get("SYRIANCARS"), "SyrianCars sync time should be recorded");
@@ -232,9 +232,9 @@ class ApiSyncTrackingServiceTest {
             LocalDateTime exactlyTwoHoursAgo = LocalDateTime.now().minusHours(2);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("CARQUERY", exactlyTwoHoursAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkCarQuerySyncStatus();
-            
+
             assertTrue(status.isAllowed(), "Should allow sync exactly at cooldown boundary");
             assertEquals(2, status.getHoursSinceLastSync(), "Should calculate exactly 2 hours");
         }
@@ -246,9 +246,9 @@ class ApiSyncTrackingServiceTest {
             LocalDateTime secondsAgo = LocalDateTime.now().minusSeconds(30);
             Map<String, LocalDateTime> lastSyncTimes = getLastSyncTimes();
             lastSyncTimes.put("SYRIANCARS", secondsAgo);
-            
+
             ApiSyncTrackingService.SyncStatus status = apiSyncTrackingService.checkSyrianCarsSyncStatus();
-            
+
             assertFalse(status.isAllowed(), "Should block very recent syncs when within cooldown period");
             assertEquals(0, status.getHoursSinceLastSync(), "Should show 0 hours for very recent sync");
         }
