@@ -380,6 +380,55 @@ public class CarListingAnalyticsController {
         return ResponseEntity.ok(fuelTypeCounts);
     }
 
+    @GetMapping("/counts/body-styles")
+    @Operation(
+        summary = "Get count of listings by body style",
+        description = "Returns count of listings for each body style (Sedan, SUV, Hatchback, etc.). Optionally accepts filter parameters to constrain the results. Perfect for displaying counts in category tabs like AutoTrader UK.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Count of listings by body style",
+                         content = @Content(mediaType = "application/json",
+                                            schema = @Schema(type = "object", example = "{\"sedan\": 1500, \"suv\": 800, \"hatchback\": 400}")))
+        }
+    )
+    public ResponseEntity<Map<String, Long>> getCountsByBodyStyle(
+            @Parameter(description = "Brand slugs to filter by") @RequestParam(required = false) List<String> brandSlugs,
+            @Parameter(description = "Model slugs to filter by") @RequestParam(required = false) List<String> modelSlugs,
+            @Parameter(description = "Minimum year") @RequestParam(required = false) Integer minYear,
+            @Parameter(description = "Maximum year") @RequestParam(required = false) Integer maxYear,
+            @Parameter(description = "Location slugs to filter by") @RequestParam(required = false) List<String> location,
+            @Parameter(description = "Minimum price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Maximum price") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Minimum mileage") @RequestParam(required = false) Integer minMileage,
+            @Parameter(description = "Maximum mileage") @RequestParam(required = false) Integer maxMileage,
+            @Parameter(description = "Filter by fuel type slugs") @RequestParam(required = false) List<String> fuelTypeSlugs,
+            @Parameter(description = "Filter by transmission IDs") @RequestParam(required = false) List<Long> transmissionIds) {
+
+        log.info("Getting counts by body style with filters: brands={}, models={}, years={}-{}",
+                brandSlugs, modelSlugs, minYear, maxYear);
+
+        ListingFilterRequest filterRequest = new ListingFilterRequest();
+        filterRequest.setBrandSlugs(brandSlugs);
+        filterRequest.setModelSlugs(modelSlugs);
+        filterRequest.setMinYear(minYear);
+        filterRequest.setMaxYear(maxYear);
+        filterRequest.setLocations(location);
+        filterRequest.setMinPrice(minPrice);
+        filterRequest.setMaxPrice(maxPrice);
+        filterRequest.setMinMileage(minMileage);
+        filterRequest.setMaxMileage(maxMileage);
+
+        if (fuelTypeSlugs != null && !fuelTypeSlugs.isEmpty()) {
+            validateFuelTypeSlugs(fuelTypeSlugs);
+            filterRequest.setFuelTypeSlugs(fuelTypeSlugs);
+        }
+
+        filterRequest.setTransmissionIds(transmissionIds);
+
+        Map<String, Long> bodyStyleCounts = carListingService.getCountsByBodyStyle(filterRequest);
+        log.info("Returning body style counts for {} body styles", bodyStyleCounts.size());
+        return ResponseEntity.ok(bodyStyleCounts);
+    }
+
     @GetMapping("/counts/transmissions")
     @Operation(
         summary = "Get count of listings by transmission",

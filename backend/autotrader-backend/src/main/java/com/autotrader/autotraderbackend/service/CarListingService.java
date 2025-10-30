@@ -361,9 +361,13 @@ public class CarListingService {
         return analyticsService.getCountsByTransmission(filterRequest);
     }
 
-
-
-
+    /**
+     * Get count of listings grouped by body style.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getCountsByBodyStyle(ListingFilterRequest filterRequest) {
+        return analyticsService.getCountsByBodyStyle(filterRequest);
+    }
 
     /**
      * Get all listings (approved or not) for the specified user.

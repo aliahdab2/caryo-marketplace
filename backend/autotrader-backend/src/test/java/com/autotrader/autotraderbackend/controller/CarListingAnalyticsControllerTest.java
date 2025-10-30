@@ -413,4 +413,112 @@ class CarListingAnalyticsControllerTest {
             filter.getBrandSlugs().equals(brandSlugs)
         ));
     }
+
+    @Test
+    void getCountsByBodyStyle_ShouldReturnBodyStyleCounts() {
+        // Arrange
+        List<String> brandSlugs = Arrays.asList("toyota");
+        Map<String, Long> expectedCounts = Map.of("sedan", 100L, "suv", 80L, "hatchback", 40L);
+        when(carListingService.getCountsByBodyStyle(any(ListingFilterRequest.class))).thenReturn(expectedCounts);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = analyticsController.getCountsByBodyStyle(
+            brandSlugs, null, null, null, null, null, null, null, null, null, null);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        verify(carListingService).getCountsByBodyStyle(argThat(filter ->
+            filter.getBrandSlugs().equals(brandSlugs)
+        ));
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithNoFilters_ShouldReturnAllBodyStyleCounts() {
+        // Arrange
+        Map<String, Long> expectedCounts = Map.of(
+            "sedan", 150L,
+            "suv", 120L,
+            "hatchback", 60L,
+            "coupe", 30L,
+            "pickup", 25L
+        );
+        when(carListingService.getCountsByBodyStyle(any(ListingFilterRequest.class))).thenReturn(expectedCounts);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = analyticsController.getCountsByBodyStyle(
+            null, null, null, null, null, null, null, null, null, null, null);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(5, response.getBody().size());
+        assertEquals(expectedCounts, response.getBody());
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithMultipleFilters_ShouldReturnFilteredCounts() {
+        // Arrange
+        List<String> brandSlugs = Arrays.asList("toyota", "honda");
+        List<String> fuelTypeSlugs = Arrays.asList("gasoline");
+        Integer minYear = 2020;
+        Integer maxYear = 2024;
+        Map<String, Long> expectedCounts = Map.of("sedan", 45L, "suv", 35L);
+        when(carListingService.getCountsByBodyStyle(any(ListingFilterRequest.class))).thenReturn(expectedCounts);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = analyticsController.getCountsByBodyStyle(
+            brandSlugs, null, minYear, maxYear, null, null, null, null, null, fuelTypeSlugs, null);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedCounts, response.getBody());
+        verify(carListingService).getCountsByBodyStyle(argThat(filter ->
+            filter.getBrandSlugs().equals(brandSlugs) &&
+            filter.getFuelTypeSlugs().equals(fuelTypeSlugs) &&
+            filter.getMinYear().equals(minYear) &&
+            filter.getMaxYear().equals(maxYear)
+        ));
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithInvalidFuelType_ShouldThrowException() {
+        // Arrange
+        List<String> invalidFuelTypeSlugs = Arrays.asList("invalid-fuel");
+        when(fuelTypeService.getAllFuelTypes()).thenReturn(Arrays.asList(
+            createFuelType("gasoline"), createFuelType("diesel")
+        ));
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () ->
+            analyticsController.getCountsByBodyStyle(
+                null, null, null, null, null, null, null, null, null, invalidFuelTypeSlugs, null)
+        );
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithPriceAndMileageFilters_ShouldApplyFilters() {
+        // Arrange
+        BigDecimal minPrice = BigDecimal.valueOf(15000);
+        BigDecimal maxPrice = BigDecimal.valueOf(30000);
+        Integer minMileage = 10000;
+        Integer maxMileage = 50000;
+        Map<String, Long> expectedCounts = Map.of("sedan", 30L, "suv", 25L);
+        when(carListingService.getCountsByBodyStyle(any(ListingFilterRequest.class))).thenReturn(expectedCounts);
+
+        // Act
+        ResponseEntity<Map<String, Long>> response = analyticsController.getCountsByBodyStyle(
+            null, null, null, null, null, minPrice, maxPrice, minMileage, maxMileage, null, null);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedCounts, response.getBody());
+        verify(carListingService).getCountsByBodyStyle(argThat(filter ->
+            filter.getMinPrice().equals(minPrice) &&
+            filter.getMaxPrice().equals(maxPrice) &&
+            filter.getMinMileage().equals(minMileage) &&
+            filter.getMaxMileage().equals(maxMileage)
+        ));
+    }
 }

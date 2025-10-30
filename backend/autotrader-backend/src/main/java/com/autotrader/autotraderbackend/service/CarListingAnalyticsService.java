@@ -308,6 +308,22 @@ public class CarListingAnalyticsService {
     }
 
     /**
+     * Get count of listings grouped by body style.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Long> getCountsByBodyStyle(ListingFilterRequest filterRequest) {
+        log.debug("Getting counts by body style with filters: {}", filterRequest);
+
+        try {
+            // Always use specification approach for body style counts
+            return getBodyStyleCountsWithSpecification(filterRequest);
+        } catch (Exception e) {
+            log.error("Error getting body style counts", e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
      * Get fuel type counts using specification filtering.
      * Optimized to only fetch necessary fields and avoid loading full entities.
      */
@@ -361,6 +377,34 @@ public class CarListingAnalyticsService {
 
         log.info("Found counts for {} transmission types (filtered)", transmissionCounts.size());
         return transmissionCounts;
+    }
+
+    /**
+     * Get body style counts using specification filtering.
+     * Optimized to only fetch necessary fields and avoid loading full entities.
+     */
+    private Map<String, Long> getBodyStyleCountsWithSpecification(ListingFilterRequest filterRequest) {
+        // Remove body style filter to get all body styles with their counts
+        ListingFilterRequest modifiedFilter = createFilterWithoutBodyStyle(filterRequest);
+
+        // Build the specification for filtering
+        Specification<CarListing> baseSpec = buildBaseSpecification(modifiedFilter, false);
+
+        // Fetch filtered listings
+        List<CarListing> filteredListings = carListingRepository.findAll(baseSpec);
+
+        // Group by body style slug and count
+        Map<String, Long> bodyStyleCounts = filteredListings.stream()
+            .filter(listing -> listing.getBodyStyle() != null &&
+                             StringUtils.isNotBlank(listing.getBodyStyle().getSlug()))
+            .collect(Collectors.groupingBy(
+                listing -> listing.getBodyStyle().getSlug(),
+                LinkedHashMap::new,
+                Collectors.counting()
+            ));
+
+        log.info("Found counts for {} body styles (filtered)", bodyStyleCounts.size());
+        return bodyStyleCounts;
     }
 
     // Helper methods for filter processing
@@ -589,6 +633,31 @@ public class CarListingAnalyticsService {
         modified.setIsSold(original.getIsSold());
         modified.setIsArchived(original.getIsArchived());
         // Note: transmissionIds is intentionally excluded
+
+        return modified;
+    }
+
+    private ListingFilterRequest createFilterWithoutBodyStyle(ListingFilterRequest original) {
+        if (original == null) return new ListingFilterRequest();
+
+        ListingFilterRequest modified = new ListingFilterRequest();
+        modified.setBrandSlugs(original.getBrandSlugs());
+        modified.setModelSlugs(original.getModelSlugs());
+        modified.setMinYear(original.getMinYear());
+        modified.setMaxYear(original.getMaxYear());
+        modified.setLocations(original.getLocations());
+        modified.setLocationId(original.getLocationId());
+        modified.setMinPrice(original.getMinPrice());
+        modified.setMaxPrice(original.getMaxPrice());
+        modified.setMinMileage(original.getMinMileage());
+        modified.setMaxMileage(original.getMaxMileage());
+        modified.setSellerTypeIds(original.getSellerTypeIds());
+        modified.setFuelTypeSlugs(original.getFuelTypeSlugs());
+        modified.setTransmissionIds(original.getTransmissionIds());
+        modified.setSearchQuery(original.getSearchQuery());
+        modified.setIsSold(original.getIsSold());
+        modified.setIsArchived(original.getIsArchived());
+        // Note: bodyStyleSlugs is intentionally excluded
 
         return modified;
     }

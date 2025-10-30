@@ -11,12 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -283,6 +281,156 @@ class CarListingAnalyticsServiceTest extends BaseCarListingTest {
     }
 
     @Test
+    void getCountsByBodyStyle_WithSimpleFilter_ShouldUseSpecification() {
+        // Arrange
+        List<CarListing> mockListings = Arrays.asList(
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("suv"),
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("hatchback"),
+            createMockListingWithBodyStyle("suv"),
+            createMockListingWithBodyStyle("sedan")
+        );
+
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertEquals(3L, result.get("sedan"));
+        assertEquals(2L, result.get("suv"));
+        assertEquals(1L, result.get("hatchback"));
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithComplexFilter_ShouldFilterCorrectly() {
+        // Arrange
+        ListingFilterRequest complexFilter = new ListingFilterRequest();
+        complexFilter.setBrandSlugs(Arrays.asList("toyota", "honda"));
+        complexFilter.setMinPrice(BigDecimal.valueOf(15000.0));
+        complexFilter.setMaxPrice(BigDecimal.valueOf(35000.0));
+
+        List<CarListing> mockListings = Arrays.asList(
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("suv"),
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("coupe")
+        );
+
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(complexFilter);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertEquals(2L, result.get("sedan"));
+        assertEquals(1L, result.get("suv"));
+        assertEquals(1L, result.get("coupe"));
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithEmptyResults_ShouldReturnEmptyMap() {
+        // Arrange
+        when(carListingRepository.findAll(anySpecification())).thenReturn(Collections.emptyList());
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithNullBodyStyle_ShouldSkipNulls() {
+        // Arrange
+        List<CarListing> mockListings = Arrays.asList(
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle(null),  // null body style
+            createMockListingWithBodyStyle("suv"),
+            createMockListingWithBodyStyle(null)   // null body style
+        );
+
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get("sedan"));
+        assertEquals(1L, result.get("suv"));
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithRepositoryException_ShouldReturnEmptyMap() {
+        // Arrange
+        when(carListingRepository.findAll(anySpecification())).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getCountsByBodyStyle_WithFuelTypeFilter_ShouldApplyFilter() {
+        // Arrange
+        ListingFilterRequest filterWithFuelType = new ListingFilterRequest();
+        filterWithFuelType.setFuelTypeSlugs(Arrays.asList("gasoline", "diesel"));
+
+        List<CarListing> mockListings = Arrays.asList(
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("suv")
+        );
+
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterWithFuelType);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(2L, result.get("sedan"));
+        assertEquals(1L, result.get("suv"));
+    }
+
+    @Test
+    void getCountsByBodyStyle_ShouldReturnResultsInInsertionOrder() {
+        // Arrange
+        List<CarListing> mockListings = Arrays.asList(
+            createMockListingWithBodyStyle("pickup"),
+            createMockListingWithBodyStyle("sedan"),
+            createMockListingWithBodyStyle("convertible"),
+            createMockListingWithBodyStyle("sedan")
+        );
+
+        when(carListingRepository.findAll(anySpecification())).thenReturn(mockListings);
+
+        // Act
+        Map<String, Long> result = analyticsService.getCountsByBodyStyle(filterRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        // LinkedHashMap should preserve the order of first encounter
+        List<String> keys = new ArrayList<>(result.keySet());
+        assertEquals("pickup", keys.get(0));
+        assertEquals("sedan", keys.get(1));
+        assertEquals("convertible", keys.get(2));
+    }
+
+    @Test
     void getCountsByYear_WithRepositoryException_ShouldReturnEmptyMap() {
         // Arrange
         when(carListingRepository.findDistinctYearsWithCounts()).thenThrow(new RuntimeException("Database error"));
@@ -331,6 +479,16 @@ class CarListingAnalyticsServiceTest extends BaseCarListingTest {
         Transmission transmission = new Transmission();
         transmission.setName(transmissionName);
         listing.setTransmissionType(transmission);
+        return listing;
+    }
+
+    private CarListing createMockListingWithBodyStyle(String bodyStyleSlug) {
+        CarListing listing = new CarListing();
+        if (bodyStyleSlug != null) {
+            BodyStyle bodyStyle = new BodyStyle();
+            bodyStyle.setSlug(bodyStyleSlug);
+            listing.setBodyStyle(bodyStyle);
+        }
         return listing;
     }
 }
