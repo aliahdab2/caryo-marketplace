@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.model.UserReport;
 import com.autotrader.autotraderbackend.payload.request.ReportUserRequest;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
+import com.autotrader.autotraderbackend.payload.response.UserReportResponse;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.I18nService;
 import com.autotrader.autotraderbackend.service.UserReportService;
@@ -34,7 +35,7 @@ public class UserReportController {
      * Report a user
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<UserReport>> reportUser(
+    public ResponseEntity<ApiResponse<UserReportResponse>> reportUser(
             @Valid @RequestBody ReportUserRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestHeader(value = "Accept-Language", defaultValue = "en") String acceptLanguage) {
@@ -42,18 +43,19 @@ public class UserReportController {
         log.info("User {} reporting user {}", userDetails.getId(), request.getReportedUserId());
 
         UserReport report = userReportService.createReport(request, userDetails.getId());
+        UserReportResponse response = UserReportResponse.fromEntity(report, false);
 
         String message = i18nService.getMessage("user.reported.success", acceptLanguage, "User has been reported successfully");
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(report, message));
+                .body(ApiResponse.success(response, message));
     }
 
     /**
      * Get reports submitted by the current user
      */
     @GetMapping("/my-reports")
-    public ResponseEntity<Page<UserReport>> getMyReports(
+    public ResponseEntity<Page<UserReportResponse>> getMyReports(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -67,7 +69,10 @@ public class UserReportController {
 
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<UserReport> reports = userReportService.getReportsByReporter(userDetails.getId(), pageable);
+        
+        // Convert to DTOs
+        Page<UserReportResponse> responsePage = reports.map(report -> UserReportResponse.fromEntity(report, false));
 
-        return ResponseEntity.ok(reports);
+        return ResponseEntity.ok(responsePage);
     }
 }

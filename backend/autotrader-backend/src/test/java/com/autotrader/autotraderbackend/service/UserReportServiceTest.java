@@ -44,6 +44,9 @@ public class UserReportServiceTest {
     @Mock
     private ConversationRepository conversationRepository;
 
+    @Mock
+    private ReportRateLimitService rateLimitService;
+
     @InjectMocks
     private UserReportService userReportService;
 
@@ -91,6 +94,7 @@ public class UserReportServiceTest {
     @DisplayName("Should create report successfully")
     void shouldCreateReportSuccessfully() {
         // Arrange
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.of(reportedUser));
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(testConversation));
@@ -101,7 +105,7 @@ public class UserReportServiceTest {
                 .reporter(reporter)
                 .reportedUser(reportedUser)
                 .conversation(testConversation)
-                .reportType("SPAM")
+                .reportType(ReportType.SPAM)
                 .reason("User sent spam messages")
                 .status(ReportStatus.PENDING)
                 .build();
@@ -116,11 +120,12 @@ public class UserReportServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getReporter().getId()).isEqualTo(1L);
         assertThat(result.getReportedUser().getId()).isEqualTo(2L);
-        assertThat(result.getReportType()).isEqualTo("SPAM");
+        assertThat(result.getReportType()).isEqualTo(ReportType.SPAM);
         assertThat(result.getStatus()).isEqualTo(ReportStatus.PENDING);
 
         verify(userReportRepository).save(any(UserReport.class));
         verify(userReportRepository).existsPendingReportByReporterAndReportedUser(reporter, reportedUser);
+        verify(rateLimitService).recordReport(1L);
     }
 
     @Test
@@ -129,6 +134,7 @@ public class UserReportServiceTest {
         // Arrange
         request.setConversationId(null);
 
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.of(reportedUser));
         when(userReportRepository.existsPendingReportByReporterAndReportedUser(reporter, reportedUser)).thenReturn(false);
@@ -138,7 +144,7 @@ public class UserReportServiceTest {
                 .reporter(reporter)
                 .reportedUser(reportedUser)
                 .conversation(null)
-                .reportType("HARASSMENT")
+                .reportType(ReportType.HARASSMENT)
                 .reason("User was harassing")
                 .status(ReportStatus.PENDING)
                 .build();
@@ -158,6 +164,7 @@ public class UserReportServiceTest {
     @DisplayName("Should throw exception when reporter not found")
     void shouldThrowExceptionWhenReporterNotFound() {
         // Arrange
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -172,6 +179,7 @@ public class UserReportServiceTest {
     @DisplayName("Should throw exception when reported user not found")
     void shouldThrowExceptionWhenReportedUserNotFound() {
         // Arrange
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.empty());
 
@@ -189,6 +197,7 @@ public class UserReportServiceTest {
         // Arrange
         request.setReportedUserId(1L); // Same as reporter
 
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
 
         // Act & Assert
@@ -203,6 +212,7 @@ public class UserReportServiceTest {
     @DisplayName("Should throw exception when duplicate pending report exists")
     void shouldThrowExceptionWhenDuplicatePendingReportExists() {
         // Arrange
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.of(reportedUser));
         when(userReportRepository.existsPendingReportByReporterAndReportedUser(reporter, reportedUser)).thenReturn(true);
@@ -219,6 +229,7 @@ public class UserReportServiceTest {
     @DisplayName("Should throw exception when conversation not found")
     void shouldThrowExceptionWhenConversationNotFound() {
         // Arrange
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.of(reportedUser));
         when(conversationRepository.findById(1L)).thenReturn(Optional.empty());
@@ -252,6 +263,7 @@ public class UserReportServiceTest {
                 .status(ConversationStatus.ACTIVE)
                 .build();
 
+        when(rateLimitService.canSubmitReport(1L)).thenReturn(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(reporter));
         when(userRepository.findById(2L)).thenReturn(Optional.of(reportedUser));
         when(conversationRepository.findById(1L)).thenReturn(Optional.of(conversationWithoutReporter));
@@ -272,7 +284,7 @@ public class UserReportServiceTest {
                 .id(1L)
                 .reporter(reporter)
                 .reportedUser(reportedUser)
-                .reportType("SPAM")
+                .reportType(ReportType.SPAM)
                 .reason("Spam messages")
                 .status(ReportStatus.PENDING)
                 .build();
@@ -302,7 +314,7 @@ public class UserReportServiceTest {
                 .id(1L)
                 .reporter(reporter)
                 .reportedUser(reportedUser)
-                .reportType("SPAM")
+                .reportType(ReportType.SPAM)
                 .reason("Spam messages")
                 .status(ReportStatus.PENDING)
                 .build();

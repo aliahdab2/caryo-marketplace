@@ -11,6 +11,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import Toast from '@/components/ui/Toast';
 import { MessageCircle } from 'lucide-react';
 import { transformMinioUrl } from '@/utils/mediaUtils';
+import ReportUserModal from './ReportUserModal';
 import ConversationList from './ConversationList';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
@@ -441,7 +442,7 @@ export default function MessagesPage() {
     }
   };
 
-  const confirmReportUser = async () => {
+  const confirmReportUser = async (reportType: string, reason: string) => {
     if (!selectedConversation || !session?.user?.id) return;
 
     try {
@@ -456,8 +457,8 @@ export default function MessagesPage() {
       await MessagingService.reportUser({
         reportedUserId: reportedUserId,
         conversationId: selectedConversation.id,
-        reportType: 'OTHER', // Default type - can be enhanced with a proper modal later
-        reason: t('defaultReportReason', 'User reported through messaging interface')
+        reportType: reportType,
+        reason: reason
       });
 
       setShowReportModal(false);
@@ -535,20 +536,28 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-shrink-0">
-            <MessageInput
-              newMessage={newMessage}
-              selectedFiles={selectedFiles}
-              sending={sending}
-              uploading={uploading}
-              isRTL={isRTL}
-              onMessageChange={setNewMessage}
-              onKeyPress={handleKeyPress}
-              onSendMessage={handleSendMessageWithAttachments}
-              onImageSelect={handleImageSelect}
-              onDocumentSelect={handleDocumentSelect}
-              onRemoveFile={removeFile}
-              onClearAllFiles={() => setSelectedFiles([])}
-            />
+            {selectedConversation.isBlocked || selectedConversation.status === 'BLOCKED' ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+                <p className="text-red-700 dark:text-red-400 font-medium">
+                  {t('conversationBlocked', 'This conversation is blocked. You cannot send messages.')}
+                </p>
+              </div>
+            ) : (
+              <MessageInput
+                newMessage={newMessage}
+                selectedFiles={selectedFiles}
+                sending={sending}
+                uploading={uploading}
+                isRTL={isRTL}
+                onMessageChange={setNewMessage}
+                onKeyPress={handleKeyPress}
+                onSendMessage={handleSendMessageWithAttachments}
+                onImageSelect={handleImageSelect}
+                onDocumentSelect={handleDocumentSelect}
+                onRemoveFile={removeFile}
+                onClearAllFiles={() => setSelectedFiles([])}
+              />
+            )}
           </div>
         </div>
       ) : (
@@ -583,17 +592,16 @@ export default function MessagesPage() {
         loadingText={t('common:blocking', 'Blocking...')}
       />
 
-      <DeleteConfirmationModal
+      <ReportUserModal
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
         onConfirm={confirmReportUser}
-        title={t('reportUser')}
-        message={t('reportUserConfirmation')}
-        confirmText={t('report')}
-        cancelText={t('cancel')}
-        type="warning"
+        userName={selectedConversation ? (
+          Number(session?.user?.id) === selectedConversation.buyer.id
+            ? selectedConversation.seller.username
+            : selectedConversation.buyer.username
+        ) : undefined}
         isLoading={isActionLoading}
-        loadingText={t('common:reporting', 'Reporting...')}
       />
 
       <DeleteConfirmationModal

@@ -27,7 +27,7 @@ public class ReportUserRequest {
      */
     @NotBlank(message = "Report type is required")
     @Size(max = 50, message = "Report type must not exceed 50 characters")
-    private String reportType; // e.g., "SPAM", "HARASSMENT", "SCAM", "INAPPROPRIATE_CONTENT", "OTHER"
+    private String reportType; // Will be converted to ReportType enum in service layer
 
     /**
      * Detailed reason/description of the report

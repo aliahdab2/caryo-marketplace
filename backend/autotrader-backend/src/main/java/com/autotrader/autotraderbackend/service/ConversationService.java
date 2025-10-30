@@ -46,6 +46,7 @@ public class ConversationService {
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final StorageService storageService;
     private final MessageSource messageSource;
+    private final UserBlockService userBlockService;
 
     /**
      * Create a new conversation or return existing one
@@ -66,6 +67,11 @@ public class ConversationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", buyerId));
 
         User seller = listing.getSeller();
+
+        // Check if users have blocked each other
+        if (userBlockService.isBlockedBidirectional(buyerId, seller.getId())) {
+            throw new BadRequestException("Cannot create conversation: users have blocked each other");
+        }
 
         // Prevent self-conversation
         if (buyer.getId().equals(seller.getId())) {
@@ -173,6 +179,15 @@ public class ConversationService {
         // Check conversation status
         if (!conversation.canSendMessages()) {
             throw new BadRequestException("Cannot send messages in this conversation");
+        }
+
+        // Check if users have blocked each other
+        Long receiverId = conversation.getBuyer().getId().equals(senderId) 
+            ? conversation.getSeller().getId() 
+            : conversation.getBuyer().getId();
+        
+        if (userBlockService.isBlockedBidirectional(senderId, receiverId)) {
+            throw new BadRequestException("Cannot send message: users have blocked each other");
         }
 
         // Create message

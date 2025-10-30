@@ -202,5 +202,46 @@
   },
   "error": {
     "title": "Dashboard Error"
+  },
+  "blockedUsers": {
+    "title": "Blocked Users",
+    "subtitle": "Manage users you have blocked",
+    "empty": {
+      "title": "No Blocked Users",
+      "description": "You have not blocked any users. Blocked users cannot contact you or see your listings."
+    },
+    "unblock": "Unblock",
+    "unblockConfirm": {
+      "title": "Unblock User",
+      "message": "Are you sure you want to unblock {{username}}? They will be able to contact you again."
+    },
+    "unblockSuccess": "User unblocked successfully",
+    "unblockError": "Failed to unblock user. Please try again.",
+    "blockedOn": "Blocked on {{date}}"
+  },
+  "myReports": {
+    "title": "My Reports",
+    "subtitle": "View your submitted reports",
+    "filter": {
+      "all": "All"
+    },
+    "status": {
+      "pending": "Pending",
+      "reviewed": "Reviewed",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "reportedUser": "Reported: {{username}}",
+    "type": "Type: {{type}}",
+    "submitted": "Submitted: {{date}}",
+    "empty": {
+      "title": "No Reports",
+      "description": "You have not submitted any reports yet.",
+      "filtered": {
+        "title": "No Reports with This Status",
+        "description": "You have no reports with this status."
+      }
+    },
+    "total": "Total: {{count}} report(s)"
   }
 }

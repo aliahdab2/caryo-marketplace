@@ -2,9 +2,7 @@ package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.BadRequestException;
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
-import com.autotrader.autotraderbackend.model.Conversation;
-import com.autotrader.autotraderbackend.model.User;
-import com.autotrader.autotraderbackend.model.UserReport;
+import com.autotrader.autotraderbackend.model.*;
 import com.autotrader.autotraderbackend.model.UserReport.ReportStatus;
 import com.autotrader.autotraderbackend.payload.request.ReportUserRequest;
 import com.autotrader.autotraderbackend.repository.UserRepository;
@@ -12,6 +10,7 @@ import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.security.services.UserDetailsServiceImpl;
 import com.autotrader.autotraderbackend.service.I18nService;
 import com.autotrader.autotraderbackend.service.UserReportService;
+import com.autotrader.autotraderbackend.service.ReportRateLimitService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -111,6 +110,9 @@ class UserReportControllerTest {
     private I18nService i18nService;
 
     @MockBean
+    private ReportRateLimitService rateLimitService;
+
+    @MockBean
     private UserRepository userRepository;
 
     @MockBean
@@ -151,7 +153,7 @@ class UserReportControllerTest {
                 .reporter(reporter)
                 .reportedUser(reportedUser)
                 .conversation(conversation)
-                .reportType("SPAM")
+                .reportType(ReportType.SPAM)
                 .reason("User sent spam messages")
                 .status(ReportStatus.PENDING)
                 .createdAt(LocalDateTime.now())

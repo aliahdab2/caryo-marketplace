@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 /**
  * Service for managing user reports.
  */
@@ -29,12 +31,22 @@ public class UserReportService {
     private final UserReportRepository userReportRepository;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
+    private final ReportRateLimitService rateLimitService;
 
     /**
      * Create a new user report
      */
     public UserReport createReport(ReportUserRequest request, Long reporterId) {
         log.info("Creating user report by user {} against user {}", reporterId, request.getReportedUserId());
+
+        // Check rate limit
+        if (!rateLimitService.canSubmitReport(reporterId)) {
+            int remaining = rateLimitService.getRemainingReports(reporterId);
+            LocalDateTime nextAvailable = rateLimitService.getNextAvailableTime(reporterId);
+            throw new BadRequestException(
+                String.format("Rate limit exceeded. You can submit %d more reports. Next report available at: %s", 
+                    remaining, nextAvailable));
+        }
 
         // Validate reporter exists
         User reporter = userRepository.findById(reporterId)
@@ -66,17 +78,24 @@ public class UserReportService {
             }
         }
 
+        // Parse and validate report type
+        com.autotrader.autotraderbackend.model.ReportType reportType = 
+                com.autotrader.autotraderbackend.model.ReportType.fromString(request.getReportType());
+
         // Create report
         UserReport report = UserReport.builder()
                 .reporter(reporter)
                 .reportedUser(reportedUser)
                 .conversation(conversation)
-                .reportType(request.getReportType().toUpperCase())
+                .reportType(reportType)
                 .reason(request.getReason().trim())
                 .status(ReportStatus.PENDING)
                 .build();
 
         report = userReportRepository.save(report);
+
+        // Record report for rate limiting
+        rateLimitService.recordReport(reporterId);
 
         log.info("User report created successfully with ID: {}", report.getId());
         return report;

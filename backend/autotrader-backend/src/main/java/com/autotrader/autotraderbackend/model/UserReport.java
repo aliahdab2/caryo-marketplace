@@ -51,10 +51,10 @@ public class UserReport {
     /**
      * Type/category of the report
      */
-    @NotBlank
-    @Size(max = 50)
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String reportType; // e.g., "SPAM", "HARASSMENT", "SCAM", "INAPPROPRIATE_CONTENT", "OTHER"
+    private ReportType reportType;
 
     /**
      * Detailed reason/description of the report
