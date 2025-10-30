@@ -624,6 +624,321 @@ Search car listings with advanced filtering.
 
 ---
 
+## **📊 Analytics & Counting Endpoints**
+
+These endpoints provide analytics data and counts for car listings, perfect for building dashboards, filter UIs, and tabbed interfaces like AutoTrader UK.
+
+### **GET /api/listings/count**
+Get total count of approved car listings (approved=true, sold=false, archived=false).
+
+**Response:**
+```json
+{
+  "count": 2543
+}
+```
+
+---
+
+### **POST /api/listings/count**
+Get count of car listings matching filter criteria using POST request body.
+
+**Request Body:**
+```json
+{
+  "brandSlugs": ["toyota", "honda"],
+  "modelSlugs": ["camry", "civic"],
+  "minYear": 2020,
+  "maxYear": 2024,
+  "minPrice": 15000,
+  "maxPrice": 50000,
+  "minMileage": 0,
+  "maxMileage": 100000,
+  "location": ["damascus"],
+  "fuelTypeSlugs": ["gasoline"],
+  "sellerTypeIds": [1, 2],
+  "transmissionIds": [1],
+  "bodyStyleSlugs": ["sedan", "suv"],
+  "isSold": false,
+  "isArchived": false,
+  "searchQuery": "toyota"
+}
+```
+
+**Response:**
+```json
+{
+  "count": 42
+}
+```
+
+---
+
+### **GET /api/listings/count/filter**
+Get count of car listings matching filter criteria using query parameters.
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Brand slugs (e.g., `?brandSlugs=toyota&brandSlugs=honda`)
+- `modelSlugs` (optional, repeatable): Model slugs
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Location slugs
+- `locationId` (optional): Location ID
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+- `isSold` (optional): Include sold listings (default: false)
+- `isArchived` (optional): Include archived listings (default: false)
+- `sellerTypeIds` (optional, repeatable removal): Seller type IDs
+- `transmissionIds` (optional, repeatable): Transmission IDs
+- `fuelTypeSlugs` (optional, repeatable): Fuel type slugs (e.g., gasoline, diesel)
+- `bodyType` (optional, repeatable): Body style slugs (e.g., sedan, suv)
+- `searchQuery` (optional): Text search query (English/Arabic)
+
+**Response:**
+```json
+{
+  "count": 25
+}
+```
+
+---
+
+### **GET /api/listings/counts/breakdown**
+Get count breakdown for all filter options (brands, models, years, etc.) to display in filter UI.
+
+**Response:**
+```json
+{
+  "years": {
+    "2024": 150,
+    "2023": 200,
+    "2022": 180
+  },
+  "brands": {
+    "toyota": 120,
+    "honda": 95,
+    "nissan": 80
+  },
+  "models": {
+    "camry": 45,
+    "civic": 38,
+    "corolla": 52
+  }
+}
+```
+
+---
+
+### **POST /api/listings/counts/breakdown**
+Get count breakdown for filter options with existing filters applied. Shows counts within those constraints.
+
+**Request Body:**
+```json
+{
+  "brandSlugs": ["toyota"],
+  "minYear": 2020
+}
+```
+
+**Response:**
+```json
+{
+  "years": {
+    "2024": 45,
+    "2023": 60,
+    "2022": 55
+  },
+  "brands": {
+    "toyota": 120
+  },
+  "models": {
+    "camry": 45,
+    "corolla": 52
+  }
+}
+```
+
+---
+
+### **GET /api/listings/counts/years**
+Get count of listings grouped by model year (sorted newest first).
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `modelSlugs` (optional, repeatable): Filter by models
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+
+**Response:**
+```json
+{
+  "2024": 150,
+  "2023": 200,
+  "2022": 180,
+  "2021": 180,
+  "2020": 160
+}
+```
+
+---
+
+### **GET /api/listings/counts/brands**
+Get count of listings grouped by brand.
+
+**Query Parameters:**
+- `modelSlugs` (optional, repeatable): Filter by models
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+
+**Response:**
+```json
+{
+  "toyota": 120,
+  "honda": 95,
+  "nissan": 80,
+  "bmw": 60
+}
+```
+
+---
+
+### **GET /api/listings/counts/models**
+Get count of listings grouped by model.
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+
+**Response:**
+```json
+{
+  "camry": 45,
+  "civic": 38,
+  "corolla": 52,
+  "altima": 28
+}
+```
+
+---
+
+### **GET /api/listings/counts/seller-types**
+Get count of listings grouped by seller type (Private/Dealer).
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `modelSlugs` (optional, repeatable): Filter by models
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+
+**Response:**
+```json
+{
+  "private": 22771,
+  "dealer": 118102
+}
+```
+
+---
+
+### **GET /api/listings/counts/fuel-types**
+Get count of listings grouped by fuel type (Gasoline, Diesel, Electric, Hybrid, etc.).
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `modelSlugs` (optional, repeatable): Filter by models
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+
+**Response:**
+```json
+{
+  "gasoline": 1500,
+  "diesel": 800,
+  "electric": 200,
+  "hybrid": 150
+}
+```
+
+---
+
+### **GET /api/listings/counts/body-styles**
+Get count of listings grouped by body style (Sedan, SUV, Hatchback, etc.). Perfect for displaying counts in category tabs like AutoTrader UK.
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `modelSlugs` (optional, repeatable): Filter by models
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+- `fuelTypeSlugs` (optional, repeatable): Filter by fuel types
+- `transmissionIds` (optional, repeatable): Filter by transmission types
+
+**Response:**
+```json
+{
+  "sedan": 1500,
+  "suv": 800,
+  "hatchback": 400,
+  "coupe": 200,
+  "pickup": 150
+}
+```
+
+---
+
+### **GET /api/listings/counts/transmissions**
+Get count of listings grouped by transmission type (Manual, Automatic, etc.).
+
+**Query Parameters:**
+- `brandSlugs` (optional, repeatable): Filter by brands
+- `modelSlugs` (optional, repeatable): Filter by models
+- `minYear` (optional): Minimum year
+- `maxYear` (optional): Maximum year
+- `location` (optional, repeatable): Filter by locations
+- `minPrice` (optional): Minimum price
+- `maxPrice` (optional): Maximum price
+- `minMileage` (optional): Minimum mileage
+- `maxMileage` (optional): Maximum mileage
+- `fuelTypeSlugs` (optional, repeatable): Filter by fuel types
+- `bodyStyleIds` (optional, repeatable): Filter by body style IDs
+
+**Response:**
+```json
+{
+  "manual": 1200,
+  "automatic": 800,
+  "cvt": 100
+}
+```
+
+---
+
 ## **👤 User Profile Endpoints**
 
 ### **GET /api/users/profile**
