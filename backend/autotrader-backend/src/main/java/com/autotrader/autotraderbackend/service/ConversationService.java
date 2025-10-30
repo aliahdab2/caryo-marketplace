@@ -305,6 +305,27 @@ public class ConversationService {
         conversationRepository.save(conversation);
     }
 
+    /**
+     * Block a user in a conversation
+     */
+    public void blockUser(Long conversationId, Long userId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (!conversation.isParticipant(user)) {
+            throw new BadRequestException("Access denied: Not a participant in this conversation");
+        }
+
+        // Block the conversation (prevents further messaging)
+        conversation.block();
+        conversationRepository.save(conversation);
+
+        log.info("User {} blocked in conversation {}", userId, conversationId);
+    }
+
     // Helper methods for mapping entities to DTOs
     private ConversationResponse mapToConversationResponse(Conversation conversation, User currentUser) {
 

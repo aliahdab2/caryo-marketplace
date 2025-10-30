@@ -369,6 +369,30 @@ export class MessagingService {
     const response = await api.get<{ count: number }>('/api/conversations/unread-count');
     return response;
   }
+
+  /**
+   * Block a user in a conversation
+   */
+  static async blockUser(conversationId: number): Promise<{ message: string }> {
+    const response = await api.patch<{ data?: unknown; message: string }>(`/api/conversations/${conversationId}/block`);
+    return { message: response.message || 'User has been blocked successfully' };
+  }
+
+  /**
+   * Report a user
+   */
+  static async reportUser(request: {
+    reportedUserId: number;
+    conversationId?: number;
+    reportType: string;
+    reason: string;
+  }): Promise<{ id: number; message: string }> {
+    const response = await api.post<{ data?: { id: number }; message: string }>('/api/reports', request as unknown as Record<string, unknown>);
+    return {
+      id: response.data?.id || 0,
+      message: response.message || 'User has been reported successfully'
+    };
+  }
 }
 
 // Utility functions for messaging

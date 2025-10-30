@@ -196,6 +196,24 @@ public class ConversationController {
     }
 
     /**
+     * Block a user in a conversation
+     */
+    @PatchMapping("/{id}/block")
+    public ResponseEntity<ApiResponse<Void>> blockUser(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String acceptLanguage) {
+
+        log.info("Blocking user in conversation {} by user {}", id, userDetails.getId());
+
+        conversationService.blockUser(id, userDetails.getId());
+
+        String message = i18nService.getMessage("conversation.user.blocked.success", acceptLanguage, "User has been blocked successfully");
+
+        return ResponseEntity.ok(ApiResponse.success(message));
+    }
+
+    /**
      * Update conversation status
      */
     @PatchMapping("/{id}/status")

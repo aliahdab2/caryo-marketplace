@@ -420,38 +420,52 @@ export default function MessagesPage() {
 
     try {
       setIsActionLoading(true);
-      // TODO: Implement block user API call
-      console.warn('Block user feature not yet implemented for conversation:', selectedConversation.id);
+      await MessagingService.blockUser(selectedConversation.id);
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update conversation status to blocked
+      setConversations(prev => prev.map(conv =>
+        conv.id === selectedConversation.id
+          ? { ...conv, isBlocked: true, status: 'BLOCKED' }
+          : conv
+      ));
 
+      setSelectedConversation(prev => prev ? { ...prev, isBlocked: true, status: 'BLOCKED' } : null);
       setShowBlockModal(false);
-      alert('User has been blocked successfully.');
+      showToast(t('userBlockedSuccess', 'User has been blocked successfully.'), 'success');
     } catch (error) {
       console.error('Error blocking user:', error);
-      alert('Failed to block user. Please try again.');
+      const errorMessage = extractErrorMessage(error);
+      showToast(errorMessage, 'error');
     } finally {
       setIsActionLoading(false);
     }
   };
 
   const confirmReportUser = async () => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || !session?.user?.id) return;
 
     try {
       setIsActionLoading(true);
-      // TODO: Implement report user API call
-      console.warn('Report user feature not yet implemented for conversation:', selectedConversation.id);
+      
+      // Get the other participant (reported user)
+      const currentUserId = Number(session.user.id);
+      const reportedUserId = selectedConversation.buyer.id === currentUserId
+        ? selectedConversation.seller.id
+        : selectedConversation.buyer.id;
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await MessagingService.reportUser({
+        reportedUserId: reportedUserId,
+        conversationId: selectedConversation.id,
+        reportType: 'OTHER', // Default type - can be enhanced with a proper modal later
+        reason: t('defaultReportReason', 'User reported through messaging interface')
+      });
 
       setShowReportModal(false);
-      alert('User has been reported successfully.');
+      showToast(t('userReportedSuccess', 'User has been reported successfully. Our team will review the report.'), 'success');
     } catch (error) {
       console.error('Error reporting user:', error);
-      alert('Failed to report user. Please try again.');
+      const errorMessage = extractErrorMessage(error);
+      showToast(errorMessage, 'error');
     } finally {
       setIsActionLoading(false);
     }

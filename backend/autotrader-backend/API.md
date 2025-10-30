@@ -584,6 +584,260 @@ The messaging system uses enhanced PostgreSQL features:
 
 ---
 
+## **🚫 User Safety & Moderation Endpoints**
+
+These endpoints provide user safety features including blocking and reporting functionality.
+
+### **PATCH /api/conversations/{id}/block**
+Block a user in a specific conversation. Once blocked, no further messages can be sent in this conversation.
+
+**Authentication**: Required
+
+**Path Parameters**:
+- `id` (required): The conversation ID
+
+**Headers**:
+- `Authorization: Bearer {token}` (required)
+- `Accept-Language: en|ar` (optional, default: "en")
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "User has been blocked successfully",
+  "data": null
+}
+```
+
+**Error Responses:**
+```json
+// 404 - Conversation not found
+{
+  "status": "error",
+  "message": "Conversation not found with id: 123"
+}
+
+// 404 - User not found
+{
+  "status": "error",
+  "message": "User not found with id: 456"
+}
+
+// 400 - Not a participant
+{
+  "status": "error",
+  "message": "Access denied: Not a participant in this conversation"
+}
+
+// 401 - Unauthorized
+{
+  "status": "error",
+  "message": "Unauthorized"
+}
+```
+
+**Example:**
+```bash
+curl -X PATCH "http://localhost:8080/api/conversations/123/block" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..." \
+  -H "Accept-Language: en"
+```
+
+---
+
+### **POST /api/reports**
+Submit a report against another user for inappropriate behavior, spam, harassment, or other violations.
+
+**Authentication**: Required
+
+**Headers**:
+- `Authorization: Bearer {token}` (required)
+- `Accept-Language: en|ar` (optional, default: "en")
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "reportedUserId": 123,
+  "conversationId": 456,
+  "reportType": "SPAM",
+  "reason": "User is sending spam messages repeatedly"
+}
+```
+
+**Request Fields**:
+- `reportedUserId` (required, number): The ID of the user being reported
+- `conversationId` (optional, number): The conversation ID if the report is related to a specific conversation
+- `reportType` (required, string, max 50 chars): Type of report (e.g., SPAM, HARASSMENT, SCAM, FRAUD, INAPPROPRIATE_CONTENT, OTHER)
+- `reason` (required, string, max 1000 chars): Detailed explanation of why the user is being reported
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "User has been reported successfully",
+  "data": {
+    "id": 789,
+    "reporter": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@example.com"
+    },
+    "reportedUser": {
+      "id": 123,
+      "username": "spam_user",
+      "email": "spam@example.com"
+    },
+    "conversation": {
+      "id": 456
+    },
+    "reportType": "SPAM",
+    "reason": "User is sending spam messages repeatedly",
+    "status": "PENDING",
+    "createdAt": "2025-10-30T10:30:00",
+    "updatedAt": "2025-10-30T10:30:00"
+  }
+}
+```
+
+**Error Responses:**
+```json
+// 400 - Self-reporting
+{
+  "status": "error",
+  "message": "Cannot report yourself"
+}
+
+// 400 - Duplicate pending report
+{
+  "status": "error",
+  "message": "You have already submitted a pending report against this user"
+}
+
+// 400 - Not a conversation participant
+{
+  "status": "error",
+  "message": "You are not a participant in this conversation"
+}
+
+// 404 - Reported user not found
+{
+  "status": "error",
+  "message": "User not found with id: 123"
+}
+
+// 404 - Conversation not found
+{
+  "status": "error",
+  "message": "Conversation not found with id: 456"
+}
+
+// 400 - Validation errors
+{
+  "status": "error",
+  "message": "Validation failed",
+  "errors": {
+    "reportedUserId": "Reported user ID is required",
+    "reportType": "Report type is required",
+    "reason": "Reason is required"
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST "http://localhost:8080/api/reports" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..." \
+  -H "Content-Type: application/json" \
+  -H "Accept-Language: en" \
+  -d '{
+    "reportedUserId": 123,
+    "conversationId": 456,
+    "reportType": "SPAM",
+    "reason": "User is sending spam messages repeatedly"
+  }'
+```
+
+**Report Types**:
+- `SPAM`: Unsolicited or repetitive messages
+- `HARASSMENT`: Abusive, threatening, or harassing behavior
+- `SCAM`: Fraudulent or deceptive behavior
+- `FRAUD`: Attempting to defraud or steal
+- `INAPPROPRIATE_CONTENT`: Offensive, explicit, or inappropriate content
+- `OTHER`: Other violations not covered above
+
+**Report Statuses**:
+- `PENDING`: Report has been submitted and is awaiting review
+- `REVIEWED`: Report has been reviewed by a moderator
+- `RESOLVED`: Report has been resolved with action taken
+- `DISMISSED`: Report was reviewed and dismissed (no action taken)
+
+---
+
+### **GET /api/reports/my-reports**
+Get all reports submitted by the current user with pagination.
+
+**Authentication**: Required
+
+**Headers**:
+- `Authorization: Bearer {token}` (required)
+
+**Query Parameters**:
+- `page` (optional, number, default: 0): Page number (0-indexed)
+- `size` (optional, number, default: 20): Number of reports per page
+- `sortBy` (optional, string, default: "createdAt"): Field to sort by
+- `sortDir` (optional, string, default: "desc"): Sort direction (asc or desc)
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 789,
+      "reporter": {
+        "id": 1,
+        "username": "john_doe"
+      },
+      "reportedUser": {
+        "id": 123,
+        "username": "spam_user"
+      },
+      "conversation": {
+        "id": 456
+      },
+      "reportType": "SPAM",
+      "reason": "User is sending spam messages repeatedly",
+      "status": "PENDING",
+      "createdAt": "2025-10-30T10:30:00",
+      "updatedAt": "2025-10-30T10:30:00"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "first": true,
+  "number": 0,
+  "size": 20,
+  "numberOfElements": 1
+}
+```
+
+**Example:**
+```bash
+curl -X GET "http://localhost:8080/api/reports/my-reports?page=0&size=20&sortBy=createdAt&sortDir=desc" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
+```
+
+---
+
 ## **🔍 Search & Filter Endpoints**
 
 ### **POST /api/listings/search**

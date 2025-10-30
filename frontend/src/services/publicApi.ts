@@ -385,6 +385,93 @@ export async function getCarListingCountsPublic(filters?: CarListingFilterParams
 }
 
 /**
+ * Get body style counts (public endpoint, no authentication required)
+ * Returns a map of body style slugs to counts
+ * @param filters Optional filters to apply (brands, models, price range, etc.)
+ * @returns Promise resolving to an object with body style slugs as keys and counts as values
+ */
+export async function getBodyStyleCounts(filters?: CarListingFilterParams): Promise<Record<string, number>> {
+  try {
+    const queryParams = new URLSearchParams();
+    
+    if (filters?.brands && filters.brands.length > 0) {
+      filters.brands.forEach(brand => {
+        queryParams.append('brandSlugs', brand);
+      });
+    }
+
+    if (filters?.models && filters.models.length > 0) {
+      filters.models.forEach(model => {
+        queryParams.append('modelSlugs', model);
+      });
+    }
+
+    if (filters?.minYear) {
+      queryParams.append('minYear', filters.minYear.toString());
+    }
+
+    if (filters?.maxYear) {
+      queryParams.append('maxYear', filters.maxYear.toString());
+    }
+
+    if (filters?.locations && filters.locations.length > 0) {
+      filters.locations.forEach(loc => {
+        queryParams.append('location', loc);
+      });
+    }
+
+    if (filters?.minPrice) {
+      queryParams.append('minPrice', filters.minPrice.toString());
+    }
+
+    if (filters?.maxPrice) {
+      queryParams.append('maxPrice', filters.maxPrice.toString());
+    }
+
+    if (filters?.minMileage) {
+      queryParams.append('minMileage', filters.minMileage.toString());
+    }
+
+    if (filters?.maxMileage) {
+      queryParams.append('maxMileage', filters.maxMileage.toString());
+    }
+
+    if (filters?.fuelTypeSlugs && filters.fuelTypeSlugs.length > 0) {
+      filters.fuelTypeSlugs.forEach(fuel => {
+        queryParams.append('fuelTypeSlugs', fuel);
+      });
+    }
+
+    if (filters?.transmissionId) {
+      queryParams.append('transmissionIds', filters.transmissionId.toString());
+    }
+
+    const url = `${API_BASE_URL}/api/listings/counts/body-styles${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch body style counts: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    // The backend returns { count: { "sedan": 1500, "suv": 800, ... } }
+    return result.count || {};
+
+  } catch (error) {
+    console.error('Error fetching body style counts:', error);
+    return {}; // Return empty object on error
+  }
+}
+
+/**
  * Newsletter subscription interfaces and functions
  */
 export interface NewsletterSubscriptionRequest {
