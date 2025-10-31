@@ -17,7 +17,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function SavedAlertsPage() {
-  const { t } = useTranslation(['search', 'common']);
+  const { t } = useTranslation(['savedAlerts', 'common']);
   const { isRTL } = useLanguageSwitching();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
@@ -83,7 +83,7 @@ export default function SavedAlertsPage() {
       setAlertToDelete(null);
     } catch (error) {
       console.error('Error deleting alert:', error);
-      alert(t('search:alertDeleteError', 'Failed to delete alert. Please try again.'));
+      alert(t('savedAlerts:alertDeleteError', 'Failed to delete alert. Please try again.'));
     } finally {
       setIsDeleting(false);
     }
@@ -177,7 +177,7 @@ export default function SavedAlertsPage() {
 
     } catch (error) {
       console.error('Error updating alert name:', error);
-      alert(t('search:alertUpdateError', 'Failed to update alert name. Please try again.'));
+      alert(t('savedAlerts:alertUpdateError', 'Failed to update alert name. Please try again.'));
     }
   }, [selectedSearch, editingName, t, isRTL]);
 
@@ -238,10 +238,10 @@ export default function SavedAlertsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <EmptyState
               type="alerts"
-              title={t('search:emptyAlertsTitle', 'No alerts yet!')}
-              message={t('search:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
+              title={t('savedAlerts:emptyAlertsTitle', 'No alerts yet!')}
+              message={t('savedAlerts:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
               actionButton={{
-                text: t('search:searchForCars', 'Search for cars'),
+                text: t('savedAlerts:searchForCars', 'Search for cars'),
                 href: '/search',
                 icon: <FaSearch className="w-4 h-4" />
               }}
@@ -257,7 +257,7 @@ export default function SavedAlertsPage() {
               {/* Header */}
               <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {t('search:alerts', 'Alerts')}
+                  {t('savedAlerts:alerts', 'Alerts')}
                 </h1>
               </div>
 
@@ -286,7 +286,7 @@ export default function SavedAlertsPage() {
                         {isRTL ? search.nameAr || search.nameEn : search.nameEn}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {search.matchCount || 0} {t('search:newListings', 'listings')}
+                        {search.matchCount || 0} {t('savedAlerts:newListings', 'listings')}
                       </p>
                     </div>
                   ))
@@ -298,7 +298,7 @@ export default function SavedAlertsPage() {
                 <div className="border-t border-gray-200 dark:border-gray-700">
                   <div className="p-3">
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                      {t('search:alertSettings', 'Settings for my alerts')}
+                      {t('savedAlerts:alertSettings', 'Settings for my alerts')}
                     </h3>
 
                     <div className="space-y-3">
@@ -310,7 +310,7 @@ export default function SavedAlertsPage() {
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('search:hideRemoveListings', 'Hide sold and removed listings')}
+                            {t('savedAlerts:hideRemoveListings', 'Hide sold and removed listings')}
                           </div>
                         </div>
                       </label>
@@ -322,10 +322,10 @@ export default function SavedAlertsPage() {
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('search:alertByEmail', 'Alert by email')}
+                            {t('savedAlerts:alertByEmail', 'Alert by email')}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('search:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
+                            {t('savedAlerts:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
                           </div>
                         </div>
                       </label>
@@ -389,7 +389,7 @@ export default function SavedAlertsPage() {
                           className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
                         >
                           <FaSearch className="w-4 h-4" />
-                          {t('search:editName', 'Edit name')}
+                          {t('savedAlerts:editName', 'Edit name')}
                         </button>
                         <button
                           onClick={() => handleDeleteAlert(selectedSearch.id)}
@@ -401,19 +401,19 @@ export default function SavedAlertsPage() {
                           ) : (
                             <FaTrash className="w-4 h-4" />
                           )}
-                          {t('search:remove', 'Remove')}
+                          {t('savedAlerts:remove', 'Remove')}
                         </button>
                       </div>
                     )}
                   </div>
                   <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
-                    {t('search:searchingFor', 'Searching for:')}{' '}
+                    {t('savedAlerts:searchingFor', 'Searching for:')}{' '}
                     <a
                       href={generateSearchUrlWithoutLocation(selectedSearch)}
                       className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                      title={t('search:viewAllLocations', 'View cars in all governorates with current filters')}
+                      title={t('savedAlerts:viewAllLocations', 'View cars in all governorates with current filters')}
                     >
-                      {t('search:carsInSyria', 'Cars for sale in all of Syria')}
+                      {t('savedAlerts:carsInSyria', 'Cars for sale in all of Syria')}
                     </a>
                   </p>
                 </div>
@@ -439,7 +439,7 @@ export default function SavedAlertsPage() {
                     <EmptyState
                       type="search"
                       title={t('search:noResultsFound', 'No cars found')}
-                      message={t('search:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
+                      message={t('savedAlerts:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
                       actionButton={{
                         text: t('search:clearAllFilters', 'Clear all filters'),
                         href: generateSearchUrlWithoutLocation(selectedSearch),
@@ -452,7 +452,7 @@ export default function SavedAlertsPage() {
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                 <p className="text-gray-500 text-center">
-                  {t('search:selectAlert', 'Select an alert from the left to view details')}
+                  {t('savedAlerts:selectAlert', 'Select an alert from the left to view details')}
                 </p>
               </div>
             )}
@@ -466,9 +466,9 @@ export default function SavedAlertsPage() {
         isOpen={!!alertToDelete}
         onClose={cancelDeleteAlert}
         onConfirm={confirmDeleteAlert}
-        title={t('search:confirmDeleteTitle', 'Delete Alert?')}
-        message={t('search:confirmDeleteMessage', 'Are you sure you want to delete the alert')}
-        itemName={(isRTL ? alertToDelete?.nameAr || alertToDelete?.nameEn : alertToDelete?.nameEn) || t('search:untitledAlert', 'Untitled Alert')}
+        title={t('savedAlerts:confirmDeleteTitle', 'Delete Alert?')}
+        message={t('savedAlerts:confirmDeleteMessage', 'Are you sure you want to delete the alert')}
+        itemName={(isRTL ? alertToDelete?.nameAr || alertToDelete?.nameEn : alertToDelete?.nameEn) || t('savedAlerts:untitledAlert', 'Untitled Alert')}
         isLoading={isDeleting}
         loadingText={t('common:deleting', 'Deleting...')}
         confirmText={t('common:delete', 'Delete')}

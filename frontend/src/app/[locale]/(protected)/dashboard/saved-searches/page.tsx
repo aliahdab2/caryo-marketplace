@@ -15,7 +15,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 export default function DashboardSavedSearchesPage() {
-  const { t } = useTranslation(['search', 'common']);
+  const { t } = useTranslation(['search', 'savedAlerts', 'common']);
   const { currentLang, isRTL } = useLanguageSwitching();
   const [mounted, setMounted] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
@@ -241,7 +241,7 @@ export default function DashboardSavedSearchesPage() {
           </li>
           <li className="flex items-center">
             <span className="mx-2">/</span>
-            <span className="text-gray-900 dark:text-white">{t('search:savedAlerts', 'Saved Alerts')}</span>
+            <span className="text-gray-900 dark:text-white">{t('savedAlerts:savedAlerts', 'Saved Alerts')}</span>
           </li>
         </ol>
       </nav>

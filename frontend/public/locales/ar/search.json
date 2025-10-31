@@ -70,5 +70,6 @@
   "resultsAnnouncementNoQuery": "تم العثور على {{totalCount}} سيارة, عرض {{resultCount}}",
   "noResultsAnnouncement": "لم يتم العثور على سيارات لـ \"{{searchQuery}}\"",
   "retrySuccess": "تم إعادة المحاولة بنجاح، تم إعادة تحميل النتائج",
-  "retryFailed": "فشلت إعادة المحاولة، يرجى المحاولة مرة أخرى"
+  "retryFailed": "فشلت إعادة المحاولة، يرجى المحاولة مرة أخرى",
+  "savedAlerts": "التنبيهات المحفوظة"
 }

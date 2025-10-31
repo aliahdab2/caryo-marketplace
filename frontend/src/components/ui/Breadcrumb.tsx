@@ -85,8 +85,8 @@ export const createSavedAlertsBreadcrumb = (): BreadcrumbItem[] => [
   },
   {
     label: "Saved Alerts",
-    translationKey: "search:savedAlerts",
-    translationNamespace: "search",
+    translationKey: "savedAlerts",
+    translationNamespace: "savedAlerts",
   },
 ];
 

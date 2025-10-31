@@ -70,5 +70,6 @@
   "gridView": "Grid View",
   "listView": "List View",
   "retrySuccess": "Retry successful, results reloaded",
-  "retryFailed": "Retry failed, please try again"
+  "retryFailed": "Retry failed, please try again",
+  "savedAlerts": "Saved Alerts"
 }
