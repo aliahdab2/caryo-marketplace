@@ -141,6 +141,7 @@
     "current": {
       "trial": "Current: Free Trial"
     },
+    "currentTrial": "Current: Free Trial",
     "trial": {
       "benefits": "You're currently on a free trial with limited features"
     },

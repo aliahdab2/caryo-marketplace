@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.config;
 
-import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;

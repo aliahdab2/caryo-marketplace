@@ -4,7 +4,6 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.payload.request.CreateCarBrandRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateCarBrandRequest;
-import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.CarBrandResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarBrandService;
