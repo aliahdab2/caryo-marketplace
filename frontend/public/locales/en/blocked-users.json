@@ -1,0 +1,15 @@
+{
+  "title": "Blocked Users",
+  "subtitle": "Manage users you have blocked",
+  "description": "Manage users you have blocked. Blocked users cannot contact you or see your listings.",
+  "loadError": "Failed to load blocked users. Please try again.",
+  "blockedOn": "Blocked on",
+  "unblock": "Unblock",
+  "unblockSuccess": "User unblocked successfully",
+  "unblockError": "Failed to unblock user. Please try again.",
+  "emptyTitle": "No Blocked Users",
+  "emptyDescription": "You have not blocked any users. Blocked users cannot contact you or see your listings.",
+  "unblockConfirmTitle": "Unblock User",
+  "unblockConfirmMessage": "Are you sure you want to unblock {{username}}? They will be able to contact you again."
+}
+

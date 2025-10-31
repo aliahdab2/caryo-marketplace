@@ -7,13 +7,15 @@ import { fetchWithCache } from '@/services/api';
  * @param endpoint The API endpoint for caching (empty string to skip caching)
  * @param dependencies Additional dependencies for the useEffect
  * @param params Optional parameters for cache key
+ * @param errorMessage Custom error message (for i18n support)
  * @returns Object containing data, loading state, error state, and retry function
  */
 export function useApiData<T>(
   fetchFunction: () => Promise<T>,
   endpoint: string,
   dependencies: React.DependencyList = [],
-  params?: Record<string, string | number>
+  params?: Record<string, string | number>,
+  errorMessage?: string
 ) {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,12 +44,12 @@ export function useApiData<T>(
       setData(result);
     } catch (err) {
       console.error(`Failed to fetch data from ${endpoint}:`, err);
-      setError('Error loading data. Please try again.');
+      setError(errorMessage || 'Error loading data. Please try again.');
       setData(null);
     } finally {
       setIsLoading(false);
     }
-  }, [endpoint, fetchFunction, params]);
+  }, [endpoint, fetchFunction, params, errorMessage]);
 
   // Load data on mount and when dependencies change
   useEffect(() => {

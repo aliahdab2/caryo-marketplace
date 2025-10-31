@@ -35,7 +35,9 @@ const HomeSearchBar = React.memo(() => {
   const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
-    [t]
+    [t],
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const carMakes: CarMake[] = useMemo(() => brandsApi.data ?? [], [brandsApi.data]);
   const isLoadingBrands: boolean = brandsApi.isLoading ?? false;
@@ -45,7 +47,9 @@ const HomeSearchBar = React.memo(() => {
   const governoratesApi = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
-    [t]
+    [t],
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const governorates: Governorate[] = useMemo(() => governoratesApi.data ?? [], [governoratesApi.data]);
   const isLoadingGovernorates: boolean = governoratesApi.isLoading ?? false;
@@ -56,7 +60,8 @@ const HomeSearchBar = React.memo(() => {
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake, t],
-    selectedMake ? { makeId: selectedMake } : undefined
+    selectedMake ? { makeId: selectedMake } : undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const availableModels: CarModel[] = useMemo(() => modelsApi.data ?? [], [modelsApi.data]);
   const isLoadingModels: boolean = modelsApi.isLoading ?? false;

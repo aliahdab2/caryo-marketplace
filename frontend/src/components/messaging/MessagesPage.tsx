@@ -11,6 +11,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import Toast from '@/components/ui/Toast';
 import { MessageCircle } from 'lucide-react';
 import { transformMinioUrl } from '@/utils/mediaUtils';
+import ReportUserModal from './ReportUserModal';
 import ConversationList from './ConversationList';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
@@ -420,38 +421,52 @@ export default function MessagesPage() {
 
     try {
       setIsActionLoading(true);
-      // TODO: Implement block user API call
-      console.warn('Block user feature not yet implemented for conversation:', selectedConversation.id);
+      await MessagingService.blockUser(selectedConversation.id);
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update conversation status to blocked
+      setConversations(prev => prev.map(conv =>
+        conv.id === selectedConversation.id
+          ? { ...conv, isBlocked: true, status: 'BLOCKED' }
+          : conv
+      ));
 
+      setSelectedConversation(prev => prev ? { ...prev, isBlocked: true, status: 'BLOCKED' } : null);
       setShowBlockModal(false);
-      alert('User has been blocked successfully.');
+      showToast(t('userBlockedSuccess', 'User has been blocked successfully.'), 'success');
     } catch (error) {
       console.error('Error blocking user:', error);
-      alert('Failed to block user. Please try again.');
+      const errorMessage = extractErrorMessage(error);
+      showToast(errorMessage, 'error');
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const confirmReportUser = async () => {
-    if (!selectedConversation) return;
+  const confirmReportUser = async (reportType: string, reason: string) => {
+    if (!selectedConversation || !session?.user?.id) return;
 
     try {
       setIsActionLoading(true);
-      // TODO: Implement report user API call
-      console.warn('Report user feature not yet implemented for conversation:', selectedConversation.id);
+      
+      // Get the other participant (reported user)
+      const currentUserId = Number(session.user.id);
+      const reportedUserId = selectedConversation.buyer.id === currentUserId
+        ? selectedConversation.seller.id
+        : selectedConversation.buyer.id;
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await MessagingService.reportUser({
+        reportedUserId: reportedUserId,
+        conversationId: selectedConversation.id,
+        reportType: reportType,
+        reason: reason
+      });
 
       setShowReportModal(false);
-      alert('User has been reported successfully.');
+      showToast(t('userReportedSuccess', 'User has been reported successfully. Our team will review the report.'), 'success');
     } catch (error) {
       console.error('Error reporting user:', error);
-      alert('Failed to report user. Please try again.');
+      const errorMessage = extractErrorMessage(error);
+      showToast(errorMessage, 'error');
     } finally {
       setIsActionLoading(false);
     }
@@ -521,20 +536,28 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-shrink-0">
-            <MessageInput
-              newMessage={newMessage}
-              selectedFiles={selectedFiles}
-              sending={sending}
-              uploading={uploading}
-              isRTL={isRTL}
-              onMessageChange={setNewMessage}
-              onKeyPress={handleKeyPress}
-              onSendMessage={handleSendMessageWithAttachments}
-              onImageSelect={handleImageSelect}
-              onDocumentSelect={handleDocumentSelect}
-              onRemoveFile={removeFile}
-              onClearAllFiles={() => setSelectedFiles([])}
-            />
+            {selectedConversation.isBlocked || selectedConversation.status === 'BLOCKED' ? (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+                <p className="text-red-700 dark:text-red-400 font-medium">
+                  {t('conversationBlocked', 'This conversation is blocked. You cannot send messages.')}
+                </p>
+              </div>
+            ) : (
+              <MessageInput
+                newMessage={newMessage}
+                selectedFiles={selectedFiles}
+                sending={sending}
+                uploading={uploading}
+                isRTL={isRTL}
+                onMessageChange={setNewMessage}
+                onKeyPress={handleKeyPress}
+                onSendMessage={handleSendMessageWithAttachments}
+                onImageSelect={handleImageSelect}
+                onDocumentSelect={handleDocumentSelect}
+                onRemoveFile={removeFile}
+                onClearAllFiles={() => setSelectedFiles([])}
+              />
+            )}
           </div>
         </div>
       ) : (
@@ -569,17 +592,16 @@ export default function MessagesPage() {
         loadingText={t('common:blocking', 'Blocking...')}
       />
 
-      <DeleteConfirmationModal
+      <ReportUserModal
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
         onConfirm={confirmReportUser}
-        title={t('reportUser')}
-        message={t('reportUserConfirmation')}
-        confirmText={t('report')}
-        cancelText={t('cancel')}
-        type="warning"
+        userName={selectedConversation ? (
+          Number(session?.user?.id) === selectedConversation.buyer.id
+            ? selectedConversation.seller.username
+            : selectedConversation.buyer.username
+        ) : undefined}
         isLoading={isActionLoading}
-        loadingText={t('common:reporting', 'Reporting...')}
       />
 
       <DeleteConfirmationModal

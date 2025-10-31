@@ -157,6 +157,8 @@ Comprehensive bilingual support with advanced translation management:
 | `common` | Common UI elements, buttons, navigation | `public/locales/{lang}/common.json` |
 | `auth` | Authentication, login, signup, validation | `public/locales/{lang}/auth.json` |
 | `admin` | Admin panel translations | `public/locales/{lang}/admin.json` |
+| `admin-reports` | Admin reports management page | `public/locales/{lang}/admin-reports.json` |
+| `blocked-users` | Blocked users management page | `public/locales/{lang}/blocked-users.json` |
 | `dashboard` | Dashboard UI and navigation | `public/locales/{lang}/dashboard.json` |
 | `profile` | User profile management | `public/locales/{lang}/profile.json` |
 | `listings` | Car listings, details, management | `public/locales/{lang}/listings.json` |

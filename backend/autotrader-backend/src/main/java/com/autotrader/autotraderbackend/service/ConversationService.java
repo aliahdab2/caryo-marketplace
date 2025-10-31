@@ -46,6 +46,7 @@ public class ConversationService {
     private final MessageAttachmentRepository messageAttachmentRepository;
     private final StorageService storageService;
     private final MessageSource messageSource;
+    private final UserBlockService userBlockService;
 
     /**
      * Create a new conversation or return existing one
@@ -66,6 +67,11 @@ public class ConversationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", buyerId));
 
         User seller = listing.getSeller();
+
+        // Check if users have blocked each other
+        if (userBlockService.isBlockedBidirectional(buyerId, seller.getId())) {
+            throw new BadRequestException("Cannot create conversation: users have blocked each other");
+        }
 
         // Prevent self-conversation
         if (buyer.getId().equals(seller.getId())) {
@@ -173,6 +179,15 @@ public class ConversationService {
         // Check conversation status
         if (!conversation.canSendMessages()) {
             throw new BadRequestException("Cannot send messages in this conversation");
+        }
+
+        // Check if users have blocked each other
+        Long receiverId = conversation.getBuyer().getId().equals(senderId) 
+            ? conversation.getSeller().getId() 
+            : conversation.getBuyer().getId();
+        
+        if (userBlockService.isBlockedBidirectional(senderId, receiverId)) {
+            throw new BadRequestException("Cannot send message: users have blocked each other");
         }
 
         // Create message
@@ -303,6 +318,27 @@ public class ConversationService {
 
         conversation.archive();
         conversationRepository.save(conversation);
+    }
+
+    /**
+     * Block a user in a conversation
+     */
+    public void blockUser(Long conversationId, Long userId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (!conversation.isParticipant(user)) {
+            throw new BadRequestException("Access denied: Not a participant in this conversation");
+        }
+
+        // Block the conversation (prevents further messaging)
+        conversation.block();
+        conversationRepository.save(conversation);
+
+        log.info("User {} blocked in conversation {}", userId, conversationId);
     }
 
     // Helper methods for mapping entities to DTOs

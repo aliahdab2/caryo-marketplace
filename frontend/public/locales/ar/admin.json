@@ -1,5 +1,5 @@
 {
-  "title": "العنوان",
+  "title": "لوحة الإدارة",
   "subtitle": "إدارة الإعلانات والمستخدمين ومحتوى المنصة",
   "accessDenied": "تم رفض الوصول",
   "adminOnly": "هذه الصفحة متاحة فقط للمديرين.",
@@ -83,5 +83,15 @@
   "approvingListings": "جاري الاعتماد...",
   "rejectingListings": "جاري الرفض...",
   "approveSuccess": "تم اعتماد الإعلان بنجاح",
-  "rejectSuccess": "تم رفض الإعلان بنجاح"
+  "rejectSuccess": "تم رفض الإعلان بنجاح",
+  "deselectAll": "إلغاء تحديد الكل",
+  "selectAllPending": "تحديد الكل",
+  "selectedCount": "{{count}} محدد",
+  "noImageAvailable": "لا توجد صورة متاحة",
+  "listingIdLabel": "المعرف: {{id}}",
+  "reviewLabel": "مراجعة",
+  "approveButton": "اعتماد",
+  "rejectButton": "رفض",
+  "listingsCount": "{{count}} إعلان",
+  "noPendingSelected": "لم يتم تحديد أي إعلانات قيد الانتظار"
 }

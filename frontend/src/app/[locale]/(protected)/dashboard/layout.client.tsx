@@ -23,7 +23,9 @@ import {
   MdSupportAgent,
   MdAdd,
   MdAdminPanelSettings,
-  MdStorage
+  MdStorage,
+  MdBlock,
+  MdFlag
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
@@ -175,6 +177,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       icon: <MdEmail className="text-xl" />,
       tooltip: t('messagesTooltip') || 'Your messages'
     },
+    {
+      name: t('blocked-users:title', 'Blocked Users'),
+      href: `/${currentLang}/dashboard/blocked-users`,
+      icon: <MdBlock className="text-xl" />,
+      tooltip: t('blocked-users:subtitle', 'Manage blocked users')
+    },
     ...(isAdmin() ? [
       {
         name: t('adminPanel', 'Admin Panel'),
@@ -187,6 +195,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         href: `/${currentLang}/dashboard/admin/data-management`,
         icon: <MdStorage className="text-xl" />,
         tooltip: t('dataManagementTooltip', 'Manage car brands and models data')
+      },
+      {
+        name: t('admin-reports:title', 'Reports Management'),
+        href: `/${currentLang}/dashboard/admin/reports`,
+        icon: <MdFlag className="text-xl" />,
+        tooltip: t('admin-reports:subtitle', 'Review and manage user reports')
       }
     ] : []),
     {

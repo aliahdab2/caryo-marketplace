@@ -94,5 +94,20 @@
   "navigation": "التنقل",
   "loginRequired": "الرجاء تسجيل الدخول للوصول إلى لوحة التحكم",
   "dataManagement": "إدارة البيانات",
-  "dataManagementTooltip": "إدارة بيانات الماركات والموديلات"
+  "dataManagementTooltip": "إدارة بيانات الماركات والموديلات",
+  "myReportsTitle": "تقاريري",
+  "myReportsSubtitle": "عرض التقارير المقدمة",
+  "myReportsFilterAll": "الكل",
+  "myReportsStatusPending": "قيد الانتظار",
+  "myReportsStatusReviewed": "تمت المراجعة",
+  "myReportsStatusResolved": "تم الحل",
+  "myReportsStatusDismissed": "مرفوض",
+  "myReportsReportedUser": "تم الإبلاغ عن: {{username}}",
+  "myReportsType": "النوع: {{type}}",
+  "myReportsSubmitted": "تاريخ التقديم: {{date}}",
+  "myReportsEmptyTitle": "لا توجد تقارير",
+  "myReportsEmptyDescription": "لم تقدم أي تقارير بعد.",
+  "myReportsEmptyFilteredTitle": "لا توجد تقارير بهذه الحالة",
+  "myReportsEmptyFilteredDescription": "ليس لديك تقارير بهذه الحالة.",
+  "myReportsTotal": "الإجمالي: {{count}} تقرير"
 }

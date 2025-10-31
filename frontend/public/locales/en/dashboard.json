@@ -202,5 +202,20 @@
   },
   "error": {
     "title": "Dashboard Error"
-  }
+  },
+  "myReportsTitle": "My Reports",
+  "myReportsSubtitle": "View your submitted reports",
+  "myReportsFilterAll": "All",
+  "myReportsStatusPending": "Pending",
+  "myReportsStatusReviewed": "Reviewed",
+  "myReportsStatusResolved": "Resolved",
+  "myReportsStatusDismissed": "Dismissed",
+  "myReportsReportedUser": "Reported: {{username}}",
+  "myReportsType": "Type: {{type}}",
+  "myReportsSubmitted": "Submitted: {{date}}",
+  "myReportsEmptyTitle": "No Reports",
+  "myReportsEmptyDescription": "You have not submitted any reports yet.",
+  "myReportsEmptyFilteredTitle": "No Reports with This Status",
+  "myReportsEmptyFilteredDescription": "You have no reports with this status.",
+  "myReportsTotal": "Total: {{count}} report(s)"
 }

@@ -83,5 +83,15 @@
   "approvingListings": "Approving...",
   "rejectingListings": "Rejecting...",
   "approveSuccess": "Listing approved successfully",
-  "rejectSuccess": "Listing rejected successfully"
+  "rejectSuccess": "Listing rejected successfully",
+  "deselectAll": "Deselect All",
+  "selectAllPending": "Select All",
+  "selectedCount": "{{count}} selected",
+  "noImageAvailable": "No image available",
+  "listingIdLabel": "ID: {{id}}",
+  "reviewLabel": "Review",
+  "approveButton": "Approve",
+  "rejectButton": "Reject",
+  "listingsCount": "{{count}} listings",
+  "noPendingSelected": "No pending listings selected"
 }

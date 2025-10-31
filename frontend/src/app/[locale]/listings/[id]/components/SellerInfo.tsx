@@ -1,20 +1,58 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
+import { useSession } from 'next-auth/react';
 import { formatDate } from '@/utils/localization';
 import { Listing } from '@/types/listings';
+import { UserBlockService } from '@/services/userBlock';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import Toast from '@/components/ui/Toast';
 
 interface SellerInfoProps {
   listing: Listing;
+  onBlock?: () => void;
 }
 
-const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
+const SellerInfo: React.FC<SellerInfoProps> = ({ listing, onBlock }) => {
   const { t } = useTranslation('listings');
   const { locale } = useLanguageSwitching();
+  const { data: session } = useSession();
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
   const isDealer = listing.seller?.type === 'dealer';
+  const isOwnListing = listing.seller?.id && session?.user?.id && 
+    listing.seller.id.toString() === session.user.id.toString();
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const handleBlock = async () => {
+    if (!listing.seller?.id) return;
+
+    try {
+      setIsBlocking(true);
+      await UserBlockService.blockUser(Number(listing.seller.id));
+      setShowBlockModal(false);
+      showToast(t('seller.blocked', 'Seller has been blocked successfully'), 'success');
+      onBlock?.();
+    } catch (error) {
+      console.error('Error blocking seller:', error);
+      const err = error as { message?: string };
+      const errorMessage = err?.message || t('seller.blockError', 'Failed to block seller. Please try again.');
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsBlocking(false);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
@@ -115,7 +153,43 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing }) => {
               {t('scheduleTestDrive')}
             </button>
           )}
+
+          {/* Block Seller Button - Only show if logged in and not own listing */}
+          {session && !isOwnListing && listing.seller?.id && (
+            <button
+              onClick={() => setShowBlockModal(true)}
+              className="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+            >
+              <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              {t('blockSeller', 'Block Seller')}
+            </button>
+          )}
         </div>
+
+        {/* Block Confirmation Modal */}
+        {showBlockModal && listing.seller && (
+          <DeleteConfirmationModal
+            isOpen={showBlockModal}
+            onClose={() => setShowBlockModal(false)}
+            onConfirm={handleBlock}
+            title={t('blockSeller', 'Block Seller')}
+            message={t('blockSellerConfirm', `Are you sure you want to block ${listing.seller?.name || 'this seller'}? They won't be able to contact you or see your listings.`, { sellerName: listing.seller?.name || 'this seller' })}
+            confirmText={t('block', 'Block')}
+            cancelText={t('cancel', 'Cancel')}
+            type="danger"
+            isLoading={isBlocking}
+          />
+        )}
+
+        {/* Toast */}
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onClose={() => setToastVisible(false)}
+        />
 
         {/* Additional Dealer Info */}
         {isDealer && (

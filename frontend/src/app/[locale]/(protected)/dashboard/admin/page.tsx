@@ -110,7 +110,7 @@ interface AdminPanelState {
 
 // Custom hook for admin panel logic
 const useAdminPanel = () => {
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation(['admin', 'common']);
   const router = useRouter();
   const { showSuccess, showError } = useToastHelpers();
   const [state, setState] = useState<AdminPanelState>({
@@ -270,7 +270,7 @@ export default function AdminPanel() {
     });
 
     if (pendingSelectedItems.length === 0) {
-      showError('No pending listings selected');
+      showError(t('admin:noPendingSelected', 'No pending listings selected'));
       return;
     }
 
@@ -279,7 +279,7 @@ export default function AdminPanel() {
       showBulkConfirmModal: true,
       bulkActionType: action
     });
-  }, [selectedItems, listings, updateState, showError]);
+  }, [selectedItems, listings, updateState, showError, t]);
 
   const confirmBulkAction = useCallback(async () => {
     if (!bulkActionType) return;
@@ -336,11 +336,11 @@ export default function AdminPanel() {
         });
       }
 
-      showSuccess(t(`admin.bulk${bulkActionType.charAt(0).toUpperCase() + bulkActionType.slice(1)}Success`,
+      showSuccess(t(`admin:bulk${bulkActionType.charAt(0).toUpperCase() + bulkActionType.slice(1)}Success`,
         `${pendingSelectedItems.length} listings ${bulkActionType}d successfully`));
     } catch (_err) {
       updateState({ processing: null, bulkActionType: null });
-      showError(t('admin.bulkActionError', 'Bulk action failed'));
+      showError(t('admin:bulkActionError', 'Bulk action failed'));
     }
   }, [bulkActionType, selectedItems, listings, updateState, showSuccess, showError, t]);
 
@@ -378,7 +378,7 @@ export default function AdminPanel() {
         processing: null
       });
 
-      showSuccess(t('admin.approveSuccess', 'Listing approved successfully'));
+      showSuccess(t('admin:approveSuccess', 'Listing approved successfully'));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to approve listing';
       updateState({ processing: null });
@@ -411,7 +411,7 @@ export default function AdminPanel() {
         processing: null
       });
 
-      showSuccess(t('admin.rejectSuccess', 'Listing rejected successfully'));
+      showSuccess(t('admin:rejectSuccess', 'Listing rejected successfully'));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to reject listing';
       updateState({ processing: null });
@@ -508,10 +508,10 @@ export default function AdminPanel() {
             <MdCancel className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
           <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-2">
-          {t('admin.accessDenied', 'Access Denied')}
+          {t('admin:accessDenied', 'Access Denied')}
         </h1>
           <p className="text-gray-600 dark:text-gray-400">
-          {t('admin.adminOnly', 'This page is only accessible to administrators.')}
+          {t('admin:adminOnly', 'This page is only accessible to administrators.')}
         </p>
         </div>
       </div>
@@ -526,10 +526,10 @@ export default function AdminPanel() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
-            {t('admin.title', 'Admin Panel')}
+            {t('admin:title', 'Admin Panel')}
           </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                {t('admin.subtitle', 'Manage listings and platform content')}
+                {t('admin:subtitle', 'Manage listings and platform content')}
           </p>
         </div>
 
@@ -543,7 +543,7 @@ export default function AdminPanel() {
                 }`}
               >
                 <MdFilterList className="w-4 h-4" />
-                <span className="hidden sm:inline font-medium">{t('admin.filters', 'Filters')}</span>
+                <span className="hidden sm:inline font-medium">{t('admin:filters', 'Filters')}</span>
               </button>
 
               <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
@@ -575,7 +575,7 @@ export default function AdminPanel() {
                 className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
         >
                 <MdRefresh className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{t('admin.refresh', 'Refresh')}</span>
+                <span className="hidden sm:inline">{t('admin:refresh', 'Refresh')}</span>
         </button>
             </div>
           </div>
@@ -586,21 +586,21 @@ export default function AdminPanel() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
               icon={<MdPendingActions className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />}
-              title={t('admin.pendingListings', 'Pending')}
+              title={t('admin:pendingListings', 'Pending')}
           value={pendingListings.length}
           color="yellow"
               onClick={() => updateState({ statusFilter: 'pending', showFilters: false })}
         />
         <StatCard
               icon={<MdCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />}
-              title={t('admin.approvedListings', 'Approved')}
+              title={t('admin:approvedListings', 'Approved')}
           value={approvedListings.length}
           color="green"
               onClick={() => updateState({ statusFilter: 'approved', showFilters: false })}
         />
         <StatCard
               icon={<MdBarChart className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
-              title={t('admin.totalListings', 'Total')}
+              title={t('admin:totalListings', 'Total')}
               value={totalListings}
           color="blue"
               onClick={() => updateState({ statusFilter: 'all', showFilters: false })}
@@ -617,7 +617,7 @@ export default function AdminPanel() {
                 <MdSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder={t('admin.searchListings', 'Search listings, makes, models...')}
+                  placeholder={t('admin:searchListings', 'Search listings, makes, models...')}
                   value={searchTerm}
                   onChange={(e) => updateState({ searchTerm: e.target.value })}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-600 dark:text-white transition-all duration-200 text-lg"
@@ -632,51 +632,51 @@ export default function AdminPanel() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('admin.status', 'Status')}
+                        {t('admin:status', 'Status')}
                       </label>
                       <select
                         value={statusFilter}
                         onChange={(e) => updateState({ statusFilter: e.target.value })}
                         className="w-full border-0 bg-white dark:bg-gray-600 rounded-lg dark:text-white focus:ring-2 focus:ring-blue-500 py-3 px-4 shadow-sm"
                       >
-                        <option value="all">{t('admin.allStatuses', 'All Statuses')}</option>
-                        <option value="pending">{t('admin.pendingOnly', 'Pending Only')}</option>
-                        <option value="approved">{t('admin.approvedOnly', 'Approved Only')}</option>
+                        <option value="all">{t('admin:allStatuses', 'All Statuses')}</option>
+                        <option value="pending">{t('admin:pendingOnly', 'Pending Only')}</option>
+                        <option value="approved">{t('admin:approvedOnly', 'Approved Only')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('admin.sortBy', 'Sort By')}
+                        {t('admin:sortBy', 'Sort By')}
                       </label>
                       <select
                         value={sortBy}
                         onChange={(e) => updateState({ sortBy: e.target.value })}
                         className="w-full border-0 bg-white dark:bg-gray-600 rounded-lg dark:text-white focus:ring-2 focus:ring-blue-500 py-3 px-4 shadow-sm"
                       >
-                        <option value="createdAt">{t('admin.dateCreated', 'Date Created')}</option>
-                        <option value="title">{t('admin.title', 'Title')}</option>
-                        <option value="price">{t('admin.price', 'Price')}</option>
+                        <option value="createdAt">{t('admin:dateCreated', 'Date Created')}</option>
+                        <option value="title">{t('admin:title', 'Title')}</option>
+                        <option value="price">{t('admin:price', 'Price')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('admin.order', 'Order')}
+                        {t('admin:order', 'Order')}
                       </label>
                       <select
                         value={sortOrder}
                         onChange={(e) => updateState({ sortOrder: e.target.value as 'asc' | 'desc' })}
                         className="w-full border-0 bg-white dark:bg-gray-600 rounded-lg dark:text-white focus:ring-2 focus:ring-blue-500 py-3 px-4 shadow-sm"
                       >
-                        <option value="desc">{t('admin.descending', 'Newest First')}</option>
-                        <option value="asc">{t('admin.ascending', 'Oldest First')}</option>
+                        <option value="desc">{t('admin:descending', 'Newest First')}</option>
+                        <option value="asc">{t('admin:ascending', 'Oldest First')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('admin.actions', 'Actions')}
+                        {t('admin:actions', 'Actions')}
                       </label>
                       <button
                         onClick={() => updateState({
@@ -687,7 +687,7 @@ export default function AdminPanel() {
                         })}
                         className="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 font-medium"
                       >
-                        {t('admin.clearFilters', 'Clear Filters')}
+                        {t('admin:clearFilters', 'Clear Filters')}
                       </button>
                     </div>
                 </div>
@@ -704,7 +704,7 @@ export default function AdminPanel() {
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredListings.length} listings
+                  {t('admin:listingsCount', '{{count}} listings', { count: filteredListings.length })}
                 </span>
 
                 {(() => {
@@ -717,7 +717,7 @@ export default function AdminPanel() {
                       onClick={toggleSelectAll}
                       className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
                     >
-                      {allPendingSelected ? 'Deselect All' : 'Select All'}
+                      {allPendingSelected ? t('admin:deselectAll', 'Deselect All') : t('admin:selectAllPending', 'Select All')}
                     </button>
                   ) : null;
                 })()}
@@ -732,21 +732,21 @@ export default function AdminPanel() {
                 return pendingSelectedCount > 0 ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {pendingSelectedCount} selected
+                      {t('admin:selectedCount', '{{count}} selected', { count: pendingSelectedCount })}
                     </span>
                     <button
                       onClick={() => handleBulkAction('approve')}
                       disabled={processing === -1}
                       className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      Approve
+                      {t('admin:approveButton', 'Approve')}
                     </button>
                     <button
                       onClick={() => handleBulkAction('reject')}
                       disabled={processing === -1}
                       className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      Reject
+                      {t('admin:rejectButton', 'Reject')}
                     </button>
                     <button
                       onClick={() => updateState({ selectedItems: [] })}
@@ -775,7 +775,7 @@ export default function AdminPanel() {
         {loading ? (
               <div className="text-center py-16">
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
-                <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">{t('admin.loading', 'Loading listings...')}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">{t('admin:loading', 'Loading listings...')}</p>
               </div>
             ) : filteredListings.length === 0 ? (
               <div className="text-center py-16">
@@ -783,12 +783,12 @@ export default function AdminPanel() {
                   <MdCheckCircle className="w-10 h-10 text-gray-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                  {t('admin.noListingsFound', 'No listings found')}
+                  {t('admin:noListingsFound', 'No listings found')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-lg">
                   {searchTerm || statusFilter !== 'all'
-                    ? t('admin.noListingsMatchFilter', 'No listings match your current filters')
-                    : t('admin.noListingsYet', 'No listings have been submitted yet')
+                    ? t('admin:noListingsMatchFilter', 'No listings match your current filters')
+                    : t('admin:noListingsYet', 'No listings have been submitted yet')
                   }
                 </p>
               </div>
@@ -821,7 +821,7 @@ export default function AdminPanel() {
         isOpen={showBulkConfirmModal}
         onClose={cancelBulkAction}
         onConfirm={confirmBulkAction}
-        title={bulkActionType === 'approve' ? t('admin.confirmBulkApprove', 'Approve Listings?') : t('admin.confirmBulkReject', 'Reject Listings?')}
+        title={bulkActionType === 'approve' ? t('admin:confirmBulkApprove', 'Approve Listings?') : t('admin:confirmBulkReject', 'Reject Listings?')}
         message={(() => {
           const pendingSelectedCount = selectedItems.filter(id => {
             const listing = listings.find(l => l.id === id);
@@ -829,12 +829,12 @@ export default function AdminPanel() {
           }).length;
 
           return bulkActionType === 'approve'
-            ? t('admin.confirmBulkApproveMessage', `Are you sure you want to approve ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This will make them visible to all users.`)
-            : t('admin.confirmBulkRejectMessage', `Are you sure you want to reject ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This action cannot be undone.`);
+            ? t('admin:confirmBulkApproveMessage', `Are you sure you want to approve ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This will make them visible to all users.`)
+            : t('admin:confirmBulkRejectMessage', `Are you sure you want to reject ${pendingSelectedCount} listing${pendingSelectedCount > 1 ? 's' : ''}? This action cannot be undone.`);
         })()}
         isLoading={processing === -1}
-        loadingText={bulkActionType === 'approve' ? t('admin.approvingListings', 'Approving...') : t('admin.rejectingListings', 'Rejecting...')}
-        confirmText={bulkActionType === 'approve' ? t('admin.approve', 'Approve') : t('admin.reject', 'Reject')}
+        loadingText={bulkActionType === 'approve' ? t('admin:approvingListings', 'Approving...') : t('admin:rejectingListings', 'Rejecting...')}
+        confirmText={bulkActionType === 'approve' ? t('admin:approve', 'Approve') : t('admin:reject', 'Reject')}
         cancelText={t('common.cancel', 'Cancel')}
         type={bulkActionType === 'approve' ? 'warning' : 'danger'}
       />
@@ -908,14 +908,14 @@ function EnhancedListingCard({
       return (
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-700">
           <MdCheckCircle className="w-3 h-3 mr-1" />
-          {t('admin.approved', 'Approved')}
+          {t('admin:approved', 'Approved')}
         </span>
       );
     }
     return (
       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700">
         <MdPendingActions className="w-3 h-3 mr-1" />
-        {t('admin.pending', 'Pending')}
+        {t('admin:pending', 'Pending')}
       </span>
     );
   };
@@ -924,7 +924,7 @@ function EnhancedListingCard({
 
   const formatMileage = (mileage?: number) => {
     if (!mileage) return 'N/A';
-    return `${formatNumber(mileage, 'en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${t('admin.km', 'km')}`;
+    return `${formatNumber(mileage, 'en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${t('admin:km', 'km')}`;
   };
 
   const getLocationDisplay = () => {
@@ -1015,8 +1015,8 @@ function EnhancedListingCard({
                       <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                         <MdDirectionsCar className="w-8 h-8 text-blue-500 dark:text-blue-400" />
                       </div>
-                      <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">No image available</p>
-                      <p className="text-blue-500 dark:text-blue-500 text-xs mt-1">ID: {listing.id}</p>
+                      <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">{t('admin:noImageAvailable', 'No image available')}</p>
+                      <p className="text-blue-500 dark:text-blue-500 text-xs mt-1">{t('admin:listingIdLabel', 'ID: {{id}}', { id: listing.id })}</p>
                     </div>
                   </div>
                 );
@@ -1028,7 +1028,7 @@ function EnhancedListingCard({
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20">
                 <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-md shadow-lg">
                   <MdPendingActions className="w-3 h-3" />
-                  <span className="hidden sm:inline">Review</span>
+                  <span className="hidden sm:inline">{t('admin:reviewLabel', 'Review')}</span>
                 </div>
               </div>
             )}
@@ -1190,14 +1190,14 @@ function EnhancedListingCard({
                       disabled={processing}
                       className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      {processing ? '...' : 'Approve'}
+                      {processing ? '...' : t('admin:approveButton', 'Approve')}
                     </button>
                     <button
                       onClick={onReject}
                       disabled={processing}
                       className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md disabled:opacity-50"
                     >
-                      Reject
+                      {t('admin:rejectButton', 'Reject')}
                     </button>
                   </div>
                 </div>

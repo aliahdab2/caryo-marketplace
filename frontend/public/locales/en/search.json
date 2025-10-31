@@ -23,6 +23,7 @@
   "selectModel": "Select model",
   "selectGovernorate": "Select governorate",
   "loadingError": "Error loading filter options. Please refresh the page.",
+  "errorLoadingData": "Error loading data. Please try again.",
   "errorTitle": "Something went wrong",
   "placeholder": "Search for cars... (e.g. \"Toyota Camry\", \"BMW X3\", \"Honda Civic\")",
   "search": "Search",
