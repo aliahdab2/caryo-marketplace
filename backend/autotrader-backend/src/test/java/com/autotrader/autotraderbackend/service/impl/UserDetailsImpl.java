@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.service.impl;
 
-import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

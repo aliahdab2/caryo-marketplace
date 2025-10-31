@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MdClose, 
@@ -10,75 +10,52 @@ import {
   MdTrendingUp,
   MdBusinessCenter,
   MdPayment,
-  MdInfo
+  MdInfo,
+  MdAccountBalance
 } from 'react-icons/md';
+import { FaPaypal } from 'react-icons/fa';
+import { getSubscriptionTiers, type SubscriptionTier } from '@/services/pricing';
 
-interface SubscriptionTier {
+interface PaymentMethod {
   id: string;
   name: string;
-  price: number;
-  currency: string;
-  listingLimit: number;
-  features: string[];
-  recommended?: boolean;
-  popular?: boolean;
+  icon: React.ReactNode;
+  description: string;
+  processingFee: number;
+  processingTime: string;
+  enabled: boolean;
 }
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentTier?: string;
-  onSelectTier?: (tierId: string) => void;
+  onSelectPayment?: (tierId: string, paymentMethod: string) => void;
   className?: string;
+  availablePaymentMethods?: string[];
 }
 
-const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
+// Subscription tiers are now fetched from backend API (industry best practice)
+// See getSubscriptionTiers() in useEffect below
+
+const _PAYMENT_METHODS: PaymentMethod[] = [
   {
-    id: 'basic',
-    name: 'Basic',
-    price: 50,
-    currency: 'USD',
-    listingLimit: 100,
-    features: [
-      'Up to 100 listings',
-      'Basic analytics',
-      'Email support',
-      'Mobile responsive',
-      'Photo uploads'
-    ]
+    id: 'paypal',
+    name: 'PayPal',
+    icon: <FaPaypal className="w-6 h-6" />,
+    description: 'Pay with your PayPal account',
+    processingFee: 2.9,
+    processingTime: 'Instant',
+    enabled: false // Disabled until PayPal access is available
   },
   {
-    id: 'advanced',
-    name: 'Advanced',
-    price: 100,
-    currency: 'USD',
-    listingLimit: 250,
-    recommended: true,
-    popular: true,
-    features: [
-      'Up to 250 listings',
-      'Advanced analytics',
-      'Priority support',
-      'Featured listings',
-      'Video uploads',
-      'Custom branding'
-    ]
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    price: 200,
-    currency: 'USD',
-    listingLimit: -1, // Unlimited
-    features: [
-      'Unlimited listings',
-      'Premium analytics',
-      'Dedicated support',
-      'API access',
-      'White-label options',
-      'Custom integrations',
-      'Priority placement'
-    ]
+    id: 'manual_transfer',
+    name: 'Bank Transfer',
+    icon: <MdAccountBalance className="w-6 h-6" />,
+    description: 'Manual bank transfer (requires verification)',
+    processingFee: 0,
+    processingTime: '1-3 business days',
+    enabled: true
   }
 ];
 
@@ -86,12 +63,38 @@ export default function UpgradeModal({
   isOpen, 
   onClose, 
   currentTier: _currentTier = 'trial',
-  onSelectTier,
-  className = '' 
+  onSelectPayment: _onSelectPayment,
+  className = '',
+  availablePaymentMethods: _availablePaymentMethods = ['paypal', 'manual_transfer']
 }: UpgradeModalProps) {
-  const { t } = useTranslation(['dashboard', 'common']);
+  const { t } = useTranslation(['dashboard', 'common', 'payment']);
+  const [subscriptionTiers, setSubscriptionTiers] = useState<SubscriptionTier[]>([]);
   const [selectedTier, setSelectedTier] = useState<string>('advanced');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [_selectedPaymentMethod, _setSelectedPaymentMethod] = useState<string>('manual_transfer');
+  const [isProcessing, _setIsProcessing] = useState(false);
+  const [_step, _setStep] = useState<'plan' | 'payment'>('plan');
+  const [isLoadingTiers, setIsLoadingTiers] = useState(true);
+
+  // Fetch tiers from backend (industry best practice: single source of truth)
+  useEffect(() => {
+    if (isOpen) {
+      getSubscriptionTiers()
+        .then(tiers => {
+          setSubscriptionTiers(tiers);
+          if (tiers.length > 0) {
+            // Default to 'advanced' if available, otherwise first tier
+            const advancedTier = tiers.find(t => t.id === 'advanced') || tiers[0];
+            setSelectedTier(advancedTier.id);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load subscription tiers:', error);
+        })
+        .finally(() => {
+          setIsLoadingTiers(false);
+        });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -99,22 +102,38 @@ export default function UpgradeModal({
     setSelectedTier(tierId);
   };
 
+  const _getPaymentIcon = (methodId: string) => {
+    switch (methodId) {
+      case 'paypal':
+        return <FaPaypal className="w-5 h-5" />;
+      case 'manual_transfer':
+        return <MdAccountBalance className="w-5 h-5" />;
+      default:
+        return <MdPayment className="w-5 h-5" />;
+    }
+  };
+
   const handleUpgrade = async () => {
-    if (!onSelectTier) {
-      // Default behavior - show coming soon message
+    if (!_onSelectPayment) {
+      // Fallback if no payment handler provided
       alert(t('upgrade.coming.soon'));
       return;
     }
 
-    setIsProcessing(true);
+    // For now, use manual transfer as the default payment method
+    const defaultPaymentMethod = 'manual_transfer';
+    
     try {
-      await onSelectTier(selectedTier);
+      console.log('🚀 Processing upgrade:', { tier: selectedTier, paymentMethod: defaultPaymentMethod });
+      
+      // Call the payment handler
+      await _onSelectPayment(selectedTier, defaultPaymentMethod);
+      
+      // Close modal on success (the parent component handles success/error messages)
       onClose();
     } catch (error) {
-      console.error('Upgrade error:', error);
+      console.error('❌ Upgrade error:', error);
       alert(t('upgrade.error'));
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -178,8 +197,14 @@ export default function UpgradeModal({
 
         {/* Pricing Tiers */}
         <div className="p-6">
-          <div className="grid md:grid-cols-3 gap-6">
-            {SUBSCRIPTION_TIERS.map((tier) => (
+          {isLoadingTiers ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">{t('common.loading', 'Loading...')}</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {subscriptionTiers.map((tier) => (
               <div
                 key={tier.id}
                 className={`
@@ -278,8 +303,9 @@ export default function UpgradeModal({
                   }
                 </button>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

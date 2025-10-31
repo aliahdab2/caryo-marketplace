@@ -1,13 +1,8 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.model.Dealer;
-import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.payload.request.CreateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
-import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.service.CarListingService;
-import com.autotrader.autotraderbackend.service.DealerService;
-import com.autotrader.autotraderbackend.service.DealerTrialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -1,15 +1,9 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
-import com.autotrader.autotraderbackend.model.Location;
-import com.autotrader.autotraderbackend.model.Country;
-import com.autotrader.autotraderbackend.model.Governorate;
 import com.autotrader.autotraderbackend.payload.request.LocationRequest;
 import com.autotrader.autotraderbackend.payload.response.LocationResponse;
-import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.LocationService;
-import com.autotrader.autotraderbackend.util.TestDataGenerator;
-import com.autotrader.autotraderbackend.util.TestGeographyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,16 +20,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;

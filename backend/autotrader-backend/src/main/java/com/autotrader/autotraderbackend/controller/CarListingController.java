@@ -5,7 +5,6 @@ import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
-import com.autotrader.autotraderbackend.service.CarListingStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

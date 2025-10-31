@@ -180,8 +180,9 @@ export default function DealerDashboard() {
     setShowUpgradeModal(true);
   };
 
-  const handleSelectTier = async (tierId: string) => {
+  const handleSelectPayment = async (tierId: string, paymentMethod: string) => {
     try {
+      console.log('Selected payment:', { tierId, paymentMethod });
       const result = await createSubscription(tierId);
       if (result.success) {
         alert(`Subscription created! Transaction ID: ${result.transactionId}\n\n${result.paymentInstructions}`);
@@ -452,7 +453,7 @@ export default function DealerDashboard() {
           isOpen={showUpgradeModal}
           onClose={() => setShowUpgradeModal(false)}
           currentTier={trialStatus?.subscriptionTier}
-          onSelectTier={handleSelectTier}
+          onSelectPayment={handleSelectPayment}
         />
       </div>
     </div>
