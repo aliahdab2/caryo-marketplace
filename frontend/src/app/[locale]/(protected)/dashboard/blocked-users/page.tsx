@@ -13,7 +13,7 @@ import { UserX } from 'lucide-react';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 
 export default function BlockedUsersPage() {
-  const { t } = useTranslation(['common', 'dashboard']);
+  const { t } = useTranslation(['common', 'blocked-users']);
   const [mounted, setMounted] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<UserBlockResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,8 +44,10 @@ export default function BlockedUsersPage() {
       setBlockedUsers(users);
     } catch (err) {
       console.error('Error loading blocked users:', err);
-      setError(t('dashboard:blockedUsers.loadError', 'Failed to load blocked users. Please try again.'));
-      showToast(t('dashboard:blockedUsers.loadError', 'Failed to load blocked users. Please try again.'), 'error');
+      // Always use translation, ignore the error message from API
+      const errorMessage = t('blocked-users:loadError', 'Failed to load blocked users. Please try again.');
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +75,12 @@ export default function BlockedUsersPage() {
       setUserToUnblock(null);
       
       showToast(
-        t('dashboard:blockedUsers.unblockSuccess', 'User unblocked successfully', { username: userToUnblock.blocked.username }),
+        t('blocked-users:unblockSuccess', 'User unblocked successfully', { username: userToUnblock.blocked.username }),
         'success'
       );
     } catch (err) {
       const error = err as { message?: string };
-      const errorMessage = error?.message || t('dashboard:blockedUsers.unblockError', 'Failed to unblock user. Please try again.');
+      const errorMessage = error?.message || t('blocked-users:unblockError', 'Failed to unblock user. Please try again.');
       console.error('Error unblocking user:', err);
       showToast(errorMessage, 'error');
     } finally {
@@ -109,8 +111,8 @@ export default function BlockedUsersPage() {
               },
               {
                 label: 'Blocked Users',
-                translationKey: 'blockedUsers.title',
-                translationNamespace: 'dashboard'
+                translationKey: 'title',
+                translationNamespace: 'blocked-users'
               }
             ]}
           />
@@ -118,12 +120,12 @@ export default function BlockedUsersPage() {
 
         {/* Page Title */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('dashboard:blockedUsers.title', 'Blocked Users')}
+          {t('blocked-users:title', 'Blocked Users')}
         </h1>
 
         {/* Description */}
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          {t('dashboard:blockedUsers.description', 'Manage users you have blocked. Blocked users cannot contact you or see your listings.')}
+          {t('blocked-users:description', 'Manage users you have blocked. Blocked users cannot contact you or see your listings.')}
         </p>
 
         {/* Loading State */}
@@ -162,7 +164,7 @@ export default function BlockedUsersPage() {
                           {userBlock.blocked.username}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {t('dashboard:blockedUsers.blockedOn', 'Blocked on')} {new Date(userBlock.createdAt).toLocaleDateString()}
+                          {t('blocked-users:blockedOn', 'Blocked on')} {new Date(userBlock.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -171,7 +173,7 @@ export default function BlockedUsersPage() {
                       disabled={isUnblocking}
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
                     >
-                      {t('dashboard:blockedUsers.unblock', 'Unblock')}
+                      {t('blocked-users:unblock', 'Unblock')}
                     </button>
                   </div>
                 </div>
@@ -183,8 +185,8 @@ export default function BlockedUsersPage() {
         {/* Empty State */}
         {!isLoading && !error && blockedUsers.length === 0 && (
           <EmptyState
-            title={t('dashboard:blockedUsers.empty.title', 'No Blocked Users')}
-            message={t('dashboard:blockedUsers.empty.description', 'You have not blocked any users. Blocked users cannot contact you or see your listings.')}
+            title={t('blocked-users:emptyTitle', 'No Blocked Users')}
+            message={t('blocked-users:emptyDescription', 'You have not blocked any users. Blocked users cannot contact you or see your listings.')}
           />
         )}
 
@@ -194,9 +196,9 @@ export default function BlockedUsersPage() {
             isOpen={!!userToUnblock}
             onClose={cancelUnblock}
             onConfirm={confirmUnblock}
-            title={t('dashboard:blockedUsers.unblockConfirm.title', 'Unblock User')}
-            message={t('dashboard:blockedUsers.unblockConfirm.message', `Are you sure you want to unblock ${userToUnblock.blocked.username}? They will be able to contact you again.`, { username: userToUnblock.blocked.username })}
-            confirmText={t('dashboard:blockedUsers.unblock', 'Unblock')}
+            title={t('blocked-users:unblockConfirmTitle', 'Unblock User')}
+            message={t('blocked-users:unblockConfirmMessage', `Are you sure you want to unblock ${userToUnblock.blocked.username}? They will be able to contact you again.`, { username: userToUnblock.blocked.username })}
+            confirmText={t('blocked-users:unblock', 'Unblock')}
             cancelText={t('common:cancel', 'Cancel')}
             type="warning"
             isLoading={isUnblocking}

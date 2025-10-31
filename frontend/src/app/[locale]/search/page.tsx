@@ -211,7 +211,9 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
-    [] // No dependencies needed - brands don't change
+    [], // No dependencies needed - brands don't change
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   );
 
   // Fetch all models when makeModel filter modal is opened
@@ -262,7 +264,9 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarModel[]>(
     fetchModelsFunction,
     modelsFetchKey,
-    [] // Empty dependencies - the key change will trigger the refetch
+    [], // Empty dependencies - the key change will trigger the refetch
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   );
 
   const {
@@ -272,7 +276,9 @@ export default function AdvancedSearchPage() {
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
     '/api/reference-data',
-    [] // No dependencies needed - reference data doesn't change
+    [], // No dependencies needed - reference data doesn't change
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   );
 
   const {
@@ -282,7 +288,9 @@ export default function AdvancedSearchPage() {
   } = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
-    [] // No dependencies needed - governorates don't change
+    [], // No dependencies needed - governorates don't change
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   );
 
   // Helper functions to get display names for reference data - memoized to prevent re-renders

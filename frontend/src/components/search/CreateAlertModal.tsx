@@ -34,7 +34,9 @@ export default function CreateAlertModal({
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
     '/api/reference-data',
-    []
+    [],
+    undefined,
+    t('errorLoadingData', 'Error loading data. Please try again.')
   );
 
   // Form state

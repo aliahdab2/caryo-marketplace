@@ -32,6 +32,7 @@ public class UserReportService {
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final ReportRateLimitService rateLimitService;
+    private final ReportNotificationService reportNotificationService;
 
     /**
      * Create a new user report
@@ -92,13 +93,20 @@ public class UserReportService {
                 .status(ReportStatus.PENDING)
                 .build();
 
-        report = userReportRepository.save(report);
+            report = userReportRepository.save(report);
 
-        // Record report for rate limiting
-        rateLimitService.recordReport(reporterId);
+            // Record report for rate limiting
+            rateLimitService.recordReport(reporterId);
 
-        log.info("User report created successfully with ID: {}", report.getId());
-        return report;
+            // Send email notification to admin (async)
+            try {
+                reportNotificationService.sendNewReportNotificationToAdmin(report);
+            } catch (Exception e) {
+                log.warn("Failed to send admin notification email, but report was saved successfully", e);
+            }
+
+            log.info("User report created successfully with ID: {}", report.getId());
+            return report;
     }
 
     /**

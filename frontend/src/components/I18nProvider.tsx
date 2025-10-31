@@ -55,7 +55,7 @@ export default function I18nProvider({ children }: I18nProviderProps) {
 
         // Explicitly load all namespaces (only once)
         if (!mounted) {
-          await i18n.loadNamespaces(['common', 'listings', 'errors']);
+          await i18n.loadNamespaces(['common', 'listings', 'errors', 'dashboard', 'search', 'messages', 'blocked-users', 'admin-reports', 'admin']);
         }
 
         setMounted(true);
