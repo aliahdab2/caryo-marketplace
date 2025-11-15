@@ -18,6 +18,7 @@ export interface SubscriptionTier {
  * - Prices come from backend configuration
  * - No hardcoded prices in frontend
  * - Changes in application.properties automatically reflected
+ * @returns Promise<SubscriptionTier[]> Array of subscription tiers
  */
 export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
@@ -32,8 +33,9 @@ export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
 
 /**
  * Fallback default tiers (if API unavailable)
+ * Features use translation keys for i18n support
  */
-function getDefaultTiers(): SubscriptionTier[] {
+export function getDefaultTiers(): SubscriptionTier[] {
   return [
     {
       id: 'basic',
@@ -42,11 +44,11 @@ function getDefaultTiers(): SubscriptionTier[] {
       currency: 'USD',
       listingLimit: 100,
       features: [
-        'Up to 100 listings',
-        'Basic analytics',
-        'Email support',
-        'Mobile responsive',
-        'Photo uploads'
+        'feature.listings100',
+        'feature.basicAnalytics', 
+        'feature.emailSupport',
+        'feature.mobileResponsive',
+        'feature.photoUploads'
       ]
     },
     {
@@ -58,12 +60,12 @@ function getDefaultTiers(): SubscriptionTier[] {
       recommended: true,
       popular: true,
       features: [
-        'Up to 250 listings',
-        'Advanced analytics',
-        'Priority support',
-        'Featured listings',
-        'Video uploads',
-        'Custom branding'
+        'feature.listings250',
+        'feature.advancedAnalytics',
+        'feature.prioritySupport',
+        'feature.featuredListings',
+        'feature.videoUploads',
+        'feature.customBranding'
       ]
     },
     {
@@ -73,13 +75,13 @@ function getDefaultTiers(): SubscriptionTier[] {
       currency: 'USD',
       listingLimit: -1,
       features: [
-        'Unlimited listings',
-        'Premium analytics',
-        'Dedicated support',
-        'API access',
-        'White-label options',
-        'Custom integrations',
-        'Priority placement'
+        'feature.unlimitedListings',
+        'feature.premiumAnalytics',
+        'feature.dedicatedSupport',
+        'feature.apiAccess',
+        'feature.whiteLabelOptions',
+        'feature.customIntegrations',
+        'feature.priorityPlacement'
       ]
     }
   ];

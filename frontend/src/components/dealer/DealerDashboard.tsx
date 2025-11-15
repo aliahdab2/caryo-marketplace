@@ -43,7 +43,7 @@ interface DashboardStats {
 }
 
 export default function DealerDashboard() {
-  const { t } = useTranslation(['dashboard', 'common', 'listings', 'search']);
+  const { t } = useTranslation(['dashboard', 'common', 'listings', 'search', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
   const { user: session } = useOptimizedSession();
 
@@ -354,10 +354,10 @@ export default function DealerDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm sm:text-base">
-                    {t('upgrade.title')}
+                    {t('upgradeModal:title')}
                   </h3>
                   <p className="text-xs sm:text-sm opacity-90">
-                    {t('upgrade.subtitle')}
+                    {t('upgradeModal:subtitle')}
                   </p>
                 </div>
               </div>

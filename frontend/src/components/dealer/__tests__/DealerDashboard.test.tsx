@@ -195,7 +195,7 @@ describe('DealerDashboard', () => {
     render(<DealerDashboard />);
 
     await waitFor(() => {
-      expect(mockT).toHaveBeenCalledWith('upgrade.title');
+      expect(mockT).toHaveBeenCalledWith('upgradeModal:title');
     });
   });
 
@@ -211,7 +211,7 @@ describe('DealerDashboard', () => {
 
     await waitFor(() => {
       // Upgrade button should not be present
-      const upgradeTexts = screen.queryAllByText('upgrade.title');
+      const upgradeTexts = screen.queryAllByText('upgradeModal:title');
       expect(upgradeTexts.length).toBe(0);
     });
   });

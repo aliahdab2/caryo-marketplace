@@ -56,6 +56,7 @@ public class TestApiSecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pricing/**").permitAll()  // Allow public access to pricing tiers
                 .anyRequest().authenticated()
             );
         }
