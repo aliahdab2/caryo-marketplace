@@ -30,5 +30,6 @@
   "twoFactorAuth": "Two-Factor Authentication",
   "improveAccountSecurity": "Improve your account security with two-factor authentication",
   "twoFactorAuthRecommended": "Recommended for enhanced security",
-  "setupTwoFactor": "Setup Two-Factor Authentication"
+  "setupTwoFactor": "Setup Two-Factor Authentication",
+  "active": "Active"
 }
