@@ -199,16 +199,25 @@ export default function UpgradeModal({
     }
   };
 
-  const getTierIcon = (tierId: string) => {
+  const getTierIcon = (tierId: string, isSelected: boolean = false) => {
+    // Use pure white when selected with inline style for guaranteed visibility
+    const iconStyle = isSelected 
+      ? { color: '#ffffff', fill: '#ffffff' } 
+      : undefined;
+    
+    const baseClass = isSelected 
+      ? 'w-6 h-6 !text-white' 
+      : 'w-6 h-6 text-gray-600 dark:text-gray-400';
+    
     switch (tierId) {
       case 'basic':
-        return <MdDirectionsCar className="w-6 h-6" />;
+        return <MdDirectionsCar className={baseClass} style={iconStyle} />;
       case 'advanced':
-        return <MdTrendingUp className="w-6 h-6" />;
+        return <MdTrendingUp className={baseClass} style={iconStyle} />;
       case 'professional':
-        return <MdBusinessCenter className="w-6 h-6" />;
+        return <MdBusinessCenter className={baseClass} style={iconStyle} />;
       default:
-        return <MdDirectionsCar className="w-6 h-6" />;
+        return <MdDirectionsCar className={baseClass} style={iconStyle} />;
     }
   };
 
@@ -297,11 +306,11 @@ export default function UpgradeModal({
                     <div className={`
                       p-2 rounded-xl transition-all duration-300
                       ${selectedTier === tier.id 
-                        ? 'bg-primary text-white shadow-md scale-105' 
-                        : 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 text-gray-600 dark:text-gray-400 group-hover:scale-105'
+                        ? 'bg-blue-600 shadow-md scale-105' 
+                        : 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 group-hover:scale-105'
                       }
                     `}>
-                      {getTierIcon(tier.id)}
+                      {getTierIcon(tier.id, selectedTier === tier.id)}
                     </div>
                   </div>
                   
@@ -348,8 +357,8 @@ export default function UpgradeModal({
                         <MdCheck className={`
                           w-3.5 h-3.5 flex-shrink-0 mt-0.5 transition-colors
                           ${selectedTier === tier.id 
-                            ? 'text-primary' 
-                            : 'text-green-500 group-hover/item:text-primary'
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-green-500 group-hover/item:text-green-600'
                           }
                         `} />
                         <span className="text-[11px] text-gray-700 dark:text-gray-300 leading-snug">
