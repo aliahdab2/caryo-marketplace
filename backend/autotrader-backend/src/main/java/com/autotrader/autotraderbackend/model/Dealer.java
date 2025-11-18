@@ -113,8 +113,8 @@ public class Dealer {
     @Column(name = "subscription_cancelled_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private ZonedDateTime subscriptionCancelledAt;
 
-    // Notification tracking (JSONB array)
-    @Column(name = "notifications_sent", columnDefinition = "jsonb")
+    // Notification tracking (JSON array stored as TEXT)
+    @Column(name = "notifications_sent", columnDefinition = "text")
     @Convert(converter = com.autotrader.autotraderbackend.converter.StringListConverter.class)
     @Builder.Default
     private List<String> notificationsSent = new ArrayList<>();

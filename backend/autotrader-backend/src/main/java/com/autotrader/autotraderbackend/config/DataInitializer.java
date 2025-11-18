@@ -316,6 +316,26 @@ public class DataInitializer implements CommandLineRunner {
                             dealerUser = userRepository.saveAndFlush(dealerUser);
                             log.info("Updated existing dealer user to verified status");
                         }
+                        
+                        // Check if dealer profile exists, create if missing
+                        try {
+                            if (!dealerService.getDealerByUserId(dealerUser.getId()).isPresent()) {
+                                log.info("Dealer profile missing for user {}, creating...", DEALER_USERNAME);
+                                SignupRequest dealerSignupRequest = new SignupRequest();
+                                dealerSignupRequest.setBusinessName(DEALER_BUSINESS_NAME);
+                                dealerSignupRequest.setBusinessEmail(DEALER_BUSINESS_EMAIL);
+                                dealerSignupRequest.setBusinessPhone(DEALER_BUSINESS_PHONE);
+                                dealerSignupRequest.setVatNumber("TEST-VAT-12345");
+                                dealerSignupRequest.setTradingAddress("Damascus Test Address");
+                                
+                                dealerService.createDealer(dealerUser, dealerSignupRequest);
+                                log.info("Dealer profile created successfully for existing user: {}", DEALER_USERNAME);
+                            } else {
+                                log.info("Dealer profile already exists for user: {}", DEALER_USERNAME);
+                            }
+                        } catch (Exception e) {
+                            log.error("Error checking/creating dealer profile for existing user: {}", e.getMessage());
+                        }
                     }
                 } catch (Exception e) {
                     log.error("Error retrieving existing dealer user {}: {}", DEALER_USERNAME, e.getMessage());

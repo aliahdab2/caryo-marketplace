@@ -75,30 +75,32 @@ public class PricingController {
     }
 
     private List<String> getFeatures(String tierId, int listingLimit) {
+        // Return translation keys that match frontend upgradeModal.json files
+        // Keys should NOT include namespace prefix - frontend adds it
         return switch (tierId) {
             case "basic" -> List.of(
-                "Up to " + listingLimit + " listings",
-                "Basic analytics",
-                "Email support",
-                "Mobile responsive",
-                "Photo uploads"
+                "feature.listings100",
+                "feature.basicAnalytics", 
+                "feature.emailSupport",
+                "feature.mobileResponsive",
+                "feature.photoUploads"
             );
             case "advanced" -> List.of(
-                "Up to " + listingLimit + " listings",
-                "Advanced analytics",
-                "Priority support",
-                "Featured listings",
-                "Video uploads",
-                "Custom branding"
+                "feature.listings250",
+                "feature.advancedAnalytics",
+                "feature.prioritySupport", 
+                "feature.featuredListings",
+                "feature.videoUploads",
+                "feature.customBranding"
             );
             case "professional" -> List.of(
-                "Unlimited listings",
-                "Premium analytics",
-                "Dedicated support",
-                "API access",
-                "White-label options",
-                "Custom integrations",
-                "Priority placement"
+                "feature.unlimitedListings",
+                "feature.premiumAnalytics",
+                "feature.dedicatedSupport",
+                "feature.apiAccess",
+                "feature.whiteLabelOptions", 
+                "feature.customIntegrations",
+                "feature.priorityPlacement"
             );
             default -> List.of();
         };

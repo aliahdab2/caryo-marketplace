@@ -30,5 +30,6 @@
   "twoFactorAuth": "المصادقة الثنائية",
   "improveAccountSecurity": "حسن أمان حسابك باستخدام المصادقة الثنائية",
   "twoFactorAuthRecommended": "موصى به لتعزيز الأمان",
-  "setupTwoFactor": "إعداد المصادقة الثنائية"
+  "setupTwoFactor": "إعداد المصادقة الثنائية",
+  "active": "نشط"
 }

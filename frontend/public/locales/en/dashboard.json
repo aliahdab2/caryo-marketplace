@@ -135,44 +135,6 @@
       "remaining": "{{days}} days left"
     }
   },
-  "upgrade": {
-    "title": "Choose Your Plan",
-    "subtitle": "Select the perfect plan for your dealership",
-    "current": {
-      "trial": "Current: Free Trial"
-    },
-    "currentTrial": "Current: Free Trial",
-    "trial": {
-      "benefits": "You're currently on a free trial with limited features"
-    },
-    "popular": "Most Popular",
-    "recommended": "Recommended",
-    "per": {
-      "month": "per month"
-    },
-    "unlimited": {
-      "listings": "Unlimited listings"
-    },
-    "listings": {
-      "limit": "Up to {{count}} listings"
-    },
-    "selected": "Selected",
-    "select": {
-      "plan": "Select Plan"
-    },
-    "secure": {
-      "payment": "Secure payment processing"
-    },
-    "cancel": {
-      "anytime": "Cancel anytime"
-    },
-    "continue": "Continue to Payment",
-    "processing": "Processing...",
-    "coming": {
-      "soon": "Payment processing coming soon! We'll notify you when it's ready."
-    },
-    "error": "Failed to process upgrade. Please try again."
-  },
   "stats": {
     "listings": "Total Listings",
     "views": "Total Views",
@@ -182,22 +144,18 @@
   "actions": {
     "new": {
       "listing": "New Listing",
-      "listing": {
-        "desc": "Create a new vehicle listing"
-      }
+      "listingDesc": "Create a new vehicle listing"
     },
     "manage": {
       "listings": "Manage Listings",
-      "listings": {
-        "desc": "View and edit your listings"
-      }
+      "listingsDesc": "View and edit your listings"
     },
-    "upgrade": "Upgrade Plan",
     "upgrade": {
+      "title": "Upgrade Plan",
       "desc": "Get more features and listings"
     },
-    "settings": "Account Settings",
     "settings": {
+      "title": "Account Settings",
       "desc": "Manage your account preferences"
     }
   },

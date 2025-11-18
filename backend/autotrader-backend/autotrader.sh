@@ -22,9 +22,9 @@ NC='\033[0m'
 
 # Print a header
 print_header() {
-  echo -e "\n${BLUE}======================="
-  echo -e "AutoTrader CLI - $1"
-  echo -e "=======================${NC}\n"
+  printf "\n%s=======================\n" "${BLUE}"
+  printf "AutoTrader CLI - %s\n" "$1"
+  printf "=======================%s\n\n" "${NC}"
 }
 
 # Print available commands
@@ -43,7 +43,7 @@ print_help() {
   echo -e "  ${GREEN}./autotrader.sh dev start${NC}                      - Start dev environment"
   echo -e "  ${GREEN}./autotrader.sh dev start --rebuild${NC}            - Rebuild and start dev environment" 
   echo -e "  ${GREEN}./autotrader.sh dev start --rebuild --skip-tests${NC} - Rebuild without tests and start dev environment"
-  echo -e "  ${GREEN}./autotrader.sh dev rebuild${NC}                    - Rebuild dev environment (existing command)"
+  echo -e "  ${GREEN}./autotrader.sh dev rebuild${NC}                    - Rebuild dev environment"
   echo -e "  ${GREEN}./autotrader.sh dev rebuild-notest${NC}             - Rebuild dev environment without tests"
   echo -e "  ${GREEN}./autotrader.sh dev stop${NC}                       - Stop dev environment"
   echo -e "  ${GREEN}./autotrader.sh api start${NC}                      - Start API server"
@@ -65,6 +65,7 @@ ensure_executable() {
     chmod +x "$1"
   fi
 }
+
 
 # Development environment command
 handle_dev_command() {
@@ -106,10 +107,14 @@ handle_dev_command() {
           print_header "Rebuilding (Skipping Tests) and Starting Development Environment"
           ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
           "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild-notest
+          
+          # Show test credentials after successful rebuild
         else
           print_header "Rebuilding and Starting Development Environment"
           ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
           "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild
+          
+          # Show test credentials after successful rebuild
         fi
       else
         ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"

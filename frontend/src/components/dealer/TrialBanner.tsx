@@ -162,7 +162,7 @@ export default function TrialBanner({
             <h3 className="text-sm font-semibold mb-1">
               {config.title}
             </h3>
-            <p className="text-sm opacity-90 mb-3">
+            <p className="text-sm text-gray-700 dark:text-gray-200 mb-3">
               {config.message}
             </p>
             
@@ -214,7 +214,7 @@ export default function TrialBanner({
             text-sm font-medium transition-all duration-200
             ${config.urgent 
               ? 'bg-white text-red-600 hover:bg-red-50 shadow-md hover:shadow-lg' 
-              : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
+              : 'bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg'
             }
             hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50
           `}

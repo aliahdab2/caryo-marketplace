@@ -95,7 +95,7 @@ class PricingControllerTest {
                 .andExpect(jsonPath("$.data[?(@.id == 'professional')].currency").value("USD"))
                 .andExpect(jsonPath("$.data[?(@.id == 'professional')].features").isArray())
                 // Use index 2 since professional is the 3rd tier (basic=0, advanced=1, professional=2)
-                .andExpect(jsonPath("$.data[2].features").value(hasItem("Unlimited listings")));
+                .andExpect(jsonPath("$.data[2].features").value(hasItem("feature.unlimitedListings")));
     }
 
     @Test

@@ -35,6 +35,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configure(http))
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
+                // Public pricing endpoint (must be first to avoid auth checks)
+                .requestMatchers("/api/pricing/**").permitAll()
                 // Admin endpoints require admin role
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // Test endpoint security configuration

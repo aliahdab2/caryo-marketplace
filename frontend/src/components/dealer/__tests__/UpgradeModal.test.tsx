@@ -42,8 +42,8 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.title');
-    expect(mockT).toHaveBeenCalledWith('upgrade.subtitle');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:title');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:subtitle');
   });
 
   it('should display all three subscription tiers', () => {
@@ -120,7 +120,7 @@ describe('UpgradeModal', () => {
     );
     
     const continueButton = screen.getAllByRole('button').find(btn =>
-      btn.textContent?.includes('upgrade.continue')
+      btn.textContent?.includes('upgradeModal:continue')
     );
     
     if (continueButton) {
@@ -143,12 +143,12 @@ describe('UpgradeModal', () => {
     );
     
     const continueButton = screen.getAllByRole('button').find(btn =>
-      btn.textContent?.includes('upgrade.continue')
+      btn.textContent?.includes('upgradeModal:continue')
     );
     
     if (continueButton) {
       fireEvent.click(continueButton);
-      expect(mockT).toHaveBeenCalledWith('upgrade.processing');
+      expect(mockT).toHaveBeenCalledWith('upgradeModal:processing');
     }
   });
 
@@ -161,8 +161,8 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.current.trial');
-    expect(mockT).toHaveBeenCalledWith('upgrade.trial.benefits');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:currentTrialTitle');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:currentTrialDescription');
   });
 
   it('should show popular badge on recommended tier', () => {
@@ -173,7 +173,7 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.popular');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:badgePopular');
   });
 
   it('should show recommended badge', () => {
@@ -184,7 +184,7 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.recommended');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:badgeRecommended');
   });
 
   it('should display pricing information', () => {
@@ -195,7 +195,7 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.per.month');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:pricePerMonth');
   });
 
   it('should display feature lists for each tier', () => {
@@ -221,8 +221,8 @@ describe('UpgradeModal', () => {
       />
     );
     
-    expect(mockT).toHaveBeenCalledWith('upgrade.secure.payment');
-    expect(mockT).toHaveBeenCalledWith('upgrade.cancel.anytime');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:securePayment');
+    expect(mockT).toHaveBeenCalledWith('upgradeModal:cancelAnytime');
   });
 
   it('should disable buttons during processing', async () => {
@@ -237,7 +237,7 @@ describe('UpgradeModal', () => {
     );
     
     const continueButton = screen.getAllByRole('button').find(btn =>
-      btn.textContent?.includes('upgrade.continue')
+      btn.textContent?.includes('upgradeModal:continue')
     );
     
     if (continueButton) {
@@ -256,7 +256,7 @@ describe('UpgradeModal', () => {
     );
     
     const continueButton = screen.getAllByRole('button').find(btn =>
-      btn.textContent?.includes('upgrade.continue')
+      btn.textContent?.includes('upgradeModal:continue')
     );
     
     if (continueButton) {
@@ -282,7 +282,7 @@ describe('UpgradeModal', () => {
     );
     
     const continueButton = screen.getAllByRole('button').find(btn =>
-      btn.textContent?.includes('upgrade.continue')
+      btn.textContent?.includes('upgradeModal:continue')
     );
     
     if (continueButton) {

@@ -220,6 +220,7 @@ start_dev_env() {
     if [[ "${SPRING_PROFILES_ACTIVE:-dev}" == *"dev"* ]]; then
         echo -e "- Admin Account:  ${GREEN}admin / Admin123!${NC} (ROLE_ADMIN, ROLE_USER)"
         echo -e "- User Account:   ${GREEN}user / Password123!${NC} (ROLE_USER)"
+        echo -e "- Dealer Account: ${GREEN}dealer / Dealer123!${NC} (ROLE_DEALER, ROLE_USER)"
     fi
 
     if [ "${REDIS_ENABLED:-true}" = "true" ] && docker compose -f .devenv/docker-compose.dev.yml ps | grep -q redis; then
