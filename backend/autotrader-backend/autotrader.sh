@@ -126,21 +126,11 @@ handle_dev_command() {
       print_header "Rebuilding Development Environment"
       ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
       "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild "${args[@]}"
-      
-      # Show test credentials after successful rebuild
-      if [ $? -eq 0 ]; then
-        show_dealer_credentials
-      fi
       ;;
     rebuild-notest)
       print_header "Rebuilding Development Environment (Skipping Tests)"
       ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
       "$PROJECT_ROOT/.devenv/dev-env.sh" rebuild-notest "${args[@]}"
-      
-      # Show test credentials after successful rebuild
-      if [ $? -eq 0 ]; then
-        show_dealer_credentials
-      fi
       ;;
     stop)
       ensure_executable "$PROJECT_ROOT/.devenv/dev-env.sh"
