@@ -346,17 +346,17 @@ export default function DealerDashboard() {
           {trialStatus?.subscriptionTier === 'trial' && (
             <button
               onClick={handleUpgradeClick}
-              className="bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105 text-left"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105 text-left"
             >
               <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
-                <div className="p-2 sm:p-3 bg-white/20 rounded-lg flex-shrink-0">
-                  <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                <div className="p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex-shrink-0">
+                  <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base">
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
                     {t('upgradeModal:title')}
                   </h3>
-                  <p className="text-xs sm:text-sm opacity-90">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {t('upgradeModal:subtitle')}
                   </p>
                 </div>
@@ -394,19 +394,19 @@ export default function DealerDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-80 mb-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                     {stat.title}
                   </p>
                   <p className="text-2xl font-bold">
                     {formatNumber(stat.value, currentLang)}
                     {stat.total && (
-                      <span className="text-sm font-normal opacity-60">
+                      <span className="text-sm font-normal text-gray-500 dark:text-gray-500">
                         /{formatNumber(stat.total, currentLang)}
                       </span>
                     )}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg opacity-80">
+                <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
                   {stat.icon}
                 </div>
               </div>

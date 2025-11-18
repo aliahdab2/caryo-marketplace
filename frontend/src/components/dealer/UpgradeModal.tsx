@@ -229,10 +229,10 @@ export default function UpgradeModal({
         {/* Header - More compact */}
         <div className="relative flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white !text-gray-900 dark:!text-white">
               {t('upgradeModal:title')}
             </h2>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400 !text-gray-600 dark:!text-gray-400">
               {t('upgradeModal:subtitle')}
             </p>
           </div>
@@ -414,7 +414,7 @@ export default function UpgradeModal({
               <button
                 onClick={handleUpgrade}
                 disabled={isProcessing}
-                className="flex-1 md:flex-none px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                className="flex-1 md:flex-none px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 !bg-blue-600 !text-white border-0"
               >
                 {isProcessing ? (
                   <>
