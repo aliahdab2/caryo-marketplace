@@ -57,14 +57,27 @@ const mockTranslations: Record<string, string> = {
   
   // Password change related translations
   'auth.changePassword': 'Change Password',
+  'auth:changePassword': 'Change Password',
   'auth.currentPassword': 'Current Password',
+  'auth:currentPassword': 'Current Password',
   'auth.newPassword': 'New Password',
+  'auth:newPassword': 'New Password',
   'auth.confirmNewPassword': 'Confirm New Password',
+  'auth:confirmNewPassword': 'Confirm New Password',
   'auth.passwordMinLength': 'Must be at least 8 characters long',
+  'auth:passwordMinLength': 'Must be at least 8 characters long',
   'auth.changing': 'Changing...',
+  'auth:changing': 'Changing...',
   'auth.passwordChanged': 'Password changed successfully',
+  'auth:passwordChanged': 'Password changed successfully',
+  'auth.passwordChangeSuccess': 'Password changed successfully',
+  'auth:passwordChangeSuccess': 'Password changed successfully',
   'auth.passwordMismatch': 'Passwords do not match',
+  'auth:passwordMismatch': 'Passwords do not match',
+  'auth.passwordsDoNotMatch': 'New passwords do not match',
+  'auth:passwordsDoNotMatch': 'New passwords do not match',
   'auth.incorrectPassword': 'Current password is incorrect',
+  'auth:incorrectPassword': 'Current password is incorrect',
   'cancel': 'Cancel',
   
   // Dashboard translations

@@ -5,7 +5,9 @@ import { useDirection } from '@/utils/direction';
 import TrialBanner from '../TrialBanner';
 import { TrialStatus } from '@/services/dealerApi';
 
-jest.mock('react-i18next');
+jest.mock('react-i18next', () => ({
+  useTranslation: jest.fn(),
+}));
 jest.mock('@/utils/direction');
 
 describe('TrialBanner', () => {

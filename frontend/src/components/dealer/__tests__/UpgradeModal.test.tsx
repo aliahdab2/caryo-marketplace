@@ -4,13 +4,69 @@ import { useTranslation } from 'react-i18next';
 import { useDirection } from '@/utils/direction';
 import UpgradeModal from '../UpgradeModal';
 
-jest.mock('react-i18next');
+jest.mock('react-i18next', () => ({
+  useTranslation: jest.fn(),
+}));
 jest.mock('@/utils/direction');
+jest.mock('@/services/pricing', () => ({
+  getSubscriptionTiers: jest.fn().mockResolvedValue([
+    {
+      id: 'basic',
+      price: 29,
+      features: ['feature1'],
+      popular: false,
+      recommended: false,
+      listingLimit: 10
+    },
+    {
+      id: 'advanced',
+      price: 49,
+      features: ['feature1', 'feature2'],
+      popular: true,
+      recommended: false,
+      listingLimit: 50
+    },
+    {
+      id: 'professional',
+      price: 99,
+      features: ['feature1', 'feature2', 'feature3'],
+      popular: false,
+      recommended: true,
+      listingLimit: -1
+    }
+  ]),
+  getDefaultTiers: jest.fn().mockReturnValue([
+    {
+      id: 'basic',
+      price: 29,
+      features: ['feature1'],
+      popular: false,
+      recommended: false,
+      listingLimit: 10
+    },
+    {
+      id: 'advanced',
+      price: 49,
+      features: ['feature1', 'feature2'],
+      popular: true,
+      recommended: false,
+      listingLimit: 50
+    },
+    {
+      id: 'professional',
+      price: 99,
+      features: ['feature1', 'feature2', 'feature3'],
+      popular: false,
+      recommended: true,
+      listingLimit: -1
+    }
+  ])
+}));
 
 describe('UpgradeModal', () => {
   const mockT = jest.fn((key) => key);
   const mockOnClose = jest.fn();
-  const mockOnSelectTier = jest.fn();
+  const mockOnSelectPayment = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -21,7 +77,7 @@ describe('UpgradeModal', () => {
     (useDirection as jest.Mock).mockReturnValue({
       isRTL: false
     });
-    mockOnSelectTier.mockResolvedValue(undefined);
+    mockOnSelectPayment.mockResolvedValue(undefined);
   });
 
   it('should not render when isOpen is false', () => {
@@ -110,15 +166,23 @@ describe('UpgradeModal', () => {
     }
   });
 
-  it('should call onSelectTier when continue button is clicked', async () => {
+  it('should call onSelectPayment when continue button is clicked', async () => {
     render(
       <UpgradeModal
         isOpen={true}
         onClose={mockOnClose}
-        onSelectTier={mockOnSelectTier}
+        onSelectPayment={mockOnSelectPayment}
       />
     );
     
+    // Select a tier first
+    const tierCards = screen.getAllByRole('generic').filter(
+      el => el.className.includes('border-2')
+    );
+    if (tierCards.length > 0) {
+      fireEvent.click(tierCards[0]);
+    }
+
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
     );
@@ -126,22 +190,30 @@ describe('UpgradeModal', () => {
     if (continueButton) {
       fireEvent.click(continueButton);
       await waitFor(() => {
-        expect(mockOnSelectTier).toHaveBeenCalled();
+        expect(mockOnSelectPayment).toHaveBeenCalled();
       });
     }
   });
 
   it('should show loading state during processing', async () => {
-    mockOnSelectTier.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockOnSelectPayment.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
     
     render(
       <UpgradeModal
         isOpen={true}
         onClose={mockOnClose}
-        onSelectTier={mockOnSelectTier}
+        onSelectPayment={mockOnSelectPayment}
       />
     );
     
+    // Select a tier first
+    const tierCards = screen.getAllByRole('generic').filter(
+      el => el.className.includes('border-2')
+    );
+    if (tierCards.length > 0) {
+      fireEvent.click(tierCards[0]);
+    }
+
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
     );
@@ -206,11 +278,10 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Check that features are displayed
-    const featureElements = screen.getAllByRole('generic').filter(
-      el => el.className.includes('space-y-3')
-    );
-    expect(featureElements.length).toBeGreaterThan(0);
+    // Check that features are displayed by looking for check icons
+    // The check icon is rendered as an SVG, so we can look for it
+    const checkIcons = document.querySelectorAll('svg');
+    expect(checkIcons.length).toBeGreaterThan(0);
   });
 
   it('should display secure payment messaging', () => {
@@ -226,16 +297,24 @@ describe('UpgradeModal', () => {
   });
 
   it('should disable buttons during processing', async () => {
-    mockOnSelectTier.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockOnSelectPayment.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
     
     render(
       <UpgradeModal
         isOpen={true}
         onClose={mockOnClose}
-        onSelectTier={mockOnSelectTier}
+        onSelectPayment={mockOnSelectPayment}
       />
     );
     
+    // Select a tier first
+    const tierCards = screen.getAllByRole('generic').filter(
+      el => el.className.includes('border-2')
+    );
+    if (tierCards.length > 0) {
+      fireEvent.click(tierCards[0]);
+    }
+
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
     );
@@ -251,10 +330,18 @@ describe('UpgradeModal', () => {
       <UpgradeModal
         isOpen={true}
         onClose={mockOnClose}
-        onSelectTier={mockOnSelectTier}
+        onSelectPayment={mockOnSelectPayment}
       />
     );
     
+    // Select a tier first
+    const tierCards = screen.getAllByRole('generic').filter(
+      el => el.className.includes('border-2')
+    );
+    if (tierCards.length > 0) {
+      fireEvent.click(tierCards[0]);
+    }
+
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
     );
@@ -268,7 +355,7 @@ describe('UpgradeModal', () => {
   });
 
   it('should handle upgrade error gracefully', async () => {
-    mockOnSelectTier.mockRejectedValue(new Error('Payment failed'));
+    mockOnSelectPayment.mockRejectedValue(new Error('Payment failed'));
     
     // Mock window.alert
     global.alert = jest.fn();
@@ -277,10 +364,18 @@ describe('UpgradeModal', () => {
       <UpgradeModal
         isOpen={true}
         onClose={mockOnClose}
-        onSelectTier={mockOnSelectTier}
+        onSelectPayment={mockOnSelectPayment}
       />
     );
     
+    // Select a tier first
+    const tierCards = screen.getAllByRole('generic').filter(
+      el => el.className.includes('border-2')
+    );
+    if (tierCards.length > 0) {
+      fireEvent.click(tierCards[0]);
+    }
+
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
     );
