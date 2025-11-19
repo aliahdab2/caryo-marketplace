@@ -187,9 +187,7 @@ export async function createSubscription(tier: string): Promise<{ success: boole
       body: JSON.stringify({
         providerId: 'manual_transfer',
         tier: tier,
-        paymentMethodDetails: {
-          type: 'BANK_TRANSFER'
-        }
+        paymentMethod: 'BANK_TRANSFER'
       }),
     });
 
@@ -223,7 +221,8 @@ export async function getPaymentHistory(): Promise<unknown[]> {
     }
 
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    // Backend now returns structured response: { transactions: [], count: number, dealerId: number, dealerName: string }
+    return data.transactions || [];
   } catch (error) {
     console.error('Error fetching payment history:', error);
     throw error;
@@ -235,7 +234,7 @@ export async function getPaymentHistory(): Promise<unknown[]> {
  */
 export async function getPaymentStatus(transactionId: string): Promise<unknown> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/payments/${transactionId}/status`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/payments/status/${transactionId}`, {
       method: 'GET',
     });
 

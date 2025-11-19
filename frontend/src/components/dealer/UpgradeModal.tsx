@@ -270,6 +270,7 @@ export default function UpgradeModal({
               {subscriptionTiers.map((tier) => (
               <div
                 key={tier.id}
+                data-testid={`tier-card-${tier.id}`}
                 className={`
                   relative border-2 rounded-xl p-3 cursor-pointer transition-all duration-300
                   flex flex-col h-full group

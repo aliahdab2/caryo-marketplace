@@ -129,6 +129,6 @@ describe('OAuth User Detection in Profile Page', () => {
     expect(screen.queryByText(/Google Authentication/)).not.toBeInTheDocument();
 
     // Should show two-factor authentication setup for regular users
-    expect(screen.getByText(/Two-Factor Authentication/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Two-Factor Authentication/).length).toBeGreaterThan(0);
   });
 });

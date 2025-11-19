@@ -1,183 +1,100 @@
 import ReactActual from 'react'; // Import React with a different name to avoid conflicts
+import fs from 'fs';
+import path from 'path';
+
+// Function to load translations from JSON files
+const loadTranslations = (): Record<string, string> => {
+  const translations: Record<string, string> = {};
+
+  try {
+    // Load common translation files
+    const localesDir = path.join(process.cwd(), 'public', 'locales', 'en');
+
+    // Load auth translations
+    try {
+      const authPath = path.join(localesDir, 'auth.json');
+      if (fs.existsSync(authPath)) {
+        const authTranslations = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+        Object.entries(authTranslations).forEach(([key, value]) => {
+          translations[`auth:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for auth pages
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load auth translations:', error);
+    }
+
+    // Load upgradeModal translations
+    try {
+      const upgradeModalPath = path.join(localesDir, 'upgradeModal.json');
+      if (fs.existsSync(upgradeModalPath)) {
+        const upgradeModalTranslations = JSON.parse(fs.readFileSync(upgradeModalPath, 'utf8'));
+        Object.entries(upgradeModalTranslations).forEach(([key, value]) => {
+          translations[`upgradeModal:${key}`] = value as string; // Namespace pattern (preferred)
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load upgradeModal translations:', error);
+    }
+
+    // Load common translations
+    try {
+      const commonPath = path.join(localesDir, 'common.json');
+      if (fs.existsSync(commonPath)) {
+        const commonTranslations = JSON.parse(fs.readFileSync(commonPath, 'utf8'));
+        Object.entries(commonTranslations).forEach(([key, value]) => {
+          translations[`common:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for common strings
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load common translations:', error);
+    }
+
+    // Load dashboard translations
+    try {
+      const dashboardPath = path.join(localesDir, 'dashboard.json');
+      if (fs.existsSync(dashboardPath)) {
+        const dashboardTranslations = JSON.parse(fs.readFileSync(dashboardPath, 'utf8'));
+        Object.entries(dashboardTranslations).forEach(([key, value]) => {
+          translations[`dashboard:${key}`] = value as string;
+          translations[key] = value as string; // Also support direct key access
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load dashboard translations:', error);
+    }
+
+    // Load profile translations
+    try {
+      const profilePath = path.join(localesDir, 'profile.json');
+      if (fs.existsSync(profilePath)) {
+        const profileTranslations = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+        Object.entries(profileTranslations).forEach(([key, value]) => {
+          translations[`profile:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for profile components
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load profile translations:', error);
+    }
+
+  } catch (error) {
+    console.warn('Could not load translation files, using fallback:', error);
+  }
+
+  return translations;
+};
 
 // Define mockI18nInstance at the top level of the module
+// We load real translations from JSON files for better maintainability
 const mockTranslations: Record<string, string> = {
-  'logo': 'Caryo Logo',
-  'appName': 'Caryo Marketplace',
-  'welcomeBack': 'Welcome Back!',
-  'signInDescription': 'Sign in to access your account and continue your journey with us.',
-  'privacy_policy': 'Privacy Policy',
-  'terms_of_service': 'Terms of Service',
-  'auth.privacy_policy': 'Privacy Policy',
-  'auth.terms_of_service': 'Terms of Service',
-  'signIn': 'sign_in', // Changed back to match test expectation
-  'fieldRequired': 'fieldRequired', // Changed to return the key
-  'verificationRequired': 'Verification is required to proceed.',
-  'errors:invalidCredentials': 'Invalid username or password. Please try again.',
-  'loginSuccess': 'login successful', // Changed to match test expectation
-  'redirecting': 'Redirecting...',
-  'username': 'Username',
-  'usernamePlaceholder': 'Enter your username',
-  'password': 'Password',
-  'passwordPlaceholder': 'Enter your password',
-  'forgotPassword': 'Forgot Password?',
-  'loading': 'Loading...',
-  'or': 'Or',
-  'orConnector': 'or',
-  'continueWithGoogle': 'Continue with Google',
-  'dontHaveAccount': "Don't have an account?",
-  'signUp': 'Sign Up',
-  'auth.continueWithGoogle': 'Continue with Google', // For GoogleAuthButton
-  'auth.signingIn': 'Signing in...', // For GoogleAuthButton
-  'auth.signIn': 'Sign In', // For general use
-  'auth.username': 'Username',
-  'auth.password': 'Password',
+  ...loadTranslations(), // Load real translations first
   
-  // Basic field labels
-  'phone': 'Phone',
-  'location': 'Location',
-  
-  // Common translations
-  'common:loading': 'Loading...',
-  'common:authRequired': 'Authentication Required',
-  'common:addToFavorites': 'Add to favorites',
-  'common:removeFromFavorites': 'Remove from favorites',
-  'common:error': 'An error occurred',
-  
-  // Listings translations
-  'listings.addToFavorites': 'Add to favorites',
-  'listings.removeFromFavorites': 'Remove from favorites',
-  
-  // Favorites related translations
-  'favorites:loading': 'Loading your favorites...',
-  'favorites:title': 'My Favorites',
-  'favorites:noFavorites': 'No Favorite Vehicles',
-  'favorites:emptyState': 'No Favorites Yet',
-  'favorites:error': 'Error loading favorites',
-  
-  // Password change related translations
-  'auth.changePassword': 'Change Password',
-  'auth.currentPassword': 'Current Password',
-  'auth.newPassword': 'New Password',
-  'auth.confirmNewPassword': 'Confirm New Password',
-  'auth.passwordMinLength': 'Must be at least 8 characters long',
-  'auth.changing': 'Changing...',
-  'auth.passwordChanged': 'Password changed successfully',
-  'auth.passwordMismatch': 'Passwords do not match',
-  'auth.incorrectPassword': 'Current password is incorrect',
-  'cancel': 'Cancel',
-  
-  // Dashboard translations
-  'profile': 'Profile',
-  'edit': 'Edit',
-  'role': 'Role',
-  'roles.user': 'User',
-  'roles.admin': 'Administrator',
-  'roles.moderator': 'Moderator',
-  'roles.seller': 'Seller',
-  'roles.premium': 'Premium User',
-  'accountInfo': 'Account Information',
-  'contactInfo': 'Contact Information',
-  'bio': 'Bio',
-  'noBio': 'No bio available',
-  'accountSecurity': 'Account Security',
-  'lastUpdated': 'Last updated',
-  'twoFactorAuth': 'Two-Factor Authentication',
-  'improveAccountSecurity': 'Improve your account security',
-  'setupTwoFactor': 'Setup Two-Factor',
-  'manageProfile': 'Manage your profile information',
-  'editProfile': 'Edit Profile',
-  'updateInfo': 'Update your personal information',
-  'manageSecuritySettings': 'Manage your security settings and authentication methods',
-  'recommendPasswordUpdate': 'Recommended: Update your password regularly',
-  'tellUsAboutYourself': 'Tell us about yourself...',
-  'emailCannotBeChanged': 'Email address cannot be changed',
-  
-  // Contact information
-  'memberSince': 'Member since',
-
-  'notProvided': 'Not provided',
-  'enterPhone': 'Enter your phone number',
-  'enterLocation': 'Enter your location',
-
-  'googleAuth': 'Google Authentication',
-  'googleAuthSignedIn': 'You\'re signed in with your Google account',
-  'googleAuthSecurity': 'Security is managed by your Google account',
-  'userId': 'User ID',
-  'save': 'Save',
-  'notAvailable': 'Not available',
-  'filters.sellerType': 'Seller Type',
-  'filters.noSellerTypes': 'No seller types available',
-  'twoFactorAuthRecommended': 'Recommended for enhanced security',
-
-  // Validation related
-  'validation.fieldRequired': 'This field is required',
-  'ageRestrictionTitle': 'Age Restriction',
-  'ageRestrictionAccountCreationRestricted': 'Account Creation Restricted',
-  'ageRestrictionYouAreYearsOld': 'You are currently {{age}} years old. Our platform requires users to be at least 18 years old to create an account.',
-  'ageRestrictionPlatformRequires18': 'Our platform requires users to be at least 18 years old to create an account.',
-  'ageRestrictionWhatCanYouDo': 'What can you do?',
-  'ageRestrictionCheckBackAt18': 'Check back when you\'re 18 or older',
-  'ageRestrictionTeenFeatures': 'Consider our teen-friendly features (coming soon)',
-  'ageRestrictionContactSupport': 'Contact support if you have questions',
-  'ageRestrictionGoBack': 'Go Back',
-
-  // Auth related
-  'auth.passwordsDoNotMatch': 'New passwords do not match',
-  'auth.passwordTooShort': 'New password must be at least 8 characters long',
-  'auth.passwordChangeSuccess': 'Password changed successfully',
-  'auth.passwordChangeFailed': 'Failed to change password',
-  'auth.networkError': 'Network error. Please try again.',
-
-  // Signup related translations
-  'joinUs': 'Join Us',
-  'chooseAccountType': 'Choose Account Type',
-  'accountTypeDescription': 'Select the type of account that best fits your needs',
-  'privateSeller': 'Private Seller',
-  'dealer': 'Dealer',
-  'privateSellerDescription': 'Sell your personal items and vehicles',
-  'dealerDescription': 'Professional vehicle dealership',
-  'next': 'Next',
-  'personalInformation': 'Personal Information',
-  'businessInformation': 'Business Information',
-  'validation.fieldsRequired': 'Required fields are missing',
-  'usernameRequired': 'Full name is required',
-  'phoneRequired': 'Phone number is required',
-  'cityRequired': 'City is required',
-  'dateOfBirthRequired': 'Date of birth is required',
-  'businessNameRequired': 'Business name is required',
-  'passwordRequired': 'Password is required',
-  'confirmPasswordRequired': 'Please confirm your password',
-  'vatNumberRequired': 'VAT number is required',
-  'tradingAddressRequired': 'Trading address is required',
-  'businessEmailRequired': 'Business email is required',
-  'businessPhoneRequired': 'Business phone number is required',
-  'makeRequired': 'Vehicle make is required',
-  'modelRequired': 'Vehicle model is required',
-  'yearRequired': 'Year is required',
-  'priceRequired': 'Price is required',
-  'titleRequired': 'Title is required',
-  'mileageRequired': 'Mileage is required',
-  'contactEmailRequired': 'Contact email is required',
-  'contactPhoneRequired': 'Contact phone number is required',
-  'imagesRequired': 'At least one image is required',
-  'invalidEmailFormat': 'Please enter a valid email address',
-  'invalidDateOfBirth': 'Please enter a valid date of birth',
-  'invalidVatFormat': 'Please enter a valid VAT number',
-  'invalidPhoneFormat': 'Please enter a valid phone number',
-  'ageRestriction': 'Age restriction validation failed',
-  'usernameTooShort': 'Full name must be at least 2 characters',
-  'passwordTooShort': 'Password must be at least 8 characters long',
-  'passwordsDoNotMatch': 'Passwords do not match',
-  'sellerTypeRequired': 'Please select a seller type',
-  'under16NotAllowed': 'Users must be at least 16 years old to use Caryo.sy',
-  'under18CannotSell': 'You must be at least 18 years old to sell cars on Caryo.sy',
-  'dealerRequires18': 'You must be at least 18 years old to register as a dealer',
-  'dealerVerificationRequired': 'Dealer accounts require business document verification',
-  'dobRequiredForSelling': 'Date of birth is required to list cars for sale',
-  'active': 'Active',
-  'validationFieldRequired': 'Required fields are missing',
-  'createAccount': 'Create Account',
+  // Only keep test-specific overrides that differ from production
+  'signIn': 'sign_in', // Test expects this specific format
+  'fieldRequired': 'fieldRequired', // Test expects the key itself
+  'loginSuccess': 'login successful', // Test expects lowercase
 };
 
 const mockI18nInstance = {
@@ -194,6 +111,12 @@ const mockI18nInstance = {
   isInitialized: true,
   t: jest.fn((key: string | string[], options?: Record<string, unknown> | string) => {
     const actualKey = Array.isArray(key) ? key[0] : key;
+    
+    // Handle interpolation for welcome message
+    if (actualKey === 'welcome' && options && typeof options === 'object' && 'name' in options) {
+      return `Welcome to your dashboard, ${options.name}`;
+    }
+    
     if (options && typeof options === 'object' && 'count' in options && options.count !== undefined) {
       return mockTranslations[`${actualKey}_plural_${options.count}`] || `${actualKey}_plural_${options.count}`;
     }
