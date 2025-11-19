@@ -155,14 +155,14 @@ describe('UpgradeModal', () => {
         onClose={mockOnClose}
       />
     );
-    
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
+
+    // Use data-testid for more reliable selection
+    const firstTierCard = screen.getByTestId('tier-card-advanced'); // Default selected tier
+
+    if (firstTierCard) {
+      fireEvent.click(firstTierCard);
       // Check if tier is selected by looking for selected state classes
+      expect(firstTierCard).toHaveClass('border-primary'); // Should have primary border when selected
     }
   });
 
@@ -175,13 +175,9 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Select a tier first
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
-    }
+    // Select a tier first (advanced is the default)
+    const tierCard = screen.getByTestId('tier-card-advanced');
+    fireEvent.click(tierCard);
 
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
@@ -206,13 +202,9 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Select a tier first
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
-    }
+    // Select a tier first (advanced is the default)
+    const tierCard = screen.getByTestId('tier-card-advanced');
+    fireEvent.click(tierCard);
 
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
@@ -307,13 +299,9 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Select a tier first
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
-    }
+    // Select a tier first (advanced is the default)
+    const tierCard = screen.getByTestId('tier-card-advanced');
+    fireEvent.click(tierCard);
 
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
@@ -334,13 +322,9 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Select a tier first
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
-    }
+    // Select a tier first (advanced is the default)
+    const tierCard = screen.getByTestId('tier-card-advanced');
+    fireEvent.click(tierCard);
 
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')
@@ -368,13 +352,9 @@ describe('UpgradeModal', () => {
       />
     );
     
-    // Select a tier first
-    const tierCards = screen.getAllByRole('generic').filter(
-      el => el.className.includes('border-2')
-    );
-    if (tierCards.length > 0) {
-      fireEvent.click(tierCards[0]);
-    }
+    // Select a tier first (advanced is the default)
+    const tierCard = screen.getByTestId('tier-card-advanced');
+    fireEvent.click(tierCard);
 
     const continueButton = screen.getAllByRole('button').find(btn =>
       btn.textContent?.includes('upgradeModal:continue')

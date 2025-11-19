@@ -14,6 +14,11 @@ import { getUserSavedSearches } from '@/services/savedSearches';
 jest.mock('react-i18next', () => ({
   useTranslation: jest.fn(),
 }));
+
+// Ensure our mock takes precedence over any global mocks
+jest.doMock('react-i18next', () => ({
+  useTranslation: jest.fn(),
+}));
 jest.mock('@/hooks/useOptimizedSession');
 jest.mock('@/hooks/useLanguageSwitching');
 jest.mock('@/utils/direction');

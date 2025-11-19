@@ -35,7 +35,7 @@ describe('PasswordInput', () => {
 
     const toggleButton = screen.getByRole('button');
     expect(toggleButton).toBeInTheDocument();
-    expect(toggleButton).toHaveAttribute('aria-label', 'showPassword');
+    expect(toggleButton).toHaveAttribute('aria-label', 'Show password');
   });
 
   it('toggles password visibility when button is clicked', async () => {
@@ -47,19 +47,19 @@ describe('PasswordInput', () => {
 
     // Initially should be password type
     expect(input).toHaveAttribute('type', 'password');
-    expect(toggleButton).toHaveAttribute('aria-label', 'showPassword');
+    expect(toggleButton).toHaveAttribute('aria-label', 'Show password');
 
     // Click to show password
     await user.click(toggleButton);
 
     expect(input).toHaveAttribute('type', 'text');
-    expect(toggleButton).toHaveAttribute('aria-label', 'hidePassword');
+    expect(toggleButton).toHaveAttribute('aria-label', 'Hide password');
 
     // Click to hide password again
     await user.click(toggleButton);
 
     expect(input).toHaveAttribute('type', 'password');
-    expect(toggleButton).toHaveAttribute('aria-label', 'showPassword');
+    expect(toggleButton).toHaveAttribute('aria-label', 'Show password');
   });
 
   it('calls onChange when input value changes', async () => {
