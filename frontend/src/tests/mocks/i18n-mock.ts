@@ -16,9 +16,8 @@ const loadTranslations = (): Record<string, string> => {
       if (fs.existsSync(authPath)) {
         const authTranslations = JSON.parse(fs.readFileSync(authPath, 'utf8'));
         Object.entries(authTranslations).forEach(([key, value]) => {
-          translations[`auth:${key}`] = value as string;
-          translations[`auth.${key}`] = value as string; // Also support dot notation
-          translations[key] = value as string; // Also support direct key access
+          translations[`auth:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for auth pages
         });
       }
     } catch (error) {
@@ -31,8 +30,7 @@ const loadTranslations = (): Record<string, string> => {
       if (fs.existsSync(upgradeModalPath)) {
         const upgradeModalTranslations = JSON.parse(fs.readFileSync(upgradeModalPath, 'utf8'));
         Object.entries(upgradeModalTranslations).forEach(([key, value]) => {
-          translations[`upgradeModal:${key}`] = value as string;
-          translations[key] = value as string; // Also support direct key access
+          translations[`upgradeModal:${key}`] = value as string; // Namespace pattern (preferred)
         });
       }
     } catch (error) {
@@ -45,8 +43,8 @@ const loadTranslations = (): Record<string, string> => {
       if (fs.existsSync(commonPath)) {
         const commonTranslations = JSON.parse(fs.readFileSync(commonPath, 'utf8'));
         Object.entries(commonTranslations).forEach(([key, value]) => {
-          translations[`common:${key}`] = value as string;
-          translations[key] = value as string; // Also support direct key access
+          translations[`common:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for common strings
         });
       }
     } catch (error) {
@@ -73,8 +71,8 @@ const loadTranslations = (): Record<string, string> => {
       if (fs.existsSync(profilePath)) {
         const profileTranslations = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
         Object.entries(profileTranslations).forEach(([key, value]) => {
-          translations[`profile:${key}`] = value as string;
-          translations[key] = value as string; // Also support direct key access
+          translations[`profile:${key}`] = value as string; // Namespace pattern (preferred)
+          translations[key] = value as string; // Direct access for profile components
         });
       }
     } catch (error) {
