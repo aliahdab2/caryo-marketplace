@@ -8,25 +8,40 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import Link from 'next/link';
 import { FaSearch, FaTrash } from 'react-icons/fa';
-import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
-import type { CarListingCardData } from '@/components/listings/CarListingCard';
+import { SavedSearchResponse, updateSavedSearch } from '@/services/savedSearches';
 import CarListingListItem from '@/components/search/CarListingListItem';
 import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { 
+  useSavedSearches, 
+  useSavedSearchResults, 
+  useDeleteSavedSearch 
+} from '@/hooks/queries';
+import { LoadingSkeleton } from '@/components/common';
 
 export default function DashboardSavedSearchesPage() {
   const { t } = useTranslation(['search', 'savedAlerts', 'common']);
   const { currentLang, isRTL } = useLanguageSwitching();
   const [mounted, setMounted] = useState(false);
-  const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedSearch, setSelectedSearch] = useState<SavedSearchResponse | null>(null);
-  const [matchingListings, setMatchingListings] = useState<CarListingCardData[]>([]);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<SavedSearchResponse | null>(null);
   const hasAutoSelectedRef = useRef(false);
+
+  // React Query hooks - automatic caching, loading, and error handling
+  const { 
+    data: savedSearches = [], 
+    isLoading,
+    refetch: refetchSavedSearches 
+  } = useSavedSearches();
+  
+  const { 
+    data: matchingListings = [],
+  } = useSavedSearchResults(selectedSearch || undefined);
+
+  const deleteMutation = useDeleteSavedSearch();
+  const isDeleting = deleteMutation.isPending;
 
   useEffect(() => {
     setMounted(true);
@@ -35,24 +50,13 @@ export default function DashboardSavedSearchesPage() {
   // Matching listings are now enhanced directly by the backend with bilingual fields
   const enhancedMatchingListings = matchingListings;
 
-  const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
-    try {
-      // Server layout ensures user is authenticated, no need for token
-      const listings = await getCarListingsForSavedSearch(savedSearch);
-      setMatchingListings(listings);
-    } catch (error) {
-      console.error('Error loading matching listings:', error);
-      setMatchingListings([]);
-    }
-  }, []); // Server layout ensures authentication
-
   const handleSelectSearch = useCallback((search: SavedSearchResponse) => {
     // Only proceed if switching to a different search or if no search is selected
     if (selectedSearch?.id !== search.id) {
       setSelectedSearch(search);
-      loadMatchingListings(search);
+      // React Query will automatically fetch matching listings when selectedSearch changes
     }
-  }, [loadMatchingListings, selectedSearch]);
+  }, [selectedSearch]);
 
   const handleDeleteAlert = async (alertId: string) => {
     const alertToDeleteObj = savedSearches.find(search => search.id === alertId);
@@ -65,25 +69,18 @@ export default function DashboardSavedSearchesPage() {
     if (!alertToDelete) return;
 
     try {
-      setIsDeleting(true);
-      // Server layout ensures user is authenticated, no need for token
-      await deleteSavedSearch(alertToDelete.id);
+      // Use React Query mutation - handles loading state automatically
+      await deleteMutation.mutateAsync(alertToDelete.id);
 
-      // Remove from local state
-      setSavedSearches(prev => prev.filter(search => search.id !== alertToDelete.id));
-
-      // If this was the selected alert, clear selection and matching listings
+      // If this was the selected alert, clear selection
       if (selectedSearch?.id === alertToDelete.id) {
         setSelectedSearch(null);
-        setMatchingListings([]);
       }
 
       setAlertToDelete(null);
     } catch (error) {
       console.error('Error deleting alert:', error);
       alert(t('search:alertDeleteError', 'Failed to delete alert. Please try again.'));
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -165,13 +162,9 @@ export default function DashboardSavedSearchesPage() {
         isActive: selectedSearch.isActive
       });
 
-      // Update the search in the list
-      setSavedSearches(prev => prev.map(search =>
-        search.id === selectedSearch.id ? updatedSearch : search
-      ));
-
-      // Update selected search
+      // Update selected search and refetch the list
       setSelectedSearch(updatedSearch);
+      refetchSavedSearches();
       setIsEditingName(false);
       setEditingName('');
 
@@ -179,27 +172,12 @@ export default function DashboardSavedSearchesPage() {
       console.error('Error updating alert name:', error);
       alert(t('search:alertUpdateError', 'Failed to update alert name. Please try again.'));
     }
-  }, [selectedSearch, editingName, t, isRTL]); // Removed user from dependencies
+  }, [selectedSearch, editingName, t, isRTL, refetchSavedSearches]);
 
   const handleCancelEditName = useCallback(() => {
     setIsEditingName(false);
     setEditingName('');
   }, []);
-
-  const loadSavedSearches = useCallback(async () => {
-    // Server layout ensures user is authenticated, no need for token check
-
-    try {
-      setIsLoading(true);
-      // Server layout ensures user is authenticated, no need for token
-      const searches = await getUserSavedSearches();
-      setSavedSearches(searches);
-    } catch (error) {
-      console.error('Error loading saved searches:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // Server layout ensures authentication
 
   // Auto-select first search when searches are loaded and no search is selected
   useEffect(() => {
@@ -209,22 +187,13 @@ export default function DashboardSavedSearchesPage() {
     }
   }, [savedSearches, selectedSearch]);
 
-  // Load matching listings when selectedSearch changes
-  useEffect(() => {
-    if (selectedSearch) {
-      loadMatchingListings(selectedSearch);
-    }
-  }, [selectedSearch, loadMatchingListings]);
+  // Note: React Query automatically fetches saved searches on mount
+  // and matching listings when selectedSearch changes
 
-  useEffect(() => {
-    // Server layout ensures user is authenticated, load searches directly
-    loadSavedSearches();
-  }, [loadSavedSearches]); // Removed user and status from dependencies
-
-  if (!mounted) { // Removed status === 'loading'
+  if (!mounted) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <LoadingSkeleton variant="list" count={3} />
       </div>
     );
   }
