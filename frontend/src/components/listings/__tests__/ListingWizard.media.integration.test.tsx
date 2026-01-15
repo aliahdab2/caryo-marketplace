@@ -86,6 +86,7 @@ jest.mock('@/hooks/useListingData', () => ({
 
 jest.mock('@/utils/formUtils', () => ({
   validateStep: () => ({}),
+  validateStepWithZod: () => ({}),
 }));
 
 // Basic URL object mocks

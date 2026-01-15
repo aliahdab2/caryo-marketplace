@@ -174,7 +174,7 @@ const SignInPage: React.FC = () => {
       // Mark that callback URL has been loaded
       setCallbackUrlLoaded(true);
     }
-  }, []);
+  }, [setValue]);
 
   // Reset credentialsCorrect when inputs change
   useEffect(() => {

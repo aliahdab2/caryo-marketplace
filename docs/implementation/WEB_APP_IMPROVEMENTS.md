@@ -263,9 +263,9 @@ Improve form handling with React Hook Form + Zod validation.
 |------|--------|--------|
 | Install react-hook-form + zod | 5 min | ✅ Done |
 | Add sign-in form schema + RHF integration | 0.5 day | ✅ Done |
-| Create shared form schemas | 1 day | Pending |
-| Migrate listing creation form | 2 days | Pending |
-| Migrate remaining auth forms | 1 day | Pending |
+| Create shared form schemas | 1 day | ✅ Done |
+| Migrate listing creation form (ListingWizard) | 2 days | ✅ Done |
+| Migrate remaining auth forms (forgot-password) | 1 day | ✅ Done |
 
 ### When to Do This
 Only after Priorities 1-3 are complete. This is optional and can be done later.

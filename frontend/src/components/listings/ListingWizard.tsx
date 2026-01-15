@@ -10,7 +10,7 @@ import { ListingFormData } from "@/types/listings";
 import { FormErrors } from "@/types/forms";
 import { ListingDataService } from '@/services/ListingDataService';
 // SUPPORTED_CURRENCIES removed - not used in this component
-import { validateStep } from '@/utils/formUtils';
+import { validateStep, validateStepWithZod } from '@/utils/formUtils';
 import { calculateStepCompletion } from '@/utils/stepCompletionUtils';
 import SuccessAlert from '@/components/ui/SuccessAlert';
 import { createLogger } from '@/utils/logger';
@@ -285,8 +285,8 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
       // Create a temporary form data object with the new value
       const tempFormData = { ...formData, [fieldName]: value };
 
-      // Validate using 'final' mode to get comprehensive validation
-      const stepErrors = validateStep(currentStep, tempFormData, t, { mode: 'final' });
+      // Validate using Zod schemas for comprehensive validation
+      const stepErrors = validateStepWithZod(currentStep, tempFormData, t);
 
       // Clear the error if validation passes for this specific field
       setFormErrors(prev => {
@@ -719,7 +719,7 @@ export default forwardRef<ListingWizardHandle, ListingWizardProps & { showHeader
     // Validate current step before moving forward
     if (step > currentStep) {
       wizardLogger.debug(`Validating step ${currentStep} before moving to step ${step}`);
-      const stepErrors = validateStep(currentStep, formData, t);
+      const stepErrors = validateStepWithZod(currentStep, formData, t);
       wizardLogger.debug(`Step ${currentStep} validation errors ${JSON.stringify(stepErrors)}`);
 
       // DEBUGGING: Log specific Step 3 validation details
