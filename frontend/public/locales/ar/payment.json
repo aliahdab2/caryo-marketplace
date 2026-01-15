@@ -4,23 +4,17 @@
   "failed": "فشل الدفع. يرجى المحاولة مرة أخرى.",
   "pending": "الدفع في انتظار التأكيد",
   "cancelled": "تم إلغاء الدفع",
-  "methods": {
-    "paypal": "باي بال",
-    "credit_card": "بطاقة ائتمان",
-    "bank_transfer": "حوالة بنكية", 
-    "manual_transfer": "تحويل يدوي"
-  },
-  "subscription": {
-    "created": "تم إنشاء الاشتراك بنجاح!",
-    "failed": "فشل في إنشاء الاشتراك",
-    "cancelled": "تم إلغاء الاشتراك",
-    "upgraded": "تم ترقية الخطة بنجاح!"
-  },
-  "errors": {
-    "invalidCard": "بيانات البطاقة غير صحيحة",
-    "insufficientFunds": "أموال غير كافية",
-    "networkError": "خطأ في الشبكة. يرجى التحقق من الاتصال.",
-    "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
-    "unknown": "حدث خطأ غير معروف"
-  }
+  "methods.paypal": "باي بال",
+  "methods.creditCard": "بطاقة ائتمان",
+  "methods.bankTransfer": "حوالة بنكية",
+  "methods.manualTransfer": "تحويل يدوي",
+  "subscription.created": "تم إنشاء الاشتراك بنجاح!",
+  "subscription.failed": "فشل في إنشاء الاشتراك",
+  "subscription.cancelled": "تم إلغاء الاشتراك",
+  "subscription.upgraded": "تم ترقية الخطة بنجاح!",
+  "errors.invalidCard": "بيانات البطاقة غير صحيحة",
+  "errors.insufficientFunds": "أموال غير كافية",
+  "errors.networkError": "خطأ في الشبكة. يرجى التحقق من الاتصال.",
+  "errors.serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+  "errors.unknown": "حدث خطأ غير معروف"
 }

@@ -95,73 +95,35 @@
   "loginRequired": "Please log in to access dashboard",
   "dataManagement": "Data Management",
   "dataManagementTooltip": "Manage car brands and models data",
-  "trial": {
-    "expired": {
-      "title": "Trial Expired",
-      "message": "Your trial period has ended. Upgrade now to continue posting listings."
-    },
-    "grace": {
-      "title": "Grace Period Active",
-      "message": "You have {{days}} days remaining in your grace period."
-    },
-    "usage": {
-      "high": {
-        "title": "Almost at your limit!",
-        "message": "You have {{remaining}} of {{total}} listings remaining."
-      }
-    },
-    "time": {
-      "low": {
-        "title": "Trial ending soon",
-        "message": "Your trial expires in {{days}} days."
-      }
-    },
-    "active": {
-      "title": "Trial Active",
-      "message": "{{days}} days and {{listings}} listings remaining."
-    },
-    "upgrade": {
-      "now": "Upgrade Now",
-      "soon": "Upgrade Soon", 
-      "consider": "Consider Upgrading"
-    },
-    "learn": {
-      "more": "Learn More"
-    },
-    "listings": {
-      "used": "{{used}}/{{total}} listings used"
-    },
-    "days": {
-      "remaining": "{{days}} days left"
-    }
-  },
-  "stats": {
-    "listings": "Total Listings",
-    "views": "Total Views",
-    "inquiries": "Inquiries",
-    "favorites": "Favorites"
-  },
-  "actions": {
-    "new": {
-      "listing": "New Listing",
-      "listingDesc": "Create a new vehicle listing"
-    },
-    "manage": {
-      "listings": "Manage Listings",
-      "listingsDesc": "View and edit your listings"
-    },
-    "upgrade": {
-      "title": "Upgrade Plan",
-      "desc": "Get more features and listings"
-    },
-    "settings": {
-      "title": "Account Settings",
-      "desc": "Manage your account preferences"
-    }
-  },
-  "error": {
-    "title": "Dashboard Error"
-  },
+  "trial.expired.title": "Trial Expired",
+  "trial.expired.message": "Your trial period has ended. Upgrade now to continue posting listings.",
+  "trial.grace.title": "Grace Period Active",
+  "trial.grace.message": "You have {{days}} days remaining in your grace period.",
+  "trial.usage.high.title": "Almost at your limit!",
+  "trial.usage.high.message": "You have {{remaining}} of {{total}} listings remaining.",
+  "trial.time.low.title": "Trial ending soon",
+  "trial.time.low.message": "Your trial expires in {{days}} days.",
+  "trial.active.title": "Trial Active",
+  "trial.active.message": "{{days}} days and {{listings}} listings remaining.",
+  "trial.upgrade.now": "Upgrade Now",
+  "trial.upgrade.soon": "Upgrade Soon",
+  "trial.upgrade.consider": "Consider Upgrading",
+  "trial.learn.more": "Learn More",
+  "trial.listings.used": "{{used}}/{{total}} listings used",
+  "trial.days.remaining": "{{days}} days left",
+  "stats.listings": "Total Listings",
+  "stats.views": "Total Views",
+  "stats.inquiries": "Inquiries",
+  "stats.favorites": "Favorites",
+  "actions.new.listing": "New Listing",
+  "actions.new.listingDesc": "Create a new vehicle listing",
+  "actions.manage.listings": "Manage Listings",
+  "actions.manage.listingsDesc": "View and edit your listings",
+  "actions.upgrade.title": "Upgrade Plan",
+  "actions.upgrade.desc": "Get more features and listings",
+  "actions.settings.title": "Account Settings",
+  "actions.settings.desc": "Manage your account preferences",
+  "error.title": "Dashboard Error",
   "myReportsTitle": "My Reports",
   "myReportsSubtitle": "View your submitted reports",
   "myReportsFilterAll": "All",

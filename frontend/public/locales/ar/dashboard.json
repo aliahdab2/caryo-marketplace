@@ -110,75 +110,33 @@
   "myReportsEmptyFilteredTitle": "لا توجد تقارير بهذه الحالة",
   "myReportsEmptyFilteredDescription": "ليس لديك تقارير بهذه الحالة.",
   "myReportsTotal": "الإجمالي: {{count}} تقرير",
-  "trial": {
-    "expired": {
-      "title": "انتهت الفترة التجريبية",
-      "message": "انتهت فترة التجربة المجانية. قم بالترقية الآن لمتابعة نشر الإعلانات."
-    },
-    "grace": {
-      "title": "فترة السماح نشطة",
-      "message": "لديك {{days}} يوم متبقي في فترة السماح."
-    },
-    "usage": {
-      "high": {
-        "title": "أوشكت على الوصول إلى الحد الأقصى!",
-        "message": "لديك {{remaining}} من {{total}} إعلان متبقي."
-      }
-    },
-    "time": {
-      "low": {
-        "title": "الفترة التجريبية تنتهي قريباً",
-        "message": "تنتهي فترة التجربة خلال {{days}} يوم."
-      }
-    },
-    "active": {
-      "title": "الفترة التجريبية نشطة",
-      "message": "{{days}} يوم و {{listings}} إعلان متبقي."
-    },
-    "upgrade": {
-      "now": "ترقية الآن",
-      "soon": "ترقية قريباً",
-      "consider": "فكر في الترقية"
-    },
-    "learn": {
-      "more": "المزيد"
-    },
-    "listings": {
-      "used": "تم استخدام {{used}}/{{total}} إعلان"
-    },
-    "days": {
-      "remaining": "{{days}} يوم متبقي"
-    }
-  },
-  "stats": {
-    "listings": "إجمالي الإعلانات",
-    "views": "إجمالي المشاهدات",
-    "inquiries": "الاستفسارات",
-    "favorites": "المفضلة"
-  },
-  "actions": {
-    "new": {
-      "listing": "إعلان جديد",
-      "listing": {
-        "desc": "إنشاء إعلان مركبة جديد"
-      }
-    },
-    "manage": {
-      "listings": "إدارة الإعلانات",
-      "listings": {
-        "desc": "عرض وتعديل إعلاناتك"
-      }
-    },
-    "upgrade": "ترقية الخطة",
-    "upgrade": {
-      "desc": "احصل على ميزات وإعلانات أكثر"
-    },
-    "settings": "إعدادات الحساب",
-    "settings": {
-      "desc": "إدارة تفضيلات حسابك"
-    }
-  },
-  "error": {
-    "title": "خطأ في لوحة التحكم"
-  }
+  "trial.expired.title": "انتهت الفترة التجريبية",
+  "trial.expired.message": "انتهت فترة التجربة المجانية. قم بالترقية الآن لمتابعة نشر الإعلانات.",
+  "trial.grace.title": "فترة السماح نشطة",
+  "trial.grace.message": "لديك {{days}} يوم متبقي في فترة السماح.",
+  "trial.usage.high.title": "أوشكت على الوصول إلى الحد الأقصى!",
+  "trial.usage.high.message": "لديك {{remaining}} من {{total}} إعلان متبقي.",
+  "trial.time.low.title": "الفترة التجريبية تنتهي قريباً",
+  "trial.time.low.message": "تنتهي فترة التجربة خلال {{days}} يوم.",
+  "trial.active.title": "الفترة التجريبية نشطة",
+  "trial.active.message": "{{days}} يوم و {{listings}} إعلان متبقي.",
+  "trial.upgrade.now": "ترقية الآن",
+  "trial.upgrade.soon": "ترقية قريباً",
+  "trial.upgrade.consider": "فكر في الترقية",
+  "trial.learn.more": "المزيد",
+  "trial.listings.used": "تم استخدام {{used}}/{{total}} إعلان",
+  "trial.days.remaining": "{{days}} يوم متبقي",
+  "stats.listings": "إجمالي الإعلانات",
+  "stats.views": "إجمالي المشاهدات",
+  "stats.inquiries": "الاستفسارات",
+  "stats.favorites": "المفضلة",
+  "actions.new.listing": "إعلان جديد",
+  "actions.new.listingDesc": "إنشاء إعلان مركبة جديد",
+  "actions.manage.listings": "إدارة الإعلانات",
+  "actions.manage.listingsDesc": "عرض وتعديل إعلاناتك",
+  "actions.upgrade.title": "ترقية الخطة",
+  "actions.upgrade.desc": "احصل على ميزات وإعلانات أكثر",
+  "actions.settings.title": "إعدادات الحساب",
+  "actions.settings.desc": "إدارة تفضيلات حسابك",
+  "error.title": "خطأ في لوحة التحكم"
 }
