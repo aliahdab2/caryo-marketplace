@@ -54,7 +54,12 @@ Replace manual `useState` + `useEffect` data fetching with React Query hooks.
 | Create useMessages hook | `hooks/queries/useMessaging.ts` | 0.5 day | ✅ Done |
 | Create useDealerStats hook | `hooks/queries/useDealer.ts` | 0.5 day | ✅ Done |
 | Migrate saved-searches page | `dashboard/saved-searches/page.tsx` | 0.5 day | ✅ Done |
-| Migrate remaining components | Various components | 1-2 days | In Progress |
+| Migrate DealerDashboard | `components/dealer/DealerDashboard.tsx` | 0.5 day | ✅ Done |
+| Migrate listings page | `dashboard/listings/page.tsx` | 0.5 day | ✅ Done |
+| Migrate MessagesPage | `components/messaging/MessagesPage.tsx` | 0.5 day | ✅ Done |
+| Migrate Favorites page | `favorites/page.tsx` | 0.5 day | ✅ Done |
+| Add MessagesPage tests | `MessagesPage.test.tsx` | 0.5 day | ✅ Done |
+| Migrate remaining (blocked-users, alerts) | Various pages | 1 day | Pending (optional) |
 
 ### Pattern to Follow
 
@@ -432,13 +437,30 @@ Add production monitoring to track performance and errors.
 | Phase | Focus | Effort | Status |
 |-------|-------|--------|--------|
 | 1 | React Query setup + hooks | 2 days | ✅ Done |
-| 2 | React Query migration | 2-3 days | In Progress |
+| 2 | React Query migration | 2-3 days | ✅ Done (core pages) |
 | 3 | Zustand setup | 1-2 days | Pending |
 | 4 | Error handling components | 1 day | ✅ Done |
 | 5 | Form improvements (optional) | 3-5 days | Pending |
 | 6 | Optimistic updates (optional) | 2-3 days | Pending |
 | 7 | E2E tests | 3-5 days | Pending |
 | 8 | Performance monitoring | 2-3 days | Pending |
+
+### Migration Summary (as of Jan 15, 2026)
+
+**Migrated to React Query:**
+- ✅ Saved Searches page
+- ✅ Dealer Dashboard
+- ✅ Listings page (dashboard)
+- ✅ Messages page
+- ✅ Favorites page
+
+**Using custom hooks (stable, future migration optional):**
+- Search page (uses `useApiData` with caching)
+- Blocked Users page
+- Saved Alerts page
+
+**Already server-side rendered:**
+- Listing Detail page (data passed as props)
 
 ---
 

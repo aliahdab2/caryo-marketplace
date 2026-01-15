@@ -4,11 +4,11 @@
 export const dynamic = 'force-dynamic';
 
 import Image from 'next/image';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import Link from 'next/link';
-import { getUserFavorites, removeFromFavorites } from '@/services/favorites';
+import { useFavorites, useRemoveFromFavorites } from '@/hooks/queries';
 import { formatDate, formatNumber } from '@/utils/localization';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { Listing } from '@/types/listings';
@@ -17,84 +17,55 @@ import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { FaHeart, FaTrash } from 'react-icons/fa';
 import Breadcrumb from '@/components/ui/Breadcrumb';
+import { LoadingSkeleton, ErrorDisplay } from '@/components/common';
 
 type FilterTab = 'all' | 'available' | 'removed';
 
 export default function FavoritesPage() {
   const { t } = useTranslation(['favorites', 'common']);
   const { locale } = useLanguageSwitching();
-  const fetchedSignatureRef = useRef<string | null>(null);
 
-  const [favorites, setFavorites] = useState<Listing[]>([]);
-  const [filteredFavorites, setFilteredFavorites] = useState<Listing[]>([]);
+  // React Query for data fetching
+  const { data: favoritesData, isLoading, error, refetch } = useFavorites();
+  const removeMutation = useRemoveFromFavorites();
+
+  // Derive favorites from query data
+  const favorites = useMemo(() => {
+    if (!favoritesData) return [];
+    // Handle both array format and object with favorites property
+    if (Array.isArray(favoritesData)) return favoritesData as Listing[];
+    if (favoritesData && Array.isArray((favoritesData as { favorites?: Listing[] }).favorites)) {
+      return (favoritesData as { favorites: Listing[] }).favorites;
+    }
+    return [];
+  }, [favoritesData]);
+
+  // UI State
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
-  const [isLoading, setIsLoading] = useState(true);
   const [isRemovingAll, setIsRemovingAll] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Server layout ensures user is authenticated, fetch favorites directly
-    const signature = 'authenticated-user';
-    if (fetchedSignatureRef.current === signature) {
-      return;
-    }
-    fetchedSignatureRef.current = signature;
-    fetchFavorites();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // No dependency on user since server auth ensures it's available
 
   // Filter favorites based on active tab
-  useEffect(() => {
-    let filtered = favorites;
-
+  const filteredFavorites = useMemo(() => {
     switch (activeTab) {
       case 'available':
-        // Show listings that are not explicitly sold or expired
-        filtered = favorites.filter(listing =>
+        return favorites.filter(listing =>
           !listing.status ||
           (listing.status !== 'sold' && listing.status !== 'expired')
         );
-        break;
       case 'removed':
-        filtered = favorites.filter(listing => listing.status === 'sold' || listing.status === 'expired');
-        break;
+        return favorites.filter(listing => 
+          listing.status === 'sold' || listing.status === 'expired'
+        );
       default:
-        filtered = favorites;
+        return favorites;
     }
-
-    setFilteredFavorites(filtered);
   }, [favorites, activeTab]);
-
-  const fetchFavorites = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await getUserFavorites();
-
-      // Ensure we have valid data
-      if (Array.isArray(data)) {
-        setFavorites(data);
-      } else if (data && Array.isArray(data.favorites)) {
-        setFavorites(data.favorites);
-      } else {
-        console.error('Invalid data format for favorites:', data);
-        setFavorites([]);
-        setError(t('errorLoading'));
-      }
-    } catch (err) {
-      console.error('Error fetching favorites:', err);
-      setError(t('errorLoading'));
-      setFavorites([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleFavoriteToggle = (listingId: string, isFavorite: boolean) => {
     if (!isFavorite) {
-      // If removed from favorites, remove from the list
-      setFavorites(favorites.filter(listing => listing.id.toString() !== listingId));
+      // React Query will automatically refetch favorites list
+      // after the mutation completes (via onSettled)
     }
   };
 
@@ -105,15 +76,14 @@ export default function FavoritesPage() {
   const confirmRemoveAll = async () => {
     setIsRemovingAll(true);
     try {
+      // Remove all favorites using mutation
       const removePromises = favorites.map(listing =>
-        removeFromFavorites(listing.id.toString())
+        removeMutation.mutateAsync(listing.id.toString())
       );
       await Promise.all(removePromises);
-      setFavorites([]);
       setShowDeleteModal(false);
     } catch (err) {
       console.error('Error removing all favorites:', err);
-      setError(t('errorRemoving'));
     } finally {
       setIsRemovingAll(false);
     }
@@ -131,7 +101,9 @@ export default function FavoritesPage() {
           (listing.status !== 'sold' && listing.status !== 'expired')
         ).length;
       case 'removed':
-        return favorites.filter(listing => listing.status === 'sold' || listing.status === 'expired').length;
+        return favorites.filter(listing => 
+          listing.status === 'sold' || listing.status === 'expired'
+        ).length;
       default:
         return favorites.length;
     }
@@ -189,38 +161,21 @@ export default function FavoritesPage() {
           </div>
         )}
 
-
-
+        {/* Loading State */}
         {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">{t('loadingFavorites')}</p>
-          </div>
+          <LoadingSkeleton variant="list" count={6} />
         )}
 
+        {/* Error State */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 my-4 rounded-md">
-            <div className="flex justify-between items-center">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                </div>
-              </div>
-              <button
-                onClick={fetchFavorites}
-                className="px-3 py-1 bg-red-100 dark:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700 text-red-700 dark:text-red-400 rounded text-sm"
-              >
-                {t('common:retry')}
-              </button>
-            </div>
-          </div>
+          <ErrorDisplay
+            error={error}
+            onRetry={() => refetch()}
+            variant="inline"
+          />
         )}
 
+        {/* Empty State */}
         {!isLoading && !error && filteredFavorites.length === 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <EmptyState
@@ -236,7 +191,8 @@ export default function FavoritesPage() {
           </div>
         )}
 
-                {!isLoading && !error && filteredFavorites.length > 0 && (
+        {/* Favorites Grid */}
+        {!isLoading && !error && filteredFavorites.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredFavorites.map((listing, index) => (
