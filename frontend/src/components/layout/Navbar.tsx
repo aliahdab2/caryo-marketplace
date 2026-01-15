@@ -151,6 +151,7 @@ export default function Navbar({ className }: ComponentProps) {
               <div className="relative" ref={userMenuRef}>
                 <button
                   id="user-menu-button"
+                  data-testid="user-menu-trigger"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
                   aria-expanded={userMenuOpen ? "true" : "false"}
@@ -267,6 +268,7 @@ export default function Navbar({ className }: ComponentProps) {
 
                   <div className="py-1 border-t dark:border-gray-700">
                     <button
+                      data-testid="logout-button"
                       onClick={async () => {
                         setUserMenuOpen(false);
                         await handleLogout('/');
