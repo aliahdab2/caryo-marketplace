@@ -45,15 +45,16 @@ Replace manual `useState` + `useEffect` data fetching with React Query hooks.
 
 | Task | Files to Create/Modify | Effort | Status |
 |------|------------------------|--------|--------|
-| Create hooks/queries/ folder structure | `frontend/src/hooks/queries/` | 0.5 day | Pending |
-| Create useListings hook | `hooks/queries/useListings.ts` | 0.5 day | Pending |
-| Create useListing hook (single) | `hooks/queries/useListing.ts` | 0.5 day | Pending |
-| Create useFavorites hook | `hooks/queries/useFavorites.ts` | 0.5 day | Pending |
-| Create useSavedSearches hook | `hooks/queries/useSavedSearches.ts` | 0.5 day | Pending |
-| Create useConversations hook | `hooks/queries/useConversations.ts` | 0.5 day | Pending |
-| Create useMessages hook | `hooks/queries/useMessages.ts` | 0.5 day | Pending |
-| Create useDealerStats hook | `hooks/queries/useDealerStats.ts` | 0.5 day | Pending |
-| Migrate components to use new hooks | Various components | 1-2 days | Pending |
+| Create hooks/queries/ folder structure | `frontend/src/hooks/queries/` | 0.5 day | ✅ Done |
+| Create useListings hook | `hooks/queries/useListings.ts` | 0.5 day | ✅ Done |
+| Create useListing hook (single) | `hooks/queries/useListings.ts` | 0.5 day | ✅ Done |
+| Create useFavorites hook | `hooks/queries/useFavorites.ts` | 0.5 day | ✅ Done |
+| Create useSavedSearches hook | `hooks/queries/useSavedSearches.ts` | 0.5 day | ✅ Done |
+| Create useConversations hook | `hooks/queries/useMessaging.ts` | 0.5 day | ✅ Done |
+| Create useMessages hook | `hooks/queries/useMessaging.ts` | 0.5 day | ✅ Done |
+| Create useDealerStats hook | `hooks/queries/useDealer.ts` | 0.5 day | ✅ Done |
+| Migrate saved-searches page | `dashboard/saved-searches/page.tsx` | 0.5 day | ✅ Done |
+| Migrate remaining components | Various components | 1-2 days | In Progress |
 
 ### Pattern to Follow
 
@@ -169,10 +170,12 @@ Create consistent loading, empty, and error states across all screens.
 
 | Task | Files to Create | Effort | Status |
 |------|-----------------|--------|--------|
-| Create LoadingSkeleton component | `components/common/LoadingSkeleton.tsx` | 2 hours | Pending |
-| Create ErrorDisplay component | `components/common/ErrorDisplay.tsx` | 2 hours | Pending |
-| Create EmptyState component | `components/common/EmptyState.tsx` | 2 hours | Pending |
-| Create QueryWrapper component | `components/common/QueryWrapper.tsx` | 2 hours | Pending |
+| Create LoadingSkeleton component | `components/common/LoadingSkeleton.tsx` | 2 hours | ✅ Done |
+| Create ErrorDisplay component | `components/common/ErrorDisplay.tsx` | 2 hours | ✅ Done |
+| Create EmptyState component | `components/common/EmptyState.tsx` | 2 hours | ✅ Done |
+| Create QueryWrapper component | `components/common/QueryWrapper.tsx` | 2 hours | ✅ Done |
+| Add tests for common components | `components/common/__tests__/` | 2 hours | ✅ Done |
+| Migrate components to use QueryWrapper | Various components | 1 day | In Progress |
 
 ### QueryWrapper Pattern
 
@@ -336,9 +339,114 @@ export function useToggleFavorite() {
 
 ---
 
+## Priority 6: End-to-End Tests (3-5 days)
+
+### Goal
+Add automated E2E tests for critical user flows using Playwright or Cypress.
+
+### Why This Matters
+- Unit tests verify individual components work
+- E2E tests verify the entire user journey works end-to-end
+- Catches integration issues that unit tests miss
+- Essential for confident deployments
+
+### Tasks
+
+| Task | Effort | Status |
+|------|--------|--------|
+| Choose testing framework (Playwright recommended) | 0.5 day | Pending |
+| Set up E2E test infrastructure | 0.5 day | Pending |
+| Create test for login/logout flow | 0.5 day | Pending |
+| Create test for browse → listing details | 0.5 day | Pending |
+| Create test for favorite/unfavorite | 0.5 day | Pending |
+| Create test for create listing (draft) | 1 day | Pending |
+| Create test for send message | 0.5 day | Pending |
+| Create test for dealer subscription flow | 1 day | Pending |
+| Add E2E tests to CI pipeline | 0.5 day | Pending |
+
+### Critical User Flows to Test
+
+1. **Authentication**: Login → access protected page → logout
+2. **Browse & View**: Home → search → filters → listing details
+3. **Favorites**: View listing → add to favorites → view favorites page
+4. **Messaging**: View listing → contact seller → send message
+5. **Listing Creation**: Start listing → add details → upload photos → save draft
+6. **Dealer Upgrade**: Dashboard → view trial status → upgrade subscription
+
+### Framework Recommendation
+
+**Playwright** is recommended because:
+- Built-in TypeScript support
+- Faster than Cypress
+- Better cross-browser testing
+- Auto-wait for elements (less flaky tests)
+- Built-in test recording
+
+---
+
+## Priority 7: Performance Monitoring (2-3 days)
+
+### Goal
+Add production monitoring to track performance and errors.
+
+### Why This Matters
+- Know when users experience slow pages
+- Catch errors before users report them
+- Track real performance metrics (not just local tests)
+- Essential for production-ready apps
+
+### Tasks
+
+| Task | Effort | Status |
+|------|--------|--------|
+| Choose monitoring solution | 0.5 day | Pending |
+| Set up frontend error tracking | 0.5 day | Pending |
+| Add Core Web Vitals monitoring | 0.5 day | Pending |
+| Set up backend APM (if not present) | 0.5 day | Pending |
+| Create performance dashboard | 0.5 day | Pending |
+| Set up alerting for errors/slow pages | 0.5 day | Pending |
+
+### Recommended Tools
+
+| Tool | Purpose | Cost |
+|------|---------|------|
+| **Sentry** | Error tracking (frontend + backend) | Free tier available |
+| **Vercel Analytics** | Core Web Vitals (if using Vercel) | Included with Vercel |
+| **PostHog** | Product analytics + session replay | Free tier available |
+| **New Relic / Datadog** | Full APM (enterprise) | Paid |
+
+### Minimum Metrics to Track
+
+| Metric | Target | Why |
+|--------|--------|-----|
+| LCP (Largest Contentful Paint) | < 2.5s | Page load speed |
+| FID (First Input Delay) | < 100ms | Interactivity |
+| CLS (Cumulative Layout Shift) | < 0.1 | Visual stability |
+| Error Rate | < 1% | Reliability |
+| API Response Time (p95) | < 500ms | Backend performance |
+
+---
+
+## Updated Implementation Order
+
+| Phase | Focus | Effort | Status |
+|-------|-------|--------|--------|
+| 1 | React Query setup + hooks | 2 days | ✅ Done |
+| 2 | React Query migration | 2-3 days | In Progress |
+| 3 | Zustand setup | 1-2 days | Pending |
+| 4 | Error handling components | 1 day | ✅ Done |
+| 5 | Form improvements (optional) | 3-5 days | Pending |
+| 6 | Optimistic updates (optional) | 2-3 days | Pending |
+| 7 | E2E tests | 3-5 days | Pending |
+| 8 | Performance monitoring | 2-3 days | Pending |
+
+---
+
 ## After Completion
 
 Once these improvements are done:
 1. Web app will be more maintainable
 2. Patterns can be directly reused in mobile app
 3. Mobile development can start with proven architecture
+4. E2E tests will catch regressions automatically
+5. Performance monitoring will ensure production quality
