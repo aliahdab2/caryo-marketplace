@@ -129,28 +129,28 @@
   },
   "suites": [
     {
-      "title": "auth.spec.ts",
-      "file": "auth.spec.ts",
+      "title": "messaging.spec.ts",
+      "file": "messaging.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Authentication",
-          "file": "auth.spec.ts",
+          "title": "Messaging",
+          "file": "messaging.spec.ts",
           "line": 5,
           "column": 6,
           "specs": [],
           "suites": [
             {
-              "title": "AUTH-002: User Logout",
-              "file": "auth.spec.ts",
-              "line": 84,
+              "title": "MSG-001: Contact Seller",
+              "file": "messaging.spec.ts",
+              "line": 10,
               "column": 8,
               "specs": [
                 {
-                  "title": "can logout after login",
-                  "ok": true,
+                  "title": "can type and send message",
+                  "ok": false,
                   "tags": [],
                   "tests": [
                     {
@@ -163,23 +163,55 @@
                         {
                           "workerIndex": 0,
                           "parallelIndex": 0,
-                          "status": "passed",
-                          "duration": 15907,
-                          "errors": [],
+                          "status": "timedOut",
+                          "duration": 30084,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/Users/aliahdab/Documents/caryo-marketplace/frontend/e2e/tests/messaging.spec.ts",
+                                "column": 24,
+                                "line": 115
+                              },
+                              "message": "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /send/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button data-testid=\"contact-seller-button\" class=\"flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    33 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  113 |       }\n  114 |       \n> 115 |       await sendButton.click();\n      |                        ^\n  116 |\n  117 |       // Verify sent - modal closes or success message appears\n  118 |       await page.waitForTimeout(1000);\n    at /Users/aliahdab/Documents/caryo-marketplace/frontend/e2e/tests/messaging.spec.ts:115:24"
+                            }
+                          ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2026-01-15T20:03:57.432Z",
+                          "startTime": "2026-01-15T21:45:31.563Z",
                           "annotations": [],
-                          "attachments": []
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/aliahdab/Documents/caryo-marketplace/frontend/e2e/test-results/messaging-Messaging-MSG-00-a878d-r-can-type-and-send-message-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/aliahdab/Documents/caryo-marketplace/frontend/e2e/test-results/messaging-Messaging-MSG-00-a878d-r-can-type-and-send-message-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/aliahdab/Documents/caryo-marketplace/frontend/e2e/test-results/messaging-Messaging-MSG-00-a878d-r-can-type-and-send-message-chromium/error-context.md"
+                            }
+                          ]
                         }
                       ],
-                      "status": "expected"
+                      "status": "unexpected"
                     }
                   ],
-                  "id": "d748ac400d08b85935ef-15e17d54329320506dfd",
-                  "file": "auth.spec.ts",
-                  "line": 85,
+                  "id": "107d361b6fc8beba4b6c-d180a782c48e1da4dd9c",
+                  "file": "messaging.spec.ts",
+                  "line": 71,
                   "column": 9
                 }
               ]
@@ -191,11 +223,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-15T20:03:56.874Z",
-    "duration": 16913.706,
-    "expected": 1,
+    "startTime": "2026-01-15T21:45:31.080Z",
+    "duration": 30878.694,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }
