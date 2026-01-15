@@ -46,11 +46,12 @@ export async function loginAsDealer(page: Page): Promise<void> {
 export async function login(page: Page, usernameOrEmail: string, password: string): Promise<void> {
   await page.goto('/auth/signin');
   
-  // Wait for page to load
-  await expect(page.getByLabel(/username or email/i)).toBeVisible();
+  // Wait for page to load - use ID selector for reliability
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('#username')).toBeVisible({ timeout: 10000 });
   
-  // Fill credentials
-  await page.getByLabel(/username or email/i).fill(usernameOrEmail);
+  // Fill credentials using ID selectors
+  await page.locator('#username').fill(usernameOrEmail);
   await page.locator('#password').fill(password);
   
   // Submit
