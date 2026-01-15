@@ -163,24 +163,79 @@ function findOrphanedTranslations(translations) {
 
 /**
  * Extract translation keys from source code
+ * Enhanced to detect more usage patterns
  */
 function extractTranslationKeys(content) {
   const patterns = [
+    // Standard t() function calls
     /t\(['"]([^'"]+)['"]/g,  // t('key')
     /t\(['"]([^'"]+)['"],/g, // t('key', ...)
     /t\(['"]([^'"]+)['"]\s*,/g, // t('key', fallback)
-    /i18n\.t\(['"]([^'"]+)['"]/g, // i18n.t('key')
-    /useTranslation\(['"]([^'"]+)['"]/g, // useTranslation('namespace')
     /\bt\(['"]([^'"]+)['"]/g, // word boundary for t(
     /\bt\(['"]([^'"]+)['"]\s*,/g, // word boundary for t( with fallback
+    
+    // i18n patterns
+    /i18n\.t\(['"]([^'"]+)['"]/g, // i18n.t('key')
+    /useTranslation\(['"]([^'"]+)['"]/g, // useTranslation('namespace')
+    
+    // Helper function patterns (getTranslation, translate, etc.)
+    /getTranslation\(['"]([^'"]+)['"]/g, // getTranslation('key', ...)
+    /translate\(['"]([^'"]+)['"]/g, // translate('key')
+    /getMessage\(['"]([^'"]+)['"]/g, // getMessage('key')
+    
+    // Template literal patterns with known prefixes
+    /t\([`'"]([a-zA-Z]+:[a-zA-Z_]+)[`'"]/g, // t('namespace:key')
+    
+    // JSX/TSX attribute patterns
+    /label=\{t\(['"]([^'"]+)['"]/g, // label={t('key')}
+    /title=\{t\(['"]([^'"]+)['"]/g, // title={t('key')}
+    /placeholder=\{t\(['"]([^'"]+)['"]/g, // placeholder={t('key')}
+    /aria-label=\{[^}]*['"]([^'"]+)['"]/g, // aria-label patterns
+    
+    // Object key patterns for translation objects
+    /['"]([a-zA-Z_]+)['"]\s*:\s*t\(/g, // 'key': t(
+    
+    // String literals that look like translation keys (namespace:key pattern)
+    /['"]([a-zA-Z]+:[a-zA-Z][a-zA-Z0-9_]+)['"]/g, // 'namespace:key'
+    
+    // Dot notation patterns (namespace.key)
+    /t\(['"]([a-zA-Z]+\.[a-zA-Z][a-zA-Z0-9_.]+)['"]/g, // t('namespace.key')
+    /['"]([a-zA-Z]+\.[a-zA-Z][a-zA-Z0-9_.]+)['"]/g, // 'namespace.key' string literals
+    
+    // Template literal patterns with namespace variable
+    /t\(`\$\{[^}]+\}:([a-zA-Z][a-zA-Z0-9_]+)`/g, // t(`${namespace}:key`)
+    /t\(`\$\{[^}]+\}\.([a-zA-Z][a-zA-Z0-9_]+)`/g, // t(`${namespace}.key`)
+    
+    // Direct key references in object literals (common in tests)
+    /['"]([a-zA-Z][a-zA-Z0-9_]+)['"]\s*:/g, // 'someKey':
   ];
 
   const keys = new Set();
 
   patterns.forEach(pattern => {
     let match;
+    // Reset lastIndex to ensure consistent matching
+    pattern.lastIndex = 0;
     while ((match = pattern.exec(content)) !== null) {
-      keys.add(match[1]);
+      const key = match[1];
+      // Add the key
+      keys.add(key);
+      
+      // If key has namespace prefix (e.g., 'auth:loginTitle'), also add just the key part
+      if (key.includes(':')) {
+        const keyPart = key.split(':')[1];
+        if (keyPart) {
+          keys.add(keyPart);
+        }
+      }
+      
+      // If key has dot notation (e.g., 'listings.expiresIn'), also add just the key part
+      if (key.includes('.')) {
+        const keyPart = key.split('.').pop();
+        if (keyPart) {
+          keys.add(keyPart);
+        }
+      }
     }
   });
 

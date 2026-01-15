@@ -42,3 +42,7 @@ npm-debug.log*
 # Generated files (should not be committed)
 /public/sitemap.xml
 /public/robots.txt
+
+# Playwright test results
+e2e/test-results/
+playwright-report/

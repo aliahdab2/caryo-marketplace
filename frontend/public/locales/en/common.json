@@ -1,7 +1,6 @@
 {
   "appName": "Caryo Marketplace",
   "selectLanguage": "Select language",
-  "loadingFavorites": "Loading your favorites...",
   "tryAgain": "Try Again",
   "accountSettings": "Account Settings",
   "headerLogout": "Logout",
@@ -103,12 +102,10 @@
   "showMoreFacts": "Show more facts",
   "showPhoneNumber": "Show Phone Number",
   "soldBy": "Sold by",
-  "viewDetails": "View Details",
   "winterTires": "Winter Tires",
   "settings": "Display your phone number on your ads",
   "saving": "Saving...",
   "blocking": "Blocking...",
-  "reporting": "Reporting...",
   "deleting": "Deleting...",
   "syncing": "Syncing...",
   "refresh": "Refresh",
@@ -118,7 +115,6 @@
   "loadingCities": "Loading cities...",
   "noCitiesFound": "No cities found",
   "noCities": "No cities available",
-  "cityHelp": "Start typing to search for your city",
   "gridView": "Grid View",
   "listView": "List View",
   "errorLoadingData": "Error loading data. Please try again."
