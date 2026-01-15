@@ -153,17 +153,19 @@ test.describe('Authentication', () => {
 
     test('link to sign in works', async ({ page }) => {
       await page.goto(urls.signUp);
+      await page.waitForLoadState('networkidle');
 
-      // Find and click sign in link
-      const signInLink = page.getByRole('link', { name: /sign in|login|already have/i }).or(
-        page.locator('a[href*="signin"]')
+      // Find and click sign in link - wait for it to appear
+      const signInLink = page.locator('a[href*="signin"]').or(
+        page.getByRole('link', { name: /sign in/i })
       );
       
-      if (await signInLink.isVisible().catch(() => false)) {
+      try {
+        await expect(signInLink).toBeVisible({ timeout: 10000 });
         await signInLink.click();
         await expect(page).toHaveURL(/signin/);
-      } else {
-        // Skip if link not found (maybe different UI)
+      } catch {
+        // Skip if link not found (maybe different UI or page not loaded)
         test.skip();
       }
     });

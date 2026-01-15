@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import dynamic from 'next/dynamic';
 import NextImage from 'next/image';
+import Link from 'next/link';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useRTL } from '@/hooks/useRTL';
 
@@ -229,6 +230,19 @@ export default function SignUpPage() {
           }>
             <SignupForm callbackUrl={getCleanCallbackUrl()} />
           </Suspense>
+
+          {/* Already have account link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {t('alreadyHaveAccount', 'Already have an account?')}{' '}
+              <Link
+                href="/auth/signin"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                {t('signIn', 'Sign In')}
+              </Link>
+            </p>
+          </div>
 
           {/* Trust indicators */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
