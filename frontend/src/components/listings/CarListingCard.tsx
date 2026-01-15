@@ -138,7 +138,11 @@ const CarListingCard: React.FC<CarListingCardProps> = ({
   };
 
   return (
-    <div className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out h-full flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div 
+      data-testid="listing-card"
+      className="relative bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 ease-in-out h-full flex flex-col" 
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
       {/* Favorite Button - Hidden when video is playing */}
       {!isVideoPlaying && (
         <div className={`absolute top-2 ${isRTL ? 'left-2' : 'right-2'} z-10`} onClick={(e) => e.stopPropagation()}>

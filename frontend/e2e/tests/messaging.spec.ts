@@ -10,87 +10,41 @@ test.describe('Messaging', () => {
   test.describe('MSG-001: Contact Seller', () => {
     test('contact seller button visible on listing', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-
-      // Find a listing link and click it
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingLink.isVisible().catch(() => false))) {
+      // Navigate directly to a listing for speed
+      await page.goto(urls.listing);
+      await page.waitForLoadState('networkidle');
+
+      // Look for contact button
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message/i }).first());
+
+      // If page shows 404 or no listing, skip
+      if (await page.locator('text=not found').isVisible().catch(() => false)) {
         test.skip();
         return;
       }
 
-      await listingLink.click();
-      await page.waitForLoadState('networkidle');
-
-      // Look for contact button - prioritize data-testid
-      const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
-
-      await expect(contactButton).toBeVisible();
+      await expect(contactButton).toBeVisible({ timeout: 10000 });
     });
 
     test('can open message form', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingLink.isVisible().catch(() => false))) {
+      // Navigate directly to listing
+      await page.goto(urls.listing);
+      await page.waitForLoadState('networkidle');
+
+      // Skip if listing not found
+      if (await page.locator('text=not found').isVisible().catch(() => false)) {
         test.skip();
         return;
       }
-
-      await listingLink.click();
-      await page.waitForLoadState('networkidle');
 
       const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
+        .or(page.getByRole('button', { name: /send message/i }).first());
       
-      if (!(await contactButton.isVisible().catch(() => false))) {
-        test.skip();
-        return;
-      }
-
-      await contactButton.click();
-
-      // Message form should appear
-      const messageInput = page.getByLabel(/message/i).or(
-        page.getByPlaceholder(/message|write/i)
-      ).or(
-        page.getByRole('textbox', { name: /message/i })
-      );
-
-      await expect(messageInput).toBeVisible();
-    });
-
-    test('can type and send message', async ({ page }) => {
-      await loginAsTestUser(page);
-      await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
-      
-      if (!(await listingLink.isVisible().catch(() => false))) {
-        test.skip();
-        return;
-      }
-
-      await listingLink.click();
-      await page.waitForLoadState('networkidle');
-
-      const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
-      
-      if (!(await contactButton.isVisible().catch(() => false))) {
+      if (!(await contactButton.isVisible({ timeout: 5000 }).catch(() => false))) {
         test.skip();
         return;
       }
@@ -98,13 +52,42 @@ test.describe('Messaging', () => {
       await contactButton.click();
       await page.waitForTimeout(500);
 
-      const messageInput = page.getByLabel(/message/i).or(
-        page.getByPlaceholder(/message|write/i)
-      ).or(
-        page.getByRole('textbox')
-      );
+      // Message form should appear (modal with textarea)
+      const messageInput = page.locator('textarea').first()
+        .or(page.getByPlaceholder(/message|write/i))
+        .or(page.getByRole('textbox'));
 
-      if (!(await messageInput.isVisible().catch(() => false))) {
+      await expect(messageInput).toBeVisible({ timeout: 5000 });
+    });
+
+    test('can type and send message', async ({ page }) => {
+      await loginAsTestUser(page);
+      
+      // Navigate directly to listing
+      await page.goto(urls.listing);
+      await page.waitForLoadState('networkidle');
+
+      // Skip if listing not found
+      if (await page.locator('text=not found').isVisible().catch(() => false)) {
+        test.skip();
+        return;
+      }
+
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message/i }).first());
+      
+      if (!(await contactButton.isVisible({ timeout: 5000 }).catch(() => false))) {
+        test.skip();
+        return;
+      }
+
+      await contactButton.click();
+      await page.waitForTimeout(300);
+
+      const messageInput = page.getByRole('textbox').first()
+        .or(page.getByPlaceholder(/message|write/i));
+
+      if (!(await messageInput.isVisible({ timeout: 3000 }).catch(() => false))) {
         test.skip();
         return;
       }
@@ -116,10 +99,11 @@ test.describe('Messaging', () => {
       const sendButton = page.getByRole('button', { name: /send/i });
       await sendButton.click();
 
-      // Verify sent
-      await page.waitForTimeout(1000);
-      const success = await page.getByText(/sent|success|delivered/i).isVisible().catch(() => false);
-      expect(success || true).toBe(true);
+      // Verify sent or modal closed (success indicator)
+      await page.waitForTimeout(500);
+      const success = await page.getByText(/sent|success|delivered/i).isVisible().catch(() => false) ||
+                      !(await messageInput.isVisible().catch(() => true));
+      expect(success).toBe(true);
     });
   });
 
@@ -185,73 +169,64 @@ test.describe('Messaging', () => {
     });
 
     test('contact seller prompts login for unauthenticated user', async ({ page }) => {
-      await page.goto(urls.search);
+      // Navigate directly to listing without logging in
+      await page.goto(urls.listing);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
 
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
-      
-      if (!(await listingLink.isVisible().catch(() => false))) {
+      // Skip if listing not found
+      if (await page.locator('text=not found').isVisible().catch(() => false)) {
         test.skip();
         return;
       }
 
-      await listingLink.click();
-      await page.waitForLoadState('networkidle');
-
       const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
+        .or(page.getByRole('button', { name: /send message/i }).first());
       
-      if (!(await contactButton.isVisible().catch(() => false))) {
+      if (!(await contactButton.isVisible({ timeout: 5000 }).catch(() => false))) {
         test.skip();
         return;
       }
 
       await contactButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
 
       // Should show login modal or redirect
       const hasLoginPrompt = await page.getByText(/sign in|log in|login/i).isVisible().catch(() => false);
       const isOnLogin = page.url().includes('signin');
 
-      expect(hasLoginPrompt || isOnLogin || true).toBe(true);
+      expect(hasLoginPrompt || isOnLogin).toBe(true);
     });
   });
 
   test.describe('MSG-004: Message Validation', () => {
     test('cannot send empty message', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingLink.isVisible().catch(() => false))) {
+      // Navigate directly to listing
+      await page.goto(urls.listing);
+      await page.waitForLoadState('networkidle');
+
+      // Skip if listing not found
+      if (await page.locator('text=not found').isVisible().catch(() => false)) {
         test.skip();
         return;
       }
 
-      await listingLink.click();
-      await page.waitForURL(/listing/);
-
       const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
+        .or(page.getByRole('button', { name: /send message/i }).first());
       
-      if (!(await contactButton.isVisible().catch(() => false))) {
+      if (!(await contactButton.isVisible({ timeout: 5000 }).catch(() => false))) {
         test.skip();
         return;
       }
 
       await contactButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
 
       // Try to send without message
       const sendButton = page.getByRole('button', { name: /send/i });
       
-      if (await sendButton.isVisible().catch(() => false)) {
+      if (await sendButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         // Button should be disabled or show error on click
         const isDisabled = await sendButton.isDisabled();
         
@@ -259,7 +234,7 @@ test.describe('Messaging', () => {
           await sendButton.click();
           // Should show error
           const hasError = await page.getByText(/required|empty|enter.*message/i).isVisible().catch(() => false);
-          expect(hasError || true).toBe(true);
+          expect(hasError || isDisabled).toBe(true);
         } else {
           expect(isDisabled).toBe(true);
         }

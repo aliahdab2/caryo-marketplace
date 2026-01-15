@@ -57,4 +57,6 @@ export const urls = {
   favorites: '/favorites',
   messages: '/dashboard/messages',
   createListing: '/dashboard/listings/new',
+  // Direct listing URL for faster tests (ID 6 is the first listing from DataInitializer)
+  listing: '/listings/6',
 };
