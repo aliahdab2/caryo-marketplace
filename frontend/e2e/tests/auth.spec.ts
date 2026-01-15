@@ -172,9 +172,12 @@ test.describe('Authentication', () => {
   test.describe('AUTH-004: Password Reset', () => {
     test('can access forgot password page', async ({ page }) => {
       await page.goto(urls.signIn);
+      await page.waitForLoadState('networkidle');
 
-      // Click forgot password link
-      await page.getByRole('link', { name: /forgot|reset/i }).click();
+      // Click forgot password link - try multiple selectors
+      const forgotLink = page.getByRole('link', { name: /forgot/i })
+        .or(page.locator('a[href*="forgot-password"]'));
+      await forgotLink.click();
 
       // Should navigate to forgot password page
       await expect(page).toHaveURL(/forgot/);
