@@ -133,6 +133,39 @@ public class DealerController {
     }
 
     /**
+     * Update dealer public profile fields.
+     *
+     * @param userDetails Authenticated user details
+     * @param updateRequest Profile update payload
+     * @return Updated dealer profile
+     */
+    @PutMapping("/profile")
+    @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
+    public ResponseEntity<?> updateDealerProfile(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody com.autotrader.autotraderbackend.payload.request.DealerProfileUpdateRequest updateRequest) {
+        try {
+            Long userId = userDetails.getId();
+
+            Dealer dealer = dealerService.getDealerByUserId(userId)
+                .orElseThrow(() -> new DealerNotFoundException(userId));
+
+            Dealer updatedDealer = dealerService.updatePublicProfile(dealer, updateRequest);
+            return ResponseEntity.ok(updatedDealer);
+        } catch (DealerNotFoundException e) {
+            log.error("Dealer profile not found for user: {}", userDetails.getId());
+            return ResponseEntity.status(404)
+                .body(new MessageResponse("Error: " + e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: " + e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error updating dealer profile", e);
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: Could not update dealer profile"));
+        }
+    }
+
+    /**
      * Check if dealer can create a new listing.
      *
      * @param userDetails Authenticated user details

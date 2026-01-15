@@ -63,6 +63,22 @@ public class Dealer {
     @Column(name = "logo_url", length = 255)
     private String logoUrl;
 
+    @Size(max = 255, message = "Banner URL must not exceed 255 characters")
+    @Column(name = "banner_url", length = 255)
+    private String bannerUrl;
+
+    @Column(name = "description", columnDefinition = "text")
+    private String description;
+
+    @Column(name = "description_ar", columnDefinition = "text")
+    private String descriptionAr;
+
+    // Store JSON data as string to keep persistence simple
+    @Column(name = "working_hours", columnDefinition = "jsonb")
+    private String workingHours;
+
+    @Column(name = "social_links", columnDefinition = "jsonb")
+    private String socialLinks;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

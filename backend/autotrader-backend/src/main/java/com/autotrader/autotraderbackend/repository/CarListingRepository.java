@@ -40,6 +40,16 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
     // Find listings by seller
     List<CarListing> findBySeller(User seller);
 
+    Page<CarListing> findBySellerAndApprovedTrueAndArchivedFalse(User seller, Pageable pageable);
+
+    Page<CarListing> findBySellerAndApprovedTrueAndSoldFalseAndArchivedFalse(User seller, Pageable pageable);
+
+    long countBySellerAndApprovedTrue(User seller);
+
+    long countBySellerAndApprovedTrueAndSoldTrue(User seller);
+
+    long countBySellerAndApprovedTrueAndSoldFalseAndArchivedFalse(User seller);
+
     // Find listings pending approval
     Page<CarListing> findByApprovedFalse(Pageable pageable);
 

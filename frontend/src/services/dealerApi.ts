@@ -29,7 +29,25 @@ export interface DealerProfile {
   vatNumber?: string;
   tradingAddress?: string;
   logoUrl?: string;
+  bannerUrl?: string;
+  description?: string;
+  descriptionAr?: string;
+  workingHours?: string;
+  socialLinks?: string;
   trialStatus: TrialStatus;
+}
+
+export interface DealerProfileUpdateRequest {
+  businessName?: string;
+  tradingAddress?: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  description?: string;
+  descriptionAr?: string;
+  workingHours?: string;
+  socialLinks?: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -145,6 +163,32 @@ export async function getDealerProfile(): Promise<DealerProfile> {
       throw error;
     }
     console.error('[DealerAPI] Error fetching dealer profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update dealer public profile fields (authenticated)
+ */
+export async function updateDealerProfile(
+  updateRequest: DealerProfileUpdateRequest
+): Promise<DealerProfile> {
+  try {
+    const response = await apiRequest(`${API_BASE_URL}/api/dealer/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateRequest),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update dealer profile: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('[DealerAPI] Error updating dealer profile:', error);
     throw error;
   }
 }

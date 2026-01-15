@@ -162,4 +162,68 @@ public class DealerService {
 
         return savedDealer;
     }
+
+    /**
+     * Update dealer public profile fields (Phase 1 MVP).
+     */
+    @Transactional
+    public Dealer updatePublicProfile(Dealer dealer, com.autotrader.autotraderbackend.payload.request.DealerProfileUpdateRequest updateRequest) {
+        log.info("Updating dealer public profile for user: {}", dealer.getUser().getUsername());
+
+        if (updateRequest.getBusinessName() != null) {
+            dealer.setBusinessName(updateRequest.getBusinessName().trim());
+        }
+        if (updateRequest.getTradingAddress() != null) {
+            dealer.setTradingAddress(updateRequest.getTradingAddress().trim());
+        }
+        if (updateRequest.getBusinessPhone() != null) {
+            dealer.setBusinessPhone(updateRequest.getBusinessPhone().trim());
+        }
+        if (updateRequest.getBusinessEmail() != null) {
+            String email = updateRequest.getBusinessEmail().trim();
+            if (!email.isEmpty()) {
+                if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                    throw new IllegalArgumentException("Invalid business email format");
+                }
+                if (dealerRepository.existsByBusinessEmail(email, dealer.getId())) {
+                    throw new IllegalArgumentException("Business email is already in use");
+                }
+            }
+            dealer.setBusinessEmail(email.isEmpty() ? null : email);
+        }
+
+        if (updateRequest.getLogoUrl() != null) {
+            String logoUrl = updateRequest.getLogoUrl().trim();
+            if (!logoUrl.isEmpty() && !logoUrl.matches("^https?://.*")) {
+                throw new IllegalArgumentException("Logo URL must be a valid HTTP/HTTPS URL");
+            }
+            dealer.setLogoUrl(logoUrl.isEmpty() ? null : logoUrl);
+        }
+
+        if (updateRequest.getBannerUrl() != null) {
+            String bannerUrl = updateRequest.getBannerUrl().trim();
+            if (!bannerUrl.isEmpty() && !bannerUrl.matches("^https?://.*")) {
+                throw new IllegalArgumentException("Banner URL must be a valid HTTP/HTTPS URL");
+            }
+            dealer.setBannerUrl(bannerUrl.isEmpty() ? null : bannerUrl);
+        }
+
+        if (updateRequest.getDescription() != null) {
+            dealer.setDescription(updateRequest.getDescription());
+        }
+        if (updateRequest.getDescriptionAr() != null) {
+            dealer.setDescriptionAr(updateRequest.getDescriptionAr());
+        }
+        if (updateRequest.getWorkingHours() != null) {
+            dealer.setWorkingHours(updateRequest.getWorkingHours());
+        }
+        if (updateRequest.getSocialLinks() != null) {
+            dealer.setSocialLinks(updateRequest.getSocialLinks());
+        }
+
+        Dealer savedDealer = dealerRepository.save(dealer);
+        log.info("Dealer public profile updated successfully for ID: {}", savedDealer.getId());
+
+        return savedDealer;
+    }
 }

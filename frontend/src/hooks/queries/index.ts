@@ -50,8 +50,16 @@ export {
   usePaymentHistory,
   usePaymentStatus,
   useCreateSubscription,
+  useUpdateDealerProfile,
   dealerKeys,
 } from './useDealer';
+
+// Public dealer hooks
+export {
+  usePublicDealerProfile,
+  usePublicDealerListings,
+  publicDealerKeys,
+} from './usePublicDealer';
 
 // Messaging hooks
 export {

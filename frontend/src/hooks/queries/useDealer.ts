@@ -10,6 +10,7 @@ import {
   getDealerTrialStatus,
   canCreateListing,
   getDealerProfile,
+  updateDealerProfile,
   getPaymentHistory,
   getPaymentStatus,
   createSubscription,
@@ -22,6 +23,7 @@ export const dealerKeys = {
   all: ['dealer'] as const,
   trial: () => [...dealerKeys.all, 'trial'] as const,
   profile: () => [...dealerKeys.all, 'profile'] as const,
+  publicProfile: () => [...dealerKeys.all, 'publicProfile'] as const,
   canCreate: () => [...dealerKeys.all, 'canCreate'] as const,
   payments: () => [...dealerKeys.all, 'payments'] as const,
   paymentHistory: () => [...dealerKeys.payments(), 'history'] as const,
@@ -161,6 +163,21 @@ export function useCreateSubscription() {
     onSuccess: () => {
       // Invalidate dealer-related queries as subscription affects them
       queryClient.invalidateQueries({ queryKey: dealerKeys.all });
+    },
+  });
+}
+
+/**
+ * Mutation hook to update dealer profile
+ */
+export function useUpdateDealerProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateDealerProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dealerKeys.profile() });
+      queryClient.invalidateQueries({ queryKey: dealerKeys.publicProfile() });
     },
   });
 }

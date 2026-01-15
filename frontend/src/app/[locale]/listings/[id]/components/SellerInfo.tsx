@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Link from 'next/link';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useSession } from 'next-auth/react';
 import { formatDate } from '@/utils/localization';
@@ -116,6 +117,17 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing, onBlock }) => {
             </div>
           </div>
         </div>
+
+        {isDealer && listing.seller?.id && (
+          <div className="mb-4">
+            <Link
+              href={`/${locale}/dealers/${listing.seller.id}`}
+              className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              {t('seller.viewDealerProfile', 'View dealer profile')}
+            </Link>
+          </div>
+        )}
 
         {/* Response Time */}
         <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg mb-4">
