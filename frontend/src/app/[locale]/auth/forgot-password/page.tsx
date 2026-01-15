@@ -1,26 +1,37 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import { isValidEmail } from '@/utils/emailValidation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { forgotPasswordSchema, ForgotPasswordFormData } from '@/lib/validations/auth';
 
 const ForgotPasswordPage: React.FC = () => {
   const { t } = useTranslation(['auth', 'errors']);
-  const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [emailValid, setEmailValid] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Email validation using robust utility
-  useEffect(() => {
-    setEmailValid(isValidEmail(email.trim()));
-  }, [email]);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+    reset,
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const email = watch('email');
+  const emailValid = isValid && email.length > 0;
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     setSubmitting(true);
     setMessage(null);
     setError(null);
@@ -32,10 +43,10 @@ const ForgotPasswordPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: data.email.trim() }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
         setMessage(
@@ -43,9 +54,9 @@ const ForgotPasswordPage: React.FC = () => {
             'If the email exists, a password reset link has been sent. Please check your email.')
         );
         setShowSuccess(true);
-        setEmail(''); // Clear email for security
+        reset(); // Clear form for security
       } else {
-        setError(data.message || t('errors:general', 'An error occurred. Please try again.'));
+        setError(responseData.message || t('errors:general', 'An error occurred. Please try again.'));
       }
     } catch (_e) {
       setError(t('errors:networkError', 'Network error. Please check your connection and try again.'));
@@ -120,7 +131,7 @@ const ForgotPasswordPage: React.FC = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     {t('auth:email', 'Email Address')}
@@ -129,18 +140,17 @@ const ForgotPasswordPage: React.FC = () => {
                     <input
                       id="email"
                       type="email"
-                      required
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
+                      {...register('email')}
                       className={`w-full h-12 ltr:pl-12 ltr:pr-4 rtl:pr-12 rtl:pl-4 rounded-lg border-2 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        email && !emailValid
+                        errors.email
                           ? 'border-red-300 dark:border-red-600 focus:border-red-500'
-                          : email && emailValid
+                          : emailValid
                             ? 'border-green-300 dark:border-green-600 focus:border-green-500'
                             : 'border-gray-200 dark:border-gray-600 focus:border-blue-500'
                       }`}
                       placeholder={t('auth:emailPlaceholder', 'Enter your email address')}
                       aria-describedby="email-help"
+                      aria-invalid={errors.email ? 'true' : 'false'}
                     />
                     <div className="absolute ltr:left-4 rtl:right-4 top-1/2 transform -translate-y-1/2">
                       <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,12 +171,18 @@ const ForgotPasswordPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <p id="email-help" className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {t('auth:forgotPasswordHelp', 'We\'ll send an email if the address is registered.')}
-                  </p>
+                  {errors.email ? (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {t(errors.email.message as string, errors.email.message)}
+                    </p>
+                  ) : (
+                    <p id="email-help" className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                      <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {t('auth:forgotPasswordHelp', 'We\'ll send an email if the address is registered.')}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -200,24 +216,17 @@ const ForgotPasswordPage: React.FC = () => {
         </div>
 
         {/* Footer */}
-        {!showSuccess && (
-          <div className="text-center mt-6">
-            <Link
-              href="/auth/signin"
-              className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
-            >
-              <svg className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              {t('auth:backToSignIn', 'Back to Sign In')}
+        <div className="mt-6 text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            {t('auth:rememberedPassword', 'Remembered your password?')}{' '}
+            <Link href="/auth/signin" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              {t('auth:signIn', 'Sign In')}
             </Link>
-          </div>
-        )}
+          </p>
+        </div>
       </div>
     </div>
   );
 };
 
 export default ForgotPasswordPage;
-
-
