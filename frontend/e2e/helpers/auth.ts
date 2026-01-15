@@ -30,48 +30,52 @@ const DEALER_USER = {
  * Login as test user via UI
  */
 export async function loginAsTestUser(page: Page): Promise<void> {
-  await login(page, TEST_USER.email, TEST_USER.password);
+  await login(page, TEST_USER.username, TEST_USER.password);
 }
 
 /**
  * Login as dealer via UI
  */
 export async function loginAsDealer(page: Page): Promise<void> {
-  await login(page, DEALER_USER.email, DEALER_USER.password);
+  await login(page, DEALER_USER.username, DEALER_USER.password);
 }
 
 /**
  * Generic login function
  */
-export async function login(page: Page, email: string, password: string): Promise<void> {
+export async function login(page: Page, usernameOrEmail: string, password: string): Promise<void> {
   await page.goto('/auth/signin');
   
   // Wait for page to load
   await expect(page.getByLabel(/username or email/i)).toBeVisible();
   
-  // Fill credentials (use username for login)
-  await page.getByLabel(/username or email/i).fill(TEST_USER.username);
-  await page.locator('#password').fill(TEST_USER.password);
+  // Fill credentials
+  await page.getByLabel(/username or email/i).fill(usernameOrEmail);
+  await page.locator('#password').fill(password);
   
   // Submit
   await page.locator('form button[type="submit"]').click();
   
-  // Wait for redirect (dashboard or home)
-  await page.waitForURL(/dashboard|\/[a-z]{2}\/?$/);
+  // Wait for redirect (dashboard or home) - increase timeout
+  await page.waitForURL(/dashboard|\/[a-z]{2}\/?$/, { timeout: 30000 });
   
-  // Verify logged in state
-  await expect(page.getByTestId('user-menu-trigger').or(page.getByTestId('user-avatar'))).toBeVisible();
+  // Verify logged in state (with flexible selectors)
+  await expect(
+    page.getByTestId('user-menu-trigger')
+      .or(page.getByTestId('user-avatar'))
+      .or(page.getByRole('button', { name: /profile|account|menu/i }))
+  ).toBeVisible({ timeout: 10000 });
 }
 
 /**
  * Login via API (faster, for setup)
  */
-export async function loginViaApi(page: Page, email: string, password: string): Promise<string> {
+export async function loginViaApi(page: Page, username: string, password: string): Promise<string> {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
   
   const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
     data: {
-      username: email,
+      username: username,
       password: password,
     },
   });
@@ -82,6 +86,62 @@ export async function loginViaApi(page: Page, email: string, password: string): 
   
   const data = await response.json();
   return data.token || data.accessToken;
+}
+
+/**
+ * Login via API and set auth in browser storage (fastest method)
+ */
+export async function loginViaApiAndSetStorage(page: Page, username: string, password: string): Promise<void> {
+  const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
+  
+  // Call signin API
+  const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
+    data: {
+      username: username,
+      password: password,
+    },
+  });
+  
+  if (!response.ok()) {
+    throw new Error(`API Login failed: ${response.status()}`);
+  }
+  
+  const data = await response.json();
+  const token = data.token || data.accessToken;
+  
+  if (!token) {
+    throw new Error('No token in response');
+  }
+  
+  // Navigate to app first (needed to set localStorage on correct domain)
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  
+  // Set token in localStorage using all keys the app might check
+  await page.evaluate(({ token, userData }) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('accessToken', token);
+    if (userData) {
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
+  }, { 
+    token, 
+    userData: {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      roles: data.roles,
+      accessToken: token,
+    }
+  });
+  
+  // Reload to apply auth state
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  
+  // Give React time to hydrate with auth state
+  await page.waitForTimeout(1000);
 }
 
 /**

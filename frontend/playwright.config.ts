@@ -88,12 +88,9 @@ export default defineConfig({
   //   },
   // ],
 
-  // Global setup/teardown
-  // Enable in CI or when backend is running
-  ...(process.env.CI && {
-    globalSetup: './e2e/global-setup.ts',
-    globalTeardown: './e2e/global-teardown.ts',
-  }),
+  // Global setup/teardown - runs health check and verifies test data
+  globalSetup: './e2e/global-setup.ts',
+  globalTeardown: './e2e/global-teardown.ts',
 
   // Output folder for test artifacts
   outputDir: 'e2e/test-results',
