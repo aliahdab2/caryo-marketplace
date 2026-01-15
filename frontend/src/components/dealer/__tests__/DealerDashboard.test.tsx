@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
@@ -7,7 +8,7 @@ import { useDirection } from '@/utils/direction';
 import DealerDashboard from '../DealerDashboard';
 import * as dealerApi from '@/services/dealerApi';
 import * as listingsService from '@/services/listings';
-import { apiRequest } from '@/services/auth/session-manager';
+import * as favoritesService from '@/services/favorites';
 import { getUserSavedSearches } from '@/services/savedSearches';
 
 // Mock all dependencies
@@ -24,15 +25,27 @@ jest.mock('@/hooks/useLanguageSwitching');
 jest.mock('@/utils/direction');
 jest.mock('@/services/dealerApi');
 jest.mock('@/services/listings');
-jest.mock('@/services/auth/session-manager', () => ({
-  apiRequest: jest.fn()
-}));
 jest.mock('@/services/savedSearches', () => ({
   getUserSavedSearches: jest.fn()
 }));
 jest.mock('@/services/favorites', () => ({
-  getFavoriteListings: jest.fn()
+  getFavoriteListings: jest.fn(),
+  getUserFavorites: jest.fn()
 }));
+
+// Helper to create a wrapper with QueryClientProvider
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 // Mock child components
 jest.mock('../TrialBanner', () => {
@@ -129,42 +142,30 @@ describe('DealerDashboard', () => {
       dirClass: 'ltr'
     });
 
-    // Mock API calls
+    // Mock API calls - these are used by React Query hooks
     (dealerApi.getDealerTrialStatus as jest.Mock).mockResolvedValue(mockTrialStatus);
     (listingsService.getMyListings as jest.Mock).mockResolvedValue(mockListings);
     (getUserSavedSearches as jest.Mock).mockResolvedValue([]);
-    
-    // Mock apiRequest for favorites
-    (apiRequest as jest.Mock).mockImplementation((url) => {
-      if (url && url.includes('/api/favorites')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ favorites: [] }),
-          text: async () => JSON.stringify({ favorites: [] })
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({}),
-        text: async () => JSON.stringify({})
-      });
-    });
+    (favoritesService.getUserFavorites as jest.Mock).mockResolvedValue([]);
   });
 
   it('should render without crashing', () => {
-    const { container } = render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    const { container } = render(<DealerDashboard />, { wrapper: Wrapper });
     expect(container.firstChild).not.toBeNull();
   });
 
   it('should display loading state initially', () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
     // Check for loading skeleton
     const loadingElements = screen.getAllByRole('generic');
     expect(loadingElements.length).toBeGreaterThan(0);
   });
 
   it('should load and display trial status', async () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(dealerApi.getDealerTrialStatus).toHaveBeenCalled();
@@ -176,7 +177,8 @@ describe('DealerDashboard', () => {
   });
 
   it('should load and display recent listings', async () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(listingsService.getMyListings).toHaveBeenCalled();
@@ -188,7 +190,8 @@ describe('DealerDashboard', () => {
   });
 
   it('should display dashboard statistics', async () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(mockT).toHaveBeenCalledWith('activeListings');
@@ -204,7 +207,8 @@ describe('DealerDashboard', () => {
       new Error('Trial API failed')
     );
 
-    const { container } = render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    const { container } = render(<DealerDashboard />, { wrapper: Wrapper });
 
     // Dashboard should still render even if trial API fails
     expect(container.firstChild).not.toBeNull();
@@ -216,7 +220,8 @@ describe('DealerDashboard', () => {
   });
 
   it('should display quick action buttons', async () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(mockT).toHaveBeenCalledWith('createListing');
@@ -226,7 +231,8 @@ describe('DealerDashboard', () => {
   });
 
   it('should show upgrade button for trial users', async () => {
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       expect(mockT).toHaveBeenCalledWith('upgradeModal:title');
@@ -241,7 +247,8 @@ describe('DealerDashboard', () => {
 
     (dealerApi.getDealerTrialStatus as jest.Mock).mockResolvedValue(paidTrialStatus);
 
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       // Upgrade button should not be present
@@ -255,11 +262,12 @@ describe('DealerDashboard', () => {
       new Error('API Error')
     );
 
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      // Should still render without crashing
-      expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+      // Should show error display component
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
     });
   });
 
@@ -268,7 +276,8 @@ describe('DealerDashboard', () => {
       currentLang: 'ar'
     });
 
-    render(<DealerDashboard />);
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
 
     await waitFor(() => {
       // Should use Arabic locale for number formatting

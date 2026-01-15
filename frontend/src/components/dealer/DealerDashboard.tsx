@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptimizedSession } from '@/hooks/useOptimizedSession';
 import { 
@@ -17,176 +17,71 @@ import {
 import Link from 'next/link';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { formatNumber } from '@/utils/localization';
-import { getMyListings } from '@/services/listings';
-import { Listing } from '@/types/listings';
 import { ListingsView } from '@/components/listings';
 
 // Import our new trial components
 import TrialBanner from './TrialBanner';
 import UpgradeModal from './UpgradeModal';
 
-// Import API services
+// Import React Query hooks
 import { 
-  getDealerTrialStatus, 
-  DealerFeatureNotAvailableError,
-  createSubscription,
-  type TrialStatus 
-} from '@/services/dealerApi';
+  useMyListings, 
+  useFavorites, 
+  useSavedSearches,
+  useDealerTrialStatus,
+  useCreateSubscription
+} from '@/hooks/queries';
 
-interface DashboardStats {
-  totalListings: number;
-  activeListings: number;
-  views: number;
-  inquiries: number;
-  favorites: number;
-  alerts: number;
-}
+// Import common components
+import { LoadingSkeleton, ErrorDisplay } from '@/components/common';
 
 export default function DealerDashboard() {
   const { t } = useTranslation(['dashboard', 'common', 'listings', 'search', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
   const { user: session } = useOptimizedSession();
 
-  // State management
-  const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    totalListings: 0,
-    activeListings: 0,
-    views: 0,
-    inquiries: 0,
-    favorites: 0,
-    alerts: 0
-  });
-  const [recentListings, setRecentListings] = useState<Listing[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [listingsLoading, setListingsLoading] = useState(true);
+  // UI State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Load all dashboard data on component mount
-  useEffect(() => {
-    loadDashboardData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // React Query hooks for data fetching
+  const { data: trialStatus } = useDealerTrialStatus();
+  const { data: favorites = [] } = useFavorites();
+  const { data: savedSearches = [] } = useSavedSearches();
+  const { 
+    data: listings = [], 
+    isLoading: listingsLoading,
+    error: listingsError,
+    refetch: refetchListings
+  } = useMyListings();
 
-  const loadDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // Subscription mutation
+  const subscriptionMutation = useCreateSubscription();
 
-      // Load trial status (optional - graceful fallback if not available)
-      try {
-        const trialData = await getDealerTrialStatus();
-        setTrialStatus(trialData);
-      } catch (err) {
-        // Expected: User may not be a dealer, or trial not set up yet
-        // Dashboard works perfectly without trial features
-        if (!(err instanceof DealerFeatureNotAvailableError)) {
-          // Only log unexpected errors
-          console.error('[DASHBOARD] Unexpected error loading trial status:', err);
-        }
-        // Silent fallback for DealerFeatureNotAvailableError
-      }
+  // Computed values using useMemo
+  const recentListings = useMemo(() => {
+    return [...listings]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+  }, [listings]);
 
-      // Load real data from APIs (keeping original functionality)
-      const [favoritesData, savedSearchesData] = await Promise.all([
-        loadFavoritesCount(),
-        loadSavedSearchesCount()
-      ]);
-
-      setDashboardStats(prev => ({
-        ...prev,
-        favorites: favoritesData,
-        alerts: savedSearchesData
-      }));
-
-    } catch (err) {
-      console.error('Error loading dealer data:', err);
-      setError('Failed to load dashboard data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load favorites count (from original dashboard)
-  const loadFavoritesCount = async (): Promise<number> => {
-    try {
-      const { apiRequest } = await import('@/services/auth/session-manager');
-      const favoritesUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/favorites`;
-      const response = await apiRequest(favoritesUrl, { method: 'GET' });
-
-      if (response.ok) {
-        const text = await response.text();
-        const data = text ? JSON.parse(text) : [];
-        
-        if (Array.isArray(data)) return data.length;
-        if (data?.favorites) return data.favorites.length;
-        if (data?.data) return data.data.length;
-      }
-      return 0;
-    } catch (error) {
-      console.error('[DASHBOARD] Error fetching favorites:', error);
-      return 0;
-    }
-  };
-
-  // Load saved searches count (from original dashboard)
-  const loadSavedSearchesCount = async (): Promise<number> => {
-    try {
-      const { getUserSavedSearches } = await import('@/services/savedSearches');
-      const savedSearches = await getUserSavedSearches();
-      return savedSearches.length;
-    } catch (error) {
-      console.error('[DASHBOARD] Error fetching saved searches:', error);
-      return 0;
-    }
-  };
-
-  // Load recent listings (from original dashboard)
-  useEffect(() => {
-    const loadRecentListings = async () => {
-      try {
-        setListingsLoading(true);
-        const myListings = await getMyListings();
-        
-        // Sort by creation date and take first 5
-        const sortedListings = myListings
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, 5);
-
-        setRecentListings(sortedListings);
-        
-        // Update stats with real listings data
-        setDashboardStats(prev => ({
-          ...prev,
-          totalListings: myListings.length,
-          activeListings: myListings.filter(l => l.status === 'active').length,
-          // Mock data for views/inquiries (you can replace with real data later)
-          views: Math.floor(Math.random() * 1000) + 100,
-          inquiries: Math.floor(Math.random() * 50) + 5
-        }));
-      } catch (error) {
-        console.error('[DASHBOARD] Failed to load recent listings:', error);
-        setRecentListings([]);
-      } finally {
-        setListingsLoading(false);
-      }
-    };
-
-    loadRecentListings();
-  }, []);
+  const dashboardStats = useMemo(() => ({
+    totalListings: listings.length,
+    activeListings: listings.filter(l => l.status === 'active').length,
+    views: Math.floor(Math.random() * 1000) + 100, // Mock data - replace with real data when available
+    inquiries: Math.floor(Math.random() * 50) + 5, // Mock data - replace with real data when available
+    favorites: favorites.length,
+    alerts: savedSearches.length
+  }), [listings, favorites.length, savedSearches.length]);
 
   const handleUpgradeClick = () => {
     setShowUpgradeModal(true);
   };
 
-  const handleSelectPayment = async (tierId: string, paymentMethod: string) => {
+  const handleSelectPayment = async (tierId: string, _paymentMethod: string) => {
     try {
-      console.log('Selected payment:', { tierId, paymentMethod });
-      const result = await createSubscription(tierId);
+      const result = await subscriptionMutation.mutateAsync(tierId);
       if (result.success) {
         alert(`Subscription created! Transaction ID: ${result.transactionId}\n\n${result.paymentInstructions}`);
-        await loadDashboardData();
       }
     } catch (error) {
       console.error('Upgrade error:', error);
@@ -194,44 +89,29 @@ export default function DealerDashboard() {
     }
   };
 
-  if (isLoading) {
+  // Loading state
+  if (listingsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              ))}
-            </div>
+          <LoadingSkeleton className="h-8 w-64 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <LoadingSkeleton key={i} className="h-32 rounded-lg" />
+            ))}
           </div>
+          <LoadingSkeleton className="h-64 rounded-lg" />
         </div>
       </div>
     );
   }
 
-  if (error) {
+  // Error state
+  if (listingsError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-            <div className="flex items-center space-x-3 rtl:space-x-reverse">
-              <MdWarning className="w-6 h-6 text-red-600" />
-              <div>
-                <h3 className="font-semibold text-red-900 dark:text-red-100">
-                  {t('error.title')}
-                </h3>
-                <p className="text-red-700 dark:text-red-300">{error}</p>
-                <button
-                  onClick={loadDashboardData}
-                  className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  {t('common.retry')}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ErrorDisplay error={listingsError} retry={refetchListings} />
         </div>
       </div>
     );

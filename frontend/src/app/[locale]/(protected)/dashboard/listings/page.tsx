@@ -3,10 +3,9 @@
 // Disable static generation for this page since it uses session data
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { getMyListings, deleteListingById, deleteMultipleListings } from "@/services/listings";
-import { Listing } from "@/types/listings";
+import { useMyListings, useDeleteListing, useDeleteMultipleListings } from "@/hooks/queries";
 import { ListingsView } from "@/components/listings";
 import {
   MdSearch,
@@ -19,67 +18,46 @@ import { useDirection } from '@/utils/direction';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
+import { ListSkeleton } from '@/components/common';
+import { ErrorDisplay } from '@/components/common';
 
 export default function ListingsPage() {
   // Server layout ensures user is authenticated, no need for client auth check
-	const [search, setSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState("all");
-	const [sortBy, setSortBy] = useState("newest");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-	const [listings, setListings] = useState<Listing[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  // Removed mobile sort toggle - not needed with compact design
-  // const [tableRefreshed, setTableRefreshed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 
   const { t } = useTranslation(['dashboard', 'listings', 'common']);
   const { isRTL } = useDirection();
 
+  // React Query hooks for data fetching
+  const { 
+    data: listings = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useMyListings();
+  
+  const deleteMutation = useDeleteListing();
+  const bulkDeleteMutation = useDeleteMultipleListings();
+
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation({
     namespace: 'listings',
     onDelete: async (id: string) => {
-      await deleteListingById(id);
-      setListings(prev => prev.filter(listing => listing.id !== id));
+      await deleteMutation.mutateAsync(id);
     },
     onBulkDelete: async (ids: string[]) => {
-      await deleteMultipleListings(ids);
-      setListings(prev => prev.filter(listing => !ids.includes(listing.id)));
+      await bulkDeleteMutation.mutateAsync(ids);
       setSelectedItems([]);
     },
     onError: (error) => {
       console.error('Failed to delete listing(s):', error);
     }
   });
-
-  // Load user's listings from API with optimizations
-  useEffect(() => {
-    const loadListings = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Server layout ensures user is authenticated, fetch listings directly
-        const userListings = await getMyListings().catch(() => null);
-        if (userListings) {
-          setListings(userListings);
-        } else {
-          // Retry listings fetch if it failed
-          const retryListings = await getMyListings();
-          setListings(retryListings);
-        }
-      } catch (err) {
-        console.error('Failed to load listings:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load listings');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadListings();
-  }, []); // No dependency on user since server auth ensures it's available
 
   // Hook for the sticky header effect
   useEffect(() => {
@@ -147,63 +125,23 @@ export default function ListingsPage() {
     setSelectedItems([]);
   };
 
-  // Loading State - Skeleton instead of spinner for better UX
-  if (loading) {
+  // Loading State - Using standardized ListSkeleton
+  if (isLoading) {
     return (
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Breadcrumb Skeleton */}
-          <div className="mb-6">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
-          </div>
+          <ListSkeleton count={5} />
+        </div>
+      </div>
+    );
+  }
 
-          {/* Header Skeleton */}
-          <div className="mb-6">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
-          </div>
-
-          {/* Stats Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl p-4 border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2"></div>
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-12"></div>
-              </div>
-            ))}
-          </div>
-
-          {/* Filters Skeleton */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded flex-1 min-w-[200px]"></div>
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-            </div>
-          </div>
-
-          {/* Listings Skeleton */}
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center gap-6">
-                  <div className="w-24 h-18 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
-                  <div className="flex-1">
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3"></div>
-                    <div className="flex gap-2">
-                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+  // Error State - Using standardized ErrorDisplay
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          <ErrorDisplay error={error} retry={refetch} />
         </div>
       </div>
     );
@@ -244,23 +182,8 @@ export default function ListingsPage() {
             <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">{listings.filter(l => l.status === 'pending').length}</div>
           </div>
         </div>
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center mb-6">
-            <div className="text-red-600 dark:text-red-400 text-lg mb-2">⚠️ {t('error')}</div>
-            <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
-            >
-              {t('tryAgain')}
-            </button>
-          </div>
-        )}
 
-
-
-			{/* Compact Filters & Search */}
+        {/* Compact Filters & Search */}
 			<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
@@ -349,22 +272,21 @@ export default function ListingsPage() {
         </div>
       )}
 
-			{/* Listings Display - Using Unified Component */}
-      <ListingsView
-        listings={filteredListings}
-        loading={false}
-        variant="full"
-        showHeader={false}
-        showSearch={false}
-        showFilters={false}
-        showBulkActions={false}
-        showActions={true}
-        showViewAllLink={false}
-        onDelete={async (id: string) => {
-          await deleteListingById(id);
-          setListings(prev => prev.filter(listing => listing.id !== id));
-        }}
-      />
+        {/* Listings Display - Using Unified Component */}
+        <ListingsView
+          listings={filteredListings}
+          loading={false}
+          variant="full"
+          showHeader={false}
+          showSearch={false}
+          showFilters={false}
+          showBulkActions={false}
+          showActions={true}
+          showViewAllLink={false}
+          onDelete={async (id: string) => {
+            await deleteMutation.mutateAsync(id);
+          }}
+        />
 
 			{/* Help box */}
 			<div className="mt-8 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-100 dark:border-blue-800">

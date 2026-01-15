@@ -13,6 +13,7 @@ import {
   createListing,
   updateListing,
   deleteListingById,
+  deleteMultipleListings,
   getFeaturedListings,
 } from '@/services/listings';
 import { ListingFilters, Listing, ListingFormData, UpdateListingData } from '@/types/listings';
@@ -158,6 +159,30 @@ export function useDeleteListing() {
     onSuccess: (_data, id) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: listingKeys.detail(id) });
+      // Invalidate list queries
+      queryClient.invalidateQueries({ queryKey: listingKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: listingKeys.myListings() });
+    },
+  });
+}
+
+/**
+ * Mutation hook to delete multiple listings at once
+ * 
+ * @example
+ * const bulkDeleteMutation = useDeleteMultipleListings();
+ * await bulkDeleteMutation.mutateAsync(['123', '456', '789']);
+ */
+export function useDeleteMultipleListings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => deleteMultipleListings(ids),
+    onSuccess: (_data, ids) => {
+      // Remove each listing from cache
+      ids.forEach(id => {
+        queryClient.removeQueries({ queryKey: listingKeys.detail(id) });
+      });
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: listingKeys.lists() });
       queryClient.invalidateQueries({ queryKey: listingKeys.myListings() });

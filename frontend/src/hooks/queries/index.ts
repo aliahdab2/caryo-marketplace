@@ -17,6 +17,7 @@ export {
   useCreateListing,
   useUpdateListing,
   useDeleteListing,
+  useDeleteMultipleListings,
   listingKeys,
 } from './useListings';
 
