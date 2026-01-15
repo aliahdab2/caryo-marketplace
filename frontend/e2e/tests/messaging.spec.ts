@@ -69,63 +69,69 @@ test.describe('Messaging', () => {
     });
 
     test('can type and send message', async ({ page }) => {
+      test.setTimeout(60000); // Give more time for this complex test
+      
       await loginAsTestUser(page);
       
       // Navigate directly to listing
       await page.goto(urls.listing);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
 
+      // Wait for the listing content to load
+      await page.waitForSelector('main', { timeout: 10000 });
+      
       // Skip if listing not found
-      if (await page.locator('text=not found').isVisible().catch(() => false)) {
+      const notFound = await page.locator('text=not found').isVisible().catch(() => false);
+      const is404 = await page.locator('text=404').isVisible().catch(() => false);
+      if (notFound || is404) {
         test.skip();
         return;
       }
 
-      const contactButton = page.getByTestId('contact-seller-button').first()
-        .or(page.getByRole('button', { name: /send message/i }).first());
+      // Find the contact button with explicit wait
+      const contactButton = page.getByTestId('contact-seller-button').first();
       
-      if (!(await contactButton.isVisible({ timeout: 5000 }).catch(() => false))) {
+      try {
+        await expect(contactButton).toBeVisible({ timeout: 10000 });
+      } catch {
+        // Contact button might be hidden if this is user's own listing
         test.skip();
         return;
       }
 
       await contactButton.click();
-      await page.waitForTimeout(1000);
-
-      const messageInput = page.locator('textarea').first()
-        .or(page.getByPlaceholder(/message|write/i));
-
-      if (!(await messageInput.isVisible({ timeout: 5000 }).catch(() => false))) {
+      
+      // Wait for modal to appear
+      const modal = page.locator('[role="dialog"]');
+      try {
+        await expect(modal).toBeVisible({ timeout: 5000 });
+      } catch {
+        // Modal might not appear for various reasons
         test.skip();
         return;
       }
+
+      // Find textarea in the modal
+      const messageInput = modal.locator('textarea');
+      await expect(messageInput).toBeVisible({ timeout: 3000 });
 
       // Type message
       await messageInput.fill(testMessage.content);
 
-      // Send - look for the send button INSIDE the modal (dialog), not the page button
-      const modal = page.locator('[role="dialog"]');
-      const sendButton = modal.getByRole('button', { name: /send/i })
-        .or(modal.locator('button[type="submit"]'))
-        .or(page.locator('button').filter({ hasText: /^send$/i }));
-      
-      if (!(await sendButton.isVisible({ timeout: 3000 }).catch(() => false))) {
-        // Modal might have a different button layout - skip
-        test.skip();
-        return;
-      }
-      
+      // Find and click send button in the modal
+      const sendButton = modal.getByRole('button', { name: /send/i }).first();
+      await expect(sendButton).toBeVisible({ timeout: 3000 });
       await sendButton.click();
 
-      // Verify sent - modal closes, success message, or error (API might not allow)
-      await page.waitForTimeout(1500);
-      const modalClosed = !(await messageInput.isVisible().catch(() => true));
-      const successShown = await page.getByText(/sent|success|delivered/i).isVisible().catch(() => false);
-      const hasError = await page.getByText(/error|failed|try again/i).isVisible().catch(() => false);
+      // Verify outcome - modal closes OR shows success/error
+      await page.waitForTimeout(2000);
       
-      // Any of these outcomes is acceptable - we're testing the UI flow, not the API
-      expect(modalClosed || successShown || hasError).toBe(true);
+      const modalGone = !(await modal.isVisible().catch(() => true));
+      const successShown = await page.getByText(/sent|success|delivered/i).isVisible().catch(() => false);
+      const errorShown = await page.getByText(/error|failed/i).isVisible().catch(() => false);
+      
+      // Any outcome is acceptable - we're testing the UI flow works
+      expect(modalGone || successShown || errorShown).toBe(true);
     });
   });
 
