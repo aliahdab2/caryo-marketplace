@@ -12,6 +12,13 @@
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
 import { createLogger } from '@/utils/logger';
+import { 
+  step1Schema, 
+  step2Schema, 
+  step3Schema, 
+  step4Schema,
+  getValidationErrors 
+} from '@/lib/validations/listing';
 
 /**
  * Form validation constants for multi-step forms
@@ -352,6 +359,50 @@ type ValidationMode = 'final' | 'navigation' | 'accessibility';
 function getRequiredFieldsForMode(step: number, mode: ValidationMode): Array<keyof ListingFormData> {
   if (mode === 'final') return REQUIRED_FIELDS_BY_STEP[step] || [];
   return BLOCKING_REQUIRED_FIELDS_BY_STEP[step] || [];
+}
+
+/**
+ * Validate a step using Zod schemas
+ * This is the modern validation approach using centralized schemas
+ * @param step - Step number (1-4)
+ * @param formData - Form data to validate
+ * @param t - Translation function for error messages
+ * @returns FormErrors object with translated error messages
+ */
+export function validateStepWithZod(
+  step: number,
+  formData: ListingFormData,
+  t: (key: string, fallback: string) => string
+): FormErrors {
+  const schemas = {
+    1: step1Schema,
+    2: step2Schema,
+    3: step3Schema,
+    4: step4Schema,
+  };
+
+  const schema = schemas[step as 1 | 2 | 3 | 4];
+  if (!schema) {
+    formLogger.warn(`[validateStepWithZod] Unknown step: ${step}`);
+    return {};
+  }
+
+  const result = schema.safeParse(formData);
+  
+  if (result.success) {
+    return {};
+  }
+
+  // Convert Zod errors to FormErrors with translations
+  const zodErrors = getValidationErrors(result);
+  const translatedErrors: FormErrors = {};
+
+  for (const [field, messageKey] of Object.entries(zodErrors)) {
+    // Translate the error message key
+    translatedErrors[field] = t(messageKey, messageKey);
+  }
+
+  return translatedErrors;
 }
 
 export const validateStep = (
