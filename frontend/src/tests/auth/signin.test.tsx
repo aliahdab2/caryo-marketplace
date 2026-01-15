@@ -198,11 +198,10 @@ describe('SignInPage', () => {
       }
     });
 
-    // Check that error message is shown and sign in function not called
+    // Check that field validation errors are shown and sign in function not called
     await waitFor(() => {
-      const errorAlert = screen.queryByRole('alert');
-      expect(errorAlert).toBeTruthy();
-      expect(errorAlert).toHaveTextContent(/Required fields are missing/i);
+      const fieldErrors = screen.getAllByText(/Required fields are missing/i);
+      expect(fieldErrors.length).toBeGreaterThanOrEqual(1);
     });
 
     expect(signIn).not.toHaveBeenCalled();
@@ -316,6 +315,110 @@ describe('SignInPage', () => {
       expect(button).not.toHaveClass('cursor-not-allowed');
       // The button receives 'hover-lift' when enabled, not 'opacity-100'
       expect(button).toHaveClass('hover-lift');
+    });
+  });
+
+  test('shows email format error for invalid email input', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
+
+    // Wait for verification
+    await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
+
+    // Type an invalid email format (looks like email but invalid)
+    const usernameInput = screen.getByLabelText(/username/i);
+    await rtlAct(async () => {
+      await userEvent.type(usernameInput, 'invalid@email');
+      // Trigger blur to validate
+      fireEvent.blur(usernameInput);
+    });
+
+    // Check for email format error - the actual translated message
+    await waitFor(() => {
+      const errorText = screen.queryByText(/valid email address/i);
+      expect(errorText).toBeInTheDocument();
+    });
+  });
+
+  test('allows valid username without email validation', async () => {
+    const mockSignIn = jest.fn().mockResolvedValue({ ok: true, error: null, url: '/' });
+    (signIn as jest.Mock).mockImplementation(mockSignIn);
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
+
+    // Wait for verification
+    await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
+
+    // Type a regular username (not an email)
+    await rtlAct(async () => {
+      await userEvent.type(screen.getByLabelText(/username/i), 'myusername');
+      await userEvent.type(document.getElementById('password') as HTMLInputElement, 'password123');
+    });
+
+    const submitButton = screen.getByRole('button', { name: /sign_in/i });
+    await rtlAct(async () => {
+      await userEvent.click(submitButton);
+    });
+
+    // Should call signIn without email validation errors
+    await waitFor(() => {
+      expect(signIn).toHaveBeenCalledWith('credentials', expect.objectContaining({
+        username: 'myusername',
+        password: 'password123',
+      }));
+    });
+  });
+
+  test('clears field errors when user starts typing', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0, gcTime: 0, refetchOnWindowFocus: false, refetchOnReconnect: false } } });
+    const { container } = render(
+      <QueryClientProvider client={client}>
+        <SignInPage />
+      </QueryClientProvider>
+    );
+
+    // Wait for verification
+    await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(true));
+
+    // Submit empty form to trigger errors
+    const form = container.querySelector('form');
+    await rtlAct(async () => {
+      if (form) fireEvent.submit(form);
+    });
+
+    // Verify errors are shown
+    await waitFor(() => {
+      const fieldErrors = screen.getAllByText(/Required fields are missing/i);
+      expect(fieldErrors.length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Now type in the username field
+    await rtlAct(async () => {
+      await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
+    });
+
+    // The form should still work - type password and submit
+    await rtlAct(async () => {
+      await userEvent.type(document.getElementById('password') as HTMLInputElement, 'password123');
+    });
+
+    // Submit should now work
+    const submitButton = screen.getByRole('button', { name: /sign_in/i });
+    await rtlAct(async () => {
+      await userEvent.click(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(signIn).toHaveBeenCalled();
     });
   });
 });

@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { isValidEmail, looksLikeEmail } from '@/utils/emailValidation';
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useDirection } from '@/utils/direction';
 import { useApiErrorHandler } from '@/utils/apiErrorHandler';
@@ -14,6 +14,9 @@ import PasswordInput from '@/components/ui/PasswordInput';
 import Link from 'next/link';
 import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 // Move namespaces outside component to prevent recreation on every render
 const AUTH_NAMESPACES = ['auth', 'errors'];
@@ -27,8 +30,6 @@ const SignInPage: React.FC = () => {
   const router = useRouter();
   const _searchParams = useSearchParams();
   const { getErrorMessage } = useApiErrorHandler();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -38,7 +39,43 @@ const SignInPage: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
-  const [usernameError, setUsernameError] = useState("");
+  const signInSchema = z
+    .object({
+      username: z.string().min(1, t('validationFieldRequired')),
+      password: z.string().min(1, t('validationFieldRequired')),
+    })
+    .superRefine((data, ctx) => {
+      if (looksLikeEmail(data.username) && !isValidEmail(data.username)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['username'],
+          message: t('validationInvalidEmailFormat'),
+        });
+      }
+    });
+
+  type SignInFormValues = z.infer<typeof signInSchema>;
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    clearErrors,
+  } = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+  });
+
+  const username = watch('username');
+  const password = watch('password');
 
 
   const { user } = useOptimizedSession();
@@ -112,10 +149,10 @@ const SignInPage: React.FC = () => {
 
       // Pre-fill username field - prefer username over email for better UX
       if (usernameParam) {
-        setUsername(decodeURIComponent(usernameParam));
+        setValue('username', decodeURIComponent(usernameParam));
       } else if (email) {
         // Fallback to email if username not available
-        setUsername(decodeURIComponent(email));
+        setValue('username', decodeURIComponent(email));
       }
 
       // Handle auto-login for verified users
@@ -151,26 +188,11 @@ const SignInPage: React.FC = () => {
     }
   }, [error]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const onSubmit = async (data: SignInFormValues) => {
     setLoading(true);
     setError(null);
-    setUsernameError("");
     setShowSuccess(false);
     setCredentialsCorrect(false);
-
-    if (!username || !password) {
-      setError(t('validationFieldRequired'));
-      setLoading(false);
-      return;
-    }
-
-    // If username looks like an email, validate it
-    if (looksLikeEmail(username) && !isValidEmail(username)) {
-      setUsernameError(t('validationInvalidEmailFormat'));
-      setLoading(false);
-      return;
-    }
 
     if (!isVerified) {
       setError(t('verificationRequired'));
@@ -181,8 +203,8 @@ const SignInPage: React.FC = () => {
     try {
       const result = await signIn("credentials", {
         redirect: false,
-        username,
-        password
+        username: data.username,
+        password: data.password
         // Note: Not passing callbackUrl to signIn to prevent NextAuth from overriding our redirect logic
       });
 
@@ -339,7 +361,7 @@ const SignInPage: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className={`responsive-fade-in ${redirecting ? 'opacity-70 transition-opacity' : ''}`}>
+            <form onSubmit={handleSubmit(onSubmit)} className={`responsive-fade-in ${redirecting ? 'opacity-70 transition-opacity' : ''}`}>
               <div className="mb-5">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   {t('usernameOrEmail', 'Username or Email')}
@@ -351,51 +373,39 @@ const SignInPage: React.FC = () => {
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                   </div>
-                  <input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      const newUsername = e.target.value;
-                      setUsername(newUsername);
-                      // Clear username error when user starts typing
-                      if (usernameError) {
-                        setUsernameError("");
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Validate email format if it looks like an email
-                      const usernameValue = e.target.value.trim();
-                      if (usernameValue && looksLikeEmail(usernameValue) && !isValidEmail(usernameValue)) {
-                        setUsernameError(t('validationInvalidEmailFormat'));
-                      }
-                    }}
-                    required
-                    data-error={t('validationFieldRequired')}
-                    className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
-                      usernameError
-                        ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
-                        : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
-                    }`}
-                    placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
-                    onInvalid={(e) => {
-                      e.preventDefault();
-                      const target = e.target as HTMLInputElement;
-                      const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
-                      target.setCustomValidity(errorMsg);
-                    }}
-                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
-                  />
+                  {(() => {
+                    const usernameRegister = register('username', {
+                      onChange: () => {
+                        if (errors.username) {
+                          clearErrors('username');
+                        }
+                      },
+                    });
+
+                    return (
+                      <input
+                        id="username"
+                        type="text"
+                        {...usernameRegister}
+                        className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                          errors.username
+                            ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
+                            : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                        }`}
+                        placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
+                      />
+                    );
+                  })()}
 
                 </div>
-                {usernameError && (
+                {errors.username?.message && (
                   <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
                     <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10"></circle>
                       <line x1="12" y1="8" x2="12" y2="12"></line>
                       <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
-                    {usernameError}
+                    {errors.username.message}
                   </p>
                 )}
               </div>
@@ -409,25 +419,30 @@ const SignInPage: React.FC = () => {
                     {t('forgotPassword')}
                   </Link>
                 </div>
-                <PasswordInput
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('passwordPlaceholder')}
-                  required
-                  disabled={loading || redirecting}
-                  data-error={t('fieldRequired')}
-                  onInvalid={(e) => {
-                    e.preventDefault();
-                    const target = e.target as HTMLInputElement;
-                    const errorMsg = target.getAttribute('data-error') || t('fieldRequired');
-                    target.setCustomValidity(errorMsg);
-                  }}
-                  onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
-                  autoComplete="current-password"
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <PasswordInput
+                      id="password"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      placeholder={t('passwordPlaceholder')}
+                      disabled={loading || redirecting}
+                      autoComplete="current-password"
+                    />
+                  )}
                 />
-
-
+                {errors.password?.message && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               <div className="mb-5">
