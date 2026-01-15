@@ -71,6 +71,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reference-data/**").permitAll()  // This covers all reference data including governorates
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/seller-types").permitAll()  // Allow public access to seller types for signup form
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/dealers/**/public").permitAll()  // Public dealer profile
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/dealers/**/listings").permitAll()  // Public dealer listings
                 .anyRequest().authenticated()
             )
             // Handle access denied exceptions properly
