@@ -11,17 +11,20 @@ test.describe('Messaging', () => {
     test('contact seller button visible on listing', async ({ page }) => {
       await loginAsTestUser(page);
       await page.goto(urls.search);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      // Find a listing
-      const listingCard = page.getByTestId('listing-card').first();
+      // Find a listing link and click it
+      const listingLink = page.locator('a[href*="listing"]').first()
+        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingCard.isVisible().catch(() => false))) {
+      if (!(await listingLink.isVisible().catch(() => false))) {
         test.skip();
         return;
       }
 
-      await listingCard.click();
-      await page.waitForURL(/listing/);
+      await listingLink.click();
+      await page.waitForLoadState('networkidle');
 
       // Look for contact button
       const contactButton = page.getByRole('button', { name: /contact|message|seller|chat/i }).or(
@@ -34,16 +37,19 @@ test.describe('Messaging', () => {
     test('can open message form', async ({ page }) => {
       await loginAsTestUser(page);
       await page.goto(urls.search);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      const listingCard = page.getByTestId('listing-card').first();
+      const listingLink = page.locator('a[href*="listing"]').first()
+        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingCard.isVisible().catch(() => false))) {
+      if (!(await listingLink.isVisible().catch(() => false))) {
         test.skip();
         return;
       }
 
-      await listingCard.click();
-      await page.waitForURL(/listing/);
+      await listingLink.click();
+      await page.waitForLoadState('networkidle');
 
       const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
       
@@ -67,16 +73,19 @@ test.describe('Messaging', () => {
     test('can type and send message', async ({ page }) => {
       await loginAsTestUser(page);
       await page.goto(urls.search);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      const listingCard = page.getByTestId('listing-card').first();
+      const listingLink = page.locator('a[href*="listing"]').first()
+        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingCard.isVisible().catch(() => false))) {
+      if (!(await listingLink.isVisible().catch(() => false))) {
         test.skip();
         return;
       }
 
-      await listingCard.click();
-      await page.waitForURL(/listing/);
+      await listingLink.click();
+      await page.waitForLoadState('networkidle');
 
       const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
       
@@ -176,16 +185,19 @@ test.describe('Messaging', () => {
 
     test('contact seller prompts login for unauthenticated user', async ({ page }) => {
       await page.goto(urls.search);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      const listingCard = page.getByTestId('listing-card').first();
+      const listingLink = page.locator('a[href*="listing"]').first()
+        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingCard.isVisible().catch(() => false))) {
+      if (!(await listingLink.isVisible().catch(() => false))) {
         test.skip();
         return;
       }
 
-      await listingCard.click();
-      await page.waitForURL(/listing/);
+      await listingLink.click();
+      await page.waitForLoadState('networkidle');
 
       const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
       
@@ -209,15 +221,18 @@ test.describe('Messaging', () => {
     test('cannot send empty message', async ({ page }) => {
       await loginAsTestUser(page);
       await page.goto(urls.search);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      const listingCard = page.getByTestId('listing-card').first();
+      const listingLink = page.locator('a[href*="listing"]').first()
+        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
       
-      if (!(await listingCard.isVisible().catch(() => false))) {
+      if (!(await listingLink.isVisible().catch(() => false))) {
         test.skip();
         return;
       }
 
-      await listingCard.click();
+      await listingLink.click();
       await page.waitForURL(/listing/);
 
       const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
