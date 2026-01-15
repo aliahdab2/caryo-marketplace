@@ -5,11 +5,10 @@ import DashboardClientLayout from "./layout.client";
 
 export default async function DashboardLayout(props: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }> | { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
   const { children } = props;
-  const maybeParams = props?.params;
-  const params = (maybeParams && 'then' in maybeParams) ? await maybeParams : maybeParams;
+  const params = await props.params;
   const locale = params?.locale || 'en';
 
   const session = await getServerSession(authOptions);

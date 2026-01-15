@@ -170,8 +170,7 @@ export default function FavoritesPage() {
         {error && (
           <ErrorDisplay
             error={error}
-            onRetry={() => refetch()}
-            variant="inline"
+            retry={() => refetch()}
           />
         )}
 

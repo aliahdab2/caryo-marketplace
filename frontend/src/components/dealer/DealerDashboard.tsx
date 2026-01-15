@@ -44,8 +44,12 @@ export default function DealerDashboard() {
 
   // React Query hooks for data fetching
   const { data: trialStatus } = useDealerTrialStatus();
-  const { data: favorites = [] } = useFavorites();
-  const { data: savedSearches = [] } = useSavedSearches();
+  const { data: favoritesData = [] } = useFavorites();
+  const { data: savedSearchesData = [] } = useSavedSearches();
+  
+  // Type assertions for array data
+  const favorites = Array.isArray(favoritesData) ? favoritesData : [];
+  const savedSearches = Array.isArray(savedSearchesData) ? savedSearchesData : [];
   const { 
     data: listings = [], 
     isLoading: listingsLoading,

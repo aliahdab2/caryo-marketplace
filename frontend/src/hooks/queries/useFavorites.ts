@@ -31,9 +31,9 @@ export const favoriteKeys = {
  * const favorites = data?.favorites || [];
  */
 export function useFavorites(options?: { enabled?: boolean }) {
-  return useQuery({
+  return useQuery<UserFavoritesResponse>({
     queryKey: favoriteKeys.list(),
-    queryFn: getUserFavorites,
+    queryFn: () => getUserFavorites(),
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes cache
     ...options,

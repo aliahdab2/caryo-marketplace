@@ -173,7 +173,7 @@ const ForgotPasswordPage: React.FC = () => {
                   </div>
                   {errors.email ? (
                     <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                      {t(errors.email.message as string, errors.email.message)}
+                      {t(errors.email.message as string, errors.email.message || 'Invalid email')}
                     </p>
                   ) : (
                     <p id="email-help" className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">

@@ -73,10 +73,10 @@ jest.mock('@/components/ui/Breadcrumb', () => ({
 // Mock LoadingSkeleton
 jest.mock('@/components/common', () => ({
   LoadingSkeleton: () => <div data-testid="loading-skeleton">Loading...</div>,
-  ErrorDisplay: ({ onRetry }: { onRetry?: () => void }) => (
+  ErrorDisplay: ({ retry }: { retry?: () => void }) => (
     <div data-testid="error-display">
       <span>Error occurred</span>
-      <button onClick={onRetry}>Retry</button>
+      <button onClick={retry}>Retry</button>
     </div>
   ),
 }));
