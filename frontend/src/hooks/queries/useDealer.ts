@@ -16,6 +16,7 @@ import {
   TrialStatus,
   DealerProfile,
   CanCreateListingResponse,
+  DealerFeatureNotAvailableError,
 } from '@/services/dealerApi';
 
 // Query key factory for consistent cache key management
@@ -32,18 +33,39 @@ export const dealerKeys = {
 /**
  * Hook to fetch dealer trial status
  * 
+ * Returns null for non-dealers (404 response) without throwing an error.
+ * This allows the dashboard to work for all users, not just dealers.
+ * 
  * @param options - Additional React Query options
  * 
  * @example
  * const { data: trialStatus, isLoading } = useDealerTrialStatus();
+ * if (trialStatus) { // show trial banner }
  */
 export function useDealerTrialStatus(options?: { enabled?: boolean }) {
-  return useQuery({
+  return useQuery<TrialStatus | null>({
     queryKey: dealerKeys.trial(),
-    queryFn: getDealerTrialStatus,
+    queryFn: async (): Promise<TrialStatus | null> => {
+      try {
+        return await getDealerTrialStatus();
+      } catch (error) {
+        // Return null for non-dealer users - this is expected
+        // The dashboard works fine without trial status
+        if (error instanceof DealerFeatureNotAvailableError) {
+          return null;
+        }
+        // Also handle 404 HTTP errors
+        const httpError = error as { status?: number; response?: { status?: number } };
+        if (httpError?.status === 404 || httpError?.response?.status === 404) {
+          return null;
+        }
+        // Re-throw other errors
+        throw error;
+      }
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes - trial status can change
     gcTime: 10 * 60 * 1000,
-    retry: 1, // Trial status might fail for non-dealers
+    retry: false, // Don't retry - 404 is expected for non-dealers
     ...options,
   });
 }

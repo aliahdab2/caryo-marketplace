@@ -8,4 +8,4 @@ export { LoadingSkeleton, CardSkeleton, ListSkeleton } from './LoadingSkeleton';
 export { ErrorDisplay } from './ErrorDisplay';
 export { EmptyState } from './EmptyState';
 export { QueryWrapper } from './QueryWrapper';
-export { FavoriteButton } from './FavoriteButton';
+export { default as FavoriteButton } from './FavoriteButton';

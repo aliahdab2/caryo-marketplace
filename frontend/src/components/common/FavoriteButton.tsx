@@ -16,6 +16,21 @@ let favoritesPrefetchAt = 0;
 let favoritesPrefetchPromise: Promise<void> | null = null;
 let favoritesPrefetchInFlight = false;
 const IS_TEST_ENV = process.env.NODE_ENV === 'test';
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+// Debug logger - only logs in development mode
+const debugLog = {
+  warn: (message: string, ...args: unknown[]) => {
+    if (IS_DEV) console.warn(message, ...args);
+  },
+  error: (message: string, ...args: unknown[]) => {
+    // Always log errors - they indicate real issues
+    console.error(message, ...args);
+  },
+  log: (message: string, ...args: unknown[]) => {
+    if (IS_DEV) console.log(message, ...args);
+  },
+};
 
 async function prefetchAllFavoritesIfNeeded(): Promise<void> {
   const now = Date.now();
@@ -94,11 +109,8 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       : 'border-2 border-gray-300 text-gray-500 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500',
   };
 
-  useEffect(() => {
-    if (!user?.accessToken) {
-      console.warn('[FAVORITE] No valid user session found');
-    }
-  }, [user]);
+  // No need to log missing session - it's expected for non-authenticated users
+  // The component handles this gracefully by not making API calls
 
   // Parse API response for favorite status
   const parse = async (response: Response) => {
@@ -178,7 +190,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       statusCheckedRef.current = true;
       inFlightFavoriteStatus.delete(cacheKey);
     } catch (apiError) {
-      console.warn('[FAVORITE] API request failed when checking favorite status:', apiError);
+      debugLog.warn('[FAVORITE] API request failed when checking favorite status:', apiError);
       // Negative cache briefly to avoid hammering endpoints on repeated failures
       const cacheKey = String(listingId);
       favoriteStatusCache.set(cacheKey, { value: false, timestamp: Date.now() - (FAVORITE_STATUS_TTL_MS - FAVORITE_STATUS_ERROR_TTL_MS) });
@@ -277,7 +289,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
           let pendingAction;
           try {
             if (!pendingActionJSON || pendingActionJSON === 'null' || pendingActionJSON === '') {
-              console.warn('[FAVORITE] Empty pendingFavoriteAction found');
+              debugLog.warn('[FAVORITE] Empty pendingFavoriteAction found');
               localStorage.removeItem('pendingFavoriteAction');
               return;
             }
@@ -308,7 +320,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
                 if (onToggle) onToggle(false);
                 await apiRequest(url, { method: 'DELETE' });
               } else {
-                console.warn('[FAVORITE] Unknown pending action type:', pendingAction.action);
+                debugLog.warn('[FAVORITE] Unknown pending action type:', pendingAction.action);
               }
             } catch (err) {
               console.error('[FAVORITE] Error executing pending favorite action:', err);
@@ -325,7 +337,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
             // It will be processed if the user navigates to that listing's page.
           } else {
             // Invalid action type or already processed, remove it
-            console.warn('[FAVORITE] Invalid pending action found:', pendingAction);
+            debugLog.warn('[FAVORITE] Invalid pending action found:', pendingAction);
             localStorage.removeItem('pendingFavoriteAction');
           }
         }
@@ -349,7 +361,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       } else if (typeof window !== 'undefined' && window.location.search.includes('auto-login=true')) {
         // Don't redirect during auto-login process - just show loading state
         setIsLoading(true);
-        console.log('[FAVORITE] Auto-login in progress, waiting for authentication...');
+        debugLog.log('[FAVORITE] Auto-login in progress, waiting for authentication...');
 
         // Wait a bit and try again
         setTimeout(() => {
@@ -411,7 +423,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         }
       } catch (apiError) {
         // Ensure consistent warning log format for test detection
-        console.warn('[FAVORITE] API request failed when toggling favorite:', apiError);
+        debugLog.warn('[FAVORITE] API request failed when toggling favorite:', apiError);
 
         // Check if it's an authentication error
         const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);

@@ -256,11 +256,8 @@ describe('FavoriteButton Component', () => {
       );
     });
 
-    // Verify console warning was triggered
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      '[FAVORITE] API request failed when toggling favorite:',
-      expect.anything()
-    );
+    // Note: console.warn is now only logged in development mode (not in test mode)
+    // so we don't check for it here - the behavior is verified by localStorage mock
 
     // The onToggle callback shouldn't be called on failure
     expect(onToggle).not.toHaveBeenCalled();
