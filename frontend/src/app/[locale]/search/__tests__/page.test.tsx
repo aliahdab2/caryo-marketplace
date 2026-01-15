@@ -776,4 +776,70 @@ describe('AdvancedSearchPage', () => {
       expect(brandChip).toBeInTheDocument();
     });
   });
+
+  describe('Zustand Store Integration', () => {
+    it('uses viewMode from Zustand store', async () => {
+      // Import the store to check its state
+      const { useUIStore } = await import('@/stores/uiStore');
+      
+      // Set view mode to list
+      useUIStore.getState().setListingsViewMode('list');
+      
+      render(<AdvancedSearchPage />, { wrapper: TestWrapper });
+      
+      // The component should use the store's view mode
+      expect(useUIStore.getState().listingsViewMode).toBe('list');
+      
+      // Reset for other tests
+      useUIStore.getState().setListingsViewMode('grid');
+    });
+
+    it('persists view mode changes through the store', async () => {
+      const { useUIStore } = await import('@/stores/uiStore');
+      
+      // Start with grid
+      useUIStore.getState().setListingsViewMode('grid');
+      expect(useUIStore.getState().listingsViewMode).toBe('grid');
+      
+      // Change to list
+      useUIStore.getState().setListingsViewMode('list');
+      expect(useUIStore.getState().listingsViewMode).toBe('list');
+      
+      // Reset
+      useUIStore.getState().setListingsViewMode('grid');
+    });
+
+    it('tracks recent searches in the store', async () => {
+      const { useUIStore } = await import('@/stores/uiStore');
+      
+      // Clear any existing searches
+      useUIStore.getState().clearRecentSearches();
+      
+      // Add a search
+      useUIStore.getState().addRecentSearch('toyota camry');
+      
+      expect(useUIStore.getState().recentSearches).toContain('toyota camry');
+      
+      // Clean up
+      useUIStore.getState().clearRecentSearches();
+    });
+
+    it('limits recent searches to 10 items', async () => {
+      const { useUIStore } = await import('@/stores/uiStore');
+      
+      // Clear and add 15 searches
+      useUIStore.getState().clearRecentSearches();
+      
+      for (let i = 1; i <= 15; i++) {
+        useUIStore.getState().addRecentSearch(`search ${i}`);
+      }
+      
+      // Should only keep 10
+      expect(useUIStore.getState().recentSearches).toHaveLength(10);
+      expect(useUIStore.getState().recentSearches[0]).toBe('search 15');
+      
+      // Clean up
+      useUIStore.getState().clearRecentSearches();
+    });
+  });
 });

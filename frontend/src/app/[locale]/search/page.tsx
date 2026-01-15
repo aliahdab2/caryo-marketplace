@@ -44,9 +44,9 @@ import FilterPills from '@/components/search/FilterPills';
 import CarListingsGrid from '@/components/search/CarListingsGrid';
 import SortDropdown from '@/components/search/SortDropdown';
 import ViewModeToggle from '@/components/search/ViewModeToggle';
-import { ViewMode } from '@/components/search/ViewModeToggle';
 import { createSavedSearch, deleteSavedSearch, SavedSearchRequest } from '@/services/savedSearches';
 import Pagination from '@/components/ui/Pagination';
+import { useUIStore } from '@/stores/uiStore';
 
 
 // Move namespaces outside component to prevent recreation on every render
@@ -77,7 +77,10 @@ export default function AdvancedSearchPage() {
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
   const prevFiltersRef = useRef<string>('');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  // Use Zustand for persisted view mode preference
+  const viewMode = useUIStore((state) => state.listingsViewMode);
+  const setViewMode = useUIStore((state) => state.setListingsViewMode);
+  const addRecentSearch = useUIStore((state) => state.addRecentSearch);
   const [currentPage, setCurrentPage] = useState(0);
   const shouldScrollAfterPageChange = useRef(false);
 
@@ -1255,6 +1258,11 @@ export default function AdvancedSearchPage() {
   // Filter pill component with memo for performance
   const handleSearch = () => {
     setSearchLoading(true);
+
+    // Track recent searches in Zustand (for persistence)
+    if (searchQuery && searchQuery.trim().length >= 2) {
+      addRecentSearch(searchQuery.trim());
+    }
 
     // Close location dropdown if open
     setShowLocationDropdown(false);

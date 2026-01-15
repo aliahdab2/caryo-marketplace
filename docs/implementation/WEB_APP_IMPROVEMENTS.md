@@ -111,11 +111,12 @@ Add Zustand for cross-screen UI state that doesn't belong in React Query.
 
 | Task | Files to Create/Modify | Effort | Status |
 |------|------------------------|--------|--------|
-| Install Zustand | `npm install zustand` | 5 min | Pending |
-| Create stores/ folder | `frontend/src/stores/` | 5 min | Pending |
-| Create uiStore | `stores/uiStore.ts` | 0.5 day | Pending |
-| Migrate filter state | Update search components | 0.5 day | Pending |
-| Migrate modal state | Update modal components | 0.5 day | Pending |
+| Install Zustand | `npm install zustand` | 5 min | ✅ Done |
+| Create stores/ folder | `frontend/src/stores/` | 5 min | ✅ Done |
+| Create uiStore | `stores/uiStore.ts` | 0.5 day | ✅ Done |
+| Add uiStore tests | `stores/__tests__/uiStore.test.ts` | 0.5 day | ✅ Done |
+| Migrate filter state | Update search components | 0.5 day | ✅ Done (viewMode + recentSearches) |
+| Migrate modal state | Update modal components | 0.5 day | Pending (not needed yet) |
 
 ### Pattern
 
@@ -438,7 +439,7 @@ Add production monitoring to track performance and errors.
 |-------|-------|--------|--------|
 | 1 | React Query setup + hooks | 2 days | ✅ Done |
 | 2 | React Query migration | 2-3 days | ✅ Done (core pages) |
-| 3 | Zustand setup | 1-2 days | Pending |
+| 3 | Zustand setup | 1-2 days | ✅ Done |
 | 4 | Error handling components | 1 day | ✅ Done |
 | 5 | Form improvements (optional) | 3-5 days | Pending |
 | 6 | Optimistic updates (optional) | 2-3 days | Pending |
