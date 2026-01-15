@@ -26,10 +26,9 @@ test.describe('Messaging', () => {
       await listingLink.click();
       await page.waitForLoadState('networkidle');
 
-      // Look for contact button
-      const contactButton = page.getByRole('button', { name: /contact|message|seller|chat/i }).or(
-        page.getByTestId('contact-seller-button')
-      );
+      // Look for contact button - prioritize data-testid
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
 
       await expect(contactButton).toBeVisible();
     });
@@ -51,7 +50,8 @@ test.describe('Messaging', () => {
       await listingLink.click();
       await page.waitForLoadState('networkidle');
 
-      const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
       
       if (!(await contactButton.isVisible().catch(() => false))) {
         test.skip();
@@ -87,7 +87,8 @@ test.describe('Messaging', () => {
       await listingLink.click();
       await page.waitForLoadState('networkidle');
 
-      const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
       
       if (!(await contactButton.isVisible().catch(() => false))) {
         test.skip();
@@ -199,7 +200,8 @@ test.describe('Messaging', () => {
       await listingLink.click();
       await page.waitForLoadState('networkidle');
 
-      const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
       
       if (!(await contactButton.isVisible().catch(() => false))) {
         test.skip();
@@ -235,7 +237,8 @@ test.describe('Messaging', () => {
       await listingLink.click();
       await page.waitForURL(/listing/);
 
-      const contactButton = page.getByRole('button', { name: /contact|message|seller/i });
+      const contactButton = page.getByTestId('contact-seller-button').first()
+        .or(page.getByRole('button', { name: /send message|contact|message seller/i }).first());
       
       if (!(await contactButton.isVisible().catch(() => false))) {
         test.skip();

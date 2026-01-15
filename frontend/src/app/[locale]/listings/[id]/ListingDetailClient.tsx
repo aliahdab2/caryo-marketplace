@@ -152,6 +152,7 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                 {/* Action Buttons - Blocket Style */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
+                    data-testid="contact-seller-button"
                     onClick={() => {
                       if (user) {
                         setShowContactModal(true);
