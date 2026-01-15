@@ -82,9 +82,9 @@ test.describe('Messaging', () => {
       }
 
       await contactButton.click();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
 
-      const messageInput = page.getByRole('textbox').first()
+      const messageInput = page.locator('textarea').first()
         .or(page.getByPlaceholder(/message|write/i));
 
       if (!(await messageInput.isVisible({ timeout: 3000 }).catch(() => false))) {
