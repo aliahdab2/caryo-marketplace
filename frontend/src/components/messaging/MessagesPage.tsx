@@ -27,7 +27,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 // Using types from messaging service
 type Conversation = ConversationResponse;
-type Message = MessageResponse;
+type _Message = MessageResponse; // Prefixed to avoid unused warning, kept for documentation
 
 export default function MessagesPage() {
   const { data: session } = useSession();
@@ -51,7 +51,7 @@ export default function MessagesPage() {
   
   const { 
     data: messagesData,
-    refetch: refetchMessages
+    refetch: _refetchMessages
   } = useMessages(selectedConversation?.id, { enabled: !!selectedConversation?.id });
   
   const messages = useMemo(() => messagesData?.content || [], [messagesData]);
@@ -287,7 +287,7 @@ export default function MessagesPage() {
     setUploading(true);
 
     try {
-      let messageResponse: MessageResponse;
+      let _messageResponse: MessageResponse;
 
       if (selectedFiles.length > 0) {
         // Send message with attachments
@@ -325,11 +325,11 @@ export default function MessagesPage() {
           formData.append('files', normalized);
         });
 
-        messageResponse = await MessagingService.sendMessageWithAttachments(selectedConversation.id, formData);
+        _messageResponse = await MessagingService.sendMessageWithAttachments(selectedConversation.id, formData);
       } else {
         // Send text-only message
         const sanitizedContent = sanitizeInput(newMessage.trim());
-        messageResponse = await MessagingService.sendMessage(selectedConversation.id, {
+        _messageResponse = await MessagingService.sendMessage(selectedConversation.id, {
           content: sanitizedContent,
           messageType: 'text'
         });

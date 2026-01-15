@@ -323,14 +323,14 @@ describe('ListingWizard Validation Tests', () => {
       // Wait for error to potentially appear
       await waitFor(() => {
         // Errors might be displayed as text or in an error container
-        const errorElements = document.querySelectorAll('[class*="error"], [class*="Error"], [role="alert"]');
+        const _errorElements = document.querySelectorAll('[class*="error"], [class*="Error"], [role="alert"]');
         // Just verify the validation was called
         expect(mockValidateStep).toHaveBeenCalled();
       });
     });
 
     it('should clear errors when field is corrected', async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       
       // First call fails, second call passes
       mockValidateStep

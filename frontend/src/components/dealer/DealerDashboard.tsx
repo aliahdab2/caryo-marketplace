@@ -8,7 +8,6 @@ import {
   MdAddCircleOutline,
   MdTrendingUp,
   MdMessage,
-  MdWarning,
   MdCheckCircle,
   MdNotifications,
   MdStarBorder,

@@ -14,8 +14,6 @@ import {
   getPaymentStatus,
   createSubscription,
   TrialStatus,
-  DealerProfile,
-  CanCreateListingResponse,
   DealerFeatureNotAvailableError,
 } from '@/services/dealerApi';
 

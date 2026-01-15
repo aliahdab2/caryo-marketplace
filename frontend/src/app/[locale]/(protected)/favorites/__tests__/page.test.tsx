@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import FavoritesPage from '../page';
@@ -9,7 +9,7 @@ import { Listing } from '@/types/listings';
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; priority?: boolean; unoptimized?: boolean }) => {
-    const { fill, priority, unoptimized, ...rest } = props;
+    const { fill: _fill, priority: _priority, unoptimized: _unoptimized, ...rest } = props;
     // eslint-disable-next-line @next/next/no-img-element
     return <img {...rest} alt={rest.alt || ''} />;
   },

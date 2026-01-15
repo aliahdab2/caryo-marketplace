@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MessagesPage from '../MessagesPage';
@@ -315,6 +315,7 @@ describe('MessagesPage', () => {
   describe('Sending Messages', () => {
     it('should handle sending a text message', async () => {
       const user = userEvent.setup();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MessagingService } = require('@/services/messaging');
       
       const conversation = createMockConversation({ id: 1 });
@@ -353,6 +354,7 @@ describe('MessagesPage', () => {
 
     it('should not send empty messages', async () => {
       const user = userEvent.setup();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MessagingService } = require('@/services/messaging');
       
       const conversation = createMockConversation({ id: 1 });
@@ -462,6 +464,7 @@ describe('MessagesPage', () => {
   describe('Toast Notifications', () => {
     it('should show error toast when message sending fails', async () => {
       const user = userEvent.setup();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { MessagingService } = require('@/services/messaging');
       MessagingService.sendMessage.mockRejectedValueOnce(new Error('Network error'));
       

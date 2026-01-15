@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import Image from 'next/image';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import Link from 'next/link';
