@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
@@ -15,6 +15,15 @@ import ReportUserModal from './ReportUserModal';
 import ConversationList from './ConversationList';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import { 
+  useConversations, 
+  useMessages, 
+  useMarkAllMessagesAsRead,
+  useBlockUser,
+  useArchiveConversation,
+  messagingKeys
+} from '@/hooks/queries';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Using types from messaging service
 type Conversation = ConversationResponse;
@@ -26,16 +35,34 @@ export default function MessagesPage() {
   const { isRTL } = useLanguageSwitching();
   const searchParams = useSearchParams();
 
-  // State declarations
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  // UI State
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-
-
-  const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // React Query hooks for data fetching
+  const { 
+    data: conversationsData, 
+    isLoading: loading 
+  } = useConversations({ enabled: !!session?.user?.id });
+  
+  const conversations = useMemo(() => conversationsData?.content || [], [conversationsData]);
+  
+  const { 
+    data: messagesData,
+    refetch: refetchMessages
+  } = useMessages(selectedConversation?.id, { enabled: !!selectedConversation?.id });
+  
+  const messages = useMemo(() => messagesData?.content || [], [messagesData]);
+
+  // Query client for cache invalidation
+  const queryClient = useQueryClient();
+
+  // Mutations
+  const markAsReadMutation = useMarkAllMessagesAsRead();
+  const blockUserMutation = useBlockUser();
+  const archiveConversationMutation = useArchiveConversation();
 
   // File attachment states
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -233,66 +260,6 @@ export default function MessagesPage() {
     }
   }, [session]);
 
-  // Load conversations on mount
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadConversations();
-    }
-  }, [session?.user?.id]);
-
-  const loadConversations = async () => {
-    try {
-      setLoading(true);
-      const response = await MessagingService.getUserConversations();
-      setConversations(response.content || []);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
-  const markConversationAsRead = useCallback(async (conversationId: number) => {
-    try {
-      await MessagingService.markAllMessagesAsRead(conversationId);
-
-      // Update the conversation's unread count in the local state
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === conversationId
-            ? { ...conv, unreadCount: 0 }
-            : conv
-        )
-      );
-
-      // Update messages to show as read - ONLY for messages NOT sent by current user
-      const currentUserId = session?.user?.id ? Number(session.user.id) : 0;
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.sender.id !== currentUserId
-            ? { ...msg, isRead: true, readAt: new Date().toISOString() }
-            : msg // Keep user's own messages unchanged
-        )
-      );
-    } catch (error) {
-      console.error('Error marking conversation as read:', error);
-    }
-  }, [session?.user?.id]);
-
-  const loadMessages = useCallback(async (conversationId: number) => {
-    try {
-      const response = await MessagingService.getConversationMessages(conversationId);
-      setMessages(response.content || []);
-
-      // Mark all messages in this conversation as read
-      await markConversationAsRead(conversationId);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  }, [markConversationAsRead]);
-
   // Handle conversation selection from URL
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
@@ -304,12 +271,14 @@ export default function MessagesPage() {
     }
   }, [searchParams, conversations]);
 
-  // Load messages when conversation is selected
+  // Mark messages as read when conversation is selected
   useEffect(() => {
-    if (selectedConversation && session?.user?.id) {
-      loadMessages(selectedConversation.id);
+    if (selectedConversation && session?.user?.id && messages.length > 0) {
+      // Mark all messages in this conversation as read
+      markAsReadMutation.mutate(selectedConversation.id);
     }
-  }, [selectedConversation, session?.user?.id, loadMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedConversation?.id, session?.user?.id]);
 
   const handleSendMessageWithAttachments = async () => {
     if (!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || sending || uploading) return;
@@ -366,44 +335,14 @@ export default function MessagesPage() {
         });
       }
 
-      // Add the new message to the list
-      setMessages(prev => [...prev, messageResponse]);
-
       // Clear the input and files
       setNewMessage('');
       setSelectedFiles([]);
       setUploadErrors({});
 
-      // Update conversation list to reflect new message
-      setConversations(prev => prev.map(conv =>
-        conv.id === selectedConversation.id
-          ? {
-              ...conv,
-              lastMessageAt: messageResponse.createdAt,
-              recentMessages: [{
-                id: messageResponse.id,
-                content: messageResponse.content,
-                messageType: messageResponse.messageType,
-                isRead: messageResponse.isRead,
-                readAt: messageResponse.readAt,
-                createdAt: messageResponse.createdAt,
-                isEdited: false,
-                editedAt: undefined,
-                isDeleted: false,
-                sender: messageResponse.sender,
-                attachments: messageResponse.attachments?.map(att => ({
-                  id: att.id,
-                  fileName: att.fileName,
-                  size: att.size,
-                  contentType: att.contentType,
-                  fileUrl: att.fileUrl,
-                  uploadStatus: 'COMPLETED',
-                  createdAt: messageResponse.createdAt
-                }))
-              }]
-            }
-          : conv
-      ));
+      // Invalidate queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: messagingKeys.messages(selectedConversation.id) });
+      queryClient.invalidateQueries({ queryKey: messagingKeys.conversations() });
 
     } catch (error: unknown) {
       console.error('Error sending message:', error);
@@ -421,15 +360,9 @@ export default function MessagesPage() {
 
     try {
       setIsActionLoading(true);
-      await MessagingService.blockUser(selectedConversation.id);
+      await blockUserMutation.mutateAsync(selectedConversation.id);
 
-      // Update conversation status to blocked
-      setConversations(prev => prev.map(conv =>
-        conv.id === selectedConversation.id
-          ? { ...conv, isBlocked: true, status: 'BLOCKED' }
-          : conv
-      ));
-
+      // Update local selected conversation state
       setSelectedConversation(prev => prev ? { ...prev, isBlocked: true, status: 'BLOCKED' } : null);
       setShowBlockModal(false);
       showToast(t('userBlockedSuccess', 'User has been blocked successfully.'), 'success');
@@ -478,18 +411,16 @@ export default function MessagesPage() {
     try {
       setIsActionLoading(true);
       // Archive conversation instead of delete (safer approach)
-      await MessagingService.archiveConversation(selectedConversation.id);
+      await archiveConversationMutation.mutateAsync(selectedConversation.id);
 
-      // Remove from conversations list
-      setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id));
+      // Clear local state - React Query will refetch conversations
       setSelectedConversation(null);
-      setMessages([]);
       setShowDeleteModal(false);
 
-      alert('Conversation archived successfully.');
+      showToast(t('conversationArchived', 'Conversation archived successfully.'), 'success');
     } catch (error) {
       console.error('Error archiving conversation:', error);
-      alert('Failed to archive conversation. Please try again.');
+      showToast(t('archiveFailed', 'Failed to archive conversation. Please try again.'), 'error');
     } finally {
       setIsActionLoading(false);
     }
