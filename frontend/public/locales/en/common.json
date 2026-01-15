@@ -118,5 +118,8 @@
   "loadingCities": "Loading cities...",
   "noCitiesFound": "No cities found",
   "noCities": "No cities available",
-  "cityHelp": "Start typing to search for your city"
+  "cityHelp": "Start typing to search for your city",
+  "gridView": "Grid View",
+  "listView": "List View",
+  "errorLoadingData": "Error loading data. Please try again."
 }
