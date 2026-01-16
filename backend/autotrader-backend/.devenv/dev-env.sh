@@ -137,6 +137,30 @@ restore_car_images() {
     fi
 }
 
+# Helper function to check if sample images exist and restore them if missing
+check_and_restore_images() {
+    echo -e "${YELLOW}Checking if sample images exist in MinIO...${NC}"
+    
+    # Check if mc (MinIO client) is available
+    if ! command -v mc &> /dev/null; then
+        echo -e "${YELLOW}MinIO client (mc) not found, skipping image check${NC}"
+        return 0
+    fi
+    
+    # Setup alias if needed
+    mc alias list 2>/dev/null | grep -q "autotrader-local" || {
+        mc alias set autotrader-local http://localhost:${MINIO_API_PORT:-9000} minioadmin minioadmin 2>/dev/null
+    }
+    
+    # Check if sample images exist (check for car-8-1.jpg as a representative)
+    if mc stat autotrader-local/caryo-assets/sample/car-8-1.jpg &>/dev/null; then
+        echo -e "${GREEN}Sample images already exist in MinIO${NC}"
+    else
+        echo -e "${YELLOW}Sample images not found in MinIO, restoring...${NC}"
+        restore_car_images
+    fi
+}
+
 show_help() {
     echo "Usage: ./dev-env.sh [COMMAND]"
     echo "Commands:"
@@ -207,6 +231,9 @@ start_dev_env() {
     else
         echo -e "${GREEN}Services are ready!${NC}"
     fi
+    
+    # Check if sample images exist in MinIO, if not, restore them
+    check_and_restore_images
 
     echo -e "\n${GREEN}Development Environment Started Successfully!${NC}"
     echo -e "${CYAN}Available Services:${NC}"
