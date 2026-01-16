@@ -19,7 +19,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
 
   const handleSuccess = (_listingId: string) => {
     // Navigate back to listings dashboard after successful update
-    router.push(`/dashboard/listings`);
+    router.push(`/dashboard/dealer/stock`);
   };
 
   const handleCancel = () => {
@@ -28,7 +28,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
       if (typeof window !== 'undefined' && window.history.length > 1) {
         router.back();
       } else {
-        router.push('/dashboard/listings');
+        router.push('/dashboard/dealer/stock');
       }
       return;
     }
@@ -40,7 +40,7 @@ export default function EditListingPageClient({ id }: { id: string }) {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back();
     } else {
-      router.push('/dashboard/listings');
+      router.push('/dashboard/dealer/stock');
     }
   };
 

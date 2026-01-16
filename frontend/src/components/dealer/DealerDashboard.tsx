@@ -128,7 +128,7 @@ export default function DealerDashboard() {
       total: dashboardStats.totalListings,
       icon: <MdDirectionsCar className="w-6 h-6" />,
       color: 'blue',
-      href: `/${currentLang}/dashboard/listings`,
+      href: `/${currentLang}/dashboard/dealer/stock`,
       showProgress: true
     },
     {
@@ -143,7 +143,7 @@ export default function DealerDashboard() {
       value: 12, // Keep hardcoded from original (replace with real data when available)
       icon: <MdMessage className="w-6 h-6" />,
       color: 'purple',
-      href: `/${currentLang}/dashboard/messages`
+      href: `/${currentLang}/dashboard/dealer/leads`
     },
     {
       title: t('favorites'),
@@ -189,7 +189,7 @@ export default function DealerDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Link
-            href={`/${currentLang}/dashboard/listings/new`}
+            href={`/${currentLang}/dashboard/dealer/stock/new`}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
             <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
@@ -208,7 +208,7 @@ export default function DealerDashboard() {
           </Link>
 
           <Link
-            href={`/${currentLang}/dashboard/listings`}
+            href={`/${currentLang}/dashboard/dealer/stock`}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
             <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
@@ -228,7 +228,7 @@ export default function DealerDashboard() {
 
           {/* Edit Dealer Profile */}
           <Link
-            href={`/${currentLang}/dashboard/dealer/profile`}
+            href={`/${currentLang}/dashboard/dealer/storefront`}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
           >
             <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
@@ -341,7 +341,7 @@ export default function DealerDashboard() {
                 {t('recentListings')}
               </h2>
               <Link
-                href={`/${currentLang}/dashboard/listings`}
+                href={`/${currentLang}/dashboard/dealer/stock`}
                 className="text-primary hover:underline flex items-center space-x-2 rtl:space-x-reverse"
               >
                 <span>{t('viewAll')}</span>

@@ -106,7 +106,7 @@ export default function SupportPage() {
       title: 'Listing Help',
       description: 'Get help with creating or managing listings',
       icon: <MdDirectionsCar className="text-green-500" />,
-      href: '/dashboard/listings/new',
+      href: '/dashboard/dealer/stock/new',
       color: 'green'
     },
     {
@@ -304,7 +304,7 @@ export default function SupportPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
-              href={`/${currentLang}/dashboard/listings/new`}
+              href={`/${currentLang}/dashboard/dealer/stock/new`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
             >
               <div className="flex items-center">
@@ -343,7 +343,7 @@ export default function SupportPage() {
             </Link>
 
             <Link
-              href={`/${currentLang}/dashboard/profile`}
+              href={`/${currentLang}/dashboard/account`}
               className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
             >
               <div className="flex items-center">

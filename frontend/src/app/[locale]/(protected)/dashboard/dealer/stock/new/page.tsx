@@ -20,7 +20,7 @@ export default function NewListingPage() {
 
   const handleSuccess = (_listingId: string) => {
     // Navigate to the newly created listing or back to listings dashboard
-    router.push(`/${currentLang}/dashboard/listings`);
+    router.push(`/${currentLang}/dashboard/dealer/stock`);
   };
 
   const handleCancel = () => {
@@ -35,7 +35,7 @@ export default function NewListingPage() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back();
     } else {
-      router.push(`/${currentLang}/dashboard/listings`);
+      router.push(`/${currentLang}/dashboard/dealer/stock`);
     }
   };
 

@@ -43,6 +43,7 @@ describe('Public Dealer API', () => {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
+          next: { revalidate: 300 },
         }
       );
       expect(result).toEqual(mockProfile);
@@ -53,11 +54,12 @@ describe('Public Dealer API', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 404,
+        json: jest.fn().mockResolvedValue({ message: 'Dealer not found' }),
       });
 
       // Act & Assert
       await expect(getPublicDealerProfile(999)).rejects.toThrow(
-        'Failed to fetch dealer profile: 404'
+        'Dealer not found'
       );
     });
 
@@ -100,6 +102,7 @@ describe('Public Dealer API', () => {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
+          next: { revalidate: 120 },
         }
       );
       expect(result).toEqual(mockListings);
@@ -137,11 +140,12 @@ describe('Public Dealer API', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 404,
+        json: jest.fn().mockResolvedValue({ message: 'Dealer not found' }),
       });
 
       // Act & Assert
       await expect(getPublicDealerListings(999)).rejects.toThrow(
-        'Failed to fetch dealer listings: 404'
+        'Dealer not found'
       );
     });
 

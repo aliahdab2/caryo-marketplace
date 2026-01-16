@@ -55,8 +55,8 @@ export const urls = {
   dashboard: '/dashboard',
   search: '/search',
   favorites: '/favorites',
-  messages: '/dashboard/messages',
-  createListing: '/dashboard/listings/new',
+  leads: '/dashboard/dealer/leads',
+  createListing: '/dashboard/dealer/stock/new',
   // Direct listing URL for faster tests (ID 6 is the first listing from DataInitializer)
   listing: '/listings/6',
 };

@@ -25,7 +25,8 @@ import {
   MdAdminPanelSettings,
   MdStorage,
   MdBlock,
-  MdFlag
+  MdFlag,
+  MdStorefront
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
@@ -122,7 +123,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const { navigate } = useAuthAwareNavigation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const focusedRoutes = ['/dashboard/listings', '/dashboard/profile', '/dashboard/settings', '/dashboard/messages'];
+  const focusedRoutes = ['/dashboard/dealer/stock', '/dashboard/account', '/dashboard/settings', '/dashboard/dealer/leads', '/dashboard/dealer/storefront'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
 
   useEffect(() => {
@@ -147,18 +148,32 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   }
 
   const sidebarItems: NavItem[] = [
+    // Dealer Section
     {
       name: t('overview'),
-      href: `/${currentLang}/dashboard`,
+      href: `/${currentLang}/dashboard/dealer`,
       icon: <MdDashboard className="text-xl" />,
-      tooltip: t('overviewTooltip') || 'Dashboard overview'
+      tooltip: t('overviewTooltip') || 'Dealer dashboard overview'
     },
     {
-      name: t('myListings'),
-      href: `/${currentLang}/dashboard/listings`,
+      name: t('stock', { defaultValue: 'My Stock' }),
+      href: `/${currentLang}/dashboard/dealer/stock`,
       icon: <MdDirectionsCar className="text-xl" />,
-      tooltip: t('myListingsTooltip') || 'Manage your vehicle listings'
+      tooltip: t('stockTooltip', { defaultValue: 'Manage your vehicle inventory' })
     },
+    {
+      name: t('storefront', { defaultValue: 'Storefront' }),
+      href: `/${currentLang}/dashboard/dealer/storefront`,
+      icon: <MdStorefront className="text-xl" />,
+      tooltip: t('storefrontTooltip', { defaultValue: 'Edit your public business profile' })
+    },
+    {
+      name: t('leads', { defaultValue: 'Leads' }),
+      href: `/${currentLang}/dashboard/dealer/leads`,
+      icon: <MdEmail className="text-xl" />,
+      tooltip: t('leadsTooltip', { defaultValue: 'Customer inquiries and messages' })
+    },
+    // Buyer Section
     {
       name: t('favorites'),
       href: `/${currentLang}/favorites`,
@@ -172,17 +187,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       tooltip: t('headerSavedSearches', { ns: 'common' }) || 'Your saved search alerts'
     },
     {
-      name: t('messages'),
-      href: `/${currentLang}/dashboard/messages`,
-      icon: <MdEmail className="text-xl" />,
-      tooltip: t('messagesTooltip') || 'Your messages'
-    },
-    {
       name: t('blocked-users:title', 'Blocked Users'),
       href: `/${currentLang}/dashboard/blocked-users`,
       icon: <MdBlock className="text-xl" />,
       tooltip: t('blocked-users:subtitle', 'Manage blocked users')
     },
+    // Admin Section (role-gated)
     ...(isAdmin() ? [
       {
         name: t('adminPanel', 'Admin Panel'),
@@ -203,11 +213,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         tooltip: t('admin-reports:subtitle', 'Review and manage user reports')
       }
     ] : []),
+    // Account Section
     {
-      name: t('profile'),
-      href: `/${currentLang}/dashboard/profile`,
+      name: t('account', { defaultValue: 'Account' }),
+      href: `/${currentLang}/dashboard/account`,
       icon: <MdPerson className="text-xl" />,
-      tooltip: t('profileTooltip') || 'Manage your profile'
+      tooltip: t('accountTooltip', { defaultValue: 'Manage your account settings' })
     },
     {
       name: t('settings'),
@@ -220,7 +231,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const quickActionItems: NavItem[] = [
     {
       name: t('addListing'),
-      href: `/${currentLang}/dashboard/listings/new`,
+      href: `/${currentLang}/dashboard/dealer/stock/new`,
       icon: <MdAdd className="text-xl" />,
       tooltip: t('createListing') || 'Create a new listing'
     },

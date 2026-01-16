@@ -162,7 +162,7 @@ jest.mock('next/navigation', () => ({
     get: jest.fn(),
     has: jest.fn()
   }),
-  usePathname: () => '/dashboard/listings/new'
+  usePathname: () => '/dashboard/dealer/stock/new'
 }));
 
 jest.mock('@/hooks/useLazyTranslation', () => ({

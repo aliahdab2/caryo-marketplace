@@ -48,7 +48,7 @@ const formatRole = (role: string) => {
   };
 };
 
-export default function ProfilePage() {
+export default function AccountPage() {
   // Server layout ensures user is authenticated, get user data for profile display
   const { user } = useOptimizedSession();
   const { t } = useTranslation(['profile', 'auth', 'common', 'listings']);
@@ -250,9 +250,9 @@ export default function ProfilePage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Breadcrumbs */}
       <Breadcrumb items={createDashboardBreadcrumb({
-        label: t('profile'),
-        translationKey: 'profile',
-        translationNamespace: 'profile'
+        label: t('account', { defaultValue: 'Account' }),
+        translationKey: 'account',
+        translationNamespace: 'dashboard'
       })} />
       {/* Enhanced Header Section */}
       <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-3xl p-8 lg:p-12 text-white shadow-2xl overflow-hidden">

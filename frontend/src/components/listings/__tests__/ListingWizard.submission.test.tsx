@@ -48,7 +48,7 @@ const mockRouter = {
 jest.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
   useSearchParams: () => ({ get: jest.fn(), has: jest.fn() }),
-  usePathname: () => '/dashboard/listings/new'
+  usePathname: () => '/dashboard/dealer/stock/new'
 }));
 
 jest.mock('@/hooks/useLazyTranslation', () => ({

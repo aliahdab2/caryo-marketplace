@@ -143,7 +143,7 @@ export default function ContactSellerModal({
 
       // Close modal and redirect to messages
       onClose();
-      router.push(`/dashboard/messages?conversation=${conversation.id}`);
+      router.push(`/dashboard/dealer/leads?conversation=${conversation.id}`);
     } catch (error: unknown) {
       console.error('Error creating conversation:', error);
       const errorMessage = error && typeof error === 'object' && 'response' in error

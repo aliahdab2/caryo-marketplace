@@ -72,7 +72,7 @@ describe('useLanguageSwitching', () => {
     });
 
     it('should handle complex nested paths', () => {
-      mockUsePathname.mockReturnValue('/ar/dashboard/listings/new');
+      mockUsePathname.mockReturnValue('/ar/dashboard/dealer/stock/new');
 
       const { result } = renderHook(() => useLanguageSwitching());
 
@@ -127,12 +127,12 @@ describe('useLanguageSwitching', () => {
     });
 
     it('should handle complex nested paths', () => {
-      mockUsePathname.mockReturnValue('/en/dashboard/listings/123/edit');
+      mockUsePathname.mockReturnValue('/en/dashboard/dealer/stock/123/edit');
 
       const { result } = renderHook(() => useLanguageSwitching());
       const url = result.current.buildLanguageUrl('ar');
 
-      expect(url).toBe('/ar/dashboard/listings/123/edit');
+      expect(url).toBe('/ar/dashboard/dealer/stock/123/edit');
     });
 
     it('should handle paths with query parameters', () => {
@@ -327,13 +327,13 @@ describe('useLanguageSwitching', () => {
     });
 
     it('should handle very long nested paths', () => {
-      const longPath = '/en/dashboard/listings/123/edit/photos/upload/step/2';
+      const longPath = '/en/dashboard/dealer/stock/123/edit/photos/upload/step/2';
       mockUsePathname.mockReturnValue(longPath);
 
       const { result } = renderHook(() => useLanguageSwitching());
 
       expect(result.current.currentLang).toBe('en');
-      expect(result.current.buildLanguageUrl('ar')).toBe('/ar/dashboard/listings/123/edit/photos/upload/step/2');
+      expect(result.current.buildLanguageUrl('ar')).toBe('/ar/dashboard/dealer/stock/123/edit/photos/upload/step/2');
     });
   });
 

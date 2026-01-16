@@ -128,7 +128,7 @@ const ImageIcon = () => (
   </svg>
 );
 
-export default function DealerProfilePage() {
+export default function DealerStorefrontPage() {
   const { t, i18n } = useTranslation(['dealer', 'common', 'dashboard']);
   const isRtl = i18n.language === 'ar';
   const { data: profile, isLoading, isError, refetch } = useDealerProfile();
@@ -250,10 +250,10 @@ export default function DealerProfilePage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('editProfile')}
+              {t('storefront', { defaultValue: 'Storefront' })}
         </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              {t('manageProfile')}
+              {t('manageStorefront', { defaultValue: 'Manage your public business profile' })}
             </p>
           </div>
           <Link

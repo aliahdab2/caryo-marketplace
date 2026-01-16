@@ -109,11 +109,19 @@ describe('navigationUtils', () => {
       expect(NAVIGATION_ROUTES.LISTINGS).toBe('/listings');
       expect(NAVIGATION_ROUTES.FAVORITES).toBe('/favorites');
       expect(NAVIGATION_ROUTES.DASHBOARD).toBe('/dashboard');
-      expect(NAVIGATION_ROUTES.PROFILE).toBe('/dashboard/profile');
+      expect(NAVIGATION_ROUTES.ACCOUNT).toBe('/dashboard/account');
+      expect(NAVIGATION_ROUTES.PROFILE).toBe('/dashboard/account'); // Legacy alias
       expect(NAVIGATION_ROUTES.SETTINGS).toBe('/dashboard/settings');
       expect(NAVIGATION_ROUTES.CONTACT).toBe('/contact');
       expect(NAVIGATION_ROUTES.SIGNIN).toBe('/auth/signin');
       expect(NAVIGATION_ROUTES.SIGNUP).toBe('/auth/signup');
+    });
+
+    it('should contain dealer-specific routes', () => {
+      expect(NAVIGATION_ROUTES.DEALER_DASHBOARD).toBe('/dashboard/dealer');
+      expect(NAVIGATION_ROUTES.DEALER_STOCK).toBe('/dashboard/dealer/stock');
+      expect(NAVIGATION_ROUTES.DEALER_STOREFRONT).toBe('/dashboard/dealer/storefront');
+      expect(NAVIGATION_ROUTES.DEALER_LEADS).toBe('/dashboard/dealer/leads');
     });
   });
 

@@ -81,7 +81,7 @@ export default function Navbar({ className }: ComponentProps) {
             <div className="flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
               {/* Post Ad Button - Horizontal layout like Blocket */}
               <Link
-                href={user ? "/dashboard/listings/new" : "/auth/signin"}
+                href={user ? "/dashboard/dealer/stock/new" : "/auth/signin"}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md text-sm font-medium flex items-center justify-center transition-colors min-w-[100px] max-w-[120px] h-12 shadow-sm"
               >
                 <MdAdd className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -90,14 +90,14 @@ export default function Navbar({ className }: ComponentProps) {
 
               {/* Messages - Larger style like Blocket */}
               <Link
-                href={user ? "/dashboard/messages" : "/auth/signin"}
+                href={user ? "/dashboard/dealer/leads" : "/auth/signin"}
                 className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 ${
-                  pathname?.startsWith('/dashboard/messages')
+                  pathname?.startsWith('/dashboard/dealer/leads')
                     ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
                 }`}
               >
-                {pathname?.startsWith('/dashboard/messages') ? (
+                {pathname?.startsWith('/dashboard/dealer/leads') ? (
                   <MdMail className="h-5 w-5 mb-1 flex-shrink-0" />
                 ) : (
                   <MdMailOutline className="h-5 w-5 mb-1 flex-shrink-0" />
@@ -220,16 +220,16 @@ export default function Navbar({ className }: ComponentProps) {
                     </Link>
 
                     <Link
-                      href="/dashboard/messages"
+                      href="/dashboard/dealer/leads"
                       className={`flex items-center px-4 py-2 text-sm transition-colors ${
-                        pathname?.startsWith('/dashboard/messages')
+                        pathname?.startsWith('/dashboard/dealer/leads')
                           ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30'
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                       onClick={() => setUserMenuOpen(false)}
                       role="menuitem"
                     >
-                      {pathname?.startsWith('/dashboard/messages') ? (
+                      {pathname?.startsWith('/dashboard/dealer/leads') ? (
                         <MdMail className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       ) : (
                         <MdMailOutline className="mr-3 rtl:ml-3 rtl:mr-0 h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" />
@@ -348,7 +348,7 @@ export default function Navbar({ className }: ComponentProps) {
         <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           {/* Post Ad - First item like Blocket (Prominent button) */}
           <Link
-            href={user ? "/dashboard/listings/new" : "/auth/signin"}
+            href={user ? "/dashboard/dealer/stock/new" : "/auth/signin"}
             className="mobile-nav-link bg-blue-600 hover:bg-blue-700 text-white flex flex-col items-center px-4 py-3 rounded-md text-sm font-medium transition-colors shadow-sm mx-3 mb-4"
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -375,15 +375,15 @@ export default function Navbar({ className }: ComponentProps) {
               <span className="text-xs text-center leading-tight font-medium w-full px-1">{t('search:search')}</span>
             </Link>
             <Link
-              href={user ? "/dashboard/messages" : "/auth/signin"}
+              href={user ? "/dashboard/dealer/leads" : "/auth/signin"}
               className={`mobile-nav-link flex flex-col items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                pathname?.startsWith('/dashboard/messages')
+                pathname?.startsWith('/dashboard/dealer/leads')
                   ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              {pathname?.startsWith('/dashboard/messages') ? (
+              {pathname?.startsWith('/dashboard/dealer/leads') ? (
                 <MdMail className="h-6 w-6 mb-1.5" />
               ) : (
                 <MdMailOutline className="h-6 w-6 mb-1.5" />

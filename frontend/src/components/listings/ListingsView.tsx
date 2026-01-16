@@ -328,7 +328,7 @@ export default function ListingsView({
           </div>
           {showViewAllLink && variant === 'summary' && (
             <Link
-              href="/dashboard/listings"
+              href="/dashboard/dealer/stock"
               className="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-base rounded-lg font-medium transition-colors duration-200 hover:shadow-md"
             >
               {t('viewAll', { ns: 'common' })}
@@ -389,7 +389,7 @@ export default function ListingsView({
             {t('noListingsDesc') || 'You haven\'t created any listings yet. Start by creating your first listing!'}
           </p>
           <Link
-            href="/dashboard/listings/new"
+            href="/dashboard/dealer/stock/new"
             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-medium transition-colors duration-200 hover:shadow-md"
           >
             <MdAddCircleOutline className="mr-2 w-4 h-4" />
@@ -565,7 +565,7 @@ export default function ListingsView({
                       {showActions && (
                         <div className="flex items-center space-x-1 rtl:space-x-reverse flex-shrink-0 ml-3 rtl:ml-0 rtl:mr-3">
                           <Link
-                            href={`/dashboard/listings/edit/${listing.id}`}
+                            href={`/dashboard/dealer/stock/edit/${listing.id}`}
                             className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-200"
                             title={t('edit', { ns: 'common' })}
                           >

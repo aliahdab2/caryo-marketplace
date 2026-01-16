@@ -72,11 +72,18 @@ export const NAVIGATION_ROUTES = {
   LISTINGS: '/listings',
   FAVORITES: '/favorites',
   DASHBOARD: '/dashboard',
-  PROFILE: '/dashboard/profile',
+  DEALER_DASHBOARD: '/dashboard/dealer',
+  DEALER_STOCK: '/dashboard/dealer/stock',
+  DEALER_STOREFRONT: '/dashboard/dealer/storefront',
+  DEALER_LEADS: '/dashboard/dealer/leads',
+  ACCOUNT: '/dashboard/account',
   SETTINGS: '/dashboard/settings',
   CONTACT: '/contact',
   SIGNIN: '/auth/signin',
-  SIGNUP: '/auth/signup'
+  SIGNUP: '/auth/signup',
+  // Legacy paths (for backwards compatibility)
+  /** @deprecated Use ACCOUNT instead */
+  PROFILE: '/dashboard/account',
 } as const;
 
 /**
