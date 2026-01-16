@@ -3,6 +3,7 @@ package com.autotrader.autotraderbackend.controller;
 import com.autotrader.autotraderbackend.exception.dealer.DealerNotFoundException;
 import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.payload.response.CanCreateListingResponse;
+import com.autotrader.autotraderbackend.payload.response.DealerProfileResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.DealerService;
@@ -119,7 +120,9 @@ public class DealerController {
             Dealer dealer = dealerService.getDealerByUserId(userId)
                 .orElseThrow(() -> new DealerNotFoundException(userId));
 
-            return ResponseEntity.ok(dealer);
+            // Map entity to DTO to avoid Hibernate proxy serialization issues
+            DealerProfileResponse response = mapDealerToProfileResponse(dealer);
+            return ResponseEntity.ok(response);
 
         } catch (DealerNotFoundException e) {
             log.error("Dealer profile not found for user: {}", userDetails.getId());
@@ -130,6 +133,36 @@ public class DealerController {
             return ResponseEntity.badRequest()
                 .body(new MessageResponse("Error: Could not fetch dealer profile"));
         }
+    }
+
+    /**
+     * Maps a Dealer entity to a DealerProfileResponse DTO.
+     * This avoids Hibernate lazy-loading proxy serialization issues.
+     */
+    private DealerProfileResponse mapDealerToProfileResponse(Dealer dealer) {
+        return DealerProfileResponse.builder()
+            .id(dealer.getId())
+            .businessName(dealer.getBusinessName())
+            .vatNumber(dealer.getVatNumber())
+            .tradingAddress(dealer.getTradingAddress())
+            .businessEmail(dealer.getBusinessEmail())
+            .businessPhone(dealer.getBusinessPhone())
+            .logoUrl(dealer.getLogoUrl())
+            .bannerUrl(dealer.getBannerUrl())
+            .description(dealer.getDescription())
+            .descriptionAr(dealer.getDescriptionAr())
+            .workingHours(dealer.getWorkingHours())
+            .socialLinks(dealer.getSocialLinks())
+            .createdAt(dealer.getCreatedAt())
+            .updatedAt(dealer.getUpdatedAt())
+            .subscriptionTier(dealer.getSubscriptionTier())
+            .subscriptionStatus(dealer.getSubscriptionStatus())
+            .trialStartedAt(dealer.getTrialStartedAt())
+            .trialListingsCount(dealer.getTrialListingsCount())
+            .trialExpired(dealer.getTrialExpired())
+            .canCreateListings(dealer.getCanCreateListings())
+            .timezone(dealer.getTimezone())
+            .build();
     }
 
     /**
