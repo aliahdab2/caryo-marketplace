@@ -4,6 +4,7 @@ import com.autotrader.autotraderbackend.model.CarBrand;
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.CarModel;
 import com.autotrader.autotraderbackend.model.ListingMedia;
+import com.autotrader.autotraderbackend.model.ListingMedia.ModerationStatus;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.Location; // Ensure this import is present
 import com.autotrader.autotraderbackend.model.Country;
@@ -99,6 +100,7 @@ class CarListingMapperTest {
         primaryImage.setSortOrder(0);
         primaryImage.setIsPrimary(true);
         primaryImage.setMediaType("image");
+        primaryImage.setModerationStatus(ModerationStatus.APPROVED); // Set as approved for tests
         testCarListing.addMedia(primaryImage);
     }
 
@@ -181,6 +183,7 @@ class CarListingMapperTest {
         blankKeyMedia.setSortOrder(0);
         blankKeyMedia.setIsPrimary(true);
         blankKeyMedia.setMediaType("image");
+        blankKeyMedia.setModerationStatus(ModerationStatus.APPROVED);
         testCarListing.addMedia(blankKeyMedia);
 
         // Act
@@ -266,6 +269,7 @@ class CarListingMapperTest {
         primaryImage.setSortOrder(0);
         primaryImage.setIsPrimary(true);
         primaryImage.setMediaType("image");
+        primaryImage.setModerationStatus(ModerationStatus.APPROVED);
         testCarListing.addMedia(primaryImage);
 
         ListingMedia secondaryImage = new ListingMedia();
@@ -278,6 +282,7 @@ class CarListingMapperTest {
         secondaryImage.setSortOrder(1);
         secondaryImage.setIsPrimary(false);
         secondaryImage.setMediaType("image");
+        secondaryImage.setModerationStatus(ModerationStatus.APPROVED);
         testCarListing.addMedia(secondaryImage);
 
         // No longer using storageService mocking
