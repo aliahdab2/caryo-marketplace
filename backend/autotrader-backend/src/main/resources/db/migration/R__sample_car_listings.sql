@@ -103,7 +103,7 @@ AND NOT EXISTS (SELECT 1 FROM car_listings WHERE title = 'Hyundai Elantra 2020 -
 -- Insert sample media for the listings (simplified)
 INSERT INTO listing_media (
     listing_id, file_key, file_name, content_type, size,
-    sort_order, is_primary, media_type, created_at
+    sort_order, is_primary, media_type, created_at, moderation_status, moderated_at
 )
 SELECT
     cl.id,
@@ -114,6 +114,8 @@ SELECT
     1,
     true,
     'IMAGE',
+    CURRENT_TIMESTAMP,
+    'APPROVED',
     CURRENT_TIMESTAMP
 FROM car_listings cl
 WHERE cl.title LIKE '%Test Listing%'
