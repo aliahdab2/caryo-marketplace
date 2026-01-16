@@ -50,5 +50,9 @@
   "saturday": "Saturday",
   "sunday": "Sunday",
   "saveFailed": "Failed to save changes",
-  "saveSuccess": "Changes saved successfully!"
+  "saveSuccess": "Changes saved successfully!",
+  "socialMediaHelp": "Add your social media profiles to help customers connect with you",
+  "selectPlatform": "Select a platform...",
+  "noSocialLinks": "No social links added yet. Add your first one above!",
+  "allPlatformsAdded": "All available platforms have been added!"
 }
