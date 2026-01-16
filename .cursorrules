@@ -89,6 +89,13 @@ npm run dev
 - Follow RESTful API conventions
 - Implement proper error handling at all levels
 
+### Translation (i18n) - See `docs/development/translation_guide_for_developers.md`
+- **Flat keys with camelCase** (NOT `days.monday`, use `monday`)
+- **Namespace by feature** (create `dealer.json`, not add to `common.json`)
+- **No fallback strings** in `t()` calls - define values in JSON files
+- **No nested objects** in translation JSON files
+- Example: `const { t } = useTranslation(['dealer', 'common']);`
+
 ## 🔍 **Troubleshooting**
 
 If build fails:

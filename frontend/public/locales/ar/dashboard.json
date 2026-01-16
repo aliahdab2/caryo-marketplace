@@ -108,5 +108,7 @@
   "trial.learn.more": "المزيد",
   "trial.listings.used": "تم استخدام {{used}}/{{total}} إعلان",
   "trial.days.remaining": "{{days}} يوم متبقي",
-  "error.title": "خطأ في لوحة التحكم"
+  "error.title": "خطأ في لوحة التحكم",
+  "editDealerProfile": "ملف الوكيل",
+  "editDealerProfileDesc": "إدارة واجهة متجرك العامة"
 }

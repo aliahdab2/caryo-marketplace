@@ -11,7 +11,8 @@ import {
   MdCheckCircle,
   MdNotifications,
   MdStarBorder,
-  MdArrowForward
+  MdArrowForward,
+  MdStorefront
 } from 'react-icons/md';
 import Link from 'next/link';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
@@ -220,6 +221,26 @@ export default function DealerDashboard() {
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   {formatNumber(dashboardStats.totalListings, currentLang)} {t('listingsCount', { count: dashboardStats.totalListings })}
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Edit Dealer Profile */}
+          <Link
+            href={`/${currentLang}/dashboard/dealer/profile`}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+          >
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+              <div className="p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex-shrink-0">
+                <MdStorefront className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+                  {t('editDealerProfile')}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  {t('editDealerProfileDesc')}
                 </p>
               </div>
             </div>

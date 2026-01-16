@@ -106,6 +106,43 @@ frontend/src/
 4. **All Tests Must Pass** - Before any deployment
 5. **Translations** - All user-facing text must use i18n keys
 
+## 🌐 Translation (i18n) Rules
+
+**Full guide:** `docs/development/translation_guide_for_developers.md`
+
+### Structure Rules
+
+| Rule | Example |
+|------|---------|
+| **Flat keys** | `"memberSince"` not `"dealer.memberSince"` |
+| **camelCase** | `"workingHours"` not `"working_hours"` or `"working-hours"` |
+| **Feature namespaces** | Create `dealer.json` for dealer features |
+| **No fallbacks in code** | `t('key')` not `t('key', 'Fallback')` |
+
+### Namespace Organization
+
+```
+public/locales/en/
+  common.json      # Shared (save, cancel, next, previous)
+  auth.json        # Authentication
+  dealer.json      # Dealer profile features
+  listings.json    # Car listings
+  dashboard.json   # Dashboard UI
+```
+
+### Usage Example
+
+```typescript
+// ✅ Correct
+const { t } = useTranslation(['dealer', 'common']);
+{t('memberSince')}          // From dealer.json
+{t('common:saveChanges')}   // From common.json
+
+// ❌ Wrong
+const { t } = useTranslation('common');
+{t('dealer.memberSince', 'Member since')}  // No dots, no fallbacks
+```
+
 ## 📝 Code Examples
 
 ### Frontend: Proper 404 Handling

@@ -108,5 +108,7 @@
   "trial.learn.more": "Learn More",
   "trial.listings.used": "{{used}}/{{total}} listings used",
   "trial.days.remaining": "{{days}} days left",
-  "error.title": "Dashboard Error"
+  "error.title": "Dashboard Error",
+  "editDealerProfile": "Dealer Profile",
+  "editDealerProfileDesc": "Manage your public storefront"
 }

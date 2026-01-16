@@ -103,6 +103,58 @@ npm run build
 
 ---
 
+## 🌐 Translation (i18n) Rules
+
+**Reference:** `docs/development/translation_guide_for_developers.md`
+
+### Key Structure
+- **Flat keys with camelCase** - NOT nested objects
+- **Organize by namespace** (route/feature) - NOT by content type
+
+```json
+// ✅ DO: Flat camelCase keys
+{
+  "signIn": "Sign In",
+  "memberSince": "Member since"
+}
+
+// ❌ DON'T: Nested or dot notation
+{
+  "auth": { "signIn": "Sign In" },
+  "days.monday": "Monday"
+}
+```
+
+### Namespace Organization
+```
+public/locales/en/
+  common.json     # Shared UI (buttons, navigation)
+  auth.json       # Login, signup, password reset
+  dealer.json     # Dealer-specific (profile, hours)
+  listings.json   # Car listings
+  dashboard.json  # Dashboard UI
+```
+
+### Usage in Components
+```typescript
+// Load namespace(s)
+const { t } = useTranslation(['dealer', 'common']);
+
+// Use keys (NO fallback strings - value is in JSON)
+{t('memberSince')}           // From primary namespace
+{t('common:saveChanges')}    // Explicit namespace
+```
+
+### Rules Summary
+| ❌ Don't | ✅ Do Instead |
+|---------|---------------|
+| Add feature keys to `common.json` | Create feature namespace (`dealer.json`) |
+| Use dot notation (`days.monday`) | Use camelCase (`monday`) |
+| Include fallback strings | Define in JSON file |
+| Nest objects in JSON | Keep flat structure |
+
+---
+
 ## Anti-Patterns to Avoid
 
 | ❌ Don't | ✅ Do Instead |
@@ -114,6 +166,8 @@ npm run build
 | `any` type in TypeScript | Define proper types |
 | Swallow errors silently | Handle with user-friendly messages |
 | Prop drilling for global state | Use Zustand stores |
+| Add feature keys to `common.json` | Create dedicated namespace |
+| Nested translation keys | Use flat camelCase structure |
 
 ---
 
