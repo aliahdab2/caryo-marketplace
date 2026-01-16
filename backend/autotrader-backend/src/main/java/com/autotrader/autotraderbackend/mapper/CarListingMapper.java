@@ -369,11 +369,30 @@ public class CarListingMapper {
      * @return List of ListingMediaResponse DTOs, sorted by sortOrder.
      */
     private List<ListingMediaResponse> mapListingMedia(CarListing carListing) {
+        return mapListingMedia(carListing, true); // Default: filter to approved only
+    }
+
+    /**
+     * Maps media items with optional moderation filtering.
+     *
+     * @param carListing The car listing containing media items.
+     * @param filterApprovedOnly If true, only includes APPROVED media (for public views).
+     *                           If false, includes all media (for owner/admin views).
+     * @return List of ListingMediaResponse DTOs, sorted by sortOrder.
+     */
+    private List<ListingMediaResponse> mapListingMedia(CarListing carListing, boolean filterApprovedOnly) {
         if (Objects.isNull(carListing) || Objects.isNull(carListing.getMedia()) || carListing.getMedia().isEmpty()) {
             return new ArrayList<>();
         }
 
-        return carListing.getMedia().stream()
+        var stream = carListing.getMedia().stream();
+        
+        // Filter by moderation status for public views
+        if (filterApprovedOnly) {
+            stream = stream.filter(media -> media.isApproved());
+        }
+
+        return stream
             .map(media -> mapSingleMedia(carListing.getId(), media))
             .sorted(Comparator.comparing(ListingMediaResponse::getSortOrder))
             .collect(Collectors.toList());
@@ -415,6 +434,11 @@ public class CarListingMapper {
             mediaResponse.setVideoSource(media.getVideoSource());
             mediaResponse.setExternalUrl(media.getExternalUrl());
             mediaResponse.setDurationSeconds(media.getDurationSeconds());
+        }
+
+        // Set moderation status (useful for owner/admin views)
+        if (media.getModerationStatus() != null) {
+            mediaResponse.setModerationStatus(media.getModerationStatus().name());
         }
 
         return mediaResponse;

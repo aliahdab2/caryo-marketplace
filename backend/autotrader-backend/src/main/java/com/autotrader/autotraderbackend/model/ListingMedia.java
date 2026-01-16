@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * Entity representing media files (images, videos) associated with car listings.
+ * Includes moderation status for content approval workflow.
  */
 @Entity
 @Table(name = "listing_media")
@@ -16,6 +17,15 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class ListingMedia {
+
+    /**
+     * Moderation status for image approval workflow.
+     */
+    public enum ModerationStatus {
+        PENDING,   // Awaiting admin review
+        APPROVED,  // Visible to public
+        REJECTED   // Hidden/deleted
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,6 +78,23 @@ public class ListingMedia {
 
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
+
+    // ============ Moderation fields ============
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", nullable = false, length = 20)
+    private ModerationStatus moderationStatus = ModerationStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "moderated_by")
+    private User moderatedBy;
+
+    @Column(name = "moderated_at")
+    private LocalDateTime moderatedAt;
+
+    @Size(max = 500)
+    @Column(name = "moderation_notes", length = 500)
+    private String moderationNotes;
 
     /**
      * Handles pre-persist operations:
@@ -196,5 +223,50 @@ public class ListingMedia {
      */
     public boolean isUploadedVideo() {
         return "video".equals(mediaType) && "upload".equals(videoSource);
+    }
+
+    // ============ Moderation helper methods ============
+
+    /**
+     * Checks if this media is approved and visible to public
+     */
+    public boolean isApproved() {
+        return moderationStatus == ModerationStatus.APPROVED;
+    }
+
+    /**
+     * Checks if this media is pending moderation
+     */
+    public boolean isPending() {
+        return moderationStatus == ModerationStatus.PENDING;
+    }
+
+    /**
+     * Checks if this media was rejected
+     */
+    public boolean isRejected() {
+        return moderationStatus == ModerationStatus.REJECTED;
+    }
+
+    /**
+     * Approve this media item
+     * @param moderator The admin user who approved the image
+     */
+    public void approve(User moderator) {
+        this.moderationStatus = ModerationStatus.APPROVED;
+        this.moderatedBy = moderator;
+        this.moderatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Reject this media item
+     * @param moderator The admin user who rejected the image
+     * @param notes Optional reason for rejection
+     */
+    public void reject(User moderator, String notes) {
+        this.moderationStatus = ModerationStatus.REJECTED;
+        this.moderatedBy = moderator;
+        this.moderatedAt = LocalDateTime.now();
+        this.moderationNotes = notes;
     }
 }

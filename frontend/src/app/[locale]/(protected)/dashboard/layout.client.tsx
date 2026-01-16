@@ -26,7 +26,8 @@ import {
   MdStorage,
   MdBlock,
   MdFlag,
-  MdStorefront
+  MdStorefront,
+  MdImage
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
@@ -211,6 +212,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         href: `/${currentLang}/dashboard/admin/reports`,
         icon: <MdFlag className="text-xl" />,
         tooltip: t('admin-reports:subtitle', 'Review and manage user reports')
+      },
+      {
+        name: t('admin:mediaModerationMenu', 'Image Moderation'),
+        href: `/${currentLang}/dashboard/admin/moderation`,
+        icon: <MdImage className="text-xl" />,
+        tooltip: t('admin:imageModerationDescription', 'Review and approve uploaded images')
       }
     ] : []),
     // Account Section

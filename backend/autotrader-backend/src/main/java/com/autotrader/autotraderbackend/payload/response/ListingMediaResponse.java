@@ -26,6 +26,9 @@ public class ListingMediaResponse {
     private String externalUrl;        // External video URL for YouTube, Vimeo, etc.
     private Integer durationSeconds;   // Video duration in seconds
 
+    // Moderation fields (for owner/admin views)
+    private String moderationStatus;   // 'PENDING', 'APPROVED', 'REJECTED'
+
     // Explicit getters and setters for clarity and consistent style
     public Long getId() { return id; }
     public String getUrl() { return url; }
@@ -56,4 +59,8 @@ public class ListingMediaResponse {
 
     public Integer getDurationSeconds() { return durationSeconds; }
     public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
+
+    // Moderation getters and setters
+    public String getModerationStatus() { return moderationStatus; }
+    public void setModerationStatus(String moderationStatus) { this.moderationStatus = moderationStatus; }
 }

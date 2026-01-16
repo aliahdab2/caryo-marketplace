@@ -93,5 +93,16 @@
   "approveButton": "Approve",
   "rejectButton": "Reject",
   "listingsCount": "{{count}} listings",
-  "noPendingSelected": "No pending listings selected"
+  "noPendingSelected": "No pending listings selected",
+  "imageModeration": "Image Moderation",
+  "imageModerationDescription": "Review and approve uploaded images before they appear on the site",
+  "noImagesForReview": "No images pending review",
+  "approveAll": "Approve All",
+  "rejectAll": "Reject All",
+  "rejectReason": "Enter rejection reason (optional):",
+  "fileName": "File",
+  "uploadedAt": "Uploaded",
+  "rejected": "Rejected",
+  "close": "Close",
+  "mediaModerationMenu": "Image Moderation"
 }

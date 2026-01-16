@@ -25,6 +25,7 @@ import java.util.UUID;
 
 /**
  * Controller for handling file operations including upload, download, and managing files.
+ * Images are uploaded with PENDING status and require admin approval before becoming visible.
  */
 @RestController
 @RequestMapping("/api/files")

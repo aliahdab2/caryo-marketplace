@@ -93,5 +93,16 @@
   "approveButton": "اعتماد",
   "rejectButton": "رفض",
   "listingsCount": "{{count}} إعلان",
-  "noPendingSelected": "لم يتم تحديد أي إعلانات قيد الانتظار"
+  "noPendingSelected": "لم يتم تحديد أي إعلانات قيد الانتظار",
+  "imageModeration": "مراجعة الصور",
+  "imageModerationDescription": "مراجعة واعتماد الصور المرفوعة قبل ظهورها على الموقع",
+  "noImagesForReview": "لا توجد صور بحاجة للمراجعة",
+  "approveAll": "اعتماد الكل",
+  "rejectAll": "رفض الكل",
+  "rejectReason": "أدخل سبب الرفض (اختياري):",
+  "fileName": "الملف",
+  "uploadedAt": "تاريخ الرفع",
+  "rejected": "مرفوض",
+  "close": "إغلاق",
+  "mediaModerationMenu": "مراجعة الصور"
 }

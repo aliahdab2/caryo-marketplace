@@ -1,7 +1,12 @@
 package com.autotrader.autotraderbackend.repository;
 
 import com.autotrader.autotraderbackend.model.ListingMedia;
+import com.autotrader.autotraderbackend.model.ListingMedia.ModerationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,4 +29,53 @@ public interface ListingMediaRepository extends JpaRepository<ListingMedia, Long
      * @return A list of primary media items (typically should be only one)
      */
     List<ListingMedia> findByListingIdAndIsPrimaryTrue(Long listingId);
+
+    // ============ Moderation queries ============
+
+    /**
+     * Find all media with a specific moderation status (paginated)
+     * Used for admin moderation queue
+     */
+    Page<ListingMedia> findByModerationStatusOrderByCreatedAtAsc(
+            ModerationStatus status, Pageable pageable);
+
+    /**
+     * Find pending media (for moderation queue)
+     */
+    default Page<ListingMedia> findPendingMedia(Pageable pageable) {
+        return findByModerationStatusOrderByCreatedAtAsc(ModerationStatus.PENDING, pageable);
+    }
+
+    /**
+     * Count pending media items (for dashboard badge)
+     */
+    long countByModerationStatus(ModerationStatus status);
+
+    /**
+     * Find approved media for a listing (public view)
+     */
+    List<ListingMedia> findByListingIdAndModerationStatusOrderBySortOrderAsc(
+            Long listingId, ModerationStatus status);
+
+    /**
+     * Find approved media for a listing (convenience method)
+     */
+    default List<ListingMedia> findApprovedMediaByListingId(Long listingId) {
+        return findByListingIdAndModerationStatusOrderBySortOrderAsc(
+                listingId, ModerationStatus.APPROVED);
+    }
+
+    /**
+     * Find primary approved media for a listing
+     */
+    @Query("SELECT m FROM ListingMedia m WHERE m.listingId = :listingId " +
+           "AND m.isPrimary = true AND m.moderationStatus = 'APPROVED'")
+    List<ListingMedia> findApprovedPrimaryMedia(@Param("listingId") Long listingId);
+
+    /**
+     * Count pending media for dashboard statistics
+     */
+    default long countPendingMedia() {
+        return countByModerationStatus(ModerationStatus.PENDING);
+    }
 }
