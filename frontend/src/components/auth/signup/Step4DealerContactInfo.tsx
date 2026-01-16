@@ -117,13 +117,15 @@ export default function Step4DealerContactInfo({
       formData.append('file', file);
 
       // Upload to backend (no Content-Type needed - browser sets it with boundary)
-      const response = await api.post<{ downloadUri: string }>(
+      // Note: /api/images/upload is used for signup (unauthenticated)
+      // TODO: Consider migrating to S3 storage after account creation
+      const response = await api.post<{ fileName: string; fileDownloadUri: string }>(
         '/api/images/upload',
         formData
       );
 
-      // Set the logo URL (this will be a proper URI from MinIO/S3)
-      setLogoUrl(response.downloadUri);
+      // Set the logo URL from the backend response
+      setLogoUrl(response.fileDownloadUri);
 
       // Create preview
       const reader = new FileReader();

@@ -45,18 +45,19 @@ public class FileController {
     }
 
     /**
-     * Upload a file for a car listing.
+     * Upload a file for a car listing or general purpose.
      * Requires authentication.
      *
      * @param file The file to upload
      * @param listingId The ID of the car listing (optional)
+     * @param folder Custom folder/prefix for organizing files (optional, e.g., "dealers/logos", "dealers/banners")
      * @return A map containing the file URL and key
      */
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')")
     @Operation(
-        summary = "Upload a file for a car listing",
-        description = "Uploads a file for a car listing. Requires authentication.",
+        summary = "Upload a file",
+        description = "Uploads a file to storage. Optionally specify a listingId for car listings or a folder for custom organization (e.g., dealers/logos).",
         security = @SecurityRequirement(name = "bearer-token"),
         responses = {
             @ApiResponse(responseCode = "200", description = "File uploaded successfully"),
@@ -66,10 +67,11 @@ public class FileController {
     )
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "listingId", required = false) Long listingId) {
+            @RequestParam(value = "listingId", required = false) Long listingId,
+            @RequestParam(value = "folder", required = false) String folder) {
 
-        logger.info("Received file upload request: {}, size: {}, listingId: {}",
-                file.getOriginalFilename(), file.getSize(), listingId);
+        logger.info("Received file upload request: {}, size: {}, listingId: {}, folder: {}",
+                file.getOriginalFilename(), file.getSize(), listingId, folder);
 
         if (file.isEmpty()) {
             throw new StorageException("Failed to store empty file");
@@ -91,8 +93,16 @@ public class FileController {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        // Create a path based on listing ID (if provided) or a generic "uploads" folder
-        String path = listingId != null ? "listings/" + listingId : "uploads";
+        // Create a path based on: custom folder > listing ID > generic uploads
+        String path;
+        if (folder != null && !folder.isBlank()) {
+            // Sanitize folder path - allow alphanumeric, hyphens, underscores, and slashes
+            path = folder.replaceAll("[^a-zA-Z0-9/_-]", "");
+        } else if (listingId != null) {
+            path = "listings/" + listingId;
+        } else {
+            path = "uploads";
+        }
         String key = path + "/" + UUID.randomUUID().toString() + fileExtension;
 
         // Store the file

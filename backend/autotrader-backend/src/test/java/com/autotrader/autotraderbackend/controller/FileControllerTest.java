@@ -45,7 +45,7 @@ class FileControllerTest {
     void uploadFile_success_withListingId() {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
         when(storageService.store(any(MultipartFile.class), anyString())).thenReturn("http://url");
-        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, 123L);
+        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, 123L, null);
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody(), "Response body should not be null");
         assertTrue(response.getBody().containsKey("url"));
@@ -56,7 +56,7 @@ class FileControllerTest {
     void uploadFile_success_withoutListingId() {
         MockMultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "data".getBytes());
         when(storageService.store(any(MultipartFile.class), anyString())).thenReturn("http://url");
-        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, null);
+        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, null, null);
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody(), "Response body should not be null");
         assertTrue(response.getBody().containsKey("url"));
@@ -64,23 +64,58 @@ class FileControllerTest {
     }
 
     @Test
+    void uploadFile_success_withCustomFolder() {
+        MockMultipartFile file = new MockMultipartFile("file", "logo.png", "image/png", "data".getBytes());
+        when(storageService.store(any(MultipartFile.class), argThat(key -> key.startsWith("dealers/logos/"))))
+            .thenReturn("http://url");
+        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, null, "dealers/logos");
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody(), "Response body should not be null");
+        assertTrue(response.getBody().containsKey("url"));
+        assertTrue(response.getBody().get("key").startsWith("dealers/logos/"));
+    }
+
+    @Test
+    void uploadFile_folderTakesPrecedenceOverListingId() {
+        MockMultipartFile file = new MockMultipartFile("file", "banner.jpg", "image/jpeg", "data".getBytes());
+        when(storageService.store(any(MultipartFile.class), argThat(key -> key.startsWith("dealers/banners/"))))
+            .thenReturn("http://url");
+        // When both folder and listingId are provided, folder takes precedence
+        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, 123L, "dealers/banners");
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody(), "Response body should not be null");
+        assertTrue(response.getBody().get("key").startsWith("dealers/banners/"));
+    }
+
+    @Test
+    void uploadFile_sanitizesFolder() {
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
+        when(storageService.store(any(MultipartFile.class), anyString())).thenReturn("http://url");
+        // Folder with special characters should be sanitized
+        ResponseEntity<Map<String, String>> response = fileController.uploadFile(file, null, "dealers/../../../etc");
+        assertEquals(200, response.getStatusCode().value());
+        // The key should not contain ".."
+        assertFalse(response.getBody().get("key").contains(".."));
+    }
+
+    @Test
     void uploadFile_emptyFile_throws() {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[0]);
-        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L));
+        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L, null));
         assertTrue(ex.getMessage().contains("empty file"));
     }
 
     @Test
     void uploadFile_nullContentType_throws() {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", null, "data".getBytes());
-        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L));
+        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L, null));
         assertTrue(ex.getMessage().contains("Unsupported file type"));
     }
 
     @Test
     void uploadFile_invalidContentType_throws() {
         MockMultipartFile file = new MockMultipartFile("file", "test.txt", "text/plain", "data".getBytes());
-        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L));
+        StorageException ex = assertThrows(StorageException.class, () -> fileController.uploadFile(file, 1L, null));
         assertTrue(ex.getMessage().contains("Unsupported file type"));
     }
 

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { useDealerProfile, useUpdateDealerProfile } from '@/hooks/queries';
 import { LoadingSkeleton, ErrorDisplay } from '@/components/common';
 import Link from 'next/link';
+import { api } from '@/services/api';
 import {
   parseSocialLinks,
   socialLinksToJson,
@@ -158,6 +159,87 @@ export default function DealerStorefrontPage() {
   const watchedSpecialties = watch('specialties');
   const watchedSocialLinks = watch('socialLinks');
 
+  // File upload states
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file upload to MinIO/S3 via /api/files/upload
+  const handleImageUpload = async (
+    file: File,
+    type: 'logo' | 'banner'
+  ): Promise<string | null> => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setUploadError(t('invalidFileType', { defaultValue: 'Please select a valid image file' }));
+      return null;
+    }
+
+    // Validate file size (max 5MB for logo, 10MB for banner)
+    const maxSize = type === 'logo' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError(t('fileTooLarge', { 
+        defaultValue: `File size must be less than ${type === 'logo' ? '5MB' : '10MB'}` 
+      }));
+      return null;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      // Use dealer folder for organization in MinIO bucket
+      formData.append('folder', `dealers/${type}s`);
+
+      // Use /api/files/upload which stores to MinIO/S3 (requires auth)
+      const response = await api.post<{ url: string; key: string }>(
+        '/api/files/upload',
+        formData
+      );
+
+      // Return the file key which can be used to construct the URL
+      // The backend returns both url and key - prefer key for storage
+      return response.key ? `/api/files/${response.key}` : response.url;
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError(t('uploadFailed', { defaultValue: 'Failed to upload image. Please try again.' }));
+      return null;
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setUploadingLogo(true);
+    
+    const url = await handleImageUpload(file, 'logo');
+    if (url) {
+      setValue('logoUrl', url);
+    }
+    
+    setUploadingLogo(false);
+    if (event.target) event.target.value = '';
+  };
+
+  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setUploadingBanner(true);
+    
+    const url = await handleImageUpload(file, 'banner');
+    if (url) {
+      setValue('bannerUrl', url);
+    }
+    
+    setUploadingBanner(false);
+    if (event.target) event.target.value = '';
+  };
+
   // Get platforms that haven't been added yet
   const availablePlatforms = SOCIAL_PLATFORMS.filter(
     (p) => !watchedSocialLinks.some((link) => link.platform === p.id)
@@ -277,53 +359,154 @@ export default function DealerStorefrontPage() {
             </div>
             
             <div className="p-6 space-y-6">
-              {/* Banner Preview & Input */}
+              {/* Error Message */}
+              {uploadError && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  {uploadError}
+                  <button 
+                    type="button" 
+                    onClick={() => setUploadError(null)}
+                    className="ml-auto text-red-500 hover:text-red-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {/* Banner Preview & Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t('bannerImage')}
                 </label>
-                <div className="relative h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl overflow-hidden mb-3">
+                <div 
+                  className="relative h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl overflow-hidden mb-3 cursor-pointer group"
+                  onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
+                >
                   {watchedBannerUrl ? (
                     <Image src={watchedBannerUrl} alt="Banner preview" fill className="object-cover" unoptimized />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center text-white/70">
                         <ImageIcon />
-                        <p className="text-sm mt-2">{t('noBannerSet')}</p>
+                        <p className="text-sm mt-2">{t('clickToUpload', { defaultValue: 'Click to upload' })}</p>
                       </div>
                     </div>
                   )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {uploadingBanner ? (
+                      <div className="text-white flex items-center gap-2">
+                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        {t('uploading', { defaultValue: 'Uploading...' })}
+                      </div>
+                    ) : (
+                      <div className="text-white text-sm font-medium">
+                        {t('changeImage', { defaultValue: 'Change Image' })}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <input
-                  type="url"
-                  placeholder="https://example.com/banner.jpg"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  {...register('bannerUrl')}
+                  ref={bannerInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerUpload}
+                  className="hidden"
                 />
-                <p className="text-xs text-gray-500 mt-1">{t('bannerHelp')}</p>
+                {/* Optional URL input (collapsed by default) */}
+                <details className="text-xs">
+                  <summary className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
+                    {t('useUrlInstead', { defaultValue: 'Or paste image URL' })}
+                  </summary>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/banner.jpg"
+                    className="mt-2 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    {...register('bannerUrl')}
+                  />
+                </details>
+                <p className="text-xs text-gray-500 mt-1">{t('bannerHelp', { defaultValue: 'Recommended: 1200x300 pixels' })}</p>
               </div>
 
-              {/* Logo Preview & Input */}
+              {/* Logo Preview & Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t('logoImage')}
                 </label>
                 <div className="flex items-center gap-4">
-                  <div className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center overflow-hidden">
+                  <div 
+                    className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer group"
+                    onClick={() => !uploadingLogo && logoInputRef.current?.click()}
+                  >
                     {watchedLogoUrl ? (
                       <Image src={watchedLogoUrl} alt="Logo preview" fill className="object-cover" unoptimized />
                     ) : (
                       <ImageIcon />
                     )}
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {uploadingLogo ? (
+                        <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </div>
                   </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
                   <div className="flex-1">
-                    <input
-                      type="url"
-                      placeholder="https://example.com/logo.png"
-                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      {...register('logoUrl')}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{t('logoHelp')}</p>
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {t('uploading', { defaultValue: 'Uploading...' })}
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          {t('uploadLogo', { defaultValue: 'Upload Logo' })}
+                        </>
+                      )}
+                    </button>
+                    {/* Optional URL input */}
+                    <details className="text-xs mt-2">
+                      <summary className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">
+                        {t('useUrlInstead', { defaultValue: 'Or paste image URL' })}
+                      </summary>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/logo.png"
+                        className="mt-2 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register('logoUrl')}
+                      />
+                    </details>
+                    <p className="text-xs text-gray-500 mt-1">{t('logoHelp', { defaultValue: 'Recommended: 200x200 pixels, max 5MB' })}</p>
                   </div>
                 </div>
               </div>
@@ -466,54 +649,57 @@ export default function DealerStorefrontPage() {
             </div>
           </div>
 
-          {/* Working Hours */}
+          {/* Working Hours - Compact Grid Layout */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <span className="w-1 h-5 bg-blue-600 rounded-full" />
                 {t('workingHours')}
               </h2>
             </div>
             
-            <div className="p-6">
-              <div className="space-y-3">
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Controller
                     key={day}
                     name={`workingHours.${day}` as const}
                     control={control}
                     render={({ field }) => (
-                      <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                        <div className="w-28 font-medium text-gray-700 dark:text-gray-300 capitalize">
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                        <div className="w-20 text-sm font-medium text-gray-700 dark:text-gray-300 capitalize truncate">
                           {t(day)}
                         </div>
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
                           <input
                             type="checkbox"
                             checked={field.value.closed}
                             onChange={(e) => field.onChange({ ...field.value, closed: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                           />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {t('closed')}
                           </span>
-            </label>
+                        </label>
                         {!field.value.closed && (
-                          <>
+                          <div className="flex items-center gap-1 ml-auto">
                             <input
                               type="time"
                               value={field.value.open}
                               onChange={(e) => field.onChange({ ...field.value, open: e.target.value })}
-                              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
+                              className="w-[90px] rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-1.5 py-1 text-xs"
                             />
-                            <span className="text-gray-500">—</span>
+                            <span className="text-gray-400 text-xs">-</span>
                             <input
                               type="time"
                               value={field.value.close}
                               onChange={(e) => field.onChange({ ...field.value, close: e.target.value })}
-                              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
+                              className="w-[90px] rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-1.5 py-1 text-xs"
                             />
-                          </>
+                          </div>
+                        )}
+                        {field.value.closed && (
+                          <span className="ml-auto text-xs text-gray-400 italic">{t('closed')}</span>
                         )}
                       </div>
                     )}
