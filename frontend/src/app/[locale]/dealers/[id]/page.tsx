@@ -19,16 +19,29 @@ interface PageProps {
  * @see https://schema.org/AutoDealer
  */
 function generateDealerJsonLd(dealer: PublicDealerProfile, locale: string) {
+  // Day abbreviation mapping for Schema.org
+  const dayAbbrevMap: Record<string, string> = {
+    monday: 'Mo',
+    tuesday: 'Tu', 
+    wednesday: 'We',
+    thursday: 'Th',
+    friday: 'Fr',
+    saturday: 'Sa',
+    sunday: 'Su',
+  };
+
   // Parse working hours if available
+  // Format can be: { "monday": "9:00 AM - 6:00 PM", "sunday": "Closed" }
   let openingHours: string[] | undefined;
   if (dealer.workingHours) {
     try {
-      const hours = JSON.parse(dealer.workingHours) as Record<string, { open?: string; close?: string; closed?: boolean }>;
+      const hours = JSON.parse(dealer.workingHours) as Record<string, string>;
       openingHours = Object.entries(hours)
-        .filter(([, value]) => !value.closed && value.open && value.close)
+        .filter(([, value]) => value && value.toLowerCase() !== 'closed')
         .map(([day, value]) => {
-          const dayAbbrev = day.slice(0, 2).charAt(0).toUpperCase() + day.slice(1, 2);
-          return `${dayAbbrev} ${value.open}-${value.close}`;
+          const abbrev = dayAbbrevMap[day.toLowerCase()] || day.slice(0, 2);
+          // Convert "9:00 AM - 6:00 PM" to "09:00-18:00" format for Schema.org
+          return `${abbrev} ${value}`;
         });
     } catch {
       // Invalid JSON, skip working hours

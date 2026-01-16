@@ -113,7 +113,7 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
       <div className="relative h-72 md:h-80 overflow-hidden">
         {profile.bannerUrl ? (
           <Image
-            src={profile.bannerUrl}
+              src={profile.bannerUrl}
             alt={`${profile.businessName} banner`}
             fill
             sizes="100vw"
@@ -160,7 +160,7 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
               <div className="flex items-start gap-5">
                 <div className="relative flex-shrink-0">
                   <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-white dark:ring-gray-800">
-                    {profile.logoUrl ? (
+              {profile.logoUrl ? (
                       <Image 
                         src={profile.logoUrl} 
                         alt={`${profile.businessName} logo`} 
@@ -171,8 +171,8 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                       />
                     ) : (
                       <span className="text-3xl font-bold text-gray-600 dark:text-gray-300">
-                        {profile.businessName?.charAt(0)}
-                      </span>
+                  {profile.businessName?.charAt(0)}
+                </span>
                     )}
                   </div>
                   {profile.isVerified && (
@@ -181,9 +181,9 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                  )}
-                </div>
-                <div>
+              )}
+            </div>
+            <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     {t('memberSince')} {memberYear}
                   </div>
@@ -249,13 +249,13 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                 <div className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {memberYear ? new Date().getFullYear() - memberYear : 0}+
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {t('yearsInBusiness')}
                 </div>
               </div>
-            </div>
           </div>
         </div>
+      </div>
 
         {/* Content Grid */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
@@ -266,11 +266,11 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-blue-600 rounded-full" />
                 {t('aboutDealer')}
-              </h2>
+            </h2>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 {(isRtl && profile.descriptionAr) ? profile.descriptionAr : (profile.description || t('noDescription'))}
-              </p>
-            </div>
+            </p>
+          </div>
 
             {/* Listings Section */}
             <div id="dealer-listings" className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 md:p-8">
@@ -283,21 +283,21 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                       {stats.activeListings}
                     </span>
                   ) : null}
-                </h2>
+            </h2>
               </div>
 
-              {listingsQuery.isLoading ? (
+            {listingsQuery.isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-xl h-64 animate-pulse" />
                   ))}
                 </div>
-              ) : listingsQuery.isError ? (
-                <ErrorDisplay
+            ) : listingsQuery.isError ? (
+              <ErrorDisplay
                   error={t('common:errorLoadingData')}
-                  retry={() => listingsQuery.refetch()}
-                />
-              ) : listings.length === 0 ? (
+                retry={() => listingsQuery.refetch()}
+              />
+              ) : listingCards.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                     <BuildingIcon aria-label="No listings" />
@@ -305,39 +305,39 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                   <p className="text-gray-500 dark:text-gray-400">
                     {t('noListings')}
                   </p>
-                </div>
-              ) : (
+              </div>
+            ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {listingCards.map((listing) => (
-                      <CarListingCard key={listing.id} listing={listing} />
-                    ))}
-                  </div>
+                {listingCards.map((listing) => (
+                  <CarListingCard key={listing.id} listing={listing} />
+                ))}
+              </div>
 
                   {listingsQuery.data && listingsQuery.data.totalPages > 1 && (
                     <div className="flex items-center justify-center gap-4 mt-8">
-                      <button
-                        type="button"
+                <button
+                  type="button"
                         className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        disabled={page <= 0}
-                        onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                      >
+                  disabled={page <= 0}
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                >
                         {isRtl ? <ChevronRightIcon /> : <ChevronLeftIcon />}
                         {t('common:previous')}
-                      </button>
+                </button>
                       <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                         {page + 1} / {listingsQuery.data.totalPages}
-                      </span>
-                      <button
-                        type="button"
+                </span>
+                <button
+                  type="button"
                         className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        disabled={page >= listingsQuery.data.totalPages - 1}
-                        onClick={() => setPage((prev) => Math.min(prev + 1, listingsQuery.data.totalPages - 1))}
-                      >
+                  disabled={page >= listingsQuery.data.totalPages - 1}
+                  onClick={() => setPage((prev) => Math.min(prev + 1, listingsQuery.data.totalPages - 1))}
+                >
                         {t('common:next')}
                         {isRtl ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                      </button>
-                    </div>
+                </button>
+              </div>
                   )}
                 </>
               )}
