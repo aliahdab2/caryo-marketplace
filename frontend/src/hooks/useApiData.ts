@@ -4,13 +4,37 @@ import { fetchWithCache } from '@/services/api';
 /**
  * Custom hook for fetching API data with loading, error, and retry capability.
  * 
- * IMPORTANT: This hook uses refs to store fetchFunction and params to avoid
- * triggering re-fetches when these change identity (which happens on every render).
+ * ## PERFORMANCE: Preventing Duplicate API Calls
+ * 
+ * This hook uses refs to store unstable parameters to prevent re-fetches.
  * Only `endpoint` and explicit `dependencies` trigger re-fetches.
+ * 
+ * ### ❌ NEVER include these in dependencies:
+ * - `t` - Translation function changes when translations load
+ * - `i18n` - i18n instance has unstable reference
+ * - Inline functions - Created new on every render
+ * - Objects created inline - New reference each render
+ * 
+ * ### ✅ SAFE to include in dependencies:
+ * - Primitive values (strings, numbers, booleans)
+ * - Stable references (useRef values, memoized values)
+ * - State values that should trigger re-fetch (selectedMake, userId)
+ * 
+ * ### Example:
+ * ```typescript
+ * // ✅ GOOD: Empty deps for static data
+ * useApiData(fetchBrands, '/api/brands', []);
+ * 
+ * // ✅ GOOD: Only primitive dep that should trigger re-fetch
+ * useApiData(fetchModels, `/api/brands/${makeId}/models`, [makeId]);
+ * 
+ * // ❌ BAD: Including translation function
+ * useApiData(fetchBrands, '/api/brands', [t]); // Causes duplicate fetches!
+ * ```
  * 
  * @param fetchFunction The function to call for fetching data
  * @param endpoint The API endpoint for caching (empty string to skip caching)
- * @param dependencies Additional dependencies for the useEffect (DO NOT include `t` or other unstable refs)
+ * @param dependencies Additional dependencies for the useEffect
  * @param params Optional parameters for cache key
  * @param errorMessage Custom error message (for i18n support)
  * @returns Object containing data, loading state, error state, and retry function
