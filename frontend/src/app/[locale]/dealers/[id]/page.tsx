@@ -3,12 +3,81 @@ import { getPublicDealerProfile } from '@/services/publicDealerApi';
 import { isApiError } from '@/lib/errors';
 import DealerProfileClient from './DealerProfileClient';
 import type { Metadata } from 'next';
+import type { PublicDealerProfile } from '@/types/dealer';
 
 interface PageProps {
   params: Promise<{
     id: string;
     locale: string;
   }>;
+}
+
+/**
+ * Generate JSON-LD structured data for the dealer profile
+ * 
+ * This follows Schema.org AutoDealer specification for better SEO:
+ * @see https://schema.org/AutoDealer
+ */
+function generateDealerJsonLd(dealer: PublicDealerProfile, locale: string) {
+  // Parse working hours if available
+  let openingHours: string[] | undefined;
+  if (dealer.workingHours) {
+    try {
+      const hours = JSON.parse(dealer.workingHours) as Record<string, { open?: string; close?: string; closed?: boolean }>;
+      openingHours = Object.entries(hours)
+        .filter(([, value]) => !value.closed && value.open && value.close)
+        .map(([day, value]) => {
+          const dayAbbrev = day.slice(0, 2).charAt(0).toUpperCase() + day.slice(1, 2);
+          return `${dayAbbrev} ${value.open}-${value.close}`;
+        });
+    } catch {
+      // Invalid JSON, skip working hours
+    }
+  }
+
+  // Parse social links if available
+  let sameAs: string[] | undefined;
+  if (dealer.socialLinks) {
+    try {
+      const social = JSON.parse(dealer.socialLinks) as Record<string, string>;
+      sameAs = Object.values(social).filter(Boolean);
+    } catch {
+      // Invalid JSON, skip social links
+    }
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AutoDealer',
+    '@id': `https://caryo.com/${locale}/dealers/${dealer.id}`,
+    name: dealer.businessName,
+    description: locale === 'ar' && dealer.descriptionAr ? dealer.descriptionAr : dealer.description,
+    telephone: dealer.businessPhone,
+    address: dealer.tradingAddress ? {
+      '@type': 'PostalAddress',
+      streetAddress: dealer.tradingAddress,
+    } : undefined,
+    image: dealer.logoUrl,
+    logo: dealer.logoUrl,
+    ...(openingHours?.length ? { openingHours } : {}),
+    ...(sameAs?.length ? { sameAs } : {}),
+    ...(dealer.stats ? {
+      makesOffer: {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Vehicle',
+        },
+        availableAtOrFrom: {
+          '@type': 'Place',
+          name: dealer.businessName,
+        },
+      },
+      aggregateRating: dealer.stats.soldCount > 0 ? {
+        '@type': 'AggregateOffer',
+        offerCount: dealer.stats.activeListings,
+      } : undefined,
+    } : {}),
+  };
 }
 
 /**
@@ -54,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  * @see https://nextjs.org/docs/app/building-your-application/routing/not-found
  */
 export default async function DealerProfilePage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const dealerId = Number(id);
 
   // Validate dealer ID
@@ -66,8 +135,20 @@ export default async function DealerProfilePage({ params }: PageProps) {
     // Fetch dealer profile on the server for better SEO and faster initial load
     const dealer = await getPublicDealerProfile(dealerId);
     
+    // Generate structured data for SEO
+    const jsonLd = generateDealerJsonLd(dealer, locale);
+    
     // Pass the pre-fetched dealer data to the client component
-    return <DealerProfileClient dealerId={dealerId} initialProfile={dealer} />;
+    return (
+      <>
+        {/* JSON-LD Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <DealerProfileClient dealerId={dealerId} initialProfile={dealer} />
+      </>
+    );
   } catch (error) {
     // Handle 404 errors with Next.js's built-in not-found page
     if (isApiError(error) && error.isNotFound()) {
