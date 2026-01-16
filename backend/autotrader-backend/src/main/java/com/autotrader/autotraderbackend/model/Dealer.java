@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -73,10 +75,12 @@ public class Dealer {
     @Column(name = "description_ar", columnDefinition = "text")
     private String descriptionAr;
 
-    // Store JSON data as string to keep persistence simple
+    // Store JSON data as string with proper JSONB type handling
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "working_hours", columnDefinition = "jsonb")
     private String workingHours;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "social_links", columnDefinition = "jsonb")
     private String socialLinks;
     @Column(name = "created_at", nullable = false, updatable = false)
