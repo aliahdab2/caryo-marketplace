@@ -1,8 +1,15 @@
 import type { PublicDealerProfile, DealerListingsResponse } from '@/types/dealer';
 import type { Listing } from '@/types/listings';
+import { ApiError, createApiErrorFromResponse } from '@/lib/errors';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+/**
+ * Fetch public dealer profile by ID
+ * 
+ * @throws {ApiError} With status 404 if dealer not found
+ * @throws {ApiError} With appropriate status for other errors
+ */
 export async function getPublicDealerProfile(dealerId: number): Promise<PublicDealerProfile> {
   const response = await fetch(`${API_BASE_URL}/api/dealers/${dealerId}/public`, {
     method: 'GET',
@@ -10,15 +17,23 @@ export async function getPublicDealerProfile(dealerId: number): Promise<PublicDe
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
+    // Enable caching for public dealer profiles (revalidate every 5 minutes)
+    next: { revalidate: 300 },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch dealer profile: ${response.status}`);
+    throw await createApiErrorFromResponse(response);
   }
 
   return response.json();
 }
 
+/**
+ * Fetch paginated listings for a dealer
+ * 
+ * @throws {ApiError} With status 404 if dealer not found
+ * @throws {ApiError} With appropriate status for other errors
+ */
 export async function getPublicDealerListings(
   dealerId: number,
   page = 0,
@@ -32,12 +47,17 @@ export async function getPublicDealerListings(
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      // Enable caching for dealer listings (revalidate every 2 minutes)
+      next: { revalidate: 120 },
     }
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch dealer listings: ${response.status}`);
+    throw await createApiErrorFromResponse(response);
   }
 
   return response.json();
 }
+
+// Re-export ApiError for convenience
+export { ApiError } from '@/lib/errors';

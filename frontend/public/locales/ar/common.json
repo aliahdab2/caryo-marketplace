@@ -117,5 +117,21 @@
   "noCities": "لا توجد مدن متاحة",
   "gridView": "عرض شبكي",
   "listView": "عرض قائمة",
-  "errorLoadingData": "خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى."
+  "errorLoadingData": "خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.",
+  "dealerNotFound": "لم يتم العثور على الوكيل",
+  "dealerNotFoundMessage": "الوكيل الذي تبحث عنه غير موجود أو تمت إزالته.",
+  "browseListings": "تصفح الإعلانات",
+  "callDealer": "اتصل بالوكيل",
+  "viewAllListings": "عرض جميع الإعلانات",
+  "aboutDealer": "نبذة",
+  "dealerListings": "الإعلانات",
+  "dealerInfo": "معلومات الوكيل",
+  "workingHours": "ساعات العمل",
+  "contact": "التواصل",
+  "noDescription": "لا يوجد وصف متاح.",
+  "noListings": "لا توجد إعلانات متاحة.",
+  "noWorkingHours": "لا توجد ساعات عمل محددة.",
+  "memberSince": "عضو منذ",
+  "listings": "إعلانات",
+  "page": "صفحة"
 }

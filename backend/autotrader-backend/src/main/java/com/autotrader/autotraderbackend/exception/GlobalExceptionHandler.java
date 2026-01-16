@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.exception;
 
+import com.autotrader.autotraderbackend.exception.dealer.DealerNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
+import com.autotrader.autotraderbackend.payload.response.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import jakarta.validation.ConstraintViolationException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +64,29 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(message));
+    }
+
+    /**
+     * Handle dealer not found exceptions.
+     * Returns structured error response following industry best practices.
+     */
+    @ExceptionHandler(DealerNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDealerNotFoundException(
+            DealerNotFoundException ex, WebRequest request) {
+
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.dealer.not.found", locale);
+
+        log.warn("Dealer not found: {}", ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            message,
+            ex.getMessage(),
+            Instant.now().toString()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     /**

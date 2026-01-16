@@ -4,12 +4,15 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { usePublicDealerProfile, usePublicDealerListings } from '@/hooks/queries/usePublicDealer';
+import type { PublicDealerProfile } from '@/types/dealer';
 import type { Listing } from '@/types/listings';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import { ErrorDisplay, LoadingSkeleton } from '@/components/common';
 
 interface DealerProfileClientProps {
   dealerId: number;
+  /** Pre-fetched profile data from the server component (for hydration) */
+  initialProfile?: PublicDealerProfile;
 }
 
 const parseJson = <T,>(value?: string | null): T | null => {
@@ -21,11 +24,15 @@ const parseJson = <T,>(value?: string | null): T | null => {
   }
 };
 
-export default function DealerProfileClient({ dealerId }: DealerProfileClientProps) {
+export default function DealerProfileClient({ dealerId, initialProfile }: DealerProfileClientProps) {
   const { t } = useTranslation(['common', 'listings']);
   const [page, setPage] = useState(0);
 
-  const profileQuery = usePublicDealerProfile(dealerId, { enabled: Number.isFinite(dealerId) });
+  // Use initial profile data from server component if available (prevents flash of loading state)
+  const profileQuery = usePublicDealerProfile(dealerId, { 
+    enabled: Number.isFinite(dealerId),
+    initialData: initialProfile,
+  });
   const listingsQuery = usePublicDealerListings(dealerId, page, 12, { enabled: Number.isFinite(dealerId) });
 
   const profile = profileQuery.data;
@@ -61,21 +68,24 @@ export default function DealerProfileClient({ dealerId }: DealerProfileClientPro
     }));
   }, [listings]);
 
-  if (profileQuery.isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <LoadingSkeleton lines={6} />
-      </div>
-    );
-  }
-
-  if (profileQuery.isError || !profile) {
+  // Note: 404 errors are handled by the server component (page.tsx) using notFound()
+  // This error handler is for network errors or other client-side issues during revalidation
+  if (profileQuery.isError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <ErrorDisplay
           error={t('common:errorLoadingData', 'Error loading data. Please try again.')}
           retry={() => profileQuery.refetch()}
         />
+      </div>
+    );
+  }
+
+  // Show loading skeleton if no profile data yet (e.g., during client-side navigation)
+  if (profileQuery.isLoading || !profile) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <LoadingSkeleton lines={6} />
       </div>
     );
   }

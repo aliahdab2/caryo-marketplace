@@ -64,6 +64,31 @@ npm run dev
 4. **RTL Support** - All UI components support Arabic (RTL)
 5. **Production Ready** - System is fully tested and stable
 
+## 🏆 **Coding Standards - ALWAYS Follow**
+
+**Always implement features using best practices and industry standards:**
+
+### Frontend (Next.js/React)
+- Use Next.js App Router patterns (`not-found.tsx`, `error.tsx`, `loading.tsx`)
+- Use React Query for server state, Zustand for client state
+- Use React Hook Form + Zod for form validation
+- Use typed API errors with proper HTTP status codes
+- Server-side data fetching with `notFound()` for 404s
+- Proper SEO metadata with `generateMetadata()`
+
+### Backend (Spring Boot)
+- Use structured error responses with `ErrorResponse` class
+- Return proper HTTP status codes (404, 400, 401, 403, 500)
+- Add exception handlers in `GlobalExceptionHandler`
+- Use Flyway for database migrations
+- Write integration tests with Testcontainers
+
+### General
+- No quick workarounds - always use the recommended approach
+- Add proper TypeScript types and JSDoc documentation
+- Follow RESTful API conventions
+- Implement proper error handling at all levels
+
 ## 🔍 **Troubleshooting**
 
 If build fails:

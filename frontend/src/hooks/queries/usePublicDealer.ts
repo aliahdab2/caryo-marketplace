@@ -9,13 +9,23 @@ export const publicDealerKeys = {
   listings: (dealerId: number, page: number) => [...publicDealerKeys.all, 'listings', dealerId, page] as const,
 };
 
-export function usePublicDealerProfile(dealerId: number, options?: { enabled?: boolean }) {
+export function usePublicDealerProfile(
+  dealerId: number, 
+  options?: { 
+    enabled?: boolean;
+    /** Initial data from server component (for hydration) */
+    initialData?: PublicDealerProfile;
+  }
+) {
   return useQuery<PublicDealerProfile>({
     queryKey: publicDealerKeys.profile(dealerId),
     queryFn: () => getPublicDealerProfile(dealerId),
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     enabled: options?.enabled ?? true,
+    // Use initial data from server if provided (prevents refetch on hydration)
+    initialData: options?.initialData,
+    initialDataUpdatedAt: options?.initialData ? Date.now() : undefined,
   });
 }
 

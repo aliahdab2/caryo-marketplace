@@ -117,5 +117,21 @@
   "noCities": "No cities available",
   "gridView": "Grid View",
   "listView": "List View",
-  "errorLoadingData": "Error loading data. Please try again."
+  "errorLoadingData": "Error loading data. Please try again.",
+  "dealerNotFound": "Dealer Not Found",
+  "dealerNotFoundMessage": "The dealer you are looking for does not exist or has been removed.",
+  "browseListings": "Browse Listings",
+  "callDealer": "Call Dealer",
+  "viewAllListings": "View all listings",
+  "aboutDealer": "About",
+  "dealerListings": "Listings",
+  "dealerInfo": "Dealer Info",
+  "workingHours": "Working Hours",
+  "contact": "Contact",
+  "noDescription": "No description provided.",
+  "noListings": "No listings available.",
+  "noWorkingHours": "No working hours provided.",
+  "memberSince": "Member since",
+  "listings": "Listings",
+  "page": "Page"
 }
