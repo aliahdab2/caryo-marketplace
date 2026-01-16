@@ -81,6 +81,13 @@ const nextConfig: NextConfig = {
   },
   
   images: {
+    // Enable modern image formats for better compression
+    formats: ['image/avif', 'image/webp'],
+    // Custom device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimize external image processing for dynamic URLs
+    minimumCacheTTL: 60 * 60 * 24, // 24 hours
     remotePatterns: [
       {
         protocol: 'https',

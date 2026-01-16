@@ -209,7 +209,7 @@ export default function FavoritesPage() {
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                         priority={index === 0}
-                        unoptimized
+                        quality={80}
                         onError={(e) => {
                           e.currentTarget.src = getDefaultImageUrl();
                         }}

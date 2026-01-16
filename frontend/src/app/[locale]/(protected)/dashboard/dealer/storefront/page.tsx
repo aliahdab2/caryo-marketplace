@@ -386,7 +386,7 @@ export default function DealerStorefrontPage() {
                   onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
                 >
                   {watchedBannerUrl ? (
-                    <Image src={watchedBannerUrl} alt="Banner preview" fill className="object-cover" unoptimized />
+                    <Image src={watchedBannerUrl} alt="Banner preview" fill className="object-cover" quality={75} />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center text-white/70">
@@ -445,7 +445,7 @@ export default function DealerStorefrontPage() {
                     onClick={() => !uploadingLogo && logoInputRef.current?.click()}
                   >
                     {watchedLogoUrl ? (
-                      <Image src={watchedLogoUrl} alt="Logo preview" fill className="object-cover" unoptimized />
+                      <Image src={watchedLogoUrl} alt="Logo preview" fill className="object-cover" quality={75} />
                     ) : (
                       <ImageIcon />
                     )}

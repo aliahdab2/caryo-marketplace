@@ -113,13 +113,13 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
       <div className="relative h-72 md:h-80 overflow-hidden">
         {profile.bannerUrl ? (
           <Image
-              src={profile.bannerUrl}
+            src={profile.bannerUrl}
             alt={`${profile.businessName} banner`}
             fill
             sizes="100vw"
             className="object-cover"
             priority // Preload for LCP optimization
-            unoptimized
+            quality={85}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800" />
@@ -166,8 +166,8 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                         alt={`${profile.businessName} logo`} 
                         fill 
                         sizes="96px"
-                        className="object-cover" 
-                        unoptimized 
+                        className="object-cover"
+                        quality={80}
                       />
                     ) : (
                       <span className="text-3xl font-bold text-gray-600 dark:text-gray-300">

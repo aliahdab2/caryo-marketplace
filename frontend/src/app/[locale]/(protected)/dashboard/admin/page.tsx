@@ -1002,7 +1002,7 @@ function EnhancedListingCard({
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    unoptimized={true}
+                    quality={80}
                     onError={(_e) => {
                       // Silently handle image load errors - fallback will be shown
                     }}
@@ -1126,7 +1126,7 @@ function EnhancedListingCard({
                         fill
                         className="object-cover"
                         sizes="96px"
-                        unoptimized
+                        quality={75}
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
