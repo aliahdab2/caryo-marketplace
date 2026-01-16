@@ -73,19 +73,22 @@ mc mb "$MINIO_ALIAS/$BUCKET_NAME" --ignore-existing
 echo "MinIO bucket '$BUCKET_NAME' is ready."
 
 # Get primary image URL for a listing
+# Using Lorem Picsum for reliable placeholder images (800x600)
+# These are stable placeholder images for development - in production, real images would be uploaded
 get_primary_image() {
   local listing_id=$1
   case $listing_id in
-    6) echo "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGNhcnN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60" ;; # Yellow sports car
-    7) echo "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y2Fyc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60" ;; # Black porsche
-    8) echo "https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=60" ;; # Red Honda Civic
-    9) echo "https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=60" ;; # Blue coupe
-    10) echo "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=60" ;; # Red muscle car
-    1) echo "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop&crop=center&auto=format&q=80" ;; # Luxury sedan
-    2) echo "https://images.unsplash.com/photo-1539788816080-8bdd722d8c22?w=800&h=600&fit=crop&crop=center&auto=format&q=80" ;; # Luxury sedan side
-    3) echo "https://images.unsplash.com/photo-1592853625511-cc6b7f23a5a2?w=800&h=600&fit=crop&crop=center&auto=format&q=80" ;; # Luxury sedan rear
-    4) echo "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=600&fit=crop&crop=center&auto=format&q=80" ;; # SUV front
-    5) echo "https://images.unsplash.com/photo-1569171206684-dfb2749d96fd?w=800&h=600&fit=crop&crop=center&auto=format&q=80" ;; # SUV side
+    # Each listing gets a unique seed to ensure consistent but different images
+    6) echo "https://picsum.photos/seed/caryo-car-6/800/600" ;;
+    7) echo "https://picsum.photos/seed/caryo-car-7/800/600" ;;
+    8) echo "https://picsum.photos/seed/caryo-car-8/800/600" ;;
+    9) echo "https://picsum.photos/seed/caryo-car-9/800/600" ;;
+    10) echo "https://picsum.photos/seed/caryo-car-10/800/600" ;;
+    1) echo "https://picsum.photos/seed/caryo-car-1/800/600" ;;
+    2) echo "https://picsum.photos/seed/caryo-car-2/800/600" ;;
+    3) echo "https://picsum.photos/seed/caryo-car-3/800/600" ;;
+    4) echo "https://picsum.photos/seed/caryo-car-4/800/600" ;;
+    5) echo "https://picsum.photos/seed/caryo-car-5/800/600" ;;
     *) echo "" ;; # Return empty for undefined listings
   esac
 }
