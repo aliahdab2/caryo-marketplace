@@ -60,7 +60,7 @@ npm run dev
 
 1. **Always verify Java 21** before backend operations
 2. **Spring Boot 3.2.3** requires Java 17+ (we use Java 21)
-3. **All 1561 tests** must pass before deployment
+3. **All tests** must pass before deployment (run `./gradlew test` to verify)
 4. **RTL Support** - All UI components support Arabic (RTL)
 5. **Production Ready** - System is fully tested and stable
 
