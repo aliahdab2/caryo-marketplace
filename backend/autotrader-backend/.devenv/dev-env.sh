@@ -4,6 +4,7 @@
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Project root
@@ -218,9 +219,12 @@ start_dev_env() {
 
     # Show development account credentials only in development environment
     if [[ "${SPRING_PROFILES_ACTIVE:-dev}" == *"dev"* ]]; then
+        echo -e "\n${CYAN}Test Accounts:${NC}"
         echo -e "- Admin Account:  ${GREEN}admin / Admin123!${NC} (ROLE_ADMIN, ROLE_USER)"
         echo -e "- User Account:   ${GREEN}user / Password123!${NC} (ROLE_USER)"
         echo -e "- Dealer Account: ${GREEN}dealer / Dealer123!${NC} (ROLE_DEALER, ROLE_USER)"
+        echo -e "  └─ Business:    ${GREEN}Test Dealership Syria${NC}"
+        echo -e "  └─ Profile:     ${GREEN}http://localhost:3001/en/dealers/{id}${NC}"
     fi
 
     if [ "${REDIS_ENABLED:-true}" = "true" ] && docker compose -f .devenv/docker-compose.dev.yml ps | grep -q redis; then

@@ -1,7 +1,9 @@
 package com.autotrader.autotraderbackend.config;
 
+import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.payload.request.DealerProfileUpdateRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
@@ -57,6 +59,11 @@ public class DataInitializer implements CommandLineRunner {
     private static final String DEALER_BUSINESS_NAME = "Test Dealership Syria";
     private static final String DEALER_BUSINESS_EMAIL = "business@testdealer.sy";
     private static final String DEALER_BUSINESS_PHONE = "+963-11-234-5678";
+    
+    // Dealer public profile data (for Phase 1 MVP testing)
+    private static final String DEALER_DESCRIPTION = "Your trusted dealership in Damascus. Quality vehicles since 2015. We specialize in Japanese and European cars with full service history.";
+    private static final String DEALER_DESCRIPTION_AR = "وكالتك الموثوقة في دمشق. سيارات عالية الجودة منذ 2015. نتخصص في السيارات اليابانية والأوروبية مع تاريخ صيانة كامل.";
+    private static final String DEALER_WORKING_HOURS = "{\"sunday\": \"Closed\", \"monday\": \"9:00 AM - 6:00 PM\", \"tuesday\": \"9:00 AM - 6:00 PM\", \"wednesday\": \"9:00 AM - 6:00 PM\", \"thursday\": \"9:00 AM - 6:00 PM\", \"friday\": \"9:00 AM - 1:00 PM\", \"saturday\": \"9:00 AM - 3:00 PM\"}";
 
     @Override
     public void run(String... args) {
@@ -296,8 +303,11 @@ public class DataInitializer implements CommandLineRunner {
                     dealerSignupRequest.setVatNumber("TEST-VAT-12345");
                     dealerSignupRequest.setTradingAddress("Damascus Test Address");
 
-                    dealerService.createDealer(dealerUser, dealerSignupRequest);
+                    Dealer dealer = dealerService.createDealer(dealerUser, dealerSignupRequest);
                     log.info("Dealer profile created successfully for user: {}", DEALER_USERNAME);
+                    
+                    // Populate public profile fields for testing
+                    populateDealerPublicProfile(dealer);
                 } catch (Exception e) {
                     log.error("Error creating dealer profile: {}", e.getMessage());
                 }
@@ -319,7 +329,8 @@ public class DataInitializer implements CommandLineRunner {
                         
                         // Check if dealer profile exists, create if missing
                         try {
-                            if (!dealerService.getDealerByUserId(dealerUser.getId()).isPresent()) {
+                            Optional<Dealer> existingDealer = dealerService.getDealerByUserId(dealerUser.getId());
+                            if (!existingDealer.isPresent()) {
                                 log.info("Dealer profile missing for user {}, creating...", DEALER_USERNAME);
                                 SignupRequest dealerSignupRequest = new SignupRequest();
                                 dealerSignupRequest.setBusinessName(DEALER_BUSINESS_NAME);
@@ -328,10 +339,18 @@ public class DataInitializer implements CommandLineRunner {
                                 dealerSignupRequest.setVatNumber("TEST-VAT-12345");
                                 dealerSignupRequest.setTradingAddress("Damascus Test Address");
                                 
-                                dealerService.createDealer(dealerUser, dealerSignupRequest);
+                                Dealer dealer = dealerService.createDealer(dealerUser, dealerSignupRequest);
                                 log.info("Dealer profile created successfully for existing user: {}", DEALER_USERNAME);
+                                
+                                // Populate public profile fields
+                                populateDealerPublicProfile(dealer);
                             } else {
                                 log.info("Dealer profile already exists for user: {}", DEALER_USERNAME);
+                                // Ensure public profile fields are populated
+                                Dealer dealer = existingDealer.get();
+                                if (dealer.getDescription() == null || dealer.getDescription().isEmpty()) {
+                                    populateDealerPublicProfile(dealer);
+                                }
                             }
                         } catch (Exception e) {
                             log.error("Error checking/creating dealer profile for existing user: {}", e.getMessage());
@@ -443,6 +462,24 @@ public class DataInitializer implements CommandLineRunner {
         } catch (Exception e) {
             log.error("Error generating token for user {}: {}", user.getUsername(), e.getMessage());
             return "TOKEN_GENERATION_FAILED: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * Populate the public profile fields for the test dealer.
+     * This ensures the dealer has complete data for testing the public profile page.
+     */
+    private void populateDealerPublicProfile(Dealer dealer) {
+        try {
+            DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
+            updateRequest.setDescription(DEALER_DESCRIPTION);
+            updateRequest.setDescriptionAr(DEALER_DESCRIPTION_AR);
+            updateRequest.setWorkingHours(DEALER_WORKING_HOURS);
+            
+            dealerService.updatePublicProfile(dealer, updateRequest);
+            log.info("Dealer public profile populated successfully for dealer ID: {}", dealer.getId());
+        } catch (Exception e) {
+            log.error("Error populating dealer public profile: {}", e.getMessage());
         }
     }
 }
