@@ -32,12 +32,13 @@ const HomeSearchBar = React.memo(() => {
 
 
   // Use API data hooks for fetching data with loading, error handling
+  // Note: Don't include `t` in dependencies - it changes when translations load and causes duplicate fetches
   const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
     '/api/reference-data/brands',
-    [t],
+    [], // Empty deps - fetch once on mount
     undefined,
-    t('errorLoadingData', 'Error loading data. Please try again.')
+    'Error loading data. Please try again.' // Static error message
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const carMakes: CarMake[] = useMemo(() => brandsApi.data ?? [], [brandsApi.data]);
   const isLoadingBrands: boolean = brandsApi.isLoading ?? false;
@@ -47,9 +48,9 @@ const HomeSearchBar = React.memo(() => {
   const governoratesApi = useApiData<Governorate[]>(
     fetchGovernorates,
     '/api/reference-data/governorates',
-    [t],
+    [], // Empty deps - fetch once on mount
     undefined,
-    t('errorLoadingData', 'Error loading data. Please try again.')
+    'Error loading data. Please try again.'
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const governorates: Governorate[] = useMemo(() => governoratesApi.data ?? [], [governoratesApi.data]);
   const isLoadingGovernorates: boolean = governoratesApi.isLoading ?? false;
@@ -59,9 +60,9 @@ const HomeSearchBar = React.memo(() => {
   const modelsApi = useApiData<CarModel[]>(
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
     selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
-    [selectedMake, t],
+    [selectedMake], // Only re-fetch when make changes, not on translation changes
     selectedMake ? { makeId: selectedMake } : undefined,
-    t('errorLoadingData', 'Error loading data. Please try again.')
+    'Error loading data. Please try again.'
   ) || { data: null, isLoading: false, error: null, retry: async () => {} };
   const availableModels: CarModel[] = useMemo(() => modelsApi.data ?? [], [modelsApi.data]);
   const isLoadingModels: boolean = modelsApi.isLoading ?? false;

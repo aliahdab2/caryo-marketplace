@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useDirection } from "@/utils/direction";
@@ -28,6 +28,9 @@ export default function Home() {
   const [newsletterMessage, setNewsletterMessage] = useState('');
 
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  
+  // Ref to prevent duplicate fetches (React StrictMode calls useEffect twice)
+  const hasFetchedListings = useRef(false);
 
 
   // Handle URL cleanup
@@ -45,6 +48,10 @@ export default function Home() {
   }, [searchParams]);
 
   useEffect(() => {
+    // Prevent duplicate fetches from React StrictMode
+    if (hasFetchedListings.current) return;
+    hasFetchedListings.current = true;
+    
     const loadLatestCars = async () => {
       try {
         // Use public API to fetch latest listings

@@ -147,8 +147,9 @@ i18n
     // Enable async initialization (required for HTTP backend)
     initAsync: true,
     
-    // Supported namespaces
-    ns: ['common', 'translation', 'errors', 'listings', 'auth', 'home', 'dashboard', 'favorites', 'search', 'datamanagement', 'messages', 'blocked-users', 'admin-reports', 'admin', 'savedAlerts', 'upgradeModal'],
+    // Only load common namespace initially - others are lazy loaded via useTranslation()
+    // This significantly improves initial page load performance
+    ns: ['common'],
     defaultNS: 'common',
     
     // Supported languages

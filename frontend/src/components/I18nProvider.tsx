@@ -53,10 +53,10 @@ export default function I18nProvider({ children }: I18nProviderProps) {
           await i18n.changeLanguage(currentLocale);
         }
 
-        // Explicitly load all namespaces (only once)
-        if (!mounted) {
-          await i18n.loadNamespaces(['common', 'listings', 'errors', 'dashboard', 'search', 'messages', 'blocked-users', 'admin-reports', 'admin', 'auth', 'profile']);
-        }
+        // NOTE: We no longer bulk-load all namespaces here.
+        // Each page/component lazy-loads its own namespaces via useTranslation(['namespace'])
+        // or useLazyTranslation(['namespace']). This reduces initial load from 17+ files to 1-2.
+        // Only 'common' namespace is loaded initially (configured in i18n.ts).
 
         setMounted(true);
       } catch (error) {

@@ -75,7 +75,9 @@ describe('I18nProvider', () => {
     });
   });
 
-  it('should call loadNamespaces on mount', () => {
+  it('should NOT call loadNamespaces on mount (lazy loading)', () => {
+    // With lazy loading, I18nProvider no longer bulk-loads all namespaces.
+    // Each page/component loads its own namespaces via useTranslation(['namespace']).
     const mockI18n = jest.mocked(i18nExports);
     mockUsePathname.mockReturnValue('/en/test');
 
@@ -85,7 +87,8 @@ describe('I18nProvider', () => {
       </I18nProvider>
     );
 
-    expect(mockI18n.loadNamespaces).toHaveBeenCalled();
+    // loadNamespaces should NOT be called - this is the performance improvement
+    expect(mockI18n.loadNamespaces).not.toHaveBeenCalled();
   });
 
   it('should handle invalid locales', async () => {
