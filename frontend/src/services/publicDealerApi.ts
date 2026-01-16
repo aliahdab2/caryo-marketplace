@@ -1,6 +1,6 @@
 import type { PublicDealerProfile, DealerListingsResponse } from '@/types/dealer';
 import type { Listing } from '@/types/listings';
-import { ApiError, createApiErrorFromResponse } from '@/lib/errors';
+import { createApiErrorFromResponse } from '@/lib/errors';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 

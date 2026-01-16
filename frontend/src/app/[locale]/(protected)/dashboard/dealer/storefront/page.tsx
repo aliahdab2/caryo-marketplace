@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { useDealerProfile, useUpdateDealerProfile } from '@/hooks/queries';
 import { LoadingSkeleton, ErrorDisplay } from '@/components/common';
 import Link from 'next/link';
@@ -283,7 +284,7 @@ export default function DealerStorefrontPage() {
                 </label>
                 <div className="relative h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl overflow-hidden mb-3">
                   {watchedBannerUrl ? (
-                    <img src={watchedBannerUrl} alt="Banner preview" className="w-full h-full object-cover" />
+                    <Image src={watchedBannerUrl} alt="Banner preview" fill className="object-cover" unoptimized />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center text-white/70">
@@ -308,9 +309,9 @@ export default function DealerStorefrontPage() {
                   {t('logoImage')}
                 </label>
                 <div className="flex items-center gap-4">
-                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center overflow-hidden">
+                  <div className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center overflow-hidden">
                     {watchedLogoUrl ? (
-                      <img src={watchedLogoUrl} alt="Logo preview" className="w-full h-full object-cover" />
+                      <Image src={watchedLogoUrl} alt="Logo preview" fill className="object-cover" unoptimized />
                     ) : (
                       <ImageIcon />
                     )}

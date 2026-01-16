@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { usePublicDealerProfile, usePublicDealerListings } from '@/hooks/queries/usePublicDealer';
 import type { PublicDealerProfile } from '@/types/dealer';
@@ -98,14 +98,15 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
   const listingsQuery = usePublicDealerListings(dealerId, page, 12, { enabled: Number.isFinite(dealerId) });
 
   const profile = profileQuery.data;
-  const listings = listingsQuery.data?.content ?? [];
+  const listingsContent = listingsQuery.data?.content;
   const stats = profile?.stats;
 
   const socialLinks = parseJson<{ facebook?: string; instagram?: string; whatsapp?: string }>(profile?.socialLinks);
   const workingHours = parseJson<Record<string, string>>(profile?.workingHours);
 
   const listingCards = useMemo(() => {
-    return listings.map((listing: Listing): CarListingCardData => ({
+    if (!listingsContent) return [];
+    return listingsContent.map((listing: Listing): CarListingCardData => ({
       id: listing.id,
       title: listing.title,
       price: listing.price,
@@ -128,7 +129,7 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
         contentType: media.contentType,
       })),
     }));
-  }, [listings]);
+  }, [listingsContent]);
 
   if (profileQuery.isError) {
     return (
@@ -161,10 +162,12 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
       {/* Hero Banner */}
       <div className="relative h-72 md:h-80 overflow-hidden">
         {profile.bannerUrl ? (
-          <img
+          <Image
             src={profile.bannerUrl}
             alt={profile.businessName}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800" />
@@ -206,7 +209,7 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
                 <div className="relative flex-shrink-0">
                   <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-white dark:ring-gray-800">
                     {profile.logoUrl ? (
-                      <img src={profile.logoUrl} alt={profile.businessName} className="h-full w-full object-cover" />
+                      <Image src={profile.logoUrl} alt={profile.businessName} fill className="object-cover" unoptimized />
                     ) : (
                       <span className="text-3xl font-bold text-gray-600 dark:text-gray-300">
                         {profile.businessName?.charAt(0)}
