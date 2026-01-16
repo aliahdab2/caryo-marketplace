@@ -142,8 +142,9 @@ i18n
   .use(initReactI18next)
   // Initialize i18next
   .init({
-    // Debug mode in development
-    debug: process.env.NODE_ENV === 'development',
+    // Debug mode - disabled by default for better performance
+    // Set NEXT_PUBLIC_I18N_DEBUG=true to enable
+    debug: process.env.NEXT_PUBLIC_I18N_DEBUG === 'true',
     // Enable async initialization (required for HTTP backend)
     initAsync: true,
     
@@ -212,8 +213,9 @@ i18n
     load: 'currentOnly',
   });
 
-// Log internationalization events in development
-if (process.env.NODE_ENV === 'development') {
+// Log internationalization events only when explicitly enabled
+// Enable with: NEXT_PUBLIC_I18N_DEBUG=true
+if (process.env.NEXT_PUBLIC_I18N_DEBUG === 'true') {
   i18n.on('initialized', () => {
     console.log('[i18n Event] Initialized');
   });

@@ -16,7 +16,9 @@ import { translationDebug } from '@/utils/translationDebug';
  */
 export function useLazyTranslation(
   namespaces: string | string[], 
-  debug: boolean = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_I18N_DEBUG !== 'false'
+  // Debug is now opt-in for better performance
+  // Enable with: NEXT_PUBLIC_I18N_DEBUG=true
+  debug: boolean = process.env.NEXT_PUBLIC_I18N_DEBUG === 'true'
 ): UseTranslationResponse<string | string[], string> {
   const [namespacesLoaded, setNamespacesLoaded] = useState(false);
   

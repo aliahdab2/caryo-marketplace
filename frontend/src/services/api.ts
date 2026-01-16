@@ -235,16 +235,10 @@ async function apiRequest<T>(
       const { getSession } = await import('@/utils/auth');
       const session = await getSession();
 
-      console.log('🔍 [API Debug] Session:', session);
-      console.log('🔍 [API Debug] AccessToken:', session?.accessToken);
-
       if (session?.accessToken) {
         authHeaders.Authorization = `Bearer ${session.accessToken}`;
-        console.log('🔍 [API Debug] Authorization header set:', authHeaders.Authorization.substring(0, 20) + '...');
-      } else {
-        console.warn('🔍 [API Debug] No access token found in session');
-        // Don't add Authorization header if no token is available
       }
+      // Note: Missing access token is normal for unauthenticated users
     } catch (error) {
       console.warn('Failed to get session for API request:', error);
       // Continue without auth headers if session retrieval fails (e.g., after logout)
@@ -326,12 +320,8 @@ async function apiRequest<T>(
       responseData = await response.text();
     }
     
-    // Debug: Log the raw response for troubleshooting (can be removed in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Raw response data:', responseData);
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-    }
+    // Debug logging removed for performance
+    // Enable with: NEXT_PUBLIC_API_DEBUG=true
 
     // Check for errors
     if (!response.ok) {
