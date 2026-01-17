@@ -11,6 +11,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -20,6 +21,7 @@ import java.util.Map;
 @Tag(name = "Email Debug", description = "Debug endpoints for email encoding issues")
 @RestController
 @RequestMapping("/api/debug/email")
+@PreAuthorize("hasRole('ADMIN')")
 @Slf4j
 public class EmailDebugController {
 
@@ -35,10 +37,7 @@ public class EmailDebugController {
     @Value("${app.website.name.ar}")
     private String websiteNameAr;
 
-    @Operation(
-        summary = "Debug Arabic Encoding",
-        description = "Test Arabic text encoding in email system"
-    )
+    @Operation(summary = "Debug Arabic Encoding", description = "Test Arabic text encoding in email system")
     @GetMapping("/debug-arabic")
     public ResponseEntity<?> debugArabicEncoding() {
         try {
@@ -50,8 +49,9 @@ public class EmailDebugController {
             debugInfo.put("websiteName_en", websiteName);
             debugInfo.put("websiteName_ar", websiteNameAr);
             debugInfo.put("websiteName_ar_length", websiteNameAr != null ? websiteNameAr.length() : 0);
-            debugInfo.put("websiteName_ar_bytes", websiteNameAr != null ?
-                java.util.Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8)) : "null");
+            debugInfo.put("websiteName_ar_bytes",
+                    websiteNameAr != null ? java.util.Arrays.toString(websiteNameAr.getBytes(StandardCharsets.UTF_8))
+                            : "null");
 
             // Test hardcoded Arabic
             String testArabic = "أوتو تريدر";
@@ -63,7 +63,8 @@ public class EmailDebugController {
             debugInfo.put("file_encoding", System.getProperty("file.encoding"));
             debugInfo.put("java_version", System.getProperty("java.version"));
 
-            // Note: Debug method is implementation-specific, not available through interface
+            // Note: Debug method is implementation-specific, not available through
+            // interface
 
             log.info("Debug info: {}", debugInfo);
 
@@ -72,14 +73,11 @@ public class EmailDebugController {
         } catch (Exception e) {
             log.error("Error in debug Arabic encoding", e);
             return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: " + e.getMessage()));
+                    .body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 
-    @Operation(
-        summary = "Test Password Reset Email",
-        description = "Send a test password reset email to debug encoding"
-    )
+    @Operation(summary = "Test Password Reset Email", description = "Send a test password reset email to debug encoding")
     @PostMapping("/test-password-reset")
     public ResponseEntity<?> testPasswordResetEmail(
             @RequestParam String email,
@@ -95,7 +93,7 @@ public class EmailDebugController {
         } catch (Exception e) {
             log.error("Error sending test password reset email", e);
             return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: " + e.getMessage()));
+                    .body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 
@@ -124,7 +122,7 @@ public class EmailDebugController {
         } catch (Exception e) {
             log.error("Error listing password reset tokens", e);
             return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: " + e.getMessage()));
+                    .body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 
