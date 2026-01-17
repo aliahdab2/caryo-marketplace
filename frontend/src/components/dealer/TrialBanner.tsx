@@ -12,15 +12,18 @@ import {
 } from 'react-icons/md';
 
 export interface TrialStatus {
-  isActive: boolean;
-  isExpired: boolean;
-  isInGracePeriod: boolean;
+  active: boolean;
   daysRemaining: number;
   listingsUsed: number;
+  listingsRemaining: number;
   listingsLimit: number;
-  subscriptionTier: string;
-  trialEndDate: string;
-  gracePeriodEndDate?: string;
+  usagePercent: number;
+  expiresAt: string;
+  inGracePeriod: boolean;
+  graceEndsAt: string | null;
+  canCreateListings: boolean;
+  subscriptionTier: string | null;
+  subscriptionStatus: string | null;
 }
 
 interface TrialBannerProps {
@@ -43,10 +46,13 @@ export default function TrialBanner({
 
   // Determine banner type and styling
   const getBannerConfig = () => {
-    const { isActive, isExpired, isInGracePeriod, daysRemaining, listingsUsed, listingsLimit } = trialStatus;
+    const { active, inGracePeriod, daysRemaining, listingsUsed, listingsLimit } = trialStatus;
+    
+    // Check if expired (active is false and not in grace period)
+    const isExpired = !active && !inGracePeriod;
     
     // Expired - Critical
-    if (isExpired && !isInGracePeriod) {
+    if (isExpired && !inGracePeriod) {
       return {
         type: 'expired',
         bgColor: 'bg-red-50 dark:bg-red-900/20',
@@ -61,7 +67,7 @@ export default function TrialBanner({
     }
 
     // Grace period - Warning
-    if (isInGracePeriod) {
+    if (inGracePeriod) {
       return {
         type: 'grace',
         bgColor: 'bg-orange-50 dark:bg-orange-900/20',
@@ -110,7 +116,7 @@ export default function TrialBanner({
     }
 
     // Active trial - Success
-    if (isActive) {
+    if (active) {
       return {
         type: 'active',
         bgColor: 'bg-green-50 dark:bg-green-900/20',

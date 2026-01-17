@@ -1,19 +1,18 @@
 import { apiRequest } from '@/services/auth/session-manager';
 
 export interface TrialStatus {
-  isActive: boolean;
-  isExpired: boolean;
-  isInGracePeriod: boolean;
+  active: boolean;
   daysRemaining: number;
   listingsUsed: number;
+  listingsRemaining: number;
   listingsLimit: number;
-  subscriptionTier: string;
-  subscriptionStatus: string;
-  trialEndDate: string;
-  gracePeriodEndDate?: string;
-  trialStartedAt: string;
-  timezone: string;
+  usagePercent: number;
+  expiresAt: string;
+  inGracePeriod: boolean;
+  graceEndsAt: string | null;
   canCreateListings: boolean;
+  subscriptionTier: string | null;
+  subscriptionStatus: string | null;
 }
 
 export interface CanCreateListingResponse {

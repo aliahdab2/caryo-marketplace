@@ -380,7 +380,7 @@ export default function DealerDashboard() {
         <UpgradeModal
           isOpen={showUpgradeModal}
           onClose={() => setShowUpgradeModal(false)}
-          currentTier={trialStatus?.subscriptionTier}
+          currentTier={trialStatus?.subscriptionTier || undefined}
           onSelectPayment={handleSelectPayment}
         />
       </div>
