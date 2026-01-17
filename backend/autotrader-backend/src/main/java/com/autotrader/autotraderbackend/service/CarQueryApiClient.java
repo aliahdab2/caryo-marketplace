@@ -5,6 +5,7 @@ import com.autotrader.autotraderbackend.dto.CarQueryMakeResponse;
 import com.autotrader.autotraderbackend.dto.CarQueryModelResponse;
 import com.autotrader.autotraderbackend.exception.CarQueryConnectionException;
 import com.autotrader.autotraderbackend.exception.CarQueryValidationException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,8 +68,10 @@ public class CarQueryApiClient {
 
     /**
      * Get all car makes from CarQuery API
+     * Protected by circuit breaker to prevent cascading failures
      */
     @Cacheable(value = "carqueryMakes", unless = "#result == null")
+    @CircuitBreaker(name = "carquery", fallbackMethod = "getAllMakesFallback")
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
@@ -176,8 +179,10 @@ public class CarQueryApiClient {
 
     /**
      * Get models for a specific make
+     * Protected by circuit breaker to prevent cascading failures
      */
     @Cacheable(value = "carqueryModels", key = "#makeId", unless = "#result == null")
+    @CircuitBreaker(name = "carquery", fallbackMethod = "getModelsByMakeFallback")
     @Retryable(
         retryFor = {RestClientException.class},
         maxAttemptsExpression = "#{@carQueryConfiguration.retry.maxAttempts}",
@@ -280,5 +285,25 @@ public class CarQueryApiClient {
             log.debug("Full exception details:", e);
             return false;
         }
+    }
+
+    /**
+     * Fallback method when circuit breaker is open for getAllMakes
+     * Returns null to allow the application to use cached or local data
+     */
+    private CarQueryMakeResponse getAllMakesFallback(Exception e) {
+        log.warn("⚡ Circuit breaker OPEN for CarQuery getAllMakes - API unavailable. Error: {}", e.getMessage());
+        log.info("Returning null - application should use cached or local car data");
+        return null;
+    }
+
+    /**
+     * Fallback method when circuit breaker is open for getModelsByMake
+     * Returns null to allow the application to use cached or local data
+     */
+    private CarQueryModelResponse getModelsByMakeFallback(String makeId, Exception e) {
+        log.warn("⚡ Circuit breaker OPEN for CarQuery getModelsByMake({}) - API unavailable. Error: {}", makeId, e.getMessage());
+        log.info("Returning null - application should use cached or local car data for make: {}", makeId);
+        return null;
     }
 }

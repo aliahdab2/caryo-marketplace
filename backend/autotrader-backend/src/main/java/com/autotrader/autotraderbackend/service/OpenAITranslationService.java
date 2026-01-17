@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.dto.openai.OpenAIResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,9 @@ public class OpenAITranslationService {
 
     /**
      * Translates text from English to Arabic using OpenAI API
+     * Protected by circuit breaker to prevent cascading failures
      */
+    @CircuitBreaker(name = "openai", fallbackMethod = "translateToArabicFallback")
     public String translateToArabic(String englishText) {
         if (englishText == null || englishText.trim().isEmpty()) {
             return null;
@@ -189,5 +192,16 @@ public class OpenAITranslationService {
         }
 
         return cleaned;
+    }
+
+    /**
+     * Fallback method when circuit breaker is open for translateToArabic
+     * Returns null to allow the application to continue without translation
+     */
+    private String translateToArabicFallback(String englishText, Exception e) {
+        log.warn("⚡ Circuit breaker OPEN for OpenAI translation - API unavailable. Text: '{}', Error: {}",
+                englishText, e.getMessage());
+        log.info("Returning null - application should use original text or cached translation");
+        return null;
     }
 }
