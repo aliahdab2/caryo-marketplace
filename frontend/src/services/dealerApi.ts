@@ -13,6 +13,7 @@ export interface TrialStatus {
   gracePeriodEndDate?: string;
   trialStartedAt: string;
   timezone: string;
+  canCreateListings: boolean;
 }
 
 export interface CanCreateListingResponse {

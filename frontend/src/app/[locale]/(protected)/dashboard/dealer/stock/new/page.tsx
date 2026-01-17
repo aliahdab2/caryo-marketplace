@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import ListingWizard from '@/components/listings/ListingWizard';
+import { useDealerTrialStatus } from '@/hooks/queries';
+import { useToast } from '@/components/ui/ToastProvider';
 
 
 /**
@@ -15,8 +17,10 @@ import ListingWizard from '@/components/listings/ListingWizard';
  */
 export default function NewListingPage() {
   const router = useRouter();
-  const { t } = useTranslation(['listings', 'common']);
+  const { t } = useTranslation(['listings', 'common', 'dashboard']);
   const { currentLang } = useLanguageSwitching();
+  const { data: trialStatus, isLoading: trialLoading } = useDealerTrialStatus();
+  const { showToast } = useToast();
 
   const handleSuccess = (_listingId: string) => {
     // Navigate to the newly created listing or back to listings dashboard
@@ -28,6 +32,18 @@ export default function NewListingPage() {
   };
 
   const [showConfirm, setShowConfirm] = React.useState(false);
+
+  // Protection logic: if not loading and cannot create listings, redirect
+  React.useEffect(() => {
+    if (!trialLoading && trialStatus && trialStatus.canCreateListings === false) {
+      showToast({ 
+        type: 'error', 
+        message: t('dashboard:listingLimitReached', 'Listing limit reached. Please upgrade your plan.') 
+      });
+      router.push(`/${currentLang}/dashboard/dealer`);
+    }
+  }, [trialStatus, trialLoading, router, currentLang, showToast, t]);
+
   const confirmDiscard = () => {
     setShowConfirm(false);
 
@@ -38,6 +54,14 @@ export default function NewListingPage() {
       router.push(`/${currentLang}/dashboard/dealer/stock`);
     }
   };
+
+  if (trialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

@@ -31,6 +31,9 @@ import {
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
+import { useDealerTrialStatus } from "@/hooks/queries";
+import UpgradeModal from "@/components/dealer/UpgradeModal";
+import { useCreateSubscription } from "@/hooks/queries";
 
 type NavItem = {
   name: string;
@@ -42,31 +45,37 @@ type NavItem = {
 const SidebarItem = memo(function SidebarItem({
   item,
   isActive,
+  disabled,
   onClick,
   navigate
 }: {
   item: NavItem;
   isActive: boolean;
+  disabled?: boolean;
   onClick?: () => void;
   navigate: (href: string) => void;
 }) {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    if (disabled) return;
     onClick?.();
     navigate(item.href);
-  }, [item.href, onClick, navigate]);
+  }, [item.href, onClick, navigate, disabled]);
 
   return (
   <li>
     <Link
-      href={item.href}
+      href={disabled ? '#' : item.href}
       onClick={handleClick}
       className={`group flex items-center p-3 rounded-lg transition-all duration-200
         ${isActive
           ? "bg-primary/15 text-primary font-medium shadow-sm"
-          : "hover:bg-gray-100 dark:hover:bg-gray-700 hover:translate-x-0.5"}`}
-      title={item.tooltip}
+          : disabled 
+            ? "opacity-50 cursor-not-allowed grayscale-[0.5]"
+            : "hover:bg-gray-100 dark:hover:bg-gray-700 hover:translate-x-0.5"}`}
+      title={disabled ? "Limit Reached" : item.tooltip}
       aria-current={isActive ? "page" : undefined}
+      aria-disabled={disabled}
       data-testid={`nav-item-${item.href.replace(/\//g, '-').substring(1)}`}
     >
       <span className="mr-3 transition-transform duration-200 group-hover:scale-110">
@@ -118,12 +127,33 @@ const UserProfile = memo(function UserProfile({
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const { user, status } = useOptimizedSession();
+  const { data: trialStatus } = useDealerTrialStatus();
   const router = useRouter();
-  const { t } = useTranslation('dashboard');
+  const { t } = useTranslation(['dashboard', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
   const { navigate } = useAuthAwareNavigation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const pathname = usePathname();
+  
+  const subscriptionMutation = useCreateSubscription();
+
+  const handleSelectPayment = async (tierId: string, _paymentMethod: string) => {
+    try {
+      const result = await subscriptionMutation.mutateAsync(tierId);
+      if (result.success) {
+        alert(`Subscription created! Transaction ID: ${result.transactionId}\n\n${result.paymentInstructions}`);
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      alert('Failed to create subscription. Please try again.');
+    }
+  };
+
+  const handleLimitReached = useCallback(() => {
+    setShowUpgradeModal(true);
+    setIsMobileMenuOpen(false);
+  }, []);
   const focusedRoutes = ['/dashboard/dealer/stock', '/dashboard/account', '/dashboard/settings', '/dashboard/dealer/leads', '/dashboard/dealer/storefront'];
   const isFocusedPage = !!(pathname && focusedRoutes.some(route => pathname === route || pathname.startsWith(route + '/')));
 
@@ -320,13 +350,17 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               <ul className="space-y-1">
                 {quickActionItems.map(item => {
                   const isActive = !!(pathname && pathname === item.href);
+                  const isAddListing = item.href.includes('/stock/new');
+                  const disabled = isAddListing && trialStatus?.canCreateListings === false;
+                  
                   return (
                     <SidebarItem
                       key={item.href}
                       item={item}
                       isActive={isActive}
+                      disabled={disabled}
                       navigate={navigate}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={disabled ? handleLimitReached : () => setIsMobileMenuOpen(false)}
                     />
                   );
                 })}
@@ -384,12 +418,17 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             <ul className="space-y-1">
               {quickActionItems.map(item => {
                 const isActive = pathname === item.href;
+                const isAddListing = item.href.includes('/stock/new');
+                const disabled = isAddListing && trialStatus?.canCreateListings === false;
+                
                 return (
                   <SidebarItem
                     key={item.href}
                     item={item}
                     isActive={isActive}
+                    disabled={disabled}
                     navigate={navigate}
+                    onClick={disabled ? handleLimitReached : undefined}
                   />
                 );
               })}
@@ -452,6 +491,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
           </div>
         </footer>
       </div>
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={trialStatus?.subscriptionTier}
+        onSelectPayment={handleSelectPayment}
+      />
     </div>
     </ToastProvider>
   );

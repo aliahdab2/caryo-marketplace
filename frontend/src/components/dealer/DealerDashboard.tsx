@@ -188,24 +188,48 @@ export default function DealerDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Link
-            href={`/${currentLang}/dashboard/dealer/stock/new`}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
-          >
-            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
-              <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                <MdAddCircleOutline className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          {trialStatus?.canCreateListings === false ? (
+            <button
+              onClick={handleUpgradeClick}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-orange-200 dark:border-orange-800/50 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105 text-left relative group w-full"
+            >
+              <div className="absolute top-2 right-2 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                {t('limitReached', { defaultValue: 'Limit Reached' })}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
-                  {t('createListing')}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                  {t('createListingDesc')}
-                </p>
+              <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+                <div className="p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex-shrink-0">
+                  <MdAddCircleOutline className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+                    {t('createListing')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {t('upgradeToCreateMore', { defaultValue: 'Upgrade your plan to create more listings' })}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Link>
+            </button>
+          ) : (
+            <Link
+              href={`/${currentLang}/dashboard/dealer/stock/new`}
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all duration-200 hover:scale-105"
+            >
+              <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
+                <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                  <MdAddCircleOutline className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+                    {t('createListing')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {t('createListingDesc')}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          )}
 
           <Link
             href={`/${currentLang}/dashboard/dealer/stock`}

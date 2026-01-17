@@ -94,7 +94,8 @@ describe('DealerDashboard', () => {
     subscriptionStatus: 'active',
     trialEndDate: '2024-12-31',
     trialStartedAt: '2024-11-01',
-    timezone: 'Asia/Damascus'
+    timezone: 'Asia/Damascus',
+    canCreateListings: true
   };
 
   const mockListings = [
@@ -124,6 +125,13 @@ describe('DealerDashboard', () => {
     jest.resetAllMocks();
 
     // Setup default mock implementations
+    mockT.mockImplementation((key, options) => {
+      if (options && options.name) {
+        return `${key}_${options.name}`;
+      }
+      return key;
+    });
+
     (useTranslation as jest.Mock).mockReturnValue({
       t: mockT,
       i18n: { language: 'en' }
@@ -244,7 +252,8 @@ describe('DealerDashboard', () => {
   it('should not show upgrade button for paid users', async () => {
     const paidTrialStatus = {
       ...mockTrialStatus,
-      subscriptionTier: 'basic'
+      subscriptionTier: 'basic',
+      canCreateListings: true
     };
 
     (dealerApi.getDealerTrialStatus as jest.Mock).mockResolvedValue(paidTrialStatus);
@@ -259,6 +268,26 @@ describe('DealerDashboard', () => {
     });
   });
 
+  it('should disable create listing button when limit is reached', async () => {
+    const limitReachedStatus = {
+      ...mockTrialStatus,
+      canCreateListings: false
+    };
+
+    (dealerApi.getDealerTrialStatus as jest.Mock).mockResolvedValue(limitReachedStatus);
+
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('limitReached')).toBeInTheDocument();
+      expect(screen.getByText('upgradeToCreateMore')).toBeInTheDocument();
+      // Should be a button, not a link
+      const button = screen.getByRole('button', { name: /createListing/i });
+      expect(button).toBeInTheDocument();
+    });
+  });
+
   it('should handle error state correctly', async () => {
     (listingsService.getMyListings as jest.Mock).mockRejectedValue(
       new Error('API Error')
@@ -269,7 +298,9 @@ describe('DealerDashboard', () => {
 
     await waitFor(() => {
       // Should show error display component
-      expect(screen.getByText(/error/i)).toBeInTheDocument();
+      expect(screen.getByText('API Error')).toBeInTheDocument();
+      // Also verify we show the standard error title from translation (mocked)
+      expect(screen.getByText('error.title')).toBeInTheDocument();
     });
   });
 
