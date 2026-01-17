@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -116,7 +117,8 @@ class CarListingRepositoryTest {
         createTestListing("Car 4", electricFuelType, true, false, false);
         createTestListing("Car 5", gasolineFuelType, true, false, false);
 
-        // Create some listings that should not be counted (not approved, sold, or archived)
+        // Create some listings that should not be counted (not approved, sold, or
+        // archived)
         createTestListing("Car 6", gasolineFuelType, false, false, false); // not approved
         createTestListing("Car 7", dieselFuelType, true, true, false); // sold
         createTestListing("Car 8", electricFuelType, true, false, true); // archived
@@ -212,7 +214,39 @@ class CarListingRepositoryTest {
         // The exact behavior depends on the database, but it shouldn't crash
     }
 
-    private CarListing createTestListing(String title, FuelType fuelType, boolean approved, boolean sold, boolean archived) {
+    @Test
+    void countActiveListingsByUser_ShouldExcludeExpiredAndArchived() {
+        // Given
+        // 1. Active listing
+        createTestListingWithStatus(testUser, true, false, false, false, null);
+
+        // 2. Not approved (should be excluded)
+        createTestListingWithStatus(testUser, false, false, false, false, null);
+
+        // 3. Sold (should be excluded)
+        createTestListingWithStatus(testUser, true, true, false, false, null);
+
+        // 4. Archived (should be excluded)
+        createTestListingWithStatus(testUser, true, false, true, false, null);
+
+        // 5. Expired flag (should be excluded)
+        createTestListingWithStatus(testUser, true, false, false, true, null);
+
+        // 6. Expired by date (should be excluded)
+        createTestListingWithStatus(testUser, true, false, false, false, LocalDateTime.now().minusDays(1));
+
+        // 7. Active with future expiration (should be counted)
+        createTestListingWithStatus(testUser, true, false, false, false, LocalDateTime.now().plusDays(30));
+
+        // When
+        long count = carListingRepository.countActiveListingsByUser(testUser);
+
+        // Then
+        assertEquals(2, count, "Should only count valid active listings");
+    }
+
+    private CarListing createTestListing(String title, FuelType fuelType, boolean approved, boolean sold,
+            boolean archived) {
         CarListing listing = new CarListing();
         listing.setTitle(title);
         listing.setModel(testModel);
@@ -229,5 +263,27 @@ class CarListingRepositoryTest {
         listing.setFuelType(fuelType);
 
         return entityManager.persistAndFlush(listing);
+    }
+
+    private void createTestListingWithStatus(User user, boolean approved, boolean sold,
+            boolean archived, boolean expired, LocalDateTime expirationDate) {
+        CarListing listing = new CarListing();
+        listing.setTitle("Test Car");
+        listing.setModel(testModel);
+        listing.setModelYear(2022);
+        listing.setMileage(5000);
+        listing.setPrice(new BigDecimal("25000.00"));
+        listing.setLocation(testLocation);
+        listing.setGovernorate(testLocation.getGovernorate());
+        listing.setDescription("Test description");
+        listing.setSeller(user);
+        listing.setApproved(approved);
+        listing.setSold(sold);
+        listing.setArchived(archived);
+        listing.setExpired(expired);
+        listing.setExpirationDate(expirationDate);
+        listing.setFuelType(gasolineFuelType);
+
+        entityManager.persistAndFlush(listing);
     }
 }

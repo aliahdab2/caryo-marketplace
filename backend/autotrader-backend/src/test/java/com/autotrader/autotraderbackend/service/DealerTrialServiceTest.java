@@ -1,6 +1,8 @@
 package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.Dealer;
+import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import com.autotrader.autotraderbackend.repository.DealerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +30,9 @@ class DealerTrialServiceTest {
     @Mock
     private DealerRepository dealerRepository;
 
+    @Mock
+    private CarListingRepository carListingRepository;
+
     @InjectMocks
     private DealerTrialService dealerTrialService;
 
@@ -36,6 +41,9 @@ class DealerTrialServiceTest {
         ReflectionTestUtils.setField(dealerTrialService, "trialDurationMonths", 2);
         ReflectionTestUtils.setField(dealerTrialService, "trialListingLimit", 15);
         ReflectionTestUtils.setField(dealerTrialService, "gracePeriodDays", 3);
+        ReflectionTestUtils.setField(dealerTrialService, "basicListingLimit", 100);
+        ReflectionTestUtils.setField(dealerTrialService, "advancedListingLimit", 250);
+        ReflectionTestUtils.setField(dealerTrialService, "professionalListingLimit", -1);
     }
 
     @Test
@@ -43,16 +51,16 @@ class DealerTrialServiceTest {
     void shouldReturnTrueWhenTrialJustStarted() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now())
-            .trialListingsCount(0)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now())
+                .trialListingsCount(0)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .build();
 
         // When
         boolean isActive = dealerTrialService.isTrialActive(dealer);
@@ -66,16 +74,16 @@ class DealerTrialServiceTest {
     void shouldReturnFalseWhenMarkedExpired() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusDays(10))
-            .trialListingsCount(5)
-            .trialExpired(true)
-            .subscriptionStatus("suspended")
-            .subscriptionTier("trial")
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusDays(10))
+                .trialListingsCount(5)
+                .trialExpired(true)
+                .subscriptionStatus("suspended")
+                .subscriptionTier("trial")
+                .build();
 
         // When
         boolean isActive = dealerTrialService.isTrialActive(dealer);
@@ -89,17 +97,17 @@ class DealerTrialServiceTest {
     void shouldAllowListingWhenTrialActiveAndUnderLimit() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusDays(10))
-            .trialListingsCount(5)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .canCreateListings(true)
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusDays(10))
+                .trialListingsCount(5)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .canCreateListings(true)
+                .build();
 
         // When
         boolean canCreate = dealerTrialService.canCreateListing(dealer);
@@ -113,17 +121,17 @@ class DealerTrialServiceTest {
     void shouldDenyListingWhenFeatureFlagDisabled() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusDays(10))
-            .trialListingsCount(5)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .canCreateListings(false)
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusDays(10))
+                .trialListingsCount(5)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .canCreateListings(false)
+                .build();
 
         // When
         boolean canCreate = dealerTrialService.canCreateListing(dealer);
@@ -137,16 +145,16 @@ class DealerTrialServiceTest {
     void shouldIncrementCountForTrialDealer() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusDays(10))
-            .trialListingsCount(5)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusDays(10))
+                .trialListingsCount(5)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .build();
 
         when(dealerRepository.save(any(Dealer.class))).thenAnswer(i -> i.getArguments()[0]);
 
@@ -165,16 +173,16 @@ class DealerTrialServiceTest {
     void shouldNotIncrementCountForActiveSubscription() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusMonths(3))
-            .trialListingsCount(10)
-            .trialExpired(false)
-            .subscriptionStatus("active")
-            .subscriptionTier("basic")
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusMonths(3))
+                .trialListingsCount(10)
+                .trialExpired(false)
+                .subscriptionStatus("active")
+                .subscriptionTier("basic")
+                .build();
 
         // When
         dealerTrialService.incrementListingCount(dealer);
@@ -184,20 +192,88 @@ class DealerTrialServiceTest {
     }
 
     @Test
+    @DisplayName("Should allow basic tier listing when under limit")
+    void shouldAllowBasicTierWhenUnderLimit() {
+        // Given
+        User user = new User();
+        Dealer dealer = Dealer.builder()
+                .id(1L)
+                .user(user)
+                .subscriptionStatus("active")
+                .subscriptionTier("basic")
+                .canCreateListings(true)
+                .build();
+
+        when(carListingRepository.countActiveListingsByUser(user)).thenReturn(99L); // Limit is 100
+
+        // When
+        boolean canCreate = dealerTrialService.canCreateListing(dealer);
+
+        // Then
+        assertThat(canCreate).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should block basic tier listing when limit reached")
+    void shouldBlockBasicTierWhenLimitReached() {
+        // Given
+        User user = new User();
+        Dealer dealer = Dealer.builder()
+                .id(1L)
+                .user(user)
+                .subscriptionStatus("active")
+                .subscriptionTier("basic")
+                .canCreateListings(true)
+                .build();
+
+        when(carListingRepository.countActiveListingsByUser(user)).thenReturn(100L); // Limit is 100
+
+        // When
+        boolean canCreate = dealerTrialService.canCreateListing(dealer);
+
+        // Then
+        assertThat(canCreate).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should allow professional tier listing regardless of count")
+    void shouldAllowProfessionalTier() {
+        // Given
+        User user = new User();
+        Dealer dealer = Dealer.builder()
+                .id(1L)
+                .user(user)
+                .subscriptionStatus("active")
+                .subscriptionTier("professional")
+                .canCreateListings(true)
+                .build();
+
+        // Even with huge count
+        // carListingRepository not mocked intentionally - professional check returns
+        // early
+
+        // When
+        boolean canCreate = dealerTrialService.canCreateListing(dealer);
+
+        // Then
+        assertThat(canCreate).isTrue();
+    }
+
+    @Test
     @DisplayName("Should successfully extend trial by days")
     void shouldExtendTrialByDays() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusMonths(2))
-            .trialListingsCount(10)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusMonths(2))
+                .trialListingsCount(10)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .build();
 
         when(dealerRepository.save(any(Dealer.class))).thenAnswer(i -> i.getArguments()[0]);
 
@@ -216,18 +292,18 @@ class DealerTrialServiceTest {
     void shouldReturnCompleteTrialStatus() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusDays(15))
-            .trialListingsCount(5)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .timezone("Asia/Damascus")
-            .canCreateListings(true)
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusDays(15))
+                .trialListingsCount(5)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .timezone("Asia/Damascus")
+                .canCreateListings(true)
+                .build();
 
         // When
         DealerTrialService.TrialStatus status = dealerTrialService.getTrialStatus(dealer);
@@ -245,17 +321,17 @@ class DealerTrialServiceTest {
     void shouldExpireTrial() {
         // Given
         Dealer dealer = Dealer.builder()
-            .id(1L)
-            .businessName("Test Dealer")
-            .businessEmail("test@dealer.sy")
-            .businessPhone("+963-11-1234567")
-            .trialStartedAt(ZonedDateTime.now().minusMonths(2))
-            .trialListingsCount(15)
-            .trialExpired(false)
-            .subscriptionStatus("trial")
-            .subscriptionTier("trial")
-            .canCreateListings(true)
-            .build();
+                .id(1L)
+                .businessName("Test Dealer")
+                .businessEmail("test@dealer.sy")
+                .businessPhone("+963-11-1234567")
+                .trialStartedAt(ZonedDateTime.now().minusMonths(2))
+                .trialListingsCount(15)
+                .trialExpired(false)
+                .subscriptionStatus("trial")
+                .subscriptionTier("trial")
+                .canCreateListings(true)
+                .build();
 
         when(dealerRepository.save(any(Dealer.class))).thenAnswer(i -> i.getArguments()[0]);
 

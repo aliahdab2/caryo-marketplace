@@ -2,6 +2,7 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.repository.DealerRepository;
+import com.autotrader.autotraderbackend.repository.CarListingRepository;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 public class DealerTrialService {
 
     private final DealerRepository dealerRepository;
+    private final CarListingRepository carListingRepository;
 
     @Value("${dealer.trial.duration_months:2}")
     private int trialDurationMonths;
@@ -88,7 +90,7 @@ public class DealerTrialService {
             boolean underLimit = dealer.getTrialListingsCount() < trialListingLimit;
             if (!underLimit) {
                 log.info("Dealer {} hit trial listing limit: {}/{}",
-                    dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
+                        dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
             }
             return underLimit;
         }
@@ -122,7 +124,7 @@ public class DealerTrialService {
             dealer.setTrialListingsCount(dealer.getTrialListingsCount() + 1);
             dealerRepository.save(dealer);
             log.info("Dealer {} trial listing count: {}/{}",
-                dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
+                    dealer.getId(), dealer.getTrialListingsCount(), trialListingLimit);
         }
     }
 
@@ -144,7 +146,8 @@ public class DealerTrialService {
         int listingsRemaining = trialListingLimit - dealer.getTrialListingsCount();
         double usagePercent = (dealer.getTrialListingsCount() * 100.0) / trialListingLimit;
 
-        // Determine if dealer can create listings (avoid calling canCreateListing to prevent recursion)
+        // Determine if dealer can create listings (avoid calling canCreateListing to
+        // prevent recursion)
         boolean canCreate = dealer.getCanCreateListings();
         if (canCreate) {
             // Check if within trial period or has active subscription
@@ -155,19 +158,19 @@ public class DealerTrialService {
         }
 
         return TrialStatus.builder()
-            .active(active)
-            .daysRemaining((int) Math.max(0, daysRemaining))
-            .listingsUsed(dealer.getTrialListingsCount())
-            .listingsRemaining(Math.max(0, listingsRemaining))
-            .listingsLimit(trialListingLimit)
-            .usagePercent(usagePercent)
-            .expiresAt(trialEnd)
-            .inGracePeriod(inGracePeriod)
-            .graceEndsAt(inGracePeriod ? graceEnd : null)
-            .canCreateListings(canCreate)
-            .subscriptionTier(dealer.getSubscriptionTier())
-            .subscriptionStatus(dealer.getSubscriptionStatus())
-            .build();
+                .active(active)
+                .daysRemaining((int) Math.max(0, daysRemaining))
+                .listingsUsed(dealer.getTrialListingsCount())
+                .listingsRemaining(Math.max(0, listingsRemaining))
+                .listingsLimit(trialListingLimit)
+                .usagePercent(usagePercent)
+                .expiresAt(trialEnd)
+                .inGracePeriod(inGracePeriod)
+                .graceEndsAt(inGracePeriod ? graceEnd : null)
+                .canCreateListings(canCreate)
+                .subscriptionTier(dealer.getSubscriptionTier())
+                .subscriptionStatus(dealer.getSubscriptionStatus())
+                .build();
     }
 
     /**
@@ -185,9 +188,9 @@ public class DealerTrialService {
     /**
      * Extend trial for a dealer (support/admin use case).
      *
-     * @param dealer The dealer
+     * @param dealer         The dealer
      * @param additionalDays Number of days to extend
-     * @param reason Reason for extension (audit trail)
+     * @param reason         Reason for extension (audit trail)
      */
     @Transactional
     public void extendTrial(Dealer dealer, int additionalDays, String reason) {
@@ -199,7 +202,7 @@ public class DealerTrialService {
         dealerRepository.save(dealer);
 
         log.info("Extended trial for dealer {} by {} days. Reason: {}. New end: {}",
-            dealer.getId(), additionalDays, reason, newTrialEnd);
+                dealer.getId(), additionalDays, reason, newTrialEnd);
 
         // Note: In production, also send notification email
     }
@@ -224,8 +227,8 @@ public class DealerTrialService {
      */
     private ZonedDateTime getTrialEndDate(Dealer dealer) {
         ZonedDateTime trialStart = dealer.getTrialStartedAt() != null
-            ? dealer.getTrialStartedAt().withZoneSameInstant(ZoneId.of("UTC"))
-            : ZonedDateTime.now(ZoneId.of("UTC"));
+                ? dealer.getTrialStartedAt().withZoneSameInstant(ZoneId.of("UTC"))
+                : ZonedDateTime.now(ZoneId.of("UTC"));
 
         // Check if trial was extended
         if (dealer.getTrialExtendedUntil() != null) {
@@ -244,27 +247,41 @@ public class DealerTrialService {
     private boolean checkSubscriptionLimit(Dealer dealer) {
         String tier = dealer.getSubscriptionTier();
 
-        // For now, we'll just check if they have an active subscription
-        // In future, track total active listings and compare to tier limits
+        // Professional tier is unlimited
+        if ("professional".equalsIgnoreCase(tier)) {
+            return true;
+        }
 
-        switch (tier) {
+        // Count active listings using strict logic (approved, not
+        // sold/archived/expired)
+        long activeCount = carListingRepository.countActiveListingsByUser(dealer.getUser());
+        int limit = 0;
+
+        switch (tier.toLowerCase()) {
             case "basic":
-                // TODO: Count active listings and compare to basicListingLimit
-                return true; // Simplified for Phase 1A
+                limit = basicListingLimit;
+                break;
             case "advanced":
-                // TODO: Count active listings and compare to advancedListingLimit
-                return true;
-            case "professional":
-                return true; // Unlimited
+                limit = advancedListingLimit;
+                break;
             case "trial":
+                // Trial uses separate limit variable
                 return isTrialActive(dealer) &&
-                       dealer.getTrialListingsCount() < trialListingLimit;
+                        dealer.getTrialListingsCount() < trialListingLimit;
             case "suspended":
                 return false;
             default:
                 log.warn("Unknown subscription tier for dealer {}: {}", dealer.getId(), tier);
                 return false;
         }
+
+        boolean underLimit = activeCount < limit;
+        if (!underLimit) {
+            log.info("Dealer {} reached {} subscription limit: {}/{}",
+                    dealer.getId(), tier, activeCount, limit);
+        }
+
+        return underLimit;
     }
 
     /**
@@ -287,4 +304,3 @@ public class DealerTrialService {
         private String subscriptionStatus;
     }
 }
-
