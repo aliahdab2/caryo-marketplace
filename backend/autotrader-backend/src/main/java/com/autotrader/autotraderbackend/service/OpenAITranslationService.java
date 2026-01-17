@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * Translation service using OpenAI API for car-related terms from English to Arabic
+ * Translation service using OpenAI API for car-related terms from English to
+ * Arabic
  * Falls back to local translations when API is unavailable
  */
 @Service
@@ -56,22 +57,25 @@ public class OpenAITranslationService {
 
         // Try OpenAI first if available
         if (isEnabled) {
-            try {
-                String openAiTranslation = translateWithOpenAI(englishText);
-                if (openAiTranslation != null && !openAiTranslation.trim().isEmpty() && !openAiTranslation.equals(englishText)) {
-                    log.debug("OpenAI translated '{}' -> '{}'", englishText, openAiTranslation);
-                    return openAiTranslation;
-                }
-            } catch (Exception e) {
-                log.warn("OpenAI translation failed for '{}': {}", englishText, e.getMessage());
+            // Exceptions will be caught by Circuit Breaker aspect
+            String openAiTranslation = translateWithOpenAI(englishText);
+
+            if (openAiTranslation != null && !openAiTranslation.trim().isEmpty()
+                    && !openAiTranslation.equals(englishText)) {
+                log.debug("OpenAI translated '{}' -> '{}'", englishText, openAiTranslation);
+                return openAiTranslation;
             }
         }
 
-        // Return null if translation fails - no fallback
+        // Return null if translation fails (and CB didn't trigger exception, e.g.
+        // disabled)
         log.debug("No translation found for '{}', returning null", englishText);
         return null;
     }
 
+    /**
+     * Translates text using OpenAI API via REST
+     */
     /**
      * Translates text using OpenAI API via REST
      */
@@ -80,67 +84,63 @@ public class OpenAITranslationService {
             return null;
         }
 
-        try {
-            String url = "https://api.openai.com/v1/chat/completions";
+        String url = "https://api.openai.com/v1/chat/completions";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(apiKey);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
 
-            String prompt = String.format(
+        String prompt = String.format(
                 "Translate this car model name to Arabic. Rules:\n" +
-                "- For alphanumeric models (like A1, 3, X5): transliterate to Arabic letters/numbers\n" +
-                "- For word models: translate meaning to Arabic\n" +
-                "- Use proper Arabic automotive terminology\n" +
-                "- Return ONLY the Arabic translation, no explanations.\n\n\"%s\"",
-                englishText.trim()
-            );
+                        "- For alphanumeric models (like A1, 3, X5): transliterate to Arabic letters/numbers\n" +
+                        "- For word models: translate meaning to Arabic\n" +
+                        "- Use proper Arabic automotive terminology\n" +
+                        "- Return ONLY the Arabic translation, no explanations.\n\n\"%s\"",
+                englishText.trim());
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", model);
-            requestBody.put("messages", java.util.List.of(
-                Map.of("role", "user", "content", prompt)
-            ));
-            requestBody.put("max_tokens", 100);
-            requestBody.put("temperature", 0.3);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("messages", java.util.List.of(
+                Map.of("role", "user", "content", prompt)));
+        requestBody.put("max_tokens", 100);
+        requestBody.put("temperature", 0.3);
 
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+        // This call will throw exception on failure, triggering Circuit Breaker
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-            if (response.getBody() != null) {
-                try {
-                    OpenAIResponse openAIResponse = objectMapper.readValue(response.getBody(), OpenAIResponse.class);
+        if (response.getBody() != null) {
+            try {
+                OpenAIResponse openAIResponse = objectMapper.readValue(response.getBody(), OpenAIResponse.class);
 
-                    if (openAIResponse.isSuccessful()) {
-                        String rawTranslation = openAIResponse.getTranslationContent();
-                        if (rawTranslation != null) {
-                            String cleanedTranslation = cleanTranslationResponse(rawTranslation);
+                if (openAIResponse.isSuccessful()) {
+                    String rawTranslation = openAIResponse.getTranslationContent();
+                    if (rawTranslation != null) {
+                        String cleanedTranslation = cleanTranslationResponse(rawTranslation);
 
-                            // Log successful translation with usage info
-                            if (openAIResponse.getUsage() != null) {
-                                log.debug("OpenAI translation successful. Tokens used: {}, Cost: ${:.4f}",
-                                        openAIResponse.getUsage().getTotalTokens(),
-                                        openAIResponse.getUsage().calculateEstimatedCost());
-                            }
-
-                            return cleanedTranslation;
-                        } else {
-                            log.warn("OpenAI returned successful response but no translation content");
+                        // Log successful translation with usage info
+                        if (openAIResponse.getUsage() != null) {
+                            log.debug("OpenAI translation successful. Tokens used: {}, Cost: ${:.4f}",
+                                    openAIResponse.getUsage().getTotalTokens(),
+                                    openAIResponse.getUsage().calculateEstimatedCost());
                         }
+
+                        return cleanedTranslation;
                     } else {
-                        log.warn("OpenAI response validation failed. Finish reason: {}", openAIResponse.getFinishReason());
+                        log.warn("OpenAI returned successful response but no translation content");
                     }
-                } catch (Exception e) {
-                    log.error("Error parsing OpenAI API response: {}", e.getMessage(), e);
+                } else {
+                    log.warn("OpenAI response validation failed. Finish reason: {}", openAIResponse.getFinishReason());
                 }
+            } catch (Exception e) {
+                log.error("Error parsing OpenAI API response: {}", e.getMessage(), e);
+                // We might want to throw here too if parsing fails, but for now we log error.
+                // If parsing fails, it returns null, which is handled by cleanup.
             }
-        } catch (Exception e) {
-            log.error("Error calling OpenAI API: {}", e.getMessage());
         }
 
         return null;
     }
-
 
     /**
      * Translates a car brand name from English to Arabic
