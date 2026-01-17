@@ -27,7 +27,8 @@ import {
   MdBlock,
   MdFlag,
   MdStorefront,
-  MdImage
+  MdImage,
+  MdCardMembership
 } from "react-icons/md";
 import { isAdmin } from '@/utils/auth';
 import { ToastProvider } from '@/components/ui/ToastProvider';
@@ -256,6 +257,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       href: `/${currentLang}/dashboard/account`,
       icon: <MdPerson className="text-xl" />,
       tooltip: t('accountTooltip', { defaultValue: 'Manage your account settings' })
+    },
+    {
+      name: t('subscription', { defaultValue: 'Subscription' }),
+      href: `/${currentLang}/dashboard/subscription`,
+      icon: <MdCardMembership className="text-xl" />,
+      tooltip: t('subscriptionTooltip', { defaultValue: 'Manage your plan and billing' })
     },
     {
       name: t('settings'),

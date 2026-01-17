@@ -46,3 +46,6 @@ npm-debug.log*
 # Playwright test results
 e2e/test-results/
 playwright-report/
+
+# Playwright auth state (contains sensitive tokens)
+e2e/.auth/

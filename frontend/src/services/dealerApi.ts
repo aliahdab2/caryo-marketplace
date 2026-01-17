@@ -50,6 +50,17 @@ export interface DealerProfileUpdateRequest {
   socialLinks?: string;
 }
 
+export interface SubscriptionTier {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  listingLimit: number;
+  features: string[];
+  recommended: boolean;
+  popular: boolean;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /**
@@ -295,6 +306,27 @@ export async function getPaymentStatus(transactionId: string): Promise<unknown> 
 }
 
 /**
+ * Get available subscription tiers
+ */
+export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
+  try {
+    const response = await apiRequest(`${API_BASE_URL}/api/pricing/tiers`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch subscription tiers: ${response.status}`);
+    }
+
+    const json = await response.json();
+    return json.data || [];
+  } catch (error) {
+    console.error('Error fetching subscription tiers:', error);
+    throw error;
+  }
+}
+
+/**
  * Hook for managing dealer trial state
  */
 export function useDealerTrial() {
@@ -319,6 +351,7 @@ export function useDealerTrial() {
     upgradeSubscription,
     getDealerProfile,
     getPaymentHistory,
-    getPaymentStatus
+    getPaymentStatus,
+    getSubscriptionTiers
   };
 }

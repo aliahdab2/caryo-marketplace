@@ -1,0 +1,51 @@
+{
+  "pageTitle": "Subscription Management",
+  "pageSubtitle": "Manage your plan and viewing limits",
+  "recommended": "Recommended",
+  "currentPlan": "Current Plan",
+  "upgrade": "Upgrade",
+  "subscriptionStatus": "Subscription Status",
+  "trial": "Trial",
+  "trialExpiring": "Trial expires in {{days}} days",
+  "listingsUsage": "Listings Usage",
+  "unlimitedListings": "You have unlimited listings",
+  "listingsRemaining": "{{count}} listings remaining",
+  "plans": {
+    "basic": {
+      "name": "Basic",
+      "period": "mo",
+      "features": [
+        "100 Active Listings",
+        "Basic Analytics",
+        "Standard Support",
+        "5 Featured Listings"
+      ]
+    },
+    "advanced": {
+      "name": "Advanced",
+      "period": "mo",
+      "features": [
+        "250 Active Listings",
+        "Advanced Analytics",
+        "Priority Support",
+        "15 Featured Listings",
+        "Verified Badge"
+      ]
+    },
+    "professional": {
+      "name": "Professional",
+      "period": "mo",
+      "features": [
+        "Unlimited Listings",
+        "Premium Analytics Suite",
+        "Dedicated Account Manager",
+        "Unlimited Featured Listings",
+        "API Access"
+      ]
+    }
+  },
+  "upgradeSuccess": "Subscription upgraded successfully!",
+  "upgradeError": "Failed to upgrade subscription. Please try again.",
+  "confirmUpgradeTitle": "Confirm Upgrade",
+  "confirmUpgradeMessage": "Are you sure you want to upgrade to the {{plan}} plan? You will be charged {{price}}."
+}

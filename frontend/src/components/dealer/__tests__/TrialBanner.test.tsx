@@ -15,17 +15,21 @@ describe('TrialBanner', () => {
   const mockOnUpgradeClick = jest.fn();
 
   const baseTrialStatus: TrialStatus = {
-    isActive: true,
-    isExpired: false,
-    isInGracePeriod: false,
+    active: true,
+    inGracePeriod: false,
     daysRemaining: 45,
     listingsUsed: 5,
+    listingsRemaining: 10,
     listingsLimit: 15,
     subscriptionTier: 'trial',
     subscriptionStatus: 'active',
     trialEndDate: '2024-12-31',
     trialStartedAt: '2024-11-01',
-    timezone: 'Asia/Damascus'
+    timezone: 'Asia/Damascus',
+    expiresAt: '2024-12-31',
+    graceEndsAt: null,
+    canCreateListings: true,
+    usagePercent: 33
   };
 
   beforeEach(() => {
@@ -60,9 +64,8 @@ describe('TrialBanner', () => {
   it('should render expired trial banner', () => {
     const expiredStatus = {
       ...baseTrialStatus,
-      isActive: false,
-      isExpired: true,
-      isInGracePeriod: false
+      active: false,
+      inGracePeriod: false
     };
 
     render(<TrialBanner trialStatus={expiredStatus} onUpgradeClick={mockOnUpgradeClick} />);
@@ -74,7 +77,7 @@ describe('TrialBanner', () => {
   it('should render grace period banner', () => {
     const graceStatus = {
       ...baseTrialStatus,
-      isInGracePeriod: true,
+      inGracePeriod: true,
       daysRemaining: 2
     };
 
@@ -160,8 +163,7 @@ describe('TrialBanner', () => {
   it('should have animate-pulse class for urgent banners', () => {
     const expiredStatus = {
       ...baseTrialStatus,
-      isActive: false,
-      isExpired: true
+      active: false
     };
 
     const { container } = render(

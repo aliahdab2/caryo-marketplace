@@ -73,20 +73,35 @@ export async function login(page: Page, usernameOrEmail: string, password: strin
  */
 export async function loginViaApi(page: Page, username: string, password: string): Promise<string> {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
+  let retries = 3;
   
-  const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
-    data: {
-      username: username,
-      password: password,
-    },
-  });
-  
-  if (!response.ok()) {
-    throw new Error(`Login failed: ${response.status()}`);
+  while (retries > 0) {
+    const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
+      data: {
+        username: username,
+        password: password,
+      },
+      failOnStatusCode: false
+    });
+    
+    if (response.status() === 429) {
+      const retryAfter = response.headers()['retry-after'];
+      const waitTime = retryAfter ? (parseInt(retryAfter, 10) * 1000) + 1000 : 5000;
+      console.log(`⚠️ Rate limited (429), waiting ${waitTime}ms before retry... (${retries} retries left)`);
+      await page.waitForTimeout(waitTime);
+      retries--;
+      continue;
+    }
+
+    if (!response.ok()) {
+      throw new Error(`Login failed: ${response.status()}`);
+    }
+    
+    const data = await response.json();
+    return data.token || data.accessToken;
   }
   
-  const data = await response.json();
-  return data.token || data.accessToken;
+  throw new Error('Login failed after retries due to rate limiting');
 }
 
 /**
@@ -94,20 +109,37 @@ export async function loginViaApi(page: Page, username: string, password: string
  */
 export async function loginViaApiAndSetStorage(page: Page, username: string, password: string): Promise<void> {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
+  let retries = 3;
+  let data;
   
-  // Call signin API
-  const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
-    data: {
-      username: username,
-      password: password,
-    },
-  });
+  while (retries > 0) {
+    const response = await page.request.post(`${apiUrl}/api/auth/signin`, {
+      data: {
+        username: username,
+        password: password,
+      },
+      failOnStatusCode: false
+    });
+
+    if (response.status() === 429) {
+      const retryAfter = response.headers()['retry-after'];
+      const waitTime = retryAfter ? (parseInt(retryAfter, 10) * 1000) + 1000 : 5000;
+      console.log(`⚠️ Rate limited (429), waiting ${waitTime}ms before retry... (${retries} retries left)`);
+      await page.waitForTimeout(waitTime);
+      retries--;
+      continue;
+    }
   
-  if (!response.ok()) {
-    throw new Error(`API Login failed: ${response.status()}`);
+    if (!response.ok()) {
+      throw new Error(`API Login failed: ${response.status()}`);
+    }
+    
+    data = await response.json();
+    break;
   }
-  
-  const data = await response.json();
+
+  if (!data) throw new Error('Login failed after retries');
+
   const token = data.token || data.accessToken;
   
   if (!token) {
@@ -115,11 +147,8 @@ export async function loginViaApiAndSetStorage(page: Page, username: string, pas
   }
   
   // Navigate to app first (needed to set localStorage on correct domain)
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  
-  // Set token in localStorage using all keys the app might check
-  await page.evaluate(({ token, userData }) => {
+  // Use addInitScript to ensure localStorage is set before any code runs
+  await page.addInitScript(({ token, userData }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('authToken', token);
     localStorage.setItem('accessToken', token);
@@ -136,9 +165,8 @@ export async function loginViaApiAndSetStorage(page: Page, username: string, pas
       accessToken: token,
     }
   });
-  
-  // Reload to apply auth state
-  await page.reload();
+
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
   
   // Give React time to hydrate with auth state
@@ -188,6 +216,44 @@ export async function ensureLoggedOut(page: Page): Promise<void> {
   if (await isLoggedIn(page)) {
     await logout(page);
   }
+}
+
+/**
+ * Create a fresh dealer account and login with it
+ * This avoids rate limiting issues with shared test accounts
+ */
+export async function createFreshDealerAndLogin(page: Page): Promise<any> {
+  const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
+  const timestamp = Date.now();
+  const username = `dealer_${timestamp}`;
+  const email = `dealer_${timestamp}@example.com`;
+  const password = 'Dealer123!';
+
+  // 1. Login as Admin first to create user (fastest way if admin endpoint exists, otherwise public reg)
+  // Using public registration for now as it's safer assumption
+  const response = await page.request.post(`${apiUrl}/api/auth/signup`, {
+    data: {
+      username,
+      email,
+      password,
+      confirmPassword: password,
+      name: `Test Dealer ${timestamp}`,
+      sellerTypeId: 2, // Assuming 2 is Dealer
+      businessName: `Test Dealership ${timestamp}`,
+      roles: ['dealer']
+    }
+  });
+
+  if (!response.ok()) {
+    const text = await response.text();
+    console.error(`Signup failed body: ${text}`);
+    throw new Error(`Failed to create fresh dealer: ${response.status()} - ${text}`);
+  }
+
+  // 2. Login as the new dealer
+  await loginViaApiAndSetStorage(page, username, password);
+  
+  return { username, email, password };
 }
 
 export { TEST_USER, ADMIN_USER, DEALER_USER };

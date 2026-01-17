@@ -1,10 +1,12 @@
 import { FullConfig } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Global setup for E2E tests
  * Runs once before all tests
  */
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
   
   console.log('🚀 E2E Global Setup Starting...');
@@ -15,7 +17,58 @@ async function globalSetup(config: FullConfig) {
   // Seed test data if needed
   await seedTestData(apiUrl);
   
+  // Setup Dealer Auth State
+  await setupDealerAuth(apiUrl);
+  
   console.log('✅ E2E Global Setup Complete');
+}
+
+// ... (existing helper functions)
+
+/**
+ * Setup Dealer Auth State file
+ * Logs in as dealer via NextAuth and saves cookies for tests to reuse
+ */
+async function setupDealerAuth(_apiUrl: string) {
+  console.log('🔐 Setting up Dealer Auth State...');
+  const authDir = path.join(__dirname, '.auth');
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+  }
+
+  try {
+    // Use Playwright to do a real browser login through NextAuth
+    const { chromium } = await import('@playwright/test');
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+    // Navigate to sign-in page
+    await page.goto(`${baseURL}/auth/signin`);
+    await page.waitForLoadState('domcontentloaded');
+
+    // Fill in login form using correct selectors (id-based)
+    await page.fill('#username', 'dealer');
+    await page.fill('#password', 'Dealer123!');
+
+    // Click sign in button
+    await page.click('button[type="submit"]');
+
+    // Wait for navigation to dashboard (confirms login success)
+    await page.waitForURL('**/dashboard**', { timeout: 30000 });
+
+    // Save the authenticated state (includes NextAuth session cookies)
+    await context.storageState({ path: path.join(authDir, 'dealer-auth.json') });
+
+    await browser.close();
+
+    console.log('✅ Dealer auth state saved to e2e/.auth/dealer-auth.json');
+  } catch (error) {
+    console.error(`⚠️ Failed to setup dealer auth: ${error}`);
+    // Don't fail global setup, tests can try to login individually if this fails
+  }
 }
 
 /**
