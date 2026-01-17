@@ -282,7 +282,7 @@ export default function DealerStorefrontPage() {
         descriptionAr: profile.descriptionAr || '',
         workingHours: parsedHours,
         socialLinks: parsedLinks,
-        specialties: profile.specialties || [],
+        specialties: [],
       });
     }
   }, [profile, reset]);
@@ -310,7 +310,7 @@ export default function DealerStorefrontPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <LoadingSkeleton lines={8} />
+        <LoadingSkeleton count={8} />
       </div>
     );
   }

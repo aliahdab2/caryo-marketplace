@@ -11,7 +11,6 @@ import { ErrorDisplay, LoadingSkeleton } from '@/components/common';
 import {
   PhoneIcon,
   LocationIcon,
-  CheckBadgeIcon,
   ClockIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -68,15 +67,12 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
       fuelTypeNameEn: listing.fuelTypeNameEn,
       fuelTypeNameAr: listing.fuelTypeNameAr,
       createdAt: listing.createdAt,
-      sellerUsername: listing.sellerUsername,
       governorateNameEn: listing.governorateNameEn,
       governorateNameAr: listing.governorateNameAr,
-      governorateDetails: listing.governorateDetails,
       media: listing.media?.map((media) => ({
         url: media.url,
         isPrimary: media.isPrimary,
-        type: media.mediaType,
-        contentType: media.contentType,
+        type: media.type,
       })),
     }));
   }, [listingsContent]);
@@ -98,7 +94,7 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
         <div className="h-64 bg-gray-200 dark:bg-gray-700 animate-pulse" />
         <div className="container mx-auto px-4 -mt-20">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-            <LoadingSkeleton lines={6} />
+            <LoadingSkeleton count={6} />
           </div>
         </div>
       </div>
@@ -134,12 +130,6 @@ export default function DealerProfileClient({ dealerId, initialProfile }: Dealer
               <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
                 {profile.businessName}
               </h1>
-              {profile.isVerified && (
-                <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                  <CheckBadgeIcon />
-                  <span className="text-white text-sm font-medium">{t('verified')}</span>
-                </div>
-              )}
             </div>
             {profile.tradingAddress && (
               <div className="flex items-center gap-2 text-white/90 mt-2">

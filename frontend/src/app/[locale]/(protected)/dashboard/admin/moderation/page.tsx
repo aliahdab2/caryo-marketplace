@@ -205,7 +205,7 @@ export default function ImageModerationPage() {
           <div className="mb-4 flex items-center gap-2">
             <input
               type="checkbox"
-              checked={selectedIds.length === (mediaData?.content?.length ?? 0) && (mediaData?.content?.length ?? 0) > 0}
+              checked={selectedIds.length === (mediaData?.content?.length ?? 0) && selectedIds.length > 0}
               onChange={handleSelectAll}
               className="w-4 h-4 text-blue-600 rounded border-gray-300"
             />

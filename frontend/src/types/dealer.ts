@@ -17,6 +17,8 @@ export interface PublicDealerProfile {
   workingHours?: string;
   socialLinks?: string;
   stats?: DealerStats;
+  isVerified?: boolean;
+  specialties?: string[];
 }
 
 export interface DealerListingsResponse<T> {
