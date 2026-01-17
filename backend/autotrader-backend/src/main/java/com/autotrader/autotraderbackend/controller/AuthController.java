@@ -21,6 +21,8 @@ import com.autotrader.autotraderbackend.service.EmailVerificationService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
 import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimit;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimitKeyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +87,8 @@ public class AuthController {
         summary = "Login",
         description = "Authenticate user and return JWT token."
     )
+    @RateLimit(maxRequests = 5, windowSeconds = 60, keyType = RateLimitKeyType.IP,
+        message = "Too many login attempts. Please try again in a minute.")
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -133,6 +137,8 @@ public class AuthController {
         summary = "Register a new user",
         description = "Creates a new user account with support for private sellers and dealers."
     )
+    @RateLimit(maxRequests = 3, windowSeconds = 3600, keyType = RateLimitKeyType.IP,
+        message = "Too many registration attempts. Please try again later.")
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         // Basic validation
@@ -434,6 +440,8 @@ public class AuthController {
         summary = "Forgot Password",
         description = "Initiates password reset process by sending reset link to user's email"
     )
+    @RateLimit(maxRequests = 3, windowSeconds = 3600, keyType = RateLimitKeyType.IP,
+        message = "Too many password reset requests. Please try again later.")
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest,

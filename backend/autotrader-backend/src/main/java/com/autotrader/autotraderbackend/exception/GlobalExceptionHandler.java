@@ -191,6 +191,26 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle rate limit exceeded exceptions
+     */
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimitExceededException(
+            RateLimitExceededException ex, WebRequest request) {
+
+        Locale locale = getUserLocale(request);
+        String message = ex.getMessage();
+
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+
+        // Return 429 Too Many Requests with retry information
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("X-RateLimit-Remaining", String.valueOf(ex.getRemainingRequests()))
+                .header("X-RateLimit-Reset", String.valueOf(ex.getSecondsUntilReset()))
+                .header("Retry-After", String.valueOf(ex.getSecondsUntilReset()))
+                .body(ApiResponse.error(message));
+    }
+
+    /**
      * Handle illegal argument exceptions
      */
     @ExceptionHandler(IllegalArgumentException.class)

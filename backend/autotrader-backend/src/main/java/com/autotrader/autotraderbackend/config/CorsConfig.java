@@ -1,25 +1,42 @@
 package com.autotrader.autotraderbackend.config;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Arrays;
+import java.util.List;
+
+@Slf4j
 @Configuration
 public class CorsConfig {
+
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow all origins for development - you can restrict this in production
-        config.addAllowedOrigin("http://localhost:3000"); // Next.js frontend
-        config.addAllowedOrigin("http://localhost:3001"); // Alternative port
+        // Parse allowed origins from environment variable (comma-separated)
+        // Example: http://localhost:3000,http://localhost:3001,https://caryo.sy
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
 
-        // Enable this temporarily if you're still having CORS issues
-        config.addAllowedOriginPattern("*"); // BE CAREFUL! Only use in development, remove for production
+        log.info("CORS Configuration - Allowed origins: {}", origins);
+
+        // SECURITY: Only allow specific origins from configuration
+        // NEVER use allowedOriginPattern("*") in production
+        for (String origin : origins) {
+            String trimmedOrigin = origin.trim();
+            if (!trimmedOrigin.isEmpty()) {
+                config.addAllowedOrigin(trimmedOrigin);
+            }
+        }
 
         // Allow credentials (cookies, authorization headers, etc.)
         config.setAllowCredentials(true);
@@ -38,9 +55,13 @@ public class CorsConfig {
         config.addAllowedHeader("Accept");
         config.addAllowedHeader("Authorization");
         config.addAllowedHeader("X-Requested-With");
+        config.addAllowedHeader("Accept-Language");
 
         // Expose headers that the client might need
         config.addExposedHeader("Authorization");
+
+        // Set max age for preflight requests (1 hour)
+        config.setMaxAge(3600L);
 
         // Apply this configuration to all paths
         source.registerCorsConfiguration("/**", config);

@@ -8,6 +8,9 @@ import com.autotrader.autotraderbackend.payload.response.ConversationResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
 import com.autotrader.autotraderbackend.service.ConversationService;
 import com.autotrader.autotraderbackend.service.I18nService;
+import com.autotrader.autotraderbackend.service.MessageSanitizationService;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimit;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimitKeyType;
 
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -39,6 +42,7 @@ public class ConversationController {
 
     private final ConversationService conversationService;
     private final I18nService i18nService;
+    private final MessageSanitizationService messageSanitizationService;
 
     /**
      * Create a new conversation
@@ -124,6 +128,8 @@ public class ConversationController {
     /**
      * Send a message in a conversation
      */
+    @RateLimit(maxRequests = 20, windowSeconds = 60, keyType = RateLimitKeyType.USER,
+        message = "Too many messages sent. Please wait a moment before sending more.")
     @PostMapping("/{id}/messages")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
             @PathVariable Long id,
@@ -278,8 +284,11 @@ public class ConversationController {
             throw new BadRequestException(errorMessage);
         }
 
+        // Sanitize content to prevent XSS attacks
+        String sanitizedContent = content != null ? messageSanitizationService.sanitize(content) : null;
+
         MessageResponse response = conversationService.sendMessageWithAttachments(
-            id, content, messageType, files, userDetails.getId());
+            id, sanitizedContent, messageType, files, userDetails.getId());
 
         String message = i18nService.getMessage("message.sent.success", acceptLanguage);
 

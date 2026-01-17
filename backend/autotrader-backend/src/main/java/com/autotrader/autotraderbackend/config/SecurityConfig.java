@@ -102,8 +102,40 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
-        // For H2 Console access
-        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+        // Security Headers Configuration
+        http.headers(headers -> headers
+            // Frame options for H2 Console in development
+            .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            // Prevent XSS attacks
+            .xssProtection(xss -> xss
+                .headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+            )
+            // Prevent MIME type sniffing
+            .contentTypeOptions(contentTypeOptions -> {})
+            // HTTP Strict Transport Security (HSTS)
+            .httpStrictTransportSecurity(hsts -> hsts
+                .includeSubDomains(true)
+                .maxAgeInSeconds(31536000) // 1 year
+            )
+            // Content Security Policy
+            .contentSecurityPolicy(csp -> csp
+                .policyDirectives("default-src 'self'; " +
+                    "img-src 'self' data: https: http://localhost:9000 http://minio:9000; " +
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "font-src 'self' data:; " +
+                    "connect-src 'self' http://localhost:* https:; " +
+                    "frame-ancestors 'self'")
+            )
+            // Referrer Policy
+            .referrerPolicy(referrer -> referrer
+                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+            )
+            // Permissions Policy
+            .permissionsPolicy(permissions -> permissions
+                .policy("geolocation=(), microphone=(), camera=()")
+            )
+        );
 
         // Add JWT token filter using the injected parameter
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

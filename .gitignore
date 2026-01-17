@@ -91,3 +91,24 @@ replay_pid*
 
 # Test files
 .test_listing_id
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+*.env
+**/.env
+**/.env.*
+
+# Exception: Allow .env.example template files
+!.env.example
+!**/.env.example
+
+# Security - Never commit these
+**/application-secrets.properties
+**/secrets.properties
+**/*-secrets.yml
+**/*-secrets.yaml
