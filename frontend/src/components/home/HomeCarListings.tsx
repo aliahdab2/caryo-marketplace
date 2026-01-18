@@ -9,7 +9,8 @@ import CarListingListItem from '@/components/search/CarListingListItem';
 import { CarListingCardData } from '@/components/listings/CarListingCard';
 import HoverImageNavigation from '@/components/ui/HoverImageNavigation';
 import YearBadge from '@/components/ui/YearBadge';
-import { isVideoMedia } from '@/utils/mediaUtils';
+
+
 
 interface HomeCarListingsProps {
   latestCars: CarListing[];
@@ -26,8 +27,6 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [playingVideoIndex, setPlayingVideoIndex] = useState<number | null>(null);
-
-  // Video detection handled by shared utility function
 
 
   const containerClassName = viewMode === 'grid'
@@ -74,6 +73,22 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
           ))
         ) : latestCars.length > 0 ? (
           latestCars.map((car, index) => {
+            // Use real media from API, fallback to placeholder if empty
+            const hasMedia = car.media && car.media.length > 0;
+            const displayMedia = hasMedia 
+              ? car.media.map((m, i) => ({
+                  url: m.url,
+                  isPrimary: i === 0,
+                  contentType: 'image', // Default to image if generic
+                  isVideo: m.type === 'VIDEO'
+                }))
+              : [{
+                  url: '/images/placeholder-car.jpg', // Placeholder
+                  isPrimary: true,
+                  contentType: 'image',
+                  isVideo: false
+                }];
+
             if (viewMode === 'list') {
               // Transform to CarListingCardData for list view
               const cardData: CarListingCardData = {
@@ -88,11 +103,11 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
                 sellerUsername: car.sellerUsername || 'Unknown',
                 governorateNameEn: car.locationDetails?.displayNameEn || car.governorateDetails?.displayNameEn || "Unknown",
                 governorateNameAr: car.locationDetails?.displayNameAr || car.governorateDetails?.displayNameAr || "غير معروف",
-                media: car.media?.map(m => ({
+                media: displayMedia.map(m => ({
                   url: m.url,
-                  isPrimary: m.type === 'primary' || false,
-                  contentType: m.type,
-                  type: isVideoMedia(m) ? 'video' : 'image'
+                  isPrimary: m.isPrimary,
+                  contentType: m.contentType,
+                  type: 'image' as const
                 }))
               };
 
@@ -119,12 +134,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
               >
                 <div className="relative h-52">
                   <HoverImageNavigation
-                    media={car.media?.map(m => ({
-                      url: m.url,
-                      isPrimary: m.type === 'primary' || false,
-                      contentType: m.type,
-                      isVideo: isVideoMedia(m)
-                    }))}
+                    media={displayMedia}
                     alt={car.title}
                     className="w-full h-full"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

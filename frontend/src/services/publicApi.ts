@@ -1,6 +1,8 @@
 // Server-side API functions for public endpoints
 // These functions can be called from Server Components for better SEO
 
+import type { CarMake } from '@/types/car';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 export interface CarListing {
@@ -522,5 +524,97 @@ export async function subscribeToNewsletter(request: NewsletterSubscriptionReque
       success: false,
       message: 'Failed to subscribe to newsletter. Please try again later.'
     };
+  }
+}
+
+// ============================================================================
+// Server-side Reference Data Functions (for Server Components / SSR)
+// ============================================================================
+
+// Re-export Governorate type for convenience
+export interface Governorate {
+  id: number;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  countryId: number;
+  countryCode: string;
+  countryNameEn: string;
+  countryNameAr: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+// Internal type for API response (may differ from CarMake)
+interface BrandApiResponse {
+  id: number;
+  name: string;
+  displayNameEn: string;
+  displayNameAr: string;
+  slug: string;
+  active?: boolean;
+  isActive?: boolean;
+}
+
+/**
+ * Fetches all car brands (server-side)
+ * Can be called from Server Components
+ */
+export async function fetchCarBrandsPublic(): Promise<CarMake[]> {
+  try {
+    const url = `${API_BASE_URL}/api/reference-data/brands`;
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch brands: ${response.status}`);
+      return [];
+    }
+
+    const data: BrandApiResponse[] = await response.json();
+
+    // Transform to match CarMake type
+    return data.map(brand => ({
+      id: brand.id,
+      name: brand.name,
+      slug: brand.slug,
+      displayNameEn: brand.displayNameEn,
+      displayNameAr: brand.displayNameAr,
+      isActive: brand.isActive ?? brand.active ?? true,
+    }));
+  } catch (error) {
+    console.error('Error fetching car brands:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetches all governorates (server-side)
+ * Can be called from Server Components
+ */
+export async function fetchGovernoratesPublic(): Promise<Governorate[]> {
+  try {
+    const url = `${API_BASE_URL}/api/reference-data/governorates`;
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch governorates: ${response.status}`);
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching governorates:', error);
+    return [];
   }
 }

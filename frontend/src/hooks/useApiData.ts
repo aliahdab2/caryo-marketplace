@@ -44,9 +44,10 @@ export function useApiData<T>(
   endpoint: string,
   dependencies: React.DependencyList = [],
   params?: Record<string, string | number>,
-  errorMessage?: string
+  errorMessage?: string,
+  initialData?: T | null
 ) {
-  const [data, setData] = useState<T | null>(null);
+  const [data, setData] = useState<T | null>(initialData || null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -55,6 +56,9 @@ export function useApiData<T>(
   const fetchFunctionRef = useRef(fetchFunction);
   const paramsRef = useRef(params);
   const errorMessageRef = useRef(errorMessage);
+  
+  // Track if we have initial data to skip first loading state
+  const hasInitialDataRef = useRef(!!initialData);
   
   // Update refs on each render (but don't trigger re-fetch)
   fetchFunctionRef.current = fetchFunction;
@@ -70,45 +74,64 @@ export function useApiData<T>(
   // Track if a fetch is already in-flight to prevent duplicate calls (React StrictMode)
   const isFetchingRef = useRef(false);
 
+  // Track current data in ref to avoid stale closure issues without causing re-renders
+  const dataRef = useRef<T | null>(initialData || null);
+
+  // Keep dataRef in sync with state
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
   // Load data function - only depends on endpoint (stable string)
   const loadData = useCallback(async () => {
     // Skip API call if endpoint is empty (indicating no valid request)
     if (!endpoint) {
-      setData(null);
+      if (!hasInitialDataRef.current) {
+        setData(null);
+      }
       setIsLoading(false);
       setError(null);
       return;
     }
-    
+
     // Prevent duplicate fetches (React StrictMode calls effects twice)
     if (isFetchingRef.current) {
       return;
     }
     isFetchingRef.current = true;
-    
+
     // Increment request ID to track this specific request
     const currentRequestId = ++requestIdRef.current;
-    
+
     try {
-      setIsLoading(true);
+      // Only set loading if we don't have data (either from initial or previous fetch)
+      // This prevents loading flash when we have SSR data
+      if (!dataRef.current && !hasInitialDataRef.current) {
+        setIsLoading(true);
+      }
       setError(null);
-      
+
       const result = await fetchWithCache<T>(
         endpoint,
         fetchFunctionRef.current,
         paramsRef.current
       );
-      
+
       // Only update state if this is still the latest request and component is mounted
       if (currentRequestId === requestIdRef.current && isMountedRef.current) {
         setData(result);
+        // Clear initial data flag after successful fetch
+        hasInitialDataRef.current = false;
       }
     } catch (err) {
       // Only update state if this is still the latest request and component is mounted
       if (currentRequestId === requestIdRef.current && isMountedRef.current) {
         console.error(`Failed to fetch data from ${endpoint}:`, err);
         setError(errorMessageRef.current || 'Error loading data. Please try again.');
-        setData(null);
+        // Keep existing data on error if we have it (graceful degradation)
+        if (!hasInitialDataRef.current && !dataRef.current) {
+          setData(null);
+        }
       }
     } finally {
       isFetchingRef.current = false;
@@ -116,9 +139,10 @@ export function useApiData<T>(
         setIsLoading(false);
       }
     }
-  }, [endpoint]); // Only endpoint triggers new fetch
+  }, [endpoint]); // Only endpoint triggers recreation - use refs for everything else
 
   // Load data on mount and when dependencies change
+  // Uses SWR pattern: render with initialData immediately, then revalidate in background
   useEffect(() => {
     isMountedRef.current = true;
     loadData();

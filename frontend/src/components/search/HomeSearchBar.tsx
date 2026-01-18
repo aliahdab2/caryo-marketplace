@@ -21,7 +21,12 @@ import GovernorateSelect from './selects/GovernorateSelect';
 
 // Homepage search bar with live count updates
 
-const HomeSearchBar = React.memo(() => {
+interface HomeSearchBarProps {
+  initialBrands?: CarMake[];
+  initialGovernorates?: Governorate[];
+}
+
+const HomeSearchBar = React.memo<HomeSearchBarProps>(({ initialBrands, initialGovernorates }) => {
   const { t, i18n } = useTranslation('search');
   const router = useRouter();
   const currentLanguage = i18n.language;
@@ -38,8 +43,10 @@ const HomeSearchBar = React.memo(() => {
     '/api/reference-data/brands',
     [], // Empty deps - fetch once on mount
     undefined,
-    'Error loading data. Please try again.' // Static error message
-  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+    'Error loading data. Please try again.', // Static error message
+    initialBrands
+  ) || { data: initialBrands || null, isLoading: !initialBrands, error: null, retry: async () => {} };
+
   const carMakes: CarMake[] = useMemo(() => brandsApi.data ?? [], [brandsApi.data]);
   const isLoadingBrands: boolean = brandsApi.isLoading ?? false;
   const brandsError: string | null = brandsApi.error ?? null;
@@ -50,8 +57,10 @@ const HomeSearchBar = React.memo(() => {
     '/api/reference-data/governorates',
     [], // Empty deps - fetch once on mount
     undefined,
-    'Error loading data. Please try again.'
-  ) || { data: null, isLoading: false, error: null, retry: async () => {} };
+    'Error loading data. Please try again.',
+    initialGovernorates
+  ) || { data: initialGovernorates || null, isLoading: !initialGovernorates, error: null, retry: async () => {} };
+
   const governorates: Governorate[] = useMemo(() => governoratesApi.data ?? [], [governoratesApi.data]);
   const isLoadingGovernorates: boolean = governoratesApi.isLoading ?? false;
   const governoratesError: string | null = governoratesApi.error ?? null;
@@ -184,7 +193,7 @@ const HomeSearchBar = React.memo(() => {
               <button
                 type="submit"
                 onClick={handleSearch}
-                className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform active:scale-95 shadow-lg hover:shadow-blue-500/30 whitespace-nowrap flex items-center justify-center"
+                className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform active:scale-95 shadow-lg hover:shadow-blue-500/30 whitespace-nowrap flex items-center justify-center"
                 aria-label={t('searchButton', 'Search Cars')}
               >
                 <svg

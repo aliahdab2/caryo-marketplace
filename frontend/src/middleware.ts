@@ -38,11 +38,15 @@ export function middleware(request: NextRequest) {
     
     // Sync cookie with the URL locale so subsequent requests respect the switch
     if (localeInPath) {
-      response.cookies.set('NEXT_LOCALE', localeInPath, {
-        path: '/',
-        maxAge: 31536000, // 1 year
-        sameSite: 'lax',
-      });
+      const currentCookie = request.cookies.get('NEXT_LOCALE')?.value;
+      // Only set cookie if it's different to prevent redundant Set-Cookie headers
+      if (currentCookie !== localeInPath) {
+        response.cookies.set('NEXT_LOCALE', localeInPath, {
+          path: '/',
+          maxAge: 31536000, // 1 year
+          sameSite: 'lax',
+        });
+      }
     }
     
     return response;
