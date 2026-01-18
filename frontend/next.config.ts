@@ -142,5 +142,26 @@ const nextConfig: NextConfig = {
   // Additional turbopack configuration can be added to the existing turbopack section above
 };
 
+import { withSentryConfig } from '@sentry/nextjs';
+
 // Only apply bundle analyzer when explicitly requested
-export default process.env.ANALYZE === 'true' ? analyzeBundles(nextConfig) : nextConfig;
+const config = process.env.ANALYZE === 'true' ? analyzeBundles(nextConfig) : nextConfig;
+
+export default withSentryConfig(
+  config,
+  {
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options
+
+    // Suppresses source map uploading logs during build
+    silent: true,
+    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+    tunnelRoute: "/monitoring",
+
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    disableLogger: true,
+
+    // Enables automatic instrumentation of Vercel Cron Monitors.
+    automaticVercelMonitors: true,
+  }
+);
