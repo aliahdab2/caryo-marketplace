@@ -50,7 +50,7 @@ export default function Navbar({ className }: ComponentProps) {
   };
 
   return (
-    <nav className={`bg-white shadow-md dark:bg-gray-900 mobile-prevent-scroll ${className || ''}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/85 dark:bg-gray-900/90 shadow-sm transition-all duration-300 ${className || ''}`}>
       <div className="w-full max-w-[94%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[88%] lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 tablet-nav-improvements">
         <div className="flex items-center justify-between h-16 xs:h-17 sm:h-18 md:h-20 landscape-mobile-nav">
 
@@ -58,17 +58,19 @@ export default function Navbar({ className }: ComponentProps) {
           <div className="flex items-center flex-shrink-0">
             <Link
               href="/"
-              className="flex items-center nav-focus-visible"
+              className="flex items-center nav-focus-visible group"
               aria-label={t('headerHome')}
             >
-              <Image
-                className="h-9 w-auto xs:h-10 sm:h-11 md:h-12"
-                src={logoSrc}
-                alt=""
-                width={48}
-                height={48}
-                onError={handleLogoError}
-              />
+              <div className="transform group-hover:scale-105 transition-transform duration-200">
+                <Image
+                  className="h-9 w-auto xs:h-10 sm:h-11 md:h-12"
+                  src={logoSrc}
+                  alt=""
+                  width={48}
+                  height={48}
+                  onError={handleLogoError}
+                />
+              </div>
               <span className="ml-2 xs:ml-2 rtl:mr-2 rtl:xs:mr-2 rtl:ml-0 text-xl xs:text-2xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white logo-text">
                 Caryo
               </span>
@@ -78,66 +80,66 @@ export default function Navbar({ className }: ComponentProps) {
           {/* Right Side - Navigation + Login/User Menu (Language Auto-Detected) */}
           <div className="hidden sm:flex sm:items-center sm:space-x-1 md:space-x-2 rtl:space-x-reverse flex-shrink-0">
             {/* Navigation Items - Larger like Blocket */}
-            <div className="flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
+            <div className="flex items-center space-x-1 md:space-x-3 rtl:space-x-reverse" role="navigation" aria-label="Main navigation">
               {/* Post Ad Button - Horizontal layout like Blocket */}
               <Link
                 href={user ? "/dashboard/dealer/stock/new" : "/auth/signin"}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md text-sm font-medium flex items-center justify-center transition-colors min-w-[100px] max-w-[120px] h-12 shadow-sm"
+                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-5 py-2.5 rounded-full text-sm font-bold flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 min-w-[110px] h-11"
               >
-                <MdAdd className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span className="text-sm font-medium whitespace-nowrap">{t('headerPostAd')}</span>
+                <MdAdd className="h-5 w-5 mr-1.5 flex-shrink-0" />
+                <span className="whitespace-nowrap">{t('headerPostAd')}</span>
               </Link>
 
               {/* Messages - Larger style like Blocket */}
               <Link
                 href={user ? "/dashboard/dealer/leads" : "/auth/signin"}
-                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 ${
+                className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800 hover:scale-105 min-w-[70px] h-14 ${
                   pathname?.startsWith('/dashboard/dealer/leads')
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                    ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20'
+                    : 'text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {pathname?.startsWith('/dashboard/dealer/leads') ? (
-                  <MdMail className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <MdMail className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 ) : (
-                  <MdMailOutline className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <MdMailOutline className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('headerMessages')}</span>
+                <span className="text-[10px] font-medium text-center w-full">{t('headerMessages')}</span>
               </Link>
 
               {/* Saved Searches - Larger style like Blocket */}
               <Link
                 href={user ? "/saved/alerts" : "/auth/signin"}
-                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 group ${
+                className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800 hover:scale-105 min-w-[70px] h-14 group ${
                   pathname?.startsWith('/saved')
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                    ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20'
+                    : 'text-gray-600 dark:text-gray-300'
                 }`}
                 title="Saved Searches & Alerts"
               >
                 {pathname?.startsWith('/saved') ? (
-                  <MdNotifications className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <MdNotifications className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 ) : (
-                  <MdNotificationsNone className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <MdNotificationsNone className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('headerSavedSearches')}</span>
+                <span className="text-[10px] font-medium text-center w-full">{t('headerSavedSearches')}</span>
               </Link>
 
               {/* Search - Simplified */}
               <Link
                 href={NAVIGATION_ROUTES.SEARCH}
-                className={`flex flex-col items-center justify-center px-4 py-2.5 rounded-lg transition-colors min-w-[75px] max-w-[90px] h-14 ${
+                className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800 hover:scale-105 min-w-[70px] h-14 ${
                   pathname?.startsWith('/search')
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                    ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20'
+                    : 'text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {pathname?.startsWith('/search') ? (
-                  <FiSearch className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <FiSearch className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 ) : (
-                  <MdSearch className="h-5 w-5 mb-1 flex-shrink-0" />
+                  <MdSearch className="h-6 w-6 mb-0.5 flex-shrink-0" />
                 )}
-                <span className="text-xs leading-tight font-medium text-center w-full px-1">{t('search:search')}</span>
+                <span className="text-[10px] font-medium text-center w-full">{t('search:search')}</span>
               </Link>
             </div>
 

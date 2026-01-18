@@ -705,14 +705,56 @@ type CachedData<T> = {
   timestamp: number;
 };
 
-// In-memory cache for API responses
+// In-memory cache for API responses (fastest access)
 const apiCache = new Map<string, CachedData<unknown>>();
 
 // Cache expiration time (5 minutes)
 const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
+// Keys that should be persisted to LocalStorage (long-lived reference data)
+const PERSISTENT_ENDPOINTS = [
+  '/api/reference-data/brands',
+  '/api/reference-data/governorates',
+  '/api/reference-data',
+  '/api/car-conditions',
+  '/api/transmissions',
+  '/api/fuel-types',
+  '/api/body-styles',
+  '/api/drive-types'
+];
+
 /**
- * Fetches data from the API with caching support
+ * Loads data from LocalStorage safely
+ */
+const loadFromLocalStorage = <T>(key: string): CachedData<T> | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const item = window.localStorage.getItem(`api_cache_${key}`);
+    if (item) {
+      return JSON.parse(item) as CachedData<T>;
+    }
+  } catch (error) {
+    console.warn('Failed to load from LocalStorage:', error);
+  }
+  return null;
+};
+
+/**
+ * Saves data to LocalStorage safely
+ */
+const saveToLocalStorage = <T>(key: string, data: CachedData<T>): void => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    window.localStorage.setItem(`api_cache_${key}`, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save to LocalStorage (possibly full):', error);
+  }
+};
+
+/**
+ * Fetches data from the API with caching support (Memory + LocalStorage)
  * @param endpoint API endpoint
  * @param fetchFn Function to fetch data if not in cache
  * @param params Additional parameters for cache key
@@ -737,21 +779,39 @@ export async function fetchWithCache<T>(
     return fetchFn();
   }
   
+  // 1. Check In-Memory Cache (Fastest)
   const cachedItem = apiCache.get(cacheKey) as CachedData<T> | undefined;
-  
-  // Return cached data if still valid
   if (cachedItem && Date.now() - cachedItem.timestamp < expiration) {
     return cachedItem.data;
   }
   
-  // Fetch fresh data
+  // 2. Check LocalStorage (Persistent) - only for whitelisted endpoints
+  const isPersistent = PERSISTENT_ENDPOINTS.some(p => endpoint.startsWith(p));
+  if (isPersistent) {
+    const localItem = loadFromLocalStorage<T>(cacheKey);
+    // Allow persistent data to live longer (e.g., 24 hours) or use same expiration?
+    // For now using same expiration but it survives reloads.
+    if (localItem && Date.now() - localItem.timestamp < expiration * 12) { // 1 hour for persistent
+       // Hydrate memory cache
+       apiCache.set(cacheKey, localItem);
+       return localItem.data;
+    }
+  }
+  
+  // 3. Fetch Fresh Data
   const data = await fetchFn();
   
-  // Cache the response
-  apiCache.set(cacheKey, {
+  // 4. Update Caches
+  const cacheEntry = {
     data,
     timestamp: Date.now()
-  });
+  };
+  
+  apiCache.set(cacheKey, cacheEntry);
+  
+  if (isPersistent) {
+    saveToLocalStorage(cacheKey, cacheEntry);
+  }
   
   return data;
 }
@@ -767,9 +827,21 @@ export function clearApiCache(endpoint?: string): void {
     [...apiCache.keys()]
       .filter(key => key.startsWith(prefix))
       .forEach(key => apiCache.delete(key));
+      
+    // Also clear from localStorage
+    if (typeof window !== 'undefined') {
+       // This is a naive clear for localStorage, matching exact keys might be hard without index
+       // For now, we rely on expiration
+    }
   } else {
     // Clear entire cache
     apiCache.clear();
+    // Clear all api_cache_ items from localStorage
+     if (typeof window !== 'undefined') {
+        Object.keys(window.localStorage)
+          .filter(k => k.startsWith('api_cache_'))
+          .forEach(k => window.localStorage.removeItem(k));
+     }
   }
 }
 

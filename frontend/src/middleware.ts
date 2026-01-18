@@ -29,7 +29,23 @@ export function middleware(request: NextRequest) {
   );
 
   if (pathnameHasLocale) {
-    return; // Let Next.js handle the routing for this locale
+    // Extract the locale from the path to update the cookie for persistence
+    const localeInPath = locales.find(
+      (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    );
+
+    const response = NextResponse.next();
+    
+    // Sync cookie with the URL locale so subsequent requests respect the switch
+    if (localeInPath) {
+      response.cookies.set('NEXT_LOCALE', localeInPath, {
+        path: '/',
+        maxAge: 31536000, // 1 year
+        sameSite: 'lax',
+      });
+    }
+    
+    return response;
   }
 
   // Determine the preferred locale

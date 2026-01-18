@@ -167,76 +167,120 @@ export default function Home() {
         isRTL={isRTL}
       />
 
-      {/* How It Works Section */}
-      <section className="py-16 bg-gray-100 dark:bg-gray-800">
+      {/* How It Works Section - Modern Icon-Based Cards */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-900 dark:text-white">
             {t('whyChooseUsTitle', { ns: 'home'})}
           </h2>
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
+            Discover why thousands trust Caryo for their automotive needs
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">1</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsWideSelectionTitle', { ns: 'home'})}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsWideSelectionDescription', { ns: 'home'})}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Card 1 - Wide Selection */}
+            <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200/50 dark:border-gray-700/50 hover:border-blue-300 dark:hover:border-blue-600">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative">
+                <div className="inline-flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl w-16 h-16 mb-6 text-white shadow-lg group-hover:shadow-blue-500/50 transition-shadow duration-300">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsWideSelectionTitle', { ns: 'home'})}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{t('whyChooseUsWideSelectionDescription', { ns: 'home'})}</p>
+              </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">2</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsSecureTransactionsTitle', { ns: 'home'})}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsSecureTransactionsDescription', { ns: 'home'})}</p>
+            {/* Card 2 - Secure Transactions */}
+            <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative">
+                <div className="inline-flex items-center justify-center bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl w-16 h-16 mb-6 text-white shadow-lg group-hover:shadow-purple-500/50 transition-shadow duration-300">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsSecureTransactionsTitle', { ns: 'home'})}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{t('whyChooseUsSecureTransactionsDescription', { ns: 'home'})}</p>
+              </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center bg-blue-600 rounded-full w-16 h-16 mb-6 text-white text-2xl font-bold">3</div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsExpertSupportTitle', { ns: 'home'})}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{t('whyChooseUsExpertSupportDescription', { ns: 'home'})}</p>
+            {/* Card 3 - Expert Support */}
+            <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200/50 dark:border-gray-700/50 hover:border-green-300 dark:hover:border-green-600">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative">
+                <div className="inline-flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 rounded-2xl w-16 h-16 mb-6 text-white shadow-lg group-hover:shadow-green-500/50 transition-shadow duration-300">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{t('whyChooseUsExpertSupportTitle', { ns: 'home'})}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{t('whyChooseUsExpertSupportDescription', { ns: 'home'})}</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 container mx-auto pis-4 pie-4" aria-labelledby="newsletter-title">
-        <div className="bg-blue-600 rounded-xl p-8 md:p-12 text-white text-center">
-          <h2 id="newsletter-title" className="text-2xl md:text-3xl font-bold mb-4">{t('stayUpdated', { ns: 'home', defaultValue: 'Stay Updated on the Latest Deals'})}</h2>
-          <p id="newsletter-description" className="max-w-2xl mx-auto mb-8">{t('newsletterDescription', { ns: 'home', defaultValue: 'Subscribe to our newsletter to receive the latest news, updates, and special offers directly in your inbox.'})}</p>
+      <section className="py-16 bg-white dark:bg-black" aria-labelledby="newsletter-title">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto bg-blue-50/50 dark:bg-blue-900/10 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-blue-100 dark:border-blue-800/20 text-center relative overflow-hidden shadow-xl shadow-blue-500/5">
+            {/* Subtle decorative blob */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen opacity-50"></div>
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen opacity-50"></div>
 
-          {newsletterMessage && (
-            <div className={`mb-6 p-3 rounded-md ${newsletterSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              {newsletterMessage}
+            <div className="relative z-10">
+              <h2 id="newsletter-title" className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+                {t('stayUpdated', { ns: 'home'})}
+              </h2>
+              <p id="newsletter-description" className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto mb-8">
+                {t('newsletterDescription', { ns: 'home'})}
+              </p>
+
+              {newsletterMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mb-6 inline-block px-4 py-2 rounded-lg text-sm font-medium ${newsletterSuccess ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}
+                >
+                  {newsletterMessage}
+                </motion.div>
+              )}
+
+              <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-3" aria-describedby="newsletter-description">
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  onInvalid={(e) => e.currentTarget.setCustomValidity(t('emailRequired', { ns: 'home' }))}
+                  onInput={(e) => e.currentTarget.setCustomValidity('')}
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="min-w-0 flex-auto rounded-xl border-0 bg-white/50 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 dark:bg-white/5 dark:text-white dark:ring-white/10 dark:placeholder:text-gray-400 dark:focus:ring-blue-500 backdrop-blur-sm transition-all duration-200"
+                  placeholder={t('emailPlaceholder', { ns: 'home' })}
+                  disabled={newsletterLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={newsletterLoading}
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-blue-600/20 hover:shadow-lg hover:shadow-blue-600/30 whitespace-nowrap"
+                >
+                  {newsletterLoading
+                    ? t('subscribing', { ns: 'home', defaultValue: 'Subscribing...'})
+                    : t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})
+                  }
+                </button>
+              </form>
+              
+              <p className="mt-6 text-xs text-gray-400 dark:text-gray-500">
+                {t('newsletterSpamPromise', { ns: 'home', defaultValue: 'No spam, unsubscribe at any time.'})}
+              </p>
             </div>
-          )}
-
-          <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-4" aria-describedby="newsletter-description">
-            <label htmlFor="newsletter-email" className="sr-only">
-              {t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
-            </label>
-            <input
-              id="newsletter-email"
-              type="email"
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              placeholder={t('emailPlaceholder', { ns: 'home', defaultValue: 'Enter your email address'})}
-              className="flex-grow pis-4 pie-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              required
-              disabled={newsletterLoading}
-              aria-describedby="newsletter-description"
-            />
-            <button
-              type="submit"
-              disabled={newsletterLoading}
-              className="pis-6 pie-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:bg-gray-100 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
-            >
-              {newsletterLoading
-                ? t('subscribing', { ns: 'home', defaultValue: 'Subscribing...'})
-                : t('subscribe', { ns: 'home', defaultValue: 'Subscribe'})
-              }
-            </button>
-          </form>
+          </div>
         </div>
       </section>
     </div>

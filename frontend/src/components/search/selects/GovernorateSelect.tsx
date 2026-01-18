@@ -39,7 +39,7 @@ const GovernorateSelect = memo<GovernorateSelectProps>(({
           id="governorate"
           value={value}
           onChange={handleChange}
-          className="appearance-none block w-full h-12 pl-3 pr-8 py-2 text-sm border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800 overflow-hidden text-ellipsis whitespace-nowrap"
+          className="appearance-none block w-full h-12 pl-3 pr-8 py-2 text-sm border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:cursor-not-allowed disabled:opacity-50 overflow-hidden text-ellipsis whitespace-nowrap"
           disabled={disabled || isLoading}
           aria-label={t('selectGovernorate', 'Select governorate')}
         >
