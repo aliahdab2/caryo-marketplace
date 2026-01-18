@@ -11,6 +11,7 @@ import {
   SavedSearchResponse
 } from '@/services/savedSearches';
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 
 interface SavedSearchesManagerProps {
@@ -116,11 +117,37 @@ export default function SavedSearchesManager({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex items-center gap-3 text-gray-500">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          {t('common:loading', 'Loading...')}
-        </div>
+      <div className="space-y-4">
+        {/* Skeleton loading state matching saved search card layout */}
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                {/* Title skeleton */}
+                <div className="flex items-center gap-3 mb-2">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                {/* Description skeleton */}
+                <Skeleton className="h-4 w-3/4 mb-3" />
+                {/* Notification settings skeleton */}
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              </div>
+              {/* Action buttons skeleton */}
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-8 rounded" />
+                <Skeleton className="h-8 w-8 rounded" />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

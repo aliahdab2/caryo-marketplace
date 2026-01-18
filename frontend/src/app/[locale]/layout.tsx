@@ -85,8 +85,12 @@ interface LocaleLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
+
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   const { locale } = await params;
+  const session = await getServerSession(authOptions);
 
   // Validate locale
   if (!isValidLocale(locale)) {
@@ -94,7 +98,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   }
 
   return (
-    <ClientProviders>
+    <ClientProviders session={session}>
       <LocaleHtmlAttributes />
       <AuthDataHandler />
       <I18nProvider>

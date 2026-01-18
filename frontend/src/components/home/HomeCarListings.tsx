@@ -1,5 +1,7 @@
 "use client";
 
+import Skeleton from '@/components/ui/Skeleton';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { MdDirectionsCar } from 'react-icons/md';
@@ -52,21 +54,21 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
 
       <div className={containerClassName}>
         {isLoadingListings ? (
-          // Loading skeleton
+          // Loading skeleton using primitive Skeleton component
           Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
             >
-              <div className="h-52 bg-gray-300 dark:bg-gray-600"></div>
+              <Skeleton className="h-52 w-full rounded-none" />
               <div className="p-5">
-                <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
-                <div className="h-8 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-8 w-1/3 mb-4" />
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
                 </div>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { MdDirectionsCar } from 'react-icons/md';
 import SmoothTransition from '@/components/ui/SmoothTransition';
 import CarListingCard, { CarListingCardData } from '@/components/listings/CarListingCard';
 import CarListingListItem from '@/components/search/CarListingListItem';
-import CarListingSkeleton from '@/components/ui/CarListingSkeleton';
+import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { PageResponse, CarListing } from '@/services/api';
 import { getMediaType } from '@/utils/mediaUtils';
@@ -63,7 +63,22 @@ const CarListingsGrid: React.FC<CarListingsGridProps> = ({
           // Full skeleton loading for automatic changes
           <>
             {Array.from({ length: 8 }).map((_, index) => (
-              <CarListingSkeleton key={index} />
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+              >
+                <Skeleton className="h-52 w-full rounded-none" />
+                <div className="p-5">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-8 w-1/3 mb-4" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+              </div>
             ))}
           </>
         )
