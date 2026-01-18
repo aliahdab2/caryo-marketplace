@@ -2,6 +2,10 @@ package com.autotrader.autotraderbackend.service;
 
 import com.autotrader.autotraderbackend.model.CarListing;
 import com.autotrader.autotraderbackend.model.User;
+import com.autotrader.autotraderbackend.service.email.EmailContentHelper;
+import com.autotrader.autotraderbackend.service.email.EmailRateLimitService;
+import com.autotrader.autotraderbackend.service.email.EmailSecurityService;
+import com.autotrader.autotraderbackend.service.email.EmailValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,10 +57,28 @@ class EmailServiceTest {
     @Mock
     private EmailContentValidationService contentValidationService;
 
+    private EmailRateLimitService rateLimitService;
+    private EmailValidationService validationService;
+    private EmailSecurityService securityService;
+    private EmailContentHelper contentHelper;
+
     @BeforeEach
     void setUp() {
         messageService = new MessageService(); // Use real MessageService instance
-        emailService = new EmailServiceImpl(mailSender, templateEngine, messageService);
+        rateLimitService = new EmailRateLimitService();
+        validationService = new EmailValidationService();
+        securityService = new EmailSecurityService();
+        contentHelper = new EmailContentHelper();
+
+        // Set configuration values for contentHelper
+        ReflectionTestUtils.setField(contentHelper, "websiteName", "Caryo Marketplace");
+        ReflectionTestUtils.setField(contentHelper, "websiteNameAr", "كاريو");
+        ReflectionTestUtils.setField(contentHelper, "websiteUrl", "http://localhost:3000");
+
+        emailService = new EmailServiceImpl(
+            mailSender, templateEngine, messageService,
+            rateLimitService, validationService, securityService, contentHelper
+        );
 
         // Set configuration values
         ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@caryo.sy");
