@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
-import { useSession } from 'next-auth/react';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { formatDate } from '@/utils/localization';
 import { Listing } from '@/types/listings';
 import { UserBlockService } from '@/services/userBlock';
@@ -19,7 +19,7 @@ interface SellerInfoProps {
 const SellerInfo: React.FC<SellerInfoProps> = ({ listing, onBlock }) => {
   const { t } = useTranslation('listings');
   const { locale } = useLanguageSwitching();
-  const { data: session } = useSession();
+  const user = useOptimizedUser();
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [isBlocking, setIsBlocking] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
@@ -27,8 +27,8 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing, onBlock }) => {
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
   const isDealer = listing.seller?.type === 'dealer';
-  const isOwnListing = listing.seller?.id && session?.user?.id && 
-    listing.seller.id.toString() === session.user.id.toString();
+  const isOwnListing = listing.seller?.id && user?.id && 
+    listing.seller.id.toString() === user.id.toString();
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
     setToastMessage(message);
@@ -170,7 +170,7 @@ const SellerInfo: React.FC<SellerInfoProps> = ({ listing, onBlock }) => {
           )}
 
           {/* Block Seller Button - Only show if logged in and not own listing */}
-          {session && !isOwnListing && listing.seller?.id && (
+          {user && !isOwnListing && listing.seller?.id && (
             <button
               onClick={() => setShowBlockModal(true)}
               className="w-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"

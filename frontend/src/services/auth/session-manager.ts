@@ -239,6 +239,30 @@ export async function handleAuthError(error: unknown, redirectUrl?: string): Pro
 }
 
 /**
+ * Handle session expiration (401 errors)
+ * Clears the session and redirects to login with a session expired flag
+ * This is called from the API layer when a 401 response is received
+ */
+export async function handleSessionExpired(): Promise<void> {
+  console.warn('[AUTH] Session expired, redirecting to login');
+  
+  try {
+    // Clear the session
+    await signOut({ redirect: false });
+  } catch (error) {
+    console.error('[AUTH] Error signing out:', error);
+  }
+  
+  // Get the current path for return URL
+  const returnUrl = typeof window !== 'undefined' ? window.location.pathname : '/';
+  
+  // Redirect to login with expired flag and return URL
+  if (typeof window !== 'undefined') {
+    window.location.href = `/auth/signin?expired=true&returnUrl=${encodeURIComponent(returnUrl)}`;
+  }
+}
+
+/**
  * Make an API request with automatic session validation
  * This will ensure the session is valid before making the request
  * and handle authentication errors automatically

@@ -120,5 +120,7 @@
   "saveChanges": "حفظ التغييرات",
   "saveFailed": "فشل حفظ التغييرات",
   "saveSuccess": "تم حفظ التغييرات بنجاح!",
-  "closed": "مغلق"
+  "closed": "مغلق",
+  "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجدداً",
+  "sessionExpiredTitle": "انتهت الجلسة"
 }

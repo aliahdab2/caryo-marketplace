@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { MessagingService, ConversationResponse, MessageResponse } from '@/services/messaging';
 
 /**
@@ -7,7 +7,7 @@ import { MessagingService, ConversationResponse, MessageResponse } from '@/servi
  * Implements best practices for React hooks and state management
  */
 export const useMessaging = () => {
-  const { data: session } = useSession();
+  const user = useOptimizedUser();
   const [conversations, setConversations] = useState<ConversationResponse[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<ConversationResponse | null>(null);
   const [messages, setMessages] = useState<MessageResponse[]>([]);
@@ -23,7 +23,7 @@ export const useMessaging = () => {
    * Load conversations with error handling and cleanup
    */
   const loadConversations = useCallback(async () => {
-    if (!session?.user?.id) return;
+    if (!user?.id) return;
     
     try {
       setLoading(true);
@@ -46,13 +46,13 @@ export const useMessaging = () => {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [user?.id]);
   
   /**
    * Load messages for selected conversation
    */
   const loadMessages = useCallback(async (conversationId: number) => {
-    if (!session?.user?.id) return;
+    if (!user?.id) return;
     
     try {
       setLoading(true);
@@ -71,7 +71,7 @@ export const useMessaging = () => {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [user?.id]);
   
   /**
    * Send message with optimistic updates
@@ -99,9 +99,9 @@ export const useMessaging = () => {
       canBeEdited: true,
       canBeDeleted: true,
       sender: {
-        id: Number(session?.user?.id),
-        username: session?.user?.name || '',
-        email: session?.user?.email || ''
+        id: Number(user?.id),
+        username: user?.name || '',
+        email: user?.email || ''
       },
       attachments: files ? files.map((file, index) => ({
         id: Date.now() + index,
@@ -164,7 +164,7 @@ export const useMessaging = () => {
     } finally {
       setSending(false);
     }
-  }, [selectedConversation, session?.user]);
+  }, [selectedConversation, user]);
   
   /**
    * Mark messages as read

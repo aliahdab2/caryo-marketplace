@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useSearchParams } from 'next/navigation';
@@ -24,13 +24,15 @@ import {
   messagingKeys
 } from '@/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
+
 
 // Using types from messaging service
 type Conversation = ConversationResponse;
 type _Message = MessageResponse; // Prefixed to avoid unused warning, kept for documentation
 
 export default function MessagesPage() {
-  const { data: session } = useSession();
+  const user = useOptimizedUser(); // Use optimized hook for faster loading
   const { t } = useTranslation('messages');
   const { isRTL } = useLanguageSwitching();
   const searchParams = useSearchParams();
@@ -45,7 +47,7 @@ export default function MessagesPage() {
   const { 
     data: conversationsData, 
     isLoading: loading 
-  } = useConversations({ enabled: !!session?.user?.id });
+  } = useConversations({ enabled: !!user?.id });
   
   const conversations = useMemo(() => conversationsData?.content || [], [conversationsData]);
   
@@ -254,11 +256,11 @@ export default function MessagesPage() {
 
   // Authentication check
   useEffect(() => {
-    if (!session) {
+    if (!user) {
       signIn();
       return;
     }
-  }, [session]);
+  }, [user]);
 
   // Handle conversation selection from URL
   useEffect(() => {
@@ -273,12 +275,12 @@ export default function MessagesPage() {
 
   // Mark messages as read when conversation is selected
   useEffect(() => {
-    if (selectedConversation && session?.user?.id && messages.length > 0) {
+    if (selectedConversation && user?.id && messages.length > 0) {
       // Mark all messages in this conversation as read
       markAsReadMutation.mutate(selectedConversation.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedConversation?.id, session?.user?.id]);
+  }, [selectedConversation?.id, user?.id]);
 
   const handleSendMessageWithAttachments = async () => {
     if (!selectedConversation || (!newMessage.trim() && selectedFiles.length === 0) || sending || uploading) return;
@@ -376,13 +378,13 @@ export default function MessagesPage() {
   };
 
   const confirmReportUser = async (reportType: string, reason: string) => {
-    if (!selectedConversation || !session?.user?.id) return;
+    if (!selectedConversation || !user?.id) return;
 
     try {
       setIsActionLoading(true);
       
       // Get the other participant (reported user)
-      const currentUserId = Number(session.user.id);
+      const currentUserId = Number(user.id);
       const reportedUserId = selectedConversation.buyer.id === currentUserId
         ? selectedConversation.seller.id
         : selectedConversation.buyer.id;
@@ -426,7 +428,7 @@ export default function MessagesPage() {
     }
   };
 
-  if (!session) {
+  if (!user) {
     return null; // Will redirect to sign in
   }
 
@@ -459,7 +461,7 @@ export default function MessagesPage() {
             <MessageList
               selectedConversation={selectedConversation}
               messages={messages}
-              currentUserId={session.user.id ? Number(session.user.id) : 0}
+              currentUserId={user.id ? Number(user.id) : 0}
               isRTL={isRTL}
               otherPersonTyping={otherPersonTyping}
               onDownloadDocument={downloadDocument}
@@ -528,7 +530,7 @@ export default function MessagesPage() {
         onClose={() => setShowReportModal(false)}
         onConfirm={confirmReportUser}
         userName={selectedConversation ? (
-          Number(session?.user?.id) === selectedConversation.buyer.id
+          Number(user?.id) === selectedConversation.buyer.id
             ? selectedConversation.seller.username
             : selectedConversation.buyer.username
         ) : undefined}

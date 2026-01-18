@@ -2,6 +2,8 @@
 
 import { CarMake as CarBrand, CarModel, CarTrim } from '@/types/car';
 import { ApiError } from '@/utils/apiErrorHandler';
+import { SessionExpiredError } from '@/utils/errors/SessionExpiredError';
+import { handleSessionExpired } from '@/services/auth/session-manager';
 
 // Reference data interfaces to match backend
 export interface CarCondition {
@@ -325,6 +327,15 @@ async function apiRequest<T>(
 
     // Check for errors
     if (!response.ok) {
+      // Handle 401 Unauthorized - Session Expired
+      if (response.status === 401) {
+        // Don't log 401 errors to console - they're expected when sessions expire
+        if (typeof window !== 'undefined') {
+          await handleSessionExpired();
+        }
+        throw new SessionExpiredError('Your session has expired');
+      }
+      
       // Create an ApiError with status code and response data
       let detailedErrorMessage = `Error ${response.status}: Request failed`;
       

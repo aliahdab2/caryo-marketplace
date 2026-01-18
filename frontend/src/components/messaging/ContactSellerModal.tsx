@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useOptimizedUser } from '@/hooks/useOptimizedSession';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { MessagingService } from '@/services/messaging';
@@ -24,7 +24,7 @@ export default function ContactSellerModal({
   listingTitle,
   sellerName,
 }: ContactSellerModalProps) {
-  const { data: session } = useSession();
+  const user = useOptimizedUser();
   const { t } = useTranslation('messages');
   const router = useRouter();
   const [message, setMessage] = useState('');
@@ -108,7 +108,7 @@ export default function ContactSellerModal({
 
   const handleSendMessage = async () => {
     // This modal should only be shown to authenticated users
-    if (!session?.user) {
+    if (!user) {
       console.warn('ContactSellerModal opened without authenticated user');
       onClose();
       return;
@@ -244,7 +244,7 @@ export default function ContactSellerModal({
           )}
 
           {/* This modal should only be shown to authenticated users */}
-          {!session?.user && (
+          {!user && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
               <p className="text-sm text-red-600 dark:text-red-400">
                 {t('errorNotAuthenticated')}

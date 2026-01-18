@@ -120,5 +120,7 @@
   "saveChanges": "Save Changes",
   "saveFailed": "Failed to save changes",
   "saveSuccess": "Changes saved successfully!",
-  "closed": "Closed"
+  "closed": "Closed",
+  "sessionExpired": "Your session has expired. Please log in again.",
+  "sessionExpiredTitle": "Session Expired"
 }

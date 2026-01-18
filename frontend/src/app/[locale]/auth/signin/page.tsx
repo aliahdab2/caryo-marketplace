@@ -39,6 +39,7 @@ const SignInPage: React.FC = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const signInSchema = z
     .object({
       username: z.string().min(1, t('validationFieldRequired')),
@@ -90,6 +91,12 @@ const SignInPage: React.FC = () => {
       const email = searchParams.get('email');
       const usernameParam = searchParams.get('username');
       const autoLogin = searchParams.get('auto');
+      const expired = searchParams.get('expired');
+
+      // Check for session expiration
+      if (expired === 'true') {
+        setSessionExpired(true);
+      }
 
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
       const storedRedirect = localStorage.getItem('redirectAfterAuth');
@@ -349,6 +356,19 @@ const SignInPage: React.FC = () => {
             {verificationSuccess && (
               <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-green-50 border-is-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
                 <p className="font-medium">{t('auth:emailVerified')} {t('auth:pleaseSignIn')}</p>
+              </div>
+            )}
+            {sessionExpired && (
+              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-yellow-50 border-is-4 border-yellow-500 text-yellow-800 rounded-md dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-700 flex items-center text-xs sm:text-sm">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <div>
+                  <p className="font-medium">{t('common:sessionExpiredTitle')}</p>
+                  <p className="text-xs mt-0.5">{t('common:sessionExpired')}</p>
+                </div>
               </div>
             )}
             {showSuccess && (
