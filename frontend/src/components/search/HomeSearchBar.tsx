@@ -142,8 +142,8 @@ const HomeSearchBar = React.memo(() => {
 
   return (
     <div className="w-full" data-testid="search-container">
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-lg overflow-visible">
-        <div className="p-3 xs:p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl dark:shadow-2xl rounded-xl overflow-visible backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
+        <div className="p-5 xs:p-6 sm:p-8">
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-3 xs:gap-x-4 sm:gap-x-6 gap-y-3 xs:gap-y-4 sm:gap-y-6">
             {/* Brand Select */}
             <BrandSelect
@@ -184,7 +184,7 @@ const HomeSearchBar = React.memo(() => {
               <button
                 type="submit"
                 onClick={handleSearch}
-                className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap flex items-center justify-center"
+                className="w-full h-12 px-4 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform active:scale-95 shadow-lg hover:shadow-blue-500/30 whitespace-nowrap flex items-center justify-center"
                 aria-label={t('searchButton', 'Search Cars')}
               >
                 <svg

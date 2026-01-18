@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { useLazyTranslation } from "@/hooks/useLazyTranslation";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -116,6 +117,7 @@ export default function Home() {
 
 
       {/* Hero Section with full-width banner image */}
+      {/* Hero Section with full-width banner image */}
       <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] w-full overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=2070"
@@ -125,22 +127,35 @@ export default function Home() {
           className="object-cover brightness-75"
           sizes="100vw"
         />
+        
+        {/* Gradient Overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content">
-          <div className="text-center mb-4 xs:mb-6">
-            <h1 className="text-xl xs:text-2xl md:text-3xl font-bold text-white mb-2 xs:mb-3">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 hero-absolute-content z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center mb-8 xs:mb-10"
+          >
+            <h1 className="text-3xl xs:text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-md">
               {t('heroTitle', { ns: 'home'})}
             </h1>
 
-            <p className="text-base xs:text-lg md:text-xl text-white">
+            <p className="text-lg xs:text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-medium drop-shadow">
               {t('heroSubtitle', { ns: 'home'})}
             </p>
-          </div>
+          </motion.div>
 
           {/* Use HomeSearchBar component with better mobile positioning */}
-          <div className="w-full max-w-5xl hero-search-container mobile-dropdown-container">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="w-full max-w-5xl hero-search-container mobile-dropdown-container"
+          >
             <HomeSearchBar />
-          </div>
+          </motion.div>
         </div>
       </div>
 

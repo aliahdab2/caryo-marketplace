@@ -115,7 +115,7 @@ const HomeCarListings: React.FC<HomeCarListingsProps> = ({
               <Link
                 key={car.id}
                 href={`/listings/${car.id}`}
-                className="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 ease-in-out group cursor-pointer"
+                className="block bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ease-in-out group cursor-pointer border border-gray-100 dark:border-gray-700"
               >
                 <div className="relative h-52">
                   <HoverImageNavigation
