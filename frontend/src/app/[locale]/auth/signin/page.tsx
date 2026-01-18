@@ -1,7 +1,6 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useOptimizedSession } from "@/hooks/useOptimizedSession";
 import { isValidEmail, looksLikeEmail } from '@/utils/emailValidation';
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect } from "react";
@@ -77,9 +76,6 @@ const SignInPage: React.FC = () => {
 
   const username = watch('username');
   const password = watch('password');
-
-
-  const { user } = useOptimizedSession();
 
     // Extract callback URL from search params if present
   useEffect(() => {
@@ -253,33 +249,6 @@ const SignInPage: React.FC = () => {
     }
     // No finally block needed for setLoading if all paths handle it.
   };
-
-
-
-  // Safe redirect when user already has an active session
-  // Only redirect after callbackUrl has been properly loaded from localStorage
-  useEffect(() => {
-    if (user && !redirecting && callbackUrlLoaded) {
-      // Add a slight delay to ensure user is fully processed
-      setRedirecting(true);
-
-      // Log user state for debugging
-      console.log('Redirecting with user:', {
-        hasUser: !!user,
-        hasToken: !!user?.accessToken,
-        callbackUrl
-      });
-
-      setTimeout(() => {
-        try {
-          router?.push?.(callbackUrl);
-        } catch (e) {
-          console.error('Router push failed:', e);
-          window.location.href = callbackUrl;
-        }
-      }, 500);
-    }
-  }, [user, router, callbackUrl, redirecting, callbackUrlLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
