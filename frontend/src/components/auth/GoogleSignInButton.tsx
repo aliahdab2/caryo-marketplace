@@ -53,12 +53,12 @@ export default function GoogleSignInButton({
         const googleProvider = providers?.google;
 
         if (!googleProvider) {
-          setError("Google Sign-In is not properly configured. Please contact the administrator.");
+          setError(t("googleSignInNotConfigured"));
           return;
         }
       } catch (error) {
         console.warn('Could not verify Google provider availability:', error);
-        setError("Unable to verify Google Sign-In availability. Please try again later.");
+        setError(t("googleSignInUnavailable"));
         return;
       }
     }
