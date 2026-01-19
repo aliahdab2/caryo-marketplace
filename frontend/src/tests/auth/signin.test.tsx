@@ -95,7 +95,6 @@ jest.mock('next/navigation', () => ({
     back: mockRouterBack,
     forward: mockRouterForward,
   })),
-  usePathname: () => '/en/auth/signin', // Add missing usePathname mock
   useSearchParams: () => ({
     get: jest.fn(key => {
       if (key === 'error') {
@@ -244,7 +243,8 @@ describe('SignInPage', () => {
 
     // Check successful login message
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/login successful/i);
+      expect(screen.getByTestId('success-alert')).toBeInTheDocument();
+      expect(screen.getByTestId('success-alert')).toHaveTextContent(/login successful/i);
     });
   });
 
@@ -298,8 +298,8 @@ describe('SignInPage', () => {
     await waitFor(() => expect(mockOnVerified).toHaveBeenCalledWith(false));
 
     expect(button).toBeDisabled();
-    expect(button).toHaveClass('opacity-70');
-    expect(button).toHaveClass('cursor-not-allowed');
+    expect(button).toHaveClass('disabled:opacity-50');
+    expect(button).toHaveClass('disabled:cursor-not-allowed');
 
     // Simulate verification completion by calling the static method on the imported mock
     rtlAct(() => {

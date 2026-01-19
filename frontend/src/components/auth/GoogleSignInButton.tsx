@@ -132,7 +132,7 @@ export default function GoogleSignInButton({
     } finally {
       setIsLoading(false);
     }
-  }, [callbackUrl, redirect, onSuccess, onError]);
+  }, [callbackUrl, redirect, onSuccess, onError, t]);
 
   // Always show the Google button - let it handle errors gracefully
 

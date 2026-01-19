@@ -11,7 +11,6 @@ import SimpleVerification from '@/components/auth/SimpleVerification';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Link from 'next/link';
-import Image from 'next/image';
 import useLazyTranslation from "@/hooks/useLazyTranslation";
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -32,13 +31,10 @@ const SignInPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
-  const [verificationSuccess, setVerificationSuccess] = useState(false);
   const [_callbackUrlLoaded, setCallbackUrlLoaded] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [credentialsCorrect, setCredentialsCorrect] = useState(false);
-  const [sessionExpired, setSessionExpired] = useState(false);
   const signInSchema = z
     .object({
       username: z.string().min(1, t('validationFieldRequired')),
@@ -63,7 +59,6 @@ const SignInPage: React.FC = () => {
     setValue,
     watch,
     formState: { errors },
-    clearErrors,
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -91,7 +86,7 @@ const SignInPage: React.FC = () => {
 
       // Check for session expiration
       if (expired === 'true') {
-        setSessionExpired(true);
+        setError(t('errors:SessionExpired', 'Session expired. Please sign in again.'));
       }
 
       // Check localStorage for redirect URL (from FavoriteButton or other sources) - fallback only
@@ -140,7 +135,6 @@ const SignInPage: React.FC = () => {
 
       // Handle email verification success
       if (verified === 'true') {
-        setVerificationSuccess(true);
         // Focus password field for better UX after email verification
         setTimeout(() => {
           const passwordInput = document.getElementById('password');
@@ -161,7 +155,6 @@ const SignInPage: React.FC = () => {
       // Handle auto-login for verified users
       if (autoLogin === 'true' && verified === 'true' && email) {
         console.log('🔄 Auto-login requested for verified user:', email);
-        setVerificationSuccess(true);
         setShowSuccess(true);
 
         // Show a message that they're verified and can sign in
@@ -177,17 +170,17 @@ const SignInPage: React.FC = () => {
       // Mark that callback URL has been loaded
       setCallbackUrlLoaded(true);
     }
-  }, [setValue]);
+  }, [setValue, t]);
 
-  // Reset credentialsCorrect when inputs change
+  // Reset credentials mode when inputs change (logic removed for simplicity)
   useEffect(() => {
-    setCredentialsCorrect(false);
+    // Inputs changed
   }, [username, password]);
 
-  // Reset credentialsCorrect if a new error message appears
+  // Error handling logic
   useEffect(() => {
     if (error && error !== "") {
-        setCredentialsCorrect(false);
+        // Handle error side effects here if needed
     }
   }, [error]);
 
@@ -195,7 +188,6 @@ const SignInPage: React.FC = () => {
     setLoading(true);
     setError(null);
     setShowSuccess(false);
-    setCredentialsCorrect(false);
 
     if (!isVerified) {
       setError(t('verificationRequired'));
@@ -223,9 +215,8 @@ const SignInPage: React.FC = () => {
         }
         setLoading(false);
       } else if (result?.ok) {
-        setCredentialsCorrect(true);
         setShowSuccess(true);
-        setError("");
+        setError(null);
 
         // Short delay to show success state, then redirect
         setTimeout(() => {
@@ -373,11 +364,24 @@ const SignInPage: React.FC = () => {
                <button
                  type="submit"
                  disabled={loading || !isVerified}
-                 className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-md text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2"
+                 className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-md text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2 ${!loading && isVerified ? 'hover-lift' : ''}`}
                >
                  {loading ? t('loading') : t('signIn')}
                </button>
             </form>
+
+            {showSuccess && !error && (
+              <div
+                className="mt-3 text-sm text-green-600 bg-green-50 p-2 rounded border border-green-100 flex items-center gap-2"
+                role="alert"
+                data-testid="success-alert"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {t('loginSuccessful', 'Login successful! Redirecting...')}
+              </div>
+            )}
 
             <div className="mt-4">
                 <div className="relative">
@@ -409,27 +413,5 @@ const SignInPage: React.FC = () => {
     </div>
   );
 }
-
-// OAuth Section Component - shows Google OAuth option
-const OAuthSection: React.FC<{ callbackUrl: string; t: (key: string) => string }> = ({ callbackUrl, t }) => {
-  return (
-    <>
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="pis-2 pie-2 bg-white dark:bg-gray-800 text-gray-500">
-            {t('orConnector')}
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <GoogleSignInButton callbackUrl={callbackUrl} className="w-full py-2 sm:py-2.5 text-sm sm:text-base" />
-      </div>
-    </>
-  );
-};
 
 export default SignInPage;

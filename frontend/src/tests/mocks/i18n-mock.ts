@@ -94,7 +94,8 @@ const mockTranslations: Record<string, string> = {
   // Only keep test-specific overrides that differ from production
   'signIn': 'sign_in', // Test expects this specific format
   'fieldRequired': 'fieldRequired', // Test expects the key itself
-  'loginSuccess': 'login successful', // Test expects lowercase
+  'loginSuccessful': 'login successful', // Match the key used in the component
+  'loginSuccess': 'login successful', // Keep legacy key for compatibility
 };
 
 const mockI18nInstance = {
