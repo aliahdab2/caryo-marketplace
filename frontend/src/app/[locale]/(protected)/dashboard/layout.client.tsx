@@ -168,16 +168,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     setIsMobileMenuOpen(prev => !prev);
   }, []);
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+
 
   const sidebarItems: NavItem[] = [
     // Dealer Section

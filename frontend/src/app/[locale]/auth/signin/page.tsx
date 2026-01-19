@@ -69,8 +69,7 @@ const SignInPage: React.FC = () => {
     reValidateMode: 'onChange',
   });
 
-  const username = watch('username');
-  const password = watch('password');
+
 
     // Extract callback URL from search params if present
   useEffect(() => {
@@ -107,7 +106,7 @@ const SignInPage: React.FC = () => {
           redirectTarget = '/?verified=true';
         }
       } else {
-        redirectTarget = '/dashboard';
+        redirectTarget = '/dashboard/dealer';
       }
 
       // Clear the stored redirect URL if we found one (cleanup)
@@ -172,10 +171,7 @@ const SignInPage: React.FC = () => {
     }
   }, [setValue, t]);
 
-  // Reset credentials mode when inputs change (logic removed for simplicity)
-  useEffect(() => {
-    // Inputs changed
-  }, [username, password]);
+
 
   // Error handling logic
   useEffect(() => {
@@ -219,9 +215,9 @@ const SignInPage: React.FC = () => {
         setError(null);
 
         // Short delay to show success state, then redirect
+        // Balanced at 700ms to ensure user sees the "green frame" and success message
         setTimeout(() => {
           setRedirecting(true);
-          // Always prefer our callbackUrl over the result.url to ensure proper redirect
           const redirectUrl = callbackUrl;
           try {
             router?.push?.(redirectUrl);
@@ -229,7 +225,7 @@ const SignInPage: React.FC = () => {
             console.error('Router push failed:', e);
             window.location.href = redirectUrl;
           }
-        }, 1000);
+        }, 700);
       } else {
         setError("An unknown error occurred.");
         setLoading(false);
@@ -243,7 +239,11 @@ const SignInPage: React.FC = () => {
 
   return (
     <div className="min-h-[100dvh] w-full flex items-start sm:items-center justify-center bg-white sm:bg-gray-50 dark:bg-gray-900 p-0 sm:p-4 transition-colors duration-300">
-      <div className="w-full sm:h-auto sm:max-w-[900px] sm:bg-white sm:dark:bg-gray-800 sm:shadow-2xl sm:rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-none bg-white dark:bg-gray-800 sm:-mt-16">
+      <div className={`w-full sm:h-auto sm:max-w-[900px] sm:dark:bg-gray-800 sm:rounded-3xl overflow-hidden flex flex-col md:flex-row transition-all duration-500 ${
+        showSuccess 
+          ? 'ring-4 ring-green-500/30 border-green-500/50 shadow-[0_0_25px_rgba(34,197,94,0.3)] bg-green-50/10' 
+          : 'sm:bg-white sm:shadow-2xl shadow-none bg-white dark:bg-gray-800'
+      } sm:-mt-16`}>
         
         {/* LEFT SIDE: Brand Sidebar (Desktop Only) */}
         <div className="hidden md:flex md:w-[40%] bg-[#0f172a] text-white flex-col items-center justify-center relative p-10 text-center overflow-hidden">

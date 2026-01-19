@@ -21,7 +21,7 @@ export default function Navbar({ className }: ComponentProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [logoSrc] = useState("/images/logo.svg");
   const [logoError, setLogoError] = useState(false);
-  const { t } = useTranslation(['common', 'search']);
+  const { t } = useTranslation(['common', 'search', 'auth']);
 
   // Ref for user dropdown menu to handle clicks outside
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -345,7 +345,6 @@ export default function Navbar({ className }: ComponentProps) {
             ? 'max-h-screen opacity-100 visible mobile-menu-enter-active'
             : 'max-h-0 opacity-0 invisible mobile-menu-enter'
         }`}
-        aria-hidden={!mobileMenuOpen}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           {/* Post Ad - First item like Blocket (Prominent button) */}

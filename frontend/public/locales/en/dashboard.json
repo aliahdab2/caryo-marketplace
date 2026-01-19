@@ -113,6 +113,8 @@
   "error.title": "Dashboard Error",
   "storefront": "Storefront",
   "storefrontTooltip": "Manage your public dealer profile",
+  "editDealerProfile": "Edit Dealer Profile",
+  "editDealerProfileDesc": "Customize your public business profile and store information",
   "brandingMedia": "Branding & Media",
   "bannerImage": "Banner Image",
   "logoImage": "Logo",

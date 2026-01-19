@@ -210,7 +210,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-  debug: process.env.NODE_ENV === 'development', // Enable debug in dev, disable in production
+  debug: process.env.NEXTAUTH_DEBUG === 'true', // Only enable if explicitly requested
   logger: {
     error(code, metadata) {
       // Suppress CLIENT_FETCH_ERROR during auto-login process

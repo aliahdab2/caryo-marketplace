@@ -98,7 +98,7 @@ export default function SimpleVerification({
     // Start new verification timer
     verificationTimeoutRef.current = setTimeout(() => {
       markAsVerifiedAndScheduleHide();
-    }, 1500);
+    }, 300);
   }, [state, markAsVerifiedAndScheduleHide]);
 
   // Handle auto-start if specified
@@ -111,7 +111,7 @@ export default function SimpleVerification({
       }
       verificationTimeoutRef.current = setTimeout(() => {
         markAsVerifiedAndScheduleHide();
-      }, 1500);
+      }, 300);
     }
     // Cleanup this specific timeout if component unmounts or dependencies change while verifying
     return () => {

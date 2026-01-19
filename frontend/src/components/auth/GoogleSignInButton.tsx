@@ -27,20 +27,11 @@ export default function GoogleSignInButton({
   const [providersLoaded, setProvidersLoaded] = useState(false);
 
   // Check if Google provider is available
+  // Check if Google provider is available
   useEffect(() => {
-    const checkProviders = async () => {
-      try {
-        const providers = await getProviders();
-        // Just check if providers are loaded, no need to store the result
-        console.log('Providers loaded:', !!providers?.google);
-      } catch (error) {
-        console.warn('Failed to check providers:', error);
-      } finally {
-        setProvidersLoaded(true);
-      }
-    };
-
-    checkProviders();
+    // Simply set loaded to true to allow button to be interactive
+    // NextAuth's signIn function handles availability checks safely
+    setProvidersLoaded(true);
   }, []);
 
   const handleSignIn = useCallback(async () => {

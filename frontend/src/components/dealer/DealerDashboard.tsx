@@ -33,7 +33,8 @@ import {
 } from '@/hooks/queries';
 
 // Import common components
-import { LoadingSkeleton, ErrorDisplay } from '@/components/common';
+import { ErrorDisplay } from '@/components/common';
+import DashboardSkeleton from '@/components/skeletons/DashboardSkeleton';
 
 export default function DealerDashboard() {
   const { t } = useTranslation(['dashboard', 'common', 'listings', 'search', 'upgradeModal']);
@@ -77,6 +78,13 @@ export default function DealerDashboard() {
     alerts: savedSearches.length
   }), [listings, favorites.length, savedSearches.length]);
 
+  // Loading state - show skeleton while waiting for initial data
+  // Using the same skeleton as loading.tsx for seamless transition
+  // MOVED HERE: Always call hooks before early returns
+  if (listingsLoading && (!listings || listings.length === 0)) {
+    return <DashboardSkeleton />;
+  }
+
   const handleUpgradeClick = () => {
     setShowUpgradeModal(true);
   };
@@ -93,22 +101,7 @@ export default function DealerDashboard() {
     }
   };
 
-  // Loading state
-  if (listingsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto">
-          <LoadingSkeleton className="h-8 w-64 mb-6" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <LoadingSkeleton key={i} className="h-32 rounded-lg" />
-            ))}
-          </div>
-          <LoadingSkeleton className="h-64 rounded-lg" />
-        </div>
-      </div>
-    );
-  }
+
 
   // Error state
   if (listingsError) {

@@ -155,8 +155,9 @@ export default withSentryConfig(
 
     // Suppresses source map uploading logs during build
     silent: true,
+    
     // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-    tunnelRoute: "/monitoring",
+    // tunnelRoute: "/monitoring",
 
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,

@@ -113,6 +113,8 @@
   "error.title": "خطأ في لوحة التحكم",
   "storefront": "واجهة المعرض",
   "storefrontTooltip": "إدارة ملف الوكيل العام",
+  "editDealerProfile": "تعديل ملف الوكيل",
+  "editDealerProfileDesc": "تخصيص ملف عملك العام ومعلومات المتجر",
   "brandingMedia": "العلامة التجارية والوسائط",
   "bannerImage": "صورة الغلاف",
   "logoImage": "الشعار",
