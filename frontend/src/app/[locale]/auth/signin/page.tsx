@@ -34,7 +34,7 @@ const SignInPage: React.FC = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/dashboard");
   const [verificationSuccess, setVerificationSuccess] = useState(false);
-  const [callbackUrlLoaded, setCallbackUrlLoaded] = useState(false);
+  const [_callbackUrlLoaded, setCallbackUrlLoaded] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [credentialsCorrect, setCredentialsCorrect] = useState(false);

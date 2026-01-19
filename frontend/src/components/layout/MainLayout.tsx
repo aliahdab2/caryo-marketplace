@@ -21,7 +21,7 @@ const DevNavLink = dynamic(() => import("@/components/dev/DevNavLink"), {
 export default function MainLayout({ children }: MainLayoutProps) {
   const { isLoading } = useOptimizedAuthStatus();
   const pathname = usePathname();
-  const isHomePage = pathname === '/' || pathname === '/en' || pathname === '/ar';
+  const _isHomePage = pathname === '/' || pathname === '/en' || pathname === '/ar';
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -8,6 +8,7 @@ import { CarListing } from '@/services/publicApi';
 import { transformMinioUrl, processVideoForGallery, isVideoMedia } from '@/utils/mediaUtils';
 import FavoriteButton from '@/components/common/FavoriteButton';
 import { useOptimizedUser } from '@/hooks/useOptimizedSession';
+import { Listing } from '@/types/listings';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
@@ -15,8 +16,10 @@ import CarMediaGallery from '@/components/CarMediaGallery/CarMediaGallery';
 import { CarMedia } from '@/components/CarMediaGallery/types';
 import CarFacts from './components/CarFacts';
 import CarFeatures from './components/CarFeatures';
+import SellerInfo from './components/SellerInfo';
 import ContactSellerModal from '@/components/messaging/ContactSellerModal';
 import SignInPromptModal from '@/components/auth/SignInPromptModal';
+import MobileStickyActionBar from './components/MobileStickyActionBar';
 
 interface ListingDetailClientProps {
   initialListing: CarListing;
@@ -136,48 +139,6 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                 </div>
               </div>
 
-              {/* Simple Seller Section */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <div className="mb-4">
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    {t('soldBy')}:
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <div className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {listing.sellerUsername || t('sellerNotSpecified')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons - Blocket Style */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    data-testid="contact-seller-button"
-                    onClick={() => {
-                      if (user) {
-                        setShowContactModal(true);
-                      } else {
-                        setShowSignInPrompt(true);
-                      }
-                    }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    {t('sendMessage')}
-                  </button>
-                  <button
-                    onClick={() => setShowPhoneNumber(!showPhoneNumber)}
-                    className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5 mr-2 rtl:ml-2 rtl:mr-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    {t('showPhoneNumber')}
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Car Facts */}
@@ -248,26 +209,18 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
           {/* Right Column - Clean Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-4">
-              {/* Simple Insurance Card */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    {t('carInsurance')}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    {t('quickQuote')} • {t('competitivePrices')}
-                  </p>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-medium transition-colors">
-                    {t('seeYourPriceNow')}
-                  </button>
-                </div>
-              </div>
-
+              {/* Seller Info Card */}
+              <SellerInfo 
+                listing={listing as unknown as Listing}
+                onContact={() => {
+                  if (user) {
+                    setShowContactModal(true);
+                  } else {
+                    setShowSignInPrompt(true);
+                  }
+                }}
+                onCall={() => setShowPhoneNumber(!showPhoneNumber)}
+              />
               {/* Simple Actions Card */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <div className="space-y-3">
@@ -289,6 +242,22 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
           </div>
         </div>
       </div>
+
+      {/* Mobile Sticky Action Bar */}
+      <MobileStickyActionBar 
+        onMessage={() => {
+          if (user) {
+            setShowContactModal(true);
+          } else {
+            setShowSignInPrompt(true);
+          }
+        }}
+        onCall={() => setShowPhoneNumber(!showPhoneNumber)}
+        isRTL={locale === 'ar'}
+      />
+
+      {/* Add bottom padding on mobile to prevent content being hidden by sticky bar */}
+      <div className="h-20 lg:hidden" />
 
       {/* Contact Seller Modal - Only for authenticated users */}
       {user && (
