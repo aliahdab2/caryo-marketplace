@@ -294,7 +294,7 @@ const CarMediaGallery: React.FC<CarMediaGalleryProps> = ({
 
   // Main component rendering
   return (
-    <div className={`car-media-gallery ${className}`}>
+    <div className={`car-media-gallery ${className}`} data-testid="car-media-gallery">
       {/* Main media viewer - shows current selected media (image or video) */}
       <div
         ref={mainGalleryRef}

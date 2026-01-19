@@ -7,11 +7,11 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 
-
 import Breadcrumb, { createSavedAlertsBreadcrumb } from '@/components/ui/Breadcrumb';
 import { FaSearch, FaTrash } from 'react-icons/fa';
-import { getUserSavedSearches, SavedSearchResponse, getCarListingsForSavedSearch, deleteSavedSearch, updateSavedSearch } from '@/services/savedSearches';
-import type { CarListingCardData } from '@/components/listings/CarListingCard';
+import { SavedSearchResponse } from '@/services/savedSearches';
+import { useSavedSearches, useSavedSearchResults, useUpdateSavedSearch, useDeleteSavedSearch } from '@/hooks/queries/useSavedSearches';
+import { QueryWrapper } from '@/components/common/QueryWrapper';
 import CarListingListItem from '@/components/search/CarListingListItem';
 import EmptyState from '@/components/ui/EmptyState';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
@@ -19,46 +19,47 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 export default function SavedAlertsPage() {
   const { t } = useTranslation(['savedAlerts', 'common']);
   const { isRTL } = useLanguageSwitching();
-  const [mounted, setMounted] = useState(false);
-  const [savedSearches, setSavedSearches] = useState<SavedSearchResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // React Query hooks
+  const savedSearchesQuery = useSavedSearches();
+  const updateMutation = useUpdateSavedSearch();
+  const deleteMutation = useDeleteSavedSearch();
+  
   const [selectedSearch, setSelectedSearch] = useState<SavedSearchResponse | null>(null);
-  const [matchingListings, setMatchingListings] = useState<CarListingCardData[]>([]);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<SavedSearchResponse | null>(null);
   const hasAutoSelectedRef = useRef(false);
 
+  // Search results query - depends on selected search
+  const resultsQuery = useSavedSearchResults(selectedSearch || undefined);
 
-
+  // Auto-select first search when searches are loaded and no search is selected
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Matching listings are now enhanced directly by the backend with bilingual fields
-  const enhancedMatchingListings = matchingListings;
-
-  const loadMatchingListings = useCallback(async (savedSearch: SavedSearchResponse) => {
-    try {
-      const listings = await getCarListingsForSavedSearch(savedSearch);
-      setMatchingListings(listings);
-    } catch (error) {
-      console.error('Error loading matching listings:', error);
-      setMatchingListings([]);
+    if (savedSearchesQuery.data && savedSearchesQuery.data.length > 0 && !selectedSearch && !hasAutoSelectedRef.current) {
+      setSelectedSearch(savedSearchesQuery.data[0]);
+      hasAutoSelectedRef.current = true;
     }
-  }, []); // Server layout ensures authentication
+    
+    // Reset selection if the selected search was deleted
+    if (selectedSearch && savedSearchesQuery.data && !savedSearchesQuery.data.find(s => s.id === selectedSearch.id)) {
+      if (savedSearchesQuery.data.length > 0) {
+        setSelectedSearch(savedSearchesQuery.data[0]);
+      } else {
+        setSelectedSearch(null);
+      }
+    }
+  }, [savedSearchesQuery.data, selectedSearch]);
 
   const handleSelectSearch = useCallback((search: SavedSearchResponse) => {
-    // Only proceed if switching to a different search or if no search is selected
     if (selectedSearch?.id !== search.id) {
       setSelectedSearch(search);
-      loadMatchingListings(search);
+      // Query will automatically update due to dependency on selectedSearch
     }
-  }, [loadMatchingListings, selectedSearch?.id]);
+  }, [selectedSearch?.id]);
 
-    const handleDeleteAlert = async (alertId: string) => {
-    const alertToDeleteObj = savedSearches.find(search => search.id === alertId);
+  const handleDeleteAlert = async (alertId: string) => {
+    const alertToDeleteObj = savedSearchesQuery.data?.find(search => search.id === alertId);
     if (alertToDeleteObj) {
       setAlertToDelete(alertToDeleteObj);
     }
@@ -68,24 +69,16 @@ export default function SavedAlertsPage() {
     if (!alertToDelete) return;
 
     try {
-      setIsDeleting(true);
-      await deleteSavedSearch(alertToDelete.id);
+      await deleteMutation.mutateAsync(alertToDelete.id);
 
-      // Remove from local state
-      setSavedSearches(prev => prev.filter(search => search.id !== alertToDelete.id));
-
-      // If this was the selected alert, clear selection and matching listings
-      if (selectedSearch?.id === alertToDelete.id) {
-        setSelectedSearch(null);
-        setMatchingListings([]);
-      }
+      // Cache invalidation handles updating the list
+      // Selection logic in useEffect handles if we deleted the selected one
 
       setAlertToDelete(null);
     } catch (error) {
       console.error('Error deleting alert:', error);
+      // Ideally show toast here
       alert(t('savedAlerts:alertDeleteError', 'Failed to delete alert. Please try again.'));
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -157,20 +150,18 @@ export default function SavedAlertsPage() {
     }
 
     try {
-      const updatedSearch = await updateSavedSearch(selectedSearch.id, {
-        nameEn: isRTL ? selectedSearch.nameEn : editingName.trim(),
-        nameAr: isRTL ? editingName.trim() : selectedSearch.nameAr || editingName.trim(),
-        filters: selectedSearch.filters,
-        notificationPreferences: selectedSearch.notificationPreferences,
-        isActive: selectedSearch.isActive
+      const updatedSearch = await updateMutation.mutateAsync({
+        id: selectedSearch.id,
+        request: {
+          nameEn: isRTL ? selectedSearch.nameEn : editingName.trim(),
+          nameAr: isRTL ? editingName.trim() : selectedSearch.nameAr || editingName.trim(),
+          filters: selectedSearch.filters,
+          notificationPreferences: selectedSearch.notificationPreferences,
+          isActive: selectedSearch.isActive
+        }
       });
 
-      // Update the search in the list
-      setSavedSearches(prev => prev.map(search =>
-        search.id === selectedSearch.id ? updatedSearch : search
-      ));
-
-      // Update selected search
+      // Update selected search with the returned data
       setSelectedSearch(updatedSearch);
       setIsEditingName(false);
       setEditingName('');
@@ -179,96 +170,56 @@ export default function SavedAlertsPage() {
       console.error('Error updating alert name:', error);
       alert(t('savedAlerts:alertUpdateError', 'Failed to update alert name. Please try again.'));
     }
-  }, [selectedSearch, editingName, t, isRTL]);
+  }, [selectedSearch, editingName, t, isRTL, updateMutation]);
 
   const handleCancelEditName = useCallback(() => {
     setIsEditingName(false);
     setEditingName('');
   }, []);
 
-  const loadSavedSearches = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const searches = await getUserSavedSearches();
-      setSavedSearches(searches);
-    } catch (error) {
-      console.error('Error loading saved searches:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // Server layout ensures authentication
-
-  // Auto-select first search when searches are loaded and no search is selected
-  useEffect(() => {
-    if (savedSearches.length > 0 && !selectedSearch && !hasAutoSelectedRef.current) {
-      setSelectedSearch(savedSearches[0]);
-      hasAutoSelectedRef.current = true;
-    }
-  }, [savedSearches, selectedSearch]);
-
-  // Load matching listings when selectedSearch changes
-  useEffect(() => {
-    if (selectedSearch) {
-      loadMatchingListings(selectedSearch);
-    }
-  }, [selectedSearch, loadMatchingListings]);
-
-  useEffect(() => {
-    // Server layout ensures user is authenticated, load searches directly
-    loadSavedSearches();
-  }, [loadSavedSearches]);
-
-  if (!mounted) {
-    return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
+  // Use QueryWrapper for the entire page logic
   return (
     <div className={`container mx-auto px-4 py-6 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Breadcrumb */}
       <Breadcrumb items={createSavedAlertsBreadcrumb()} />
 
-      {/* Main Layout - Conditional based on alerts existence */}
-      {!isLoading && savedSearches.length === 0 ? (
-        /* No alerts - Full width empty state */
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <EmptyState
-              type="alerts"
-              title={t('savedAlerts:emptyAlertsTitle', 'No alerts yet!')}
-              message={t('savedAlerts:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
-              actionButton={{
-                text: t('savedAlerts:searchForCars', 'Search for cars'),
-                href: '/search',
-                icon: <FaSearch className="w-4 h-4" />
-              }}
-            />
+      <QueryWrapper
+        query={savedSearchesQuery}
+        loadingVariant="skeleton"
+        loadingCount={3}
+        emptyComponent={
+          /* No alerts - Full width empty state */
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <EmptyState
+                title={t('savedAlerts:emptyAlertsTitle', 'No alerts yet!')}
+                message={t('savedAlerts:emptyAlertsMessage', 'Create your first search alert to get notified when new cars matching your criteria are listed.')}
+                actionButton={{
+                  text: t('savedAlerts:searchForCars', 'Search for cars'),
+                  href: '/search',
+                  icon: <FaSearch className="w-4 h-4" />
+                }}
+              />
+            </div>
           </div>
-        </div>
-      ) : (
-        /* Has alerts - Split layout */
-        <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
-          {/* Left Sidebar - Alert List */}
-          <div className="col-span-12 lg:col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
-              {/* Header */}
-              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {t('savedAlerts:alerts', 'Alerts')}
-                </h1>
-              </div>
+        }
+      >
+        {(savedSearches) => (
+          /* Has alerts - Split layout */
+          <div className="grid grid-cols-12 gap-6 transition-all duration-200 ease-in-out">
+            {/* Left Sidebar - Alert List */}
+            <div className="col-span-12 lg:col-span-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-fit lg:sticky lg:top-6 transition-transform duration-200 ease-in-out">
+                {/* Header */}
+                <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {t('savedAlerts:alerts', 'Alerts')}
+                  </h1>
+                </div>
 
-              {/* Alert List */}
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {isLoading ? (
-                  <div className="p-4 text-center">
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                  </div>
-                ) : (
-                  savedSearches.map((search) => (
+                {/* Alert List */}
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {savedSearches.map((search) => (
                     <div
                       key={search.id}
                       className={`p-3 cursor-pointer transition-all duration-200 relative ${
@@ -289,177 +240,183 @@ export default function SavedAlertsPage() {
                         {search.matchCount || 0} {t('savedAlerts:newListings', 'listings')}
                       </p>
                     </div>
-                  ))
+                  ))}
+                </div>
+
+                {/* Settings Section - Only show when there are alerts */}
+                {savedSearches.length > 0 && (
+                  <div className="border-t border-gray-200 dark:border-gray-700">
+                    <div className="p-3">
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                        {t('savedAlerts:alertSettings', 'Settings for my alerts')}
+                      </h3>
+
+                      <div className="space-y-3">
+                        <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
+                          <input
+                            type="checkbox"
+                            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            defaultChecked
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {t('savedAlerts:hideRemoveListings', 'Hide sold and removed listings')}
+                            </div>
+                          </div>
+                        </label>
+
+                        <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
+                          <input
+                            type="checkbox"
+                            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {t('savedAlerts:alertByEmail', 'Alert by email')}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {t('savedAlerts:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {/* Settings Section - Only show when there are alerts */}
-              {savedSearches.length > 0 && (
-                <div className="border-t border-gray-200 dark:border-gray-700">
-                  <div className="p-3">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                      {t('savedAlerts:alertSettings', 'Settings for my alerts')}
-                    </h3>
-
-                    <div className="space-y-3">
-                      <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
-                        <input
-                          type="checkbox"
-                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          defaultChecked
-                        />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('savedAlerts:hideRemoveListings', 'Hide sold and removed listings')}
-                          </div>
-                        </div>
-                      </label>
-
-                      <label className={`flex items-start gap-3 ${isRTL ? 'flex-row-reverse text-right' : ''}`}>
-                        <input
-                          type="checkbox"
-                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('savedAlerts:alertByEmail', 'Alert by email')}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('savedAlerts:emailAlertDescription', 'Get a summary of your alerts via email once a day.')}
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
 
-          {/* Right Content Area */}
-          <div className="col-span-12 lg:col-span-9">
-            <div className="min-h-[600px]"> {/* Minimum height to prevent layout shifts */}
-              {selectedSearch ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                  {/* Header */}
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between min-h-[2.5rem]">
-                    <div className="flex-1">
-                      {isEditingName ? (
-                        <div className="flex items-center gap-2 h-10">
-                          <input
-                            type="text"
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            className={`text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600 min-w-0 flex-1 h-8 ${isRTL ? 'text-right' : 'text-left'}`}
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleSaveEditName();
-                              } else if (e.key === 'Escape') {
-                                handleCancelEditName();
-                              }
-                            }}
-                          />
+            {/* Right Content Area */}
+            <div className="col-span-12 lg:col-span-9">
+              <div className="min-h-[600px]"> {/* Minimum height to prevent layout shifts */}
+                {selectedSearch ? (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    {/* Header */}
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between min-h-[2.5rem]">
+                        <div className="flex-1">
+                          {isEditingName ? (
+                            <div className="flex items-center gap-2 h-10">
+                              <input
+                                type="text"
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className={`text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none focus:border-blue-600 min-w-0 flex-1 h-8 ${isRTL ? 'text-right' : 'text-left'}`}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleSaveEditName();
+                                  } else if (e.key === 'Escape') {
+                                    handleCancelEditName();
+                                  }
+                                }}
+                              />
+                              <div className="flex gap-2 shrink-0">
+                                <button
+                                  onClick={handleSaveEditName}
+                                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-blue-600 bg-blue-600 text-white rounded hover:bg-blue-700 hover:border-blue-700 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                                >
+                                  {t('common:save', 'Save')}
+                                </button>
+                                <button
+                                  onClick={handleCancelEditName}
+                                  className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                                >
+                                  {t('common:cancel', 'Cancel')}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <h2 className={`text-xl font-semibold text-gray-900 dark:text-white h-10 flex items-center ${isRTL ? 'text-right' : 'text-left'}`}>
+                              {isRTL ? selectedSearch.nameAr || selectedSearch.nameEn : selectedSearch.nameEn}
+                            </h2>
+                          )}
+                        </div>
+                        {!isEditingName && (
                           <div className="flex gap-2 shrink-0">
                             <button
-                              onClick={handleSaveEditName}
-                              className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-blue-600 bg-blue-600 text-white rounded hover:bg-blue-700 hover:border-blue-700 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                            >
-                              {t('common:save', 'Save')}
-                            </button>
-                            <button
-                              onClick={handleCancelEditName}
+                              onClick={handleStartEditName}
                               className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
                             >
-                              {t('common:cancel', 'Cancel')}
+                              <FaSearch className="w-4 h-4" />
+                              {t('savedAlerts:editName', 'Edit name')}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAlert(selectedSearch.id)}
+                              disabled={deleteMutation.isPending}
+                              className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors disabled:opacity-50 h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
+                            >
+                              {deleteMutation.isPending && alertToDelete?.id === selectedSearch.id ? (
+                                <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <FaTrash className="w-4 h-4" />
+                              )}
+                              {t('savedAlerts:remove', 'Remove')}
                             </button>
                           </div>
-                        </div>
-                      ) : (
-                        <h2 className={`text-xl font-semibold text-gray-900 dark:text-white h-10 flex items-center ${isRTL ? 'text-right' : 'text-left'}`}>
-                          {isRTL ? selectedSearch.nameAr || selectedSearch.nameEn : selectedSearch.nameEn}
-                        </h2>
-                      )}
-                    </div>
-                    {!isEditingName && (
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={handleStartEditName}
-                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                        >
-                          <FaSearch className="w-4 h-4" />
-                          {t('savedAlerts:editName', 'Edit name')}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAlert(selectedSearch.id)}
-                          disabled={isDeleting}
-                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors disabled:opacity-50 h-10 ${isRTL ? 'flex-row-reverse' : ''}`}
-                        >
-                          {isDeleting ? (
-                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <FaTrash className="w-4 h-4" />
-                          )}
-                          {t('savedAlerts:remove', 'Remove')}
-                        </button>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
-                    {t('savedAlerts:searchingFor', 'Searching for:')}{' '}
-                    <a
-                      href={generateSearchUrlWithoutLocation(selectedSearch)}
-                      className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                      title={t('savedAlerts:viewAllLocations', 'View cars in all governorates with current filters')}
-                    >
-                      {t('savedAlerts:carsInSyria', 'Cars for sale in all of Syria')}
-                    </a>
-                  </p>
-                </div>
-
-                {/* Content */}
-                <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
-                  {enhancedMatchingListings.length > 0 ? (
-                    <div className="space-y-4 transition-opacity duration-200">
-                      {enhancedMatchingListings.map((listing) => (
-                        <CarListingListItem
-                          key={listing.id}
-                          listing={listing}
-                          onFavoriteToggle={(isFavorite) => {
-                            // Handle favorite toggle if needed
-                            console.log('Favorite toggled:', isFavorite);
-                          }}
-                          t={(key: string, fallback?: string) => fallback ? t(key, fallback) : t(key)}
-                          isRTL={isRTL}
-                        />
-                      ))}
+                      <p className={`text-sm mt-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                        {t('savedAlerts:searchingFor', 'Searching for:')}{' '}
+                        <a
+                          href={generateSearchUrlWithoutLocation(selectedSearch)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                          title={t('savedAlerts:viewAllLocations', 'View cars in all governorates with current filters')}
+                        >
+                          {t('savedAlerts:carsInSyria', 'Cars for sale in all of Syria')}
+                        </a>
+                      </p>
                     </div>
-                  ) : (
-                    <EmptyState
-                      type="search"
-                      title={t('search:noResultsFound', 'No cars found')}
-                      message={t('savedAlerts:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
-                      actionButton={{
-                        text: t('search:clearAllFilters', 'Clear all filters'),
-                        href: generateSearchUrlWithoutLocation(selectedSearch),
-                        icon: <FaSearch className="w-4 h-4" />
-                      }}
-                    />
-                  )}
-                </div>
+
+                    {/* Content */}
+                    <div className="p-6 relative min-h-[600px] transition-all duration-300 ease-in-out">
+                      <QueryWrapper
+                        query={resultsQuery}
+                        loadingVariant="list"
+                        loadingCount={5}
+                        emptyComponent={
+                          <EmptyState
+                            title={t('search:noResultsFound', 'No cars found')}
+                            message={t('savedAlerts:noMatchingCars', 'No cars found matching this alert criteria. Try adjusting your search filters.')}
+                            actionButton={{
+                              text: t('search:clearAllFilters', 'Clear all filters'),
+                              href: generateSearchUrlWithoutLocation(selectedSearch),
+                              icon: <FaSearch className="w-4 h-4" />
+                            }}
+                          />
+                        }
+                      >
+                        {(listings) => (
+                          <div className="space-y-4 transition-opacity duration-200">
+                            {listings.map((listing) => (
+                              <CarListingListItem
+                                key={listing.id}
+                                listing={listing}
+                                onFavoriteToggle={(isFavorite) => {
+                                  // Handle favorite toggle if needed
+                                  console.log('Favorite toggled:', isFavorite);
+                                }}
+                                t={(key: string, fallback?: string) => fallback ? t(key, fallback) : t(key)}
+                                isRTL={isRTL}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </QueryWrapper>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <p className="text-gray-500 text-center">
+                      {t('savedAlerts:selectAlert', 'Select an alert from the left to view details')}
+                    </p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <p className="text-gray-500 text-center">
-                  {t('savedAlerts:selectAlert', 'Select an alert from the left to view details')}
-                </p>
-              </div>
-            )}
-          </div> {/* Close the min-h-[600px] wrapper div */}
-        </div> {/* Close the right content area */}
-      </div>
-      )}
+            </div>
+          </div>
+        )}
+      </QueryWrapper>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
@@ -469,7 +426,7 @@ export default function SavedAlertsPage() {
         title={t('savedAlerts:confirmDeleteTitle', 'Delete Alert?')}
         message={t('savedAlerts:confirmDeleteMessage', 'Are you sure you want to delete the alert')}
         itemName={(isRTL ? alertToDelete?.nameAr || alertToDelete?.nameEn : alertToDelete?.nameEn) || t('savedAlerts:untitledAlert', 'Untitled Alert')}
-        isLoading={isDeleting}
+        isLoading={deleteMutation.isPending}
         loadingText={t('common:deleting', 'Deleting...')}
         confirmText={t('common:delete', 'Delete')}
         cancelText={t('common:cancel', 'Cancel')}

@@ -64,7 +64,7 @@ export async function login(page: Page, usernameOrEmail: string, password: strin
   await expect(
     page.getByTestId('user-menu-trigger')
       .or(page.getByTestId('user-avatar'))
-      .or(page.getByRole('button', { name: /profile|account|menu/i }))
+      .or(page.getByRole('button', { name: /profile|account|menu/i })).first()
   ).toBeVisible({ timeout: 10000 });
 }
 
@@ -107,7 +107,12 @@ export async function loginViaApi(page: Page, username: string, password: string
 /**
  * Login via API and set auth in browser storage (fastest method)
  */
-export async function loginViaApiAndSetStorage(page: Page, username: string, password: string): Promise<void> {
+export async function loginViaApiAndSetStorage(
+  page: Page, 
+  username: string, 
+  password: string,
+  destinationUrl: string = '/'
+): Promise<void> {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
   let retries = 3;
   let data;
@@ -166,7 +171,7 @@ export async function loginViaApiAndSetStorage(page: Page, username: string, pas
     }
   });
 
-  await page.goto('/');
+  await page.goto(destinationUrl);
   await page.waitForLoadState('networkidle');
   
   // Give React time to hydrate with auth state
@@ -187,14 +192,62 @@ export async function setAuthToken(page: Page, token: string): Promise<void> {
  * Logout via UI
  */
 export async function logout(page: Page): Promise<void> {
-  // Click user menu
-  await page.getByTestId('user-menu-trigger').click();
-  
-  // Click logout button
-  await page.getByTestId('logout-button').click();
+  // Check if we're on mobile and need to open menu first
+  const mobileToggle = page.getByTestId('mobile-menu-toggle');
+  if (await mobileToggle.isVisible()) {
+    await mobileToggle.click();
+    await expect(page.getByTestId('mobile-user-profile').or(page.getByText('Logout'))).toBeVisible();
+    
+    // Find logout in mobile menu (it might be a specific button or just text)
+    const mobileLogout = page.locator('button').filter({ hasText: /logout/i });
+    if (await mobileLogout.isVisible()) {
+      await mobileLogout.click();
+    } else {
+      // Fallback
+      await page.getByTestId('logout-button').click();
+    }
+  } else {
+    // Desktop: Click user menu
+    await page.getByTestId('user-menu-trigger').click();
+    // Click logout button
+    await page.getByTestId('logout-button').click();
+  }
   
   // Wait for redirect
   await page.waitForURL(/\/$|signin/);
+}
+
+/**
+ * Verify that user is logged in, handling both Desktop and Mobile views
+ */
+export async function verifyLoggedIn(page: Page): Promise<void> {
+  // Try desktop first (fast path)
+  const desktopMenu = page.getByTestId('user-menu-trigger')
+    .or(page.getByTestId('user-avatar'))
+    .or(page.getByRole('button', { name: /profile|account|menu/i })).first();
+
+  try {
+    await expect(desktopMenu).toBeVisible({ timeout: 2000 });
+    return;
+  } catch (e) {
+    // Specific mobile check
+    const mobileToggle = page.getByTestId('mobile-menu-toggle');
+    if (await mobileToggle.isVisible()) {
+      // Open menu to verify
+      await mobileToggle.click();
+      
+      // Check for user info in mobile menu
+      const mobileUserInfo = page.getByTestId('mobile-user-profile');
+      await expect(mobileUserInfo).toBeVisible({ timeout: 5000 });
+      
+      // Close menu to reset state
+      await mobileToggle.click();
+      return;
+    }
+    
+    // Rerthrow original error if neither worked
+    throw e;
+  }
 }
 
 /**
@@ -202,7 +255,7 @@ export async function logout(page: Page): Promise<void> {
  */
 export async function isLoggedIn(page: Page): Promise<boolean> {
   try {
-    await expect(page.getByTestId('user-menu-trigger').or(page.getByTestId('user-avatar'))).toBeVisible({ timeout: 3000 });
+    await verifyLoggedIn(page);
     return true;
   } catch {
     return false;

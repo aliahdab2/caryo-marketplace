@@ -20,7 +20,50 @@ async function globalSetup(_config: FullConfig) {
   // Setup Dealer Auth State
   await setupDealerAuth(apiUrl);
   
+  // Setup User Auth State
+  await setupUserAuth(apiUrl);
+  
   console.log('✅ E2E Global Setup Complete');
+}
+
+// ... (existing helper functions)
+
+/**
+ * Setup User Auth State file
+ * Logs in as user via NextAuth and saves cookies for tests to reuse
+ */
+async function setupUserAuth(_apiUrl: string) {
+  console.log('🔐 Setting up User Auth State...');
+  const authDir = path.join(__dirname, '.auth');
+  if (!fs.existsSync(authDir)) {
+    fs.mkdirSync(authDir, { recursive: true });
+  }
+
+  try {
+    const { chromium } = await import('@playwright/test');
+    const browser = await chromium.launch();
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+    await page.goto(`${baseURL}/auth/signin`);
+    await page.waitForLoadState('domcontentloaded');
+
+    await page.fill('#username', 'user');
+    await page.fill('#password', 'Password123!');
+    await page.click('button[type="submit"]');
+    
+    // Wait for redirect to home or previous page
+    await page.waitForTimeout(2000); 
+
+    await context.storageState({ path: path.join(authDir, 'user-auth.json') });
+    await browser.close();
+
+    console.log('✅ User auth state saved to e2e/.auth/user-auth.json');
+  } catch (error) {
+    console.error(`⚠️ Failed to setup user auth: ${error}`);
+  }
 }
 
 // ... (existing helper functions)
