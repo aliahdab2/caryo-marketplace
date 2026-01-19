@@ -251,241 +251,159 @@ const SignInPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex items-start sm:items-center justify-center bg-white sm:bg-gray-50 dark:bg-gray-900 p-0 sm:p-4 transition-colors duration-300">
+      <div className="w-full sm:h-auto sm:max-w-[900px] sm:bg-white sm:dark:bg-gray-800 sm:shadow-2xl sm:rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-none bg-white dark:bg-gray-800 sm:-mt-16">
         
-        {/* Left section - Brand/imagery - COMPACT CARD HEIGHT */}
-        <div className="hidden md:flex md:w-1/3 bg-slate-900 text-white flex-col justify-between relative p-8 lg:p-10">
-           {/* Abstract Premium Pattern */}
-           <div className="absolute inset-0 z-0 opacity-20">
-                <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M0 100 C 20 0 50 0 100 100 Z" fill="url(#grad1)" />
-                  <defs>
-                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" style={{stopColor:'rgb(59, 130, 246)', stopOpacity:1}} />
-                      <stop offset="100%" style={{stopColor:'rgb(30, 64, 175)', stopOpacity:1}} />
-                    </linearGradient>
-                  </defs>
-                </svg>
+        {/* LEFT SIDE: Brand Sidebar (Desktop Only) */}
+        <div className="hidden md:flex md:w-[40%] bg-[#0f172a] text-white flex-col items-center justify-center relative p-10 text-center overflow-hidden">
+           {/* Abstract Background Shape */}
+           <div className="absolute bottom-0 left-0 w-full h-[70%] opacity-20 pointer-events-none">
+             <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-blue-500 fill-current">
+               <path transform="translate(100 100)" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.2,-19.2,95.8,-4.9C93.4,9.5,81.8,23.3,70.8,35.2C59.9,47.1,49.5,57.1,37.3,64.8C25.1,72.5,11.1,77.9,-1.8,81C-14.7,84.1,-27.9,84.9,-39.9,78.8C-51.9,72.7,-62.7,59.7,-70.8,45.8C-78.9,31.9,-84.3,17.1,-83.4,2.5C-82.5,-12.1,-75.3,-26.5,-65.4,-38.3C-55.5,-50.1,-42.9,-59.3,-29.9,-67.2C-16.9,-75.1,-3.5,-81.7,9.3,-80.7C22.1,-79.7,29.9,-71,44.7,-76.4Z" />
+             </svg>
            </div>
            
-           <div className="z-10 flex flex-col items-center text-center h-full justify-center">
-             <div className="mb-6 p-3 bg-white/10 rounded-full backdrop-blur-sm">
-               <Image
-                 src="/images/logo.svg"
-                 alt={t('logo')}
-                 width={48}
-                 height={48}
-                 className="w-12 h-12 object-contain filter invert opacity-90"
-               />
+           <div className="z-10 flex flex-col items-center">
+             <div className="mb-6 p-4 bg-white/10 rounded-full backdrop-blur-sm shadow-lg ring-1 ring-white/20">
+               {/* SVG Logo Icon */}
+               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+               </svg>
              </div>
              
-             <h1 className="text-2xl font-bold mb-3 tracking-tight">
+             <h1 className="text-3xl font-bold mb-3 tracking-tight">
                {t('welcomeBack')}
              </h1>
-             <p className="text-blue-100 text-sm leading-relaxed opacity-90 max-w-[200px]">
-               {t('signInDescription')}
+             <p className="text-blue-100/80 text-sm leading-relaxed max-w-[200px]">
+               {t('signInDescription', 'Sign in to your account to continue.')}
              </p>
            </div>
         </div>
   
-        {/* Right section - Sign in form */}
-        <div className="flex-1 p-6 sm:p-8 lg:p-12">
-          <div className="w-full max-w-sm mx-auto">
-             {/* Mobile logo */}
-             <div className="flex md:hidden items-center justify-center mb-6">
-               <div className="flex items-center responsive-fade-in">
-                 <Image src="/images/logo.svg" alt={t('logo')} width={32} height={32} className="mr-2 w-8 h-8" />
-                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('appName')}</h1>
-               </div>
+        {/* RIGHT SIDE: Login Form */}
+        <div className="flex-1 flex flex-col justify-start sm:justify-center px-6 sm:px-12 md:px-12 lg:px-16 py-6 sm:py-10 overflow-y-auto sm:overflow-visible">
+            
+             {/* Mobile Logo Only */}
+             <div className="md:hidden flex flex-col items-center mb-4">
+                <div className="p-2.5 bg-blue-50 dark:bg-gray-800 rounded-full mb-2">
+                   <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                   </svg>
+                </div>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('welcomeBack')}</h1>
              </div>
-  
-             <div className="mb-8 text-center md:text-left rtl:md:text-right">
-               <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">
+
+             <div className="hidden md:block mb-6">
+               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                  {t('signIn')}
                </h2>
-               <p className="text-gray-500 dark:text-gray-400 text-sm">
+               <p className="text-sm text-gray-500 dark:text-gray-400">
                  {t('signInDescription_short', 'Enter your details to access your account.')}
                </p>
              </div>
 
             {error && (
-              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-red-50 border-is-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
+              <div role="alert" aria-live="polite" className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 text-xs sm:text-sm flex items-center">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 {error}
               </div>
             )}
-            {verificationSuccess && (
-              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-green-50 border-is-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 text-xs sm:text-sm">
-                <p className="font-medium">{t('auth:emailVerified')} {t('auth:pleaseSignIn')}</p>
-              </div>
-            )}
-            {sessionExpired && (
-              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-yellow-50 border-is-4 border-yellow-500 text-yellow-800 rounded-md dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <div>
-                  <p className="font-medium">{t('common:sessionExpiredTitle')}</p>
-                  <p className="text-xs mt-0.5">{t('common:sessionExpired')}</p>
-                </div>
-              </div>
-            )}
-            {showSuccess && (
-              <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-green-50 border-is-4 border-green-500 text-green-700 rounded-md dark:bg-green-900/30 dark:text-green-200 dark:border-green-700 flex items-center text-xs sm:text-sm">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 me-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                {t('loginSuccess')} {t('redirecting')}
-              </div>
-            )}
+            
+            <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 ${redirecting ? 'opacity-50' : ''}`}>
+               {/* Username */}
+               <div>
+                 <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                   {t('usernameOrEmail')}
+                 </label>
+                 <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </div>
+                    <input
+                     id="username"
+                     type="text"
+                     {...register('username')}
+                     className={`block w-full pl-9 sm:pl-10 pr-4 py-2.5 rounded-xl border-none ring-1 ring-gray-200 dark:ring-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-blue-500 text-sm sm:text-base transition-shadow ${
+                       errors.username ? 'ring-red-300 bg-red-50' : ''
+                     }`}
+                     placeholder={t('usernameOrEmailPlaceholder', 'Enter your username')}
+                   />
+                 </div>
+                 {errors.username && <p className="mt-1 text-xs text-red-600">{errors.username.message}</p>}
+               </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className={`responsive-fade-in ${redirecting ? 'opacity-70 transition-opacity' : ''}`}>
-              <div className="mb-5">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {t('usernameOrEmail', 'Username or Email')}
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 ltr:left-0 rtl:right-0 flex items-center ltr:pl-3 rtl:pr-3 pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                    <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+               {/* Password */}
+               <div>
+                 <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('password')}
+                    </label>
+                    <Link href="/auth/forgot-password" className="text-xs font-semibold text-blue-600 hover:text-blue-500">
+                      {t('forgotPassword')}
+                    </Link>
                   </div>
-                  {(() => {
-                    const usernameRegister = register('username', {
-                      onChange: () => {
-                        if (errors.username) {
-                          clearErrors('username');
-                        }
-                      },
-                    });
-
-                    return (
-                      <input
-                        id="username"
-                        type="text"
-                        {...usernameRegister}
-                        className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2 sm:py-2.5 border rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-base bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white transition-all duration-200 ${
-                          errors.username
-                            ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500'
-                            : 'border-gray-200 dark:border-gray-700'
-                        }`}
-                        placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
-                      />
-                    );
-                  })()}
-
-                </div>
-                {errors.username?.message && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    {errors.username.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t('password')}
-                  </label>
-                  <Link href="/auth/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                    {t('forgotPassword')}
-                  </Link>
-                </div>
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <PasswordInput
-                      id="password"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      placeholder={t('passwordPlaceholder')}
-                      disabled={loading || redirecting}
-                      autoComplete="current-password"
-                      // Default padding in component is now smaller, so we don't need to override
-                    />
-                  )}
-                />
-                {errors.password?.message && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-                    <svg className="w-4 h-4 mr-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <SimpleVerification
-                  onVerified={(verified: boolean) => {
-                    if (verified !== isVerified) {
-                      setIsVerified(verified);
-                      if (verified) {
-                        if (error === t('verificationRequired')) {
-                          setError('');
-                        }
-                      }
-                    }
-                  }}
-                  autoStart={true}
-                />
-              </div>
-
-              <div className="mb-6">
-                <button
-                  type="submit"
-                  disabled={loading || !isVerified}
-                  className={`w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-md text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 ${
-                    loading || !isVerified ? 'opacity-70 cursor-not-allowed' : 'hover-lift'
-                  } transform active:translate-y-0`}
-                >
-                  <div className="flex items-center justify-center">
-                    {loading && (
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
+                  <Controller
+                    name="password"
+                    control={control}
+                    render={({ field }) => (
+                       <PasswordInput
+                         {...field}
+                         id="password"
+                         className="bg-gray-50 dark:bg-gray-900/50 border-none ring-1 ring-gray-200 dark:ring-gray-700 rounded-xl py-2.5 text-sm sm:text-base"
+                         placeholder="••••••"
+                       />
                     )}
-                    <span>{loading ? t('loading') : t('signIn')}</span>
-                  </div>
-                </button>
-              </div>
+                  />
+                  {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+               </div>
+
+               {/* Verification */}
+               <SimpleVerification
+                 onVerified={(verified: boolean) => {
+                   if (verified !== isVerified) {
+                     setIsVerified(verified);
+                     if (verified && error === t('verificationRequired')) {
+                       setError('');
+                     }
+                   }
+                 }}
+                 autoStart={true}
+               />
+
+               <button
+                 type="submit"
+                 disabled={loading || !isVerified}
+                 className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-md text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2"
+               >
+                 {loading ? t('loading') : t('signIn')}
+               </button>
             </form>
 
+            <div className="mt-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs sm:text-sm">
+                    <span className="px-3 bg-white dark:bg-gray-800 text-gray-400">
+                      {t('orContinueWith', 'or')}
+                    </span>
+                  </div>
+                </div>
 
-
-            {/* Conditionally render OAuth section */}
-            <OAuthSection callbackUrl={callbackUrl} t={t} />
-
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('dontHaveAccount')}{' '}
-                <Link
-                  href={`/auth/signup${window?.location?.search || ''}`}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                >
-                  {t('signUp')}
-                </Link>
-              </p>
+                <div className="mt-4">
+                   <GoogleSignInButton 
+                     className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-white font-medium py-2.5 h-auto shadow-sm"
+                   />
+                </div>
             </div>
-          </div>
+
+            <p className="mt-6 text-center text-xs sm:text-sm text-gray-500">
+              {t('dontHaveAccount')}{' '}
+              <Link href="/auth/signup" className="font-semibold text-blue-600 hover:text-blue-500">
+                {t('signUp')}
+              </Link>
+            </p>
         </div>
       </div>
     </div>
