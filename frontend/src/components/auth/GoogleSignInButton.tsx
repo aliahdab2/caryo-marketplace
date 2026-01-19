@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, getProviders } from "next-auth/react"; // Removed SignInResponse
+import { signIn } from "next-auth/react";
 import { useState, useCallback, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 // Removed: import { useTranslation } from "react-i18next";
