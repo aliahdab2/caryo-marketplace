@@ -251,66 +251,63 @@ const SignInPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Left section - Brand/imagery - RESPONSIVE */}
-      <div className="hidden md:flex md:w-2/5 lg:w-1/3 xl:w-1/4 bg-gradient-to-r from-blue-600 to-blue-800 text-white flex-col justify-between relative overflow-hidden">
-        {/* Improved background pattern - more subtle waves instead of grid */}
-        <div className="absolute inset-0 overflow-hidden">
-          <svg className="absolute w-full h-full opacity-5" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="signInGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
-              </linearGradient>
-            </defs>
-            <path d="M0,800 C150,700 350,750 500,800 C650,850 850,800 1000,900 L1000,1000 L0,1000 Z" fill="url(#signInGradient)" />
-            <path d="M0,900 C150,800 350,850 500,900 C650,950 850,900 1000,950 L1000,1000 L0,1000 Z" fill="url(#signInGradient)" opacity="0.5" />
-          </svg>
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+      <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white dark:bg-gray-800 shadow-2xl rounded-2xl overflow-hidden">
+        
+        {/* Left section - Brand/imagery - COMPACT CARD HEIGHT */}
+        <div className="hidden md:flex md:w-1/3 bg-slate-900 text-white flex-col justify-between relative p-8 lg:p-10">
+           {/* Abstract Premium Pattern */}
+           <div className="absolute inset-0 z-0 opacity-20">
+                <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <path d="M0 100 C 20 0 50 0 100 100 Z" fill="url(#grad1)" />
+                  <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style={{stopColor:'rgb(59, 130, 246)', stopOpacity:1}} />
+                      <stop offset="100%" style={{stopColor:'rgb(30, 64, 175)', stopOpacity:1}} />
+                    </linearGradient>
+                  </defs>
+                </svg>
+           </div>
+           
+           <div className="z-10 flex flex-col items-center text-center h-full justify-center">
+             <div className="mb-6 p-3 bg-white/10 rounded-full backdrop-blur-sm">
+               <Image
+                 src="/images/logo.svg"
+                 alt={t('logo')}
+                 width={48}
+                 height={48}
+                 className="w-12 h-12 object-contain filter invert opacity-90"
+               />
+             </div>
+             
+             <h1 className="text-2xl font-bold mb-3 tracking-tight">
+               {t('welcomeBack')}
+             </h1>
+             <p className="text-blue-100 text-sm leading-relaxed opacity-90 max-w-[200px]">
+               {t('signInDescription')}
+             </p>
+           </div>
         </div>
-
-        <div className="z-10 p-6 md:p-8 lg:p-10 flex flex-col">
-          <div className="flex items-center mb-6">
-            <Image
-              src="/images/logo.svg"
-              alt={t('logo')}
-              width={40}
-              height={40}
-              className="mr-2 md:mr-3 w-8 h-8 md:w-10 md:h-10 object-contain filter invert"
-            />
-            <h1 className="text-lg md:text-xl font-bold">{t('appName')}</h1>
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('welcomeBack')}</h2>
-          <p className="text-sm md:text-base opacity-80">{t('signInDescription')}</p>
-        </div>          <div className="z-10 p-6 md:p-8 lg:p-10 text-sm">
-          <p className="mb-2 opacity-80">&copy; {new Date().getFullYear()} {t('appName')}</p>
-          <p className="opacity-60">{t('privacy_policy')} • {t('terms_of_service')}</p>
-        </div>
-      </div>
-
-      {/* Right section - Sign in form - OPTIMIZED FOR RESPONSIVE */}
-      <div className="flex-1 flex justify-center items-center p-4 md:p-6 lg:p-8 xl:p-10 auth-container">
-        <div className="w-full max-w-md md:max-w-lg lg:max-w-xl mt-2 sm:mt-4 mb-auto">
-          {/* Mobile logo (shown only on mobile) */}
-          <div className="flex md:hidden items-center justify-center mb-6 sm:mb-8">
-            <div className="flex items-center responsive-fade-in">
-              <Image src="/images/logo.svg" alt={t('logo')} width={40} height={40} className="mr-2.5 sm:mr-3 w-8 h-8 sm:w-10 sm:h-10" />
-              <h1 className="text-lg sm:text-xl font-bold">{t('appName')}</h1>
-            </div>
-          </div>
-
-          <div className={`bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 sm:p-6 md:p-8 lg:p-10 auth-form transition-all duration-300 ease-in-out ${
-            credentialsCorrect && !error // Apply border if credentialsCorrect is true AND there's no error
-              ? 'border-2 border-green-500 ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-800'
-              : 'border border-gray-200 dark:border-gray-700'
-          }`}>
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-1 auth-heading">
-                {t('signIn')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm auth-description">
-                {t('signInDescription')}
-              </p>
-            </div>
+  
+        {/* Right section - Sign in form */}
+        <div className="flex-1 p-6 sm:p-8 lg:p-12">
+          <div className="w-full max-w-sm mx-auto">
+             {/* Mobile logo */}
+             <div className="flex md:hidden items-center justify-center mb-6">
+               <div className="flex items-center responsive-fade-in">
+                 <Image src="/images/logo.svg" alt={t('logo')} width={32} height={32} className="mr-2 w-8 h-8" />
+                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('appName')}</h1>
+               </div>
+             </div>
+  
+             <div className="mb-8 text-center md:text-left rtl:md:text-right">
+               <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">
+                 {t('signIn')}
+               </h2>
+               <p className="text-gray-500 dark:text-gray-400 text-sm">
+                 {t('signInDescription_short', 'Enter your details to access your account.')}
+               </p>
+             </div>
 
             {error && (
               <div role="alert" aria-live="polite" className="mb-6 p-3 sm:p-4 bg-red-50 border-is-4 border-red-500 text-red-700 rounded-md dark:bg-red-900/30 dark:text-red-200 dark:border-red-700 flex items-center text-xs sm:text-sm">
@@ -376,10 +373,10 @@ const SignInPage: React.FC = () => {
                         id="username"
                         type="text"
                         {...usernameRegister}
-                        className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2.5 sm:py-3 border rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 ${
+                        className={`block w-full ltr:pl-10 rtl:pr-10 px-4 py-2 sm:py-2.5 border rounded-xl shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-base bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white transition-all duration-200 ${
                           errors.username
-                            ? 'border-red-300 dark:border-red-600 focus:ring-red-500'
-                            : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                            ? 'border-red-300 dark:border-red-600 focus:ring-red-500/20 focus:border-red-500'
+                            : 'border-gray-200 dark:border-gray-700'
                         }`}
                         placeholder={t('usernameOrEmailPlaceholder', 'Enter your username or email')}
                       />
@@ -419,6 +416,7 @@ const SignInPage: React.FC = () => {
                       placeholder={t('passwordPlaceholder')}
                       disabled={loading || redirecting}
                       autoComplete="current-password"
+                      // Default padding in component is now smaller, so we don't need to override
                     />
                   )}
                 />

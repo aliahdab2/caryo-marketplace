@@ -181,14 +181,14 @@ export default function GoogleSignInButton({
               ? t("signingIn")
               : t("continueWithGoogle")
           }
-          className={`w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap ${
+          className={`w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-bold text-gray-700 dark:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap transition-colors duration-200 ${
             isLoading || !ready ? 'opacity-70 cursor-not-allowed' : ''
           } ${className}`}
         >
           {isLoading ? (
             <div className="flex items-center justify-center w-full">
               <svg
-                className="animate-spin h-5 w-5 text-white"
+                className="animate-spin h-5 w-5 text-gray-700 dark:text-gray-300"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -211,8 +211,8 @@ export default function GoogleSignInButton({
             </div>
           ) : (
             <>
-              <FcGoogle className="h-5 w-5 mr-2" />
-              <span className="ml-2">
+              <FcGoogle className="h-5 w-5" />
+              <span>
                 {isLoading
                   ? t("signingIn")
                   : t("continueWithGoogle")}
