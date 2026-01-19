@@ -1,17 +1,32 @@
-import { redirect } from 'next/navigation';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
+import { redirect } from "next/navigation";
 
 /**
  * Dashboard Root Page
- * Redirects to the appropriate dashboard based on user role
- * For now, redirects all users to dealer dashboard
- * 
- * Future: Add role-based routing logic here
- * - Dealers -> /dashboard/dealer
- * - Buyers -> /dashboard/buyer (when created)
- * - Admins -> /dashboard/admin
+ * Redirects users based on their assigned roles.
  */
-export default function DashboardPage() {
-  // For now, redirect to dealer dashboard
-  // TODO: Add role-based routing when buyer dashboard is implemented
-  redirect('/dashboard/dealer');
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+
+  // If no session, the layout/middleware should catch it, but safety first
+  if (!session || !session.user) {
+    redirect("/auth/signin");
+  }
+
+  const roles = session.user.roles || [];
+
+  // 1. Admin Priority
+  if (roles.includes("ADMIN")) {
+    redirect("/dashboard/admin");
+  }
+
+  // 2. Dealer Priority
+  if (roles.includes("DEALER")) {
+    redirect("/dashboard/dealer");
+  }
+
+  // 3. Normal User / Buyer Fallback
+  // Best Practice: Redirect to Saved Searches ("My Autotrader") for immediate engagement
+  redirect("/dashboard/saved-searches");
 }
