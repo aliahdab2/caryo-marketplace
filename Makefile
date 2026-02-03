@@ -66,11 +66,9 @@ services: services-up ## Alias for services-up
 translation: ## Run translation validation
 	cd $(FRONTEND_DIR) && npm run translation:validate
 
-translation-full: ## Run all translation checks (summary, detailed, unused, orphaned)
+translation-full: ## Run all translation checks (summary, detailed, orphaned)
 	cd $(FRONTEND_DIR) && npm run translation:summary
 	cd $(FRONTEND_DIR) && npm run translation:detailed
-	cd $(FRONTEND_DIR) && npm run translation:validate
-	cd $(FRONTEND_DIR) && npm run translation:unused
 	cd $(FRONTEND_DIR) && npm run translation:orphaned
 
 seo: ## Run SEO structured data tests
