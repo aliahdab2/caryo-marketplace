@@ -60,7 +60,7 @@
     "axios": "^1.11.0",
     "cookies-next": "^5.1.0",
     "dompurify": "^3.2.6",
-    "eslint-config-next": "^15.4.4",
+    "eslint-config-next": "^16.1.6",
     "framer-motion": "^12.26.2",
     "i18next": "^25.1.2",
     "i18next-browser-languagedetector": "^8.1.0",
