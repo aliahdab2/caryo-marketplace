@@ -48,9 +48,6 @@ updates:
       # openai 6.x has breaking API changes
       - dependency-name: "openai"
         versions: [">=6.0.0"]
-      # next-seo 7.x has breaking API changes
-      - dependency-name: "next-seo"
-        versions: [">=7.0.0"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
