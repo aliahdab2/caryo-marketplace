@@ -45,9 +45,6 @@ updates:
       # testing-library/react 16 requires React 19
       - dependency-name: "@testing-library/react"
         versions: [">=16.0.0"]
-      # openai 6.x has breaking API changes
-      - dependency-name: "openai"
-        versions: [">=6.0.0"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
