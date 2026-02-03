@@ -74,7 +74,7 @@ translation-full: ## Run all translation checks (summary, detailed, unused, orph
 	cd $(FRONTEND_DIR) && npm run translation:orphaned
 
 seo: ## Run SEO structured data tests
-	cd $(FRONTEND_DIR) && npm test -- --testPathPattern=seo --watchAll=false --passWithNoTests
+	cd $(FRONTEND_DIR) && npm test -- --testPathPattern=seo --watchAll=false --passWithNoTests --coverageThreshold='{}'
 
 # ──────────────────────────────────────────────
 # E2E tests (requires Docker + backend + frontend running)

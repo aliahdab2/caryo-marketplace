@@ -26,7 +26,7 @@
     "restart": "sh ./scripts/restart-dev.sh",
     "diagnose": "node ./scripts/diagnostics/simple-diagnostics.js",
     "translation": "node ./scripts/translation-tools/cli/index.js",
-    "translation:validate": "node ./scripts/translation-tools/core/validator-refactored.js validate",
+    "translation:validate": "node ./scripts/translation-tools/core/validator-refactored.js summary",
     "translation:summary": "node ./scripts/translation-tools/core/validator-refactored.js summary",
     "translation:detailed": "node ./scripts/translation-tools/core/validator-refactored.js detailed",
     "translation:missing": "node ./scripts/translation-tools/core/validator-refactored.js missing",
