@@ -21,7 +21,6 @@ import com.autotrader.autotraderbackend.test.IntegrationTestWithS3;
 import com.autotrader.autotraderbackend.util.TestDataGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.AfterEach;
@@ -230,10 +229,10 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
      */
     private String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new java.util.Date())
-                .setExpiration(new java.util.Date(System.currentTimeMillis() + JWT_EXPIRATION))
-                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret)), SignatureAlgorithm.HS256)
+                .subject(username)
+                .issuedAt(new java.util.Date())
+                .expiration(new java.util.Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret)))
                 .compact();
     }
 
