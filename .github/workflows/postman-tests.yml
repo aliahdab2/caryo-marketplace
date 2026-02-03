@@ -89,73 +89,38 @@ jobs:
           # Double-check creation
           ./mc ls myminio
 
-      - name: Create application-dev.yml
+      - name: Prepare Configuration
         working-directory: ./backend/autotrader-backend
         run: |
+          # Create application-test.yml with MinIO and initialization configs
+          # Datasource is handled by env vars and application-test.properties
+          echo "Creating application-test.yml file..."
           mkdir -p src/main/resources
-          cat << 'EOC' > src/main/resources/application-dev.yml
-          spring:
-            datasource:
-              url: jdbc:postgresql://localhost:5432/autotrader
-              username: autotrader
-              password: autotrader
-            servlet:
-              multipart:
-                max-file-size: 10MB
-                max-request-size: 10MB
-            jpa:
-              hibernate:
-                ddl-auto: update
-              properties:
-                hibernate:
-                  dialect: org.hibernate.dialect.PostgreSQLDialect
-                  format_sql: false
-                  show_sql: false
-            mail:
-              host: localhost
-              port: 1025
-              username: admin
-              password: password
+
+          cat > src/main/resources/application-test.yml << 'EOF'
+          # Test configuration for CI (MinIO and data init)
           minio:
             endpoint: http://localhost:9000
             accessKey: minioadmin
             secretKey: minioadmin
             bucket: caryo-assets
-          logging:
-            level:
-              root: INFO
-              com.autotrader: INFO
-              org.springframework.web: INFO
-              org.hibernate: WARN
-          server:
-            port: 8080
-          EOC
 
-      - name: Prepare Configuration
-        working-directory: ./backend/autotrader-backend
-        run: |
-          # Create application-test.yml with necessary configs
-          echo "Creating application-test.yml file..."
-          mkdir -p src/main/resources
-          
-          cat > src/main/resources/application-test.yml << EOF
-          # Test configuration that inherits from dev profile
           spring:
-            config:
-              import: application-dev.yml
-            # Enable data initialization
             jpa:
               defer-datasource-initialization: true
             sql:
               init:
                 mode: always
-          
-          # Enable debug logging for DataInitializer
+            servlet:
+              multipart:
+                max-file-size: 10MB
+                max-request-size: 10MB
+
           logging:
             level:
               com.autotrader.autotraderbackend.config.DataInitializer: DEBUG
           EOF
-      
+
       - name: Start Spring Boot Application
         id: spring-boot-start
         uses: ./.github/actions/spring-boot-setup
@@ -167,6 +132,11 @@ jobs:
           wait-time: "10"
           skip-build: "false"
           server-port: "8080"
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/autotrader
+          SPRING_DATASOURCE_USERNAME: autotrader
+          SPRING_DATASOURCE_PASSWORD: autotrader
+          TEST_DB_DRIVER: org.postgresql.Driver
           
       - name: Wait for data initialization and extract tokens
         working-directory: ./backend/autotrader-backend

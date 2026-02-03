@@ -76,10 +76,15 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
           SPRING_PROFILES_ACTIVE: test
+          TEST_DB_DRIVER: org.postgresql.Driver
 
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+          NEXTAUTH_SECRET: e2e-test-secret-key-for-ci
+          NEXTAUTH_URL: http://localhost:3000
 
       - name: Start frontend
         working-directory: frontend
@@ -87,6 +92,10 @@ jobs:
           npm run start &
           sleep 10
           curl --retry 10 --retry-delay 3 --retry-connrefused http://localhost:3000
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+          NEXTAUTH_SECRET: e2e-test-secret-key-for-ci
+          NEXTAUTH_URL: http://localhost:3000
 
       - name: Run E2E tests
         working-directory: frontend

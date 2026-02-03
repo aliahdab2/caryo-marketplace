@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh run:*)",
+      "Bash(gh auth status:*)",
+      "Bash(npm run lint)",
+      "Bash(cd:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(npm run translation:summary:*)",
+      "Bash(./gradlew clean test:*)"
+    ]
+  }
+}
