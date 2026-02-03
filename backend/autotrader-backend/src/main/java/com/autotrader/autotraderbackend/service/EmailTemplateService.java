@@ -131,7 +131,7 @@ public class EmailTemplateService {
                 templates.addAll(categoryTemplates);
             }
         } catch (Exception e) {
-            System.err.println("Error getting templates by category: " + e.getMessage());
+            logger.error("Error getting templates by category: {}", e.getMessage());
         }
 
         return templates;
@@ -152,7 +152,7 @@ public class EmailTemplateService {
             Map<String, Object> categoriesMap = (Map<String, Object>) templateRegistry.get("categories");
             categories.addAll(categoriesMap.keySet());
         } catch (Exception e) {
-            System.err.println("Error getting template categories: " + e.getMessage());
+            logger.error("Error getting template categories: {}", e.getMessage());
         }
 
         return categories;
@@ -231,7 +231,7 @@ public class EmailTemplateService {
                 allTemplates.put(templateName, template);
             }
         } catch (Exception e) {
-            System.err.println("Error getting all templates: " + e.getMessage());
+            logger.error("Error getting all templates: {}", e.getMessage());
         }
 
         return allTemplates;

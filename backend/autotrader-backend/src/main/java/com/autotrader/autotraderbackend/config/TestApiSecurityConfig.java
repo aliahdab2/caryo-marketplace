@@ -11,6 +11,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Security configuration for the test profile.
@@ -23,6 +25,8 @@ import org.springframework.http.HttpStatus;
 @EnableMethodSecurity(prePostEnabled = true)
 public class TestApiSecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(TestApiSecurityConfig.class);
+
     @Bean
     @Primary
     public SecurityFilterChain testApiFilterChain(HttpSecurity http,
@@ -32,7 +36,7 @@ public class TestApiSecurityConfig {
         String authDisabled = env.getProperty("autotrader.security.auth.disabled");
         boolean isAuthDisabled = "true".equalsIgnoreCase(authDisabled);
 
-        System.out.println("🔐 TEST API Security Configuration loaded");
+        log.info("TEST API Security Configuration loaded");
 
         // Basic security setup
         http.csrf(csrf -> csrf.disable());
@@ -41,7 +45,7 @@ public class TestApiSecurityConfig {
         if (isAuthDisabled) {
             // For Postman/API tests, permit all requests
             http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-            System.out.println("⚠️ TEST MODE: Security authentication is DISABLED - all endpoints are publicly accessible");
+            log.warn("TEST MODE: Security authentication is DISABLED - all endpoints are publicly accessible");
         } else {
             // For regular tests, use normal security rules
             http.authorizeHttpRequests(auth -> auth

@@ -1,5 +1,7 @@
 package com.autotrader.autotraderbackend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.context.MessageSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import java.util.Locale;
  */
 @Service
 public class MessageService {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageService.class);
 
     @Autowired
     private MessageSource messageSource;
@@ -213,7 +217,7 @@ public class MessageService {
             return ArabicTextUtils.normalizeArabicText(message);
         } catch (Exception e) {
             // Log the error for debugging
-            System.err.println("Failed to load message for key: " + key + ", language: " + language + ", error: " + e.getMessage());
+            log.error("Failed to load message for key: {}, language: {}, error: {}", key, language, e.getMessage());
 
             // Fallback to the old method if message not found in properties
             Map<String, String> params = new HashMap<>();
