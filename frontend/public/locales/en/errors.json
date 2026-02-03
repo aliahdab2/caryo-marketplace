@@ -1,3 +1,4 @@
 {
-  "resendFailed": "Failed to resend verification email. Please try again."
+  "resendFailed": "Failed to resend verification email. Please try again.",
+  "CredentialsSignin": "Invalid username or password. Please try again."
 }
