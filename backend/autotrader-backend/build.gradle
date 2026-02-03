@@ -57,7 +57,7 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.17.1'
 
     // OpenAI integration for translations
-    implementation 'com.openai:openai-java:3.5.1'
+    implementation 'com.openai:openai-java:4.17.0'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'
