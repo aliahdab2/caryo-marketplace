@@ -11,6 +11,14 @@ const config = {
     '!scripts/translation-tools/core/validator.js', // Exclude old monolithic file
     '!**/node_modules/**',
   ],
+  coverageThreshold: {
+    global: {
+      statements: 25,
+      branches: 25,
+      functions: 25,
+      lines: 25,
+    },
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     // Handle module aliases
