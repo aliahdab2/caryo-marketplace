@@ -1,5 +1,3 @@
-import { SWRResponse } from 'swr';
-
 /**
  * Interface for API message responses
  */
@@ -69,8 +67,6 @@ export interface FetchError extends Error {
   status?: number;
 }
 
-// FetcherResponse can be a type alias if it doesn't add new members
-export type FetcherResponse<Data, Err = FetchError> = SWRResponse<Data, Err>;
 
 // UseServerConnectivity Hook Types
 export interface UseServerConnectivityProps {
