@@ -79,7 +79,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.71.1",
-    "react-i18next": "^15.5.1",
+    "react-i18next": "^16.5.4",
     "react-icons": "^5.5.0",
     "schema-dts": "^1.1.5",
     "swr": "^2.4.0",
