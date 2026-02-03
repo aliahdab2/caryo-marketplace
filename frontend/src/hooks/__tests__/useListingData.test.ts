@@ -130,9 +130,8 @@ describe('useListingData', () => {
 
     await waitFor(() => {
       expect(result.current.isLoadingModels).toBe(false);
+      expect(result.current.carModels).toEqual(mockCarModels);
     });
-
-    expect(result.current.carModels).toEqual(mockCarModels);
   });
 
   it('should load locations when loadLocations is called', async () => {
@@ -148,9 +147,9 @@ describe('useListingData', () => {
 
     await waitFor(() => {
       expect(result.current.isLoadingLocations).toBe(false);
+      expect(result.current.locations).toEqual(mockLocations);
     });
 
-    expect(result.current.locations).toEqual(mockLocations);
     expect(locationResult.locationData).toEqual(mockLocations);
     expect(locationResult.governorateId).toBe(1);
     expect(mockGetLocationsByGovernorateSlug).toHaveBeenCalledWith('test-gov');

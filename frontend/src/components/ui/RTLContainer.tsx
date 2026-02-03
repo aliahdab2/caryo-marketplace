@@ -4,7 +4,7 @@ import { useRTL } from '@/hooks/useRTL';
 interface RTLContainerProps {
   children: React.ReactNode;
   className?: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: React.ElementType;
   style?: React.CSSProperties;
   [key: string]: unknown;
 }

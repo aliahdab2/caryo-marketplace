@@ -92,7 +92,7 @@ const RangeSlider: React.FC<RangeSliderProps> = React.memo(({
 
   // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | undefined>(undefined);
   const minInputRef = useRef<HTMLInputElement>(null);
   const maxInputRef = useRef<HTMLInputElement>(null);
   const isUserTyping = useRef<{ min: boolean; max: boolean }>({ min: false, max: false });

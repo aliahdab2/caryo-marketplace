@@ -39,7 +39,7 @@ export function useAutoSave<T = unknown>({
   onError
 }: AutoSaveOptions<T>): AutoSaveResult {
   const { t } = useTranslation('common');
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastSavedRef = useRef<Date | null>(null);
   const isSavingRef = useRef(false);
   const previousDataRef = useRef<string>('');

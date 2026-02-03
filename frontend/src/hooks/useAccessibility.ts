@@ -13,7 +13,7 @@ interface UseFocusManagementOptions {
 }
 
 interface UseFocusManagementReturn {
-  containerRef: React.RefObject<HTMLElement>;
+  containerRef: React.RefObject<HTMLElement | null>;
   focusFirst: () => void;
   focusLast: () => void;
   focusPrevious: () => void;

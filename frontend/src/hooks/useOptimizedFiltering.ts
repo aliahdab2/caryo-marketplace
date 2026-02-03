@@ -31,8 +31,8 @@ export function useOptimizedFiltering<TFilters, TResult>(
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Use refs to track timers and previous filters
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const loadingTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const loadingTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const previousFiltersRef = useRef<TFilters | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 

@@ -27,23 +27,11 @@ updates:
       - "dependencies"
       - "frontend"
     ignore:
-      # React 19 requires Next.js 15.1+ and major migration
-      - dependency-name: "react"
-        versions: [">=19.0.0"]
-      - dependency-name: "react-dom"
-        versions: [">=19.0.0"]
-      - dependency-name: "@types/react"
-        versions: [">=19.0.0"]
-      - dependency-name: "@types/react-dom"
-        versions: [">=19.0.0"]
-      # Next.js 16 not yet stable, requires React 19
+      # Next.js 16 not yet stable
       - dependency-name: "@next/bundle-analyzer"
         versions: [">=16.0.0"]
       # react-i18next 16.x requires i18next 25+ migration
       - dependency-name: "react-i18next"
-        versions: [">=16.0.0"]
-      # testing-library/react 16 requires React 19
-      - dependency-name: "@testing-library/react"
         versions: [">=16.0.0"]
 
   # GitHub Actions
