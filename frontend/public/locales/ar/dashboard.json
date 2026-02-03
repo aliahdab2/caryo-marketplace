@@ -20,7 +20,6 @@
   "price": "السعر",
   "overview": "نظرة عامة",
   "overviewTooltip": "عرض شامل للوحة التحكم",
-  "myListingsTooltip": "إدارة مخزون سياراتك",
   "favoritesTooltip": "سياراتك المحفوظة",
   "leadsTooltip": "استفسارات العملاء",
   "accountTooltip": "إعدادات الحساب الشخصي",
@@ -125,7 +124,6 @@
   "uploadLogo": "رفع الشعار",
   "bannerHelp": "الأبعاد الموصى بها: 1200×300 بكسل، الحد الأقصى 10 ميغابايت",
   "logoHelp": "الأبعاد الموصى بها: 200×200 بكسل، الحد الأقصى 5 ميغابايت",
-  "noBannerSet": "لم يتم تعيين صورة غلاف",
   "invalidFileType": "الرجاء اختيار ملف صورة صالح",
   "fileTooLarge": "حجم الملف كبير جداً",
   "uploadFailed": "فشل رفع الصورة. الرجاء المحاولة مرة أخرى.",
@@ -146,11 +144,6 @@
   "businessEmail": "البريد الإلكتروني للعمل",
   "businessPhone": "هاتف العمل",
   "description": "الوصف",
-  "descriptionAr": "الوصف بالعربية",
   "specialties": "التخصصات",
-  "addSocialLink": "إضافة رابط",
-  "removeSocialLink": "إزالة",
-  "enterUrl": "أدخل الرابط",
-  "profileSaved": "تم حفظ الملف بنجاح",
   "viewPublicProfile": "عرض الملف العام"
 }

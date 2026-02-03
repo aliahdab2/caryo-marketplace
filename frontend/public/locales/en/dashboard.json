@@ -39,7 +39,6 @@
   "overview": "Overview",
   "overviewTooltip": "Dashboard overview",
   "myListings": "My Listings",
-  "myListingsTooltip": "Manage your vehicle listings",
   "stock": "Stock",
   "stockTooltip": "Manage your vehicle inventory",
   "favorites": "Favorites",
@@ -125,7 +124,6 @@
   "uploadLogo": "Upload Logo",
   "bannerHelp": "Recommended: 1200×300 pixels, max 10MB",
   "logoHelp": "Recommended: 200×200 pixels, max 5MB",
-  "noBannerSet": "No banner set",
   "invalidFileType": "Please select a valid image file",
   "fileTooLarge": "File is too large",
   "uploadFailed": "Failed to upload image. Please try again.",
@@ -146,11 +144,6 @@
   "businessEmail": "Business Email",
   "businessPhone": "Business Phone",
   "description": "Description",
-  "descriptionAr": "Arabic Description",
   "specialties": "Specialties",
-  "addSocialLink": "Add Social Link",
-  "removeSocialLink": "Remove",
-  "enterUrl": "Enter URL",
-  "profileSaved": "Profile saved successfully",
   "viewPublicProfile": "View Public Profile"
 }

@@ -30,14 +30,9 @@
   "showMoreFacts": "إظهار المزيد من الحقائق",
   "showLessFacts": "إظهار حقائق أقل",
   "noFactsAvailable": "لا توجد حقائق متاحة للسيارة",
-  "soldBy": "يُباع من قبل",
   "sendMessage": "إرسال رسالة",
   "showPhoneNumber": "إظهار رقم الهاتف",
   "save": "حفظ",
-  "carInsurance": "تأمين السيارة",
-  "quickQuote": "عرض سعر سريع خلال دقائق",
-  "competitivePrices": "أسعار تنافسية",
-  "seeYourPriceNow": "شاهد سعرك الآن",
   "equipment": "التجهيزات",
   "winterTires": "إطارات شتوية",
   "motorHeater": "سخان المحرك",
@@ -120,7 +115,5 @@
   "saveChanges": "حفظ التغييرات",
   "saveFailed": "فشل حفظ التغييرات",
   "saveSuccess": "تم حفظ التغييرات بنجاح!",
-  "closed": "مغلق",
-  "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجدداً",
-  "sessionExpiredTitle": "انتهت الجلسة"
+  "closed": "مغلق"
 }
