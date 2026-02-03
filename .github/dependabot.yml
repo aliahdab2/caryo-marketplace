@@ -27,11 +27,8 @@ updates:
       - "dependencies"
       - "frontend"
     ignore:
-      # Next.js 16 not yet stable
+      # Next.js 16 requires significant migration (async APIs, middleware rename)
       - dependency-name: "@next/bundle-analyzer"
-        versions: [">=16.0.0"]
-      # react-i18next 16.x requires i18next 25+ migration
-      - dependency-name: "react-i18next"
         versions: [">=16.0.0"]
 
   # GitHub Actions
