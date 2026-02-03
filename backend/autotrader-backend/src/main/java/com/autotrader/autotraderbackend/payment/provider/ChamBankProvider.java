@@ -196,7 +196,8 @@ public class ChamBankProvider implements PaymentProvider {
         }
         */
         
-        return true; // Temporary - implement proper verification
+        log.warn("Cham Bank webhook verification not implemented - rejecting webhook for security");
+        return false; // Deny by default until proper verification is implemented
     }
 
     @Override

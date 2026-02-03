@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.payment;
 
 import com.autotrader.autotraderbackend.model.Dealer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,25 +21,29 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@Slf4j
 public class PaymentService {
 
     private final Map<String, PaymentProvider> paymentProviders;
     private final PaymentTransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
+    private final PaymentAuditService auditService;
 
     @Autowired
     public PaymentService(
             List<PaymentProvider> providers,
             PaymentTransactionRepository transactionRepository,
             IdempotencyService idempotencyService,
-            PaymentConfiguration paymentConfig) {
-        
+            PaymentConfiguration paymentConfig,
+            PaymentAuditService auditService) {
+
         // Create a map of provider ID -> provider instance
         this.paymentProviders = providers.stream()
             .collect(Collectors.toMap(PaymentProvider::getProviderId, p -> p));
-        
+
         this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
+        this.auditService = auditService;
     }
 
     /**
@@ -198,9 +203,10 @@ public class PaymentService {
     public PaymentResponse handleWebhook(String providerId, String payload, String signature) {
         try {
             PaymentProvider provider = getProvider(providerId);
-            
+
             // Verify webhook signature
             if (!provider.verifyWebhook(payload, signature)) {
+                auditService.logWebhookReceived(providerId, "unknown", signature, false, "N/A");
                 return PaymentResponse.failure(
                     "INVALID_WEBHOOK_SIGNATURE",
                     "Webhook signature verification failed",
@@ -208,10 +214,13 @@ public class PaymentService {
                 );
             }
 
+            auditService.logWebhookReceived(providerId, "webhook_event", signature, true, "N/A");
+
             // Handle the webhook
             return provider.handleWebhook(payload);
 
         } catch (Exception e) {
+            auditService.logProviderError(providerId, "webhook", e.getMessage(), "N/A");
             return PaymentResponse.failure(
                 "WEBHOOK_PROCESSING_ERROR",
                 "Failed to process webhook: " + e.getMessage(),
@@ -256,8 +265,10 @@ public class PaymentService {
             transaction.markCompleted();
             transaction.addMetadata("verifiedBy", adminUserId.toString());
             transaction.addMetadata("verifiedAt", java.time.ZonedDateTime.now().toString());
-            
+
             transactionRepository.save(transaction);
+
+            auditService.logPaymentVerified(transactionId, adminUserId.toString(), "manual", null, "N/A");
 
             return PaymentResponse.success(
                 transactionId,

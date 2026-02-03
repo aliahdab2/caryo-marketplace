@@ -12,6 +12,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -39,8 +40,14 @@ public class JwtUtils {
             throw new IllegalArgumentException("Username cannot be blank");
         }
 
+        int tokenVersion = 0;
+        if (userPrincipal instanceof UserDetailsImpl) {
+            tokenVersion = ((UserDetailsImpl) userPrincipal).getTokenVersion();
+        }
+
         return Jwts.builder()
                 .subject(userPrincipal.getUsername())
+                .claim("tv", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
@@ -55,6 +62,7 @@ public class JwtUtils {
         }
         return Jwts.builder()
                 .subject(user.getUsername())
+                .claim("tv", user.getTokenVersion() != null ? user.getTokenVersion() : 0)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
@@ -74,6 +82,16 @@ public class JwtUtils {
         }
         return Jwts.parser().verifyWith(key()).build()
                 .parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    public int getTokenVersionFromJwtToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return 0;
+        }
+        Claims claims = Jwts.parser().verifyWith(key()).build()
+                .parseSignedClaims(token).getPayload();
+        Integer tv = claims.get("tv", Integer.class);
+        return tv != null ? tv : 0;
     }
 
     public boolean validateJwtToken(String authToken) {

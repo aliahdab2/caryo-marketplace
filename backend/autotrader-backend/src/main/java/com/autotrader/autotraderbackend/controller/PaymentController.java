@@ -5,6 +5,8 @@ import com.autotrader.autotraderbackend.payment.*;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.payment.PaymentValidationConstants;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimit;
+import com.autotrader.autotraderbackend.security.ratelimit.RateLimitKeyType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -53,7 +55,9 @@ public class PaymentController {
      */
     @PostMapping("/subscription")
     @PreAuthorize("hasRole('DEALER')")
-    @Operation(summary = "Create subscription payment", 
+    @RateLimit(maxRequests = 5, windowSeconds = 60, keyType = RateLimitKeyType.USER,
+        message = "Too many payment attempts. Please try again in a minute.")
+    @Operation(summary = "Create subscription payment",
                description = "Create a payment for dealer subscription upgrade")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment created successfully"),
@@ -142,7 +146,9 @@ public class PaymentController {
      */
     @PostMapping("/one-time")
     @PreAuthorize("hasRole('DEALER')")
-    @Operation(summary = "Process one-time payment", 
+    @RateLimit(maxRequests = 5, windowSeconds = 60, keyType = RateLimitKeyType.USER,
+        message = "Too many payment attempts. Please try again in a minute.")
+    @Operation(summary = "Process one-time payment",
                description = "Process a one-time payment for services like featured listings")
     public ResponseEntity<?> processOneTimePayment(
             @Valid @RequestBody OneTimePaymentRequest request,

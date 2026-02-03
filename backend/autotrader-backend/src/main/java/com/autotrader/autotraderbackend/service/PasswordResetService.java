@@ -208,9 +208,10 @@ public class PasswordResetService {
                 return PasswordResetResult.error("New password must be different from your current password");
             }
 
-            // Update password
+            // Update password and invalidate all existing JWT tokens
             String encodedPassword = passwordEncoder.encode(newPassword);
             user.setPassword(encodedPassword);
+            user.incrementTokenVersion();
             userRepository.save(user);
 
             // Mark token as used

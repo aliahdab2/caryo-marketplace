@@ -30,6 +30,9 @@ class PaymentServiceTest {
     private PaymentConfiguration paymentConfig;
 
     @Mock
+    private PaymentAuditService auditService;
+
+    @Mock
     private PaymentProvider manualProvider;
 
     @Mock
@@ -54,7 +57,8 @@ class PaymentServiceTest {
             Arrays.asList(manualProvider, chamBankProvider),
             transactionRepository,
             idempotencyService,
-            paymentConfig
+            paymentConfig,
+            auditService
         );
 
         testDealer = Dealer.builder()

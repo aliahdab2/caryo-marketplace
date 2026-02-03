@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.payment.PaymentRateLimitService;
 import com.autotrader.autotraderbackend.payment.PaymentResponse;
 import com.autotrader.autotraderbackend.payment.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -35,7 +38,11 @@ import java.util.Map;
 @Tag(name = "Payment Webhooks", description = "Webhook endpoints for payment provider notifications")
 public class PaymentWebhookController {
 
+    private static final int MAX_WEBHOOK_PAYLOAD_BYTES = 65536; // 64KB
+
     private final PaymentService paymentService;
+    private final PaymentRateLimitService rateLimitService;
+    private final Environment environment;
 
     /**
      * PayPal webhook handler
@@ -63,11 +70,20 @@ public class PaymentWebhookController {
             @RequestHeader(value = "PayPal-Transmission-Time", required = false) String transmissionTime,
             @RequestHeader(value = "PayPal-Transmission-Sig", required = false) String signature) {
 
+        String clientIp = request.getRemoteAddr();
+        if (!rateLimitService.isWebhookProcessingAllowed("paypal", clientIp)) {
+            log.warn("Webhook rate limit exceeded for PayPal from IP: {}", clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
+                "status", "error",
+                "message", "Rate limit exceeded"
+            ));
+        }
+
         try {
             // Read raw payload
             String payload = readRequestBody(request);
-            
-            log.info("Received PayPal webhook: transmissionId={}, certId={}, authAlgo={}", 
+
+            log.info("Received PayPal webhook: transmissionId={}, certId={}, authAlgo={}",
                 transmissionId, certId, authAlgo);
 
             // Process webhook
@@ -119,10 +135,19 @@ public class PaymentWebhookController {
             HttpServletRequest request,
             @RequestHeader(value = "Stripe-Signature", required = false) String signature) {
 
+        String clientIp = request.getRemoteAddr();
+        if (!rateLimitService.isWebhookProcessingAllowed("stripe", clientIp)) {
+            log.warn("Webhook rate limit exceeded for Stripe from IP: {}", clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
+                "status", "error",
+                "message", "Rate limit exceeded"
+            ));
+        }
+
         try {
             // Read raw payload
             String payload = readRequestBody(request);
-            
+
             log.info("Received Stripe webhook with signature: {}", signature != null ? "present" : "missing");
 
             // Process webhook
@@ -170,10 +195,19 @@ public class PaymentWebhookController {
             HttpServletRequest request,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
+        String clientIp = request.getRemoteAddr();
+        if (!rateLimitService.isWebhookProcessingAllowed("manual-transfer", clientIp)) {
+            log.warn("Webhook rate limit exceeded for manual-transfer from IP: {}", clientIp);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of(
+                "status", "error",
+                "message", "Rate limit exceeded"
+            ));
+        }
+
         try {
             // For manual transfers, this could be used for bank notifications
             // or automated verification systems in the future
-            
+
             String payload = readRequestBody(request);
             log.info("Received manual transfer notification with payload length: {}", payload.length());
 
@@ -210,9 +244,19 @@ public class PaymentWebhookController {
             HttpServletRequest request,
             @RequestParam(value = "provider", defaultValue = "test") String providerId) {
 
+        // Only allow test webhooks in dev/test environments
+        boolean isDev = Arrays.stream(environment.getActiveProfiles())
+            .anyMatch(p -> "dev".equals(p) || "test".equals(p) || "local".equals(p));
+        if (!isDev) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "status", "error",
+                "message", "Endpoint not available"
+            ));
+        }
+
         try {
             String payload = readRequestBody(request);
-            
+
             log.info("Received test webhook for provider: {}", providerId);
             log.debug("Test webhook payload: {}", payload);
 
@@ -271,13 +315,18 @@ public class PaymentWebhookController {
     private String readRequestBody(HttpServletRequest request) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader bufferedReader = null;
-        
+        int totalRead = 0;
+
         try {
             bufferedReader = request.getReader();
             char[] charBuffer = new char[128];
             int bytesRead;
-            
+
             while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+                totalRead += bytesRead;
+                if (totalRead > MAX_WEBHOOK_PAYLOAD_BYTES) {
+                    throw new IOException("Webhook payload exceeds maximum size of " + MAX_WEBHOOK_PAYLOAD_BYTES + " bytes");
+                }
                 stringBuilder.append(charBuffer, 0, bytesRead);
             }
         } finally {
@@ -285,7 +334,7 @@ public class PaymentWebhookController {
                 bufferedReader.close();
             }
         }
-        
+
         return stringBuilder.toString();
     }
 }

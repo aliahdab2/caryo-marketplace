@@ -27,6 +27,8 @@ public class UserDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
+    private int tokenVersion;
+
     // Derived flags for account state
     private boolean accountNonExpired = true;
     private boolean accountNonLocked = true;
@@ -66,6 +68,7 @@ public class UserDetailsImpl implements UserDetails {
                 && user.canLogin();
 
         details.enabled = isEnabled;
+        details.tokenVersion = user.getTokenVersion() != null ? user.getTokenVersion() : 0;
         // Keep other flags default true; customize here if you later add lock/expiry logic
         details.accountNonExpired = true;
         details.accountNonLocked = true;
@@ -85,6 +88,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion;
     }
 
     @Override

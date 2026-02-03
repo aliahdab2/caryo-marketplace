@@ -191,7 +191,8 @@ public class BemoBankProvider implements PaymentProvider {
         }
         */
         
-        return true; // Temporary - implement proper verification
+        log.warn("Bemo Bank webhook verification not implemented - rejecting webhook for security");
+        return false; // Deny by default until proper verification is implemented
     }
 
     @Override

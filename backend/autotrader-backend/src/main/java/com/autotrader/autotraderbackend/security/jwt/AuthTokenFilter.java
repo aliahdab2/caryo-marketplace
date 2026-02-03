@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.security.jwt;
 
 import com.autotrader.autotraderbackend.exception.jwt.CustomJwtException;
+import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -55,6 +56,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                     try {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                        // Token version revocation check
+                        if (userDetails instanceof UserDetailsImpl) {
+                            int tokenVersion = jwtUtils.getTokenVersionFromJwtToken(jwt);
+                            int currentVersion = ((UserDetailsImpl) userDetails).getTokenVersion();
+                            if (tokenVersion != currentVersion) {
+                                log.warn("AuthTokenFilter: Revoked token for user '{}' (token v{}, current v{})",
+                                        username, tokenVersion, currentVersion);
+                                filterChain.doFilter(request, response);
+                                return;
+                            }
+                        }
+
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails,

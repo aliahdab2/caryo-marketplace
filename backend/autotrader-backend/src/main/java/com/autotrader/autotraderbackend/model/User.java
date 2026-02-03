@@ -89,6 +89,10 @@ public class User {
     @Column(name = "preferred_language", length = 10)
     private String preferredLanguage;
 
+    // Token version for JWT revocation (incremented on logout, password change, etc.)
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
     // Account status
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status", nullable = false)
@@ -127,6 +131,14 @@ public class User {
 
     public boolean isActive() {
         return accountStatus == AccountStatus.VERIFIED;
+    }
+
+    /**
+     * Increment token version to invalidate all existing JWT tokens for this user.
+     * Called on logout, password change, password reset, and account suspension.
+     */
+    public void incrementTokenVersion() {
+        this.tokenVersion = (this.tokenVersion == null ? 0 : this.tokenVersion) + 1;
     }
 
     public boolean isDealer() {

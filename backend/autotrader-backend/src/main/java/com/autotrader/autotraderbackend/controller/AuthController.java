@@ -399,6 +399,35 @@ public class AuthController {
 
 
     @Operation(
+        summary = "Logout",
+        description = "Invalidate all active JWT tokens for the current user"
+    )
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not authenticated!"));
+        }
+
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.badRequest()
+                .body(new MessageResponse("Error: User not found!"));
+        }
+
+        user.incrementTokenVersion();
+        userRepository.save(user);
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(new MessageResponse("Logged out successfully. All tokens invalidated."));
+    }
+
+    @Operation(
         summary = "Change Password",
         description = "Change the current user's password"
     )
@@ -429,11 +458,12 @@ public class AuthController {
                 .body(new MessageResponse("Error: Current password is incorrect!"));
         }
 
-        // Update the password
+        // Update the password and invalidate all existing tokens
         user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
+        user.incrementTokenVersion();
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("Password changed successfully!"));
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully. Please sign in again."));
     }
 
     @Operation(
