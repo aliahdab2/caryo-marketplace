@@ -7,7 +7,11 @@
       "Bash(cd:*)",
       "Bash(./gradlew build:*)",
       "Bash(npm run translation:summary:*)",
-      "Bash(./gradlew clean test:*)"
+      "Bash(./gradlew clean test:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)"
     ]
   }
 }
