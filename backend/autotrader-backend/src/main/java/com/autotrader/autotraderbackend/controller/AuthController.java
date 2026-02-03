@@ -248,7 +248,7 @@ public class AuthController {
             emailVerificationService.sendVerificationEmail(savedUser);
         } catch (Exception e) {
             // Log the error but don't fail the registration
-            System.err.println("Failed to send verification email to " + savedUser.getEmail() + ": " + e.getMessage());
+            log.error("Failed to send verification email to {}: {}", savedUser.getEmail(), e.getMessage());
         }
 
         // Return success message
@@ -349,7 +349,7 @@ public class AuthController {
                     user.setSellerType(sellerTypeService.getSellerTypeEntityById(privateSellerType.getId()));
                 } catch (Exception ex) {
                     // Log error but don't fail the registration
-                    System.err.println("Failed to set default seller type for social login user: " + ex.getMessage());
+                    log.error("Failed to set default seller type for social login user: {}", ex.getMessage());
                 }
             }
 

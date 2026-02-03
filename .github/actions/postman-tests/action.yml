@@ -83,42 +83,30 @@ runs:
           COLLECTION="${{ inputs.collection-path }}"
         fi
         
-        # Check if environment file exists
-        if [ ! -f "${{ inputs.environment-file }}" ]; then
+        # Build newman arguments array
+        NEWMAN_ARGS=("run" "$COLLECTION")
+
+        # Add environment file if it exists
+        if [ -f "${{ inputs.environment-file }}" ]; then
+          echo "Using environment file: ${{ inputs.environment-file }}"
+          NEWMAN_ARGS+=("--environment" "${{ inputs.environment-file }}")
+        else
           echo "Environment file not found: ${{ inputs.environment-file }}"
           echo "Running tests without environment file..."
-          
-          # Run tests without environment file
-          NEWMAN_CMD="newman run \"$COLLECTION\" \
-            --reporters ${{ inputs.reporters }} \
-            --reporter-htmlextra-export ${{ inputs.results-directory }}/report.html \
-            --reporter-junit-export ${{ inputs.results-directory }}/junit-report.xml"
-            
-          # Add extra options if provided
-          if [ ! -z "${{ inputs.extra-options }}" ]; then
-            NEWMAN_CMD="$NEWMAN_CMD ${{ inputs.extra-options }}"
-          fi
-          
-          echo "Executing: $NEWMAN_CMD"
-          eval $NEWMAN_CMD
-        else
-          echo "Using environment file: ${{ inputs.environment-file }}"
-          
-          # Run tests with environment file
-          NEWMAN_CMD="newman run \"$COLLECTION\" \
-            --environment \"${{ inputs.environment-file }}\" \
-            --reporters ${{ inputs.reporters }} \
-            --reporter-htmlextra-export ${{ inputs.results-directory }}/report.html \
-            --reporter-junit-export ${{ inputs.results-directory }}/junit-report.xml"
-            
-          # Add extra options if provided
-          if [ ! -z "${{ inputs.extra-options }}" ]; then
-            NEWMAN_CMD="$NEWMAN_CMD ${{ inputs.extra-options }}"
-          fi
-          
-          echo "Executing: $NEWMAN_CMD"
-          eval $NEWMAN_CMD || echo "Newman exited with non-zero code, but we will check actual test results"
         fi
+
+        NEWMAN_ARGS+=("--reporters" "${{ inputs.reporters }}")
+        NEWMAN_ARGS+=("--reporter-htmlextra-export" "${{ inputs.results-directory }}/report.html")
+        NEWMAN_ARGS+=("--reporter-junit-export" "${{ inputs.results-directory }}/junit-report.xml")
+
+        # Add extra options if provided (split by spaces)
+        if [ -n "${{ inputs.extra-options }}" ]; then
+          read -ra EXTRA_OPTS <<< "${{ inputs.extra-options }}"
+          NEWMAN_ARGS+=("${EXTRA_OPTS[@]}")
+        fi
+
+        echo "Executing: newman ${NEWMAN_ARGS[*]}"
+        newman "${NEWMAN_ARGS[@]}" || echo "Newman exited with non-zero code, but we will check actual test results"
         
         # Count failures from JUnit report
         if [ -f "${{ inputs.results-directory }}/junit-report.xml" ]; then
