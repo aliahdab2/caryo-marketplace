@@ -120,11 +120,11 @@ public class SecurityConfig {
             // Content Security Policy
             .contentSecurityPolicy(csp -> csp
                 .policyDirectives("default-src 'self'; " +
-                    "img-src 'self' data: https: http://localhost:9000 http://minio:9000; " +
-                    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                    "img-src 'self' data: https:; " +
+                    "script-src 'self' 'unsafe-inline'; " +
                     "style-src 'self' 'unsafe-inline'; " +
                     "font-src 'self' data:; " +
-                    "connect-src 'self' http://localhost:* https:; " +
+                    "connect-src 'self' https:; " +
                     "frame-ancestors 'self'")
             )
             // Referrer Policy
