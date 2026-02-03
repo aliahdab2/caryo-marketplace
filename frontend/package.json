@@ -56,7 +56,7 @@
     "@octokit/rest": "^22.0.0",
     "@sentry/nextjs": "^10.34.0",
     "@tanstack/react-query": "^5.85.5",
-    "@tanstack/react-query-devtools": "^5.85.5",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "@types/dompurify": "^3.0.5",
     "axios": "^1.11.0",
     "cookies-next": "^5.1.0",
