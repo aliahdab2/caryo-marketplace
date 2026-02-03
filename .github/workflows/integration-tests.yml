@@ -89,6 +89,10 @@ jobs:
           echo "✅ No obvious database cleanup order issues found."
         fi
         
+    # Enable Testcontainers reuse to avoid recreating containers per test class
+    - name: Enable Testcontainers Reuse
+      run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
     # Use the Docker services setup composite action
     - name: Setup Docker Services
       uses: ./.github/actions/docker-services-setup
