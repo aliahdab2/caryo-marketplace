@@ -50,7 +50,7 @@
     "sitemap": "next-sitemap"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.4",
+    "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.2.2",
     "@octokit/rest": "^22.0.0",
     "@sentry/nextjs": "^10.34.0",
