@@ -51,7 +51,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
     // Web scraping for SyrianCars.net data
     implementation 'org.jsoup:jsoup:1.17.1'
@@ -172,8 +172,7 @@ jacocoTestReport {
             fileTree(dir: it, exclude: [
                 // Excluding test implementations that clash with production code
                 "com/autotrader/autotraderbackend/exception/TestAuthenticationExceptionHandler.class",
-                "com/autotrader/autotraderbackend/config/TestResourceCleanupService.class",
-                "com/autotrader/autotraderbackend/service/TestJwtService.class"
+                "com/autotrader/autotraderbackend/config/TestResourceCleanupService.class"
             ])
         }))
     }
