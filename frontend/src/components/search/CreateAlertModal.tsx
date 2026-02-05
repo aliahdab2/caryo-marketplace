@@ -136,9 +136,10 @@ export default function CreateAlertModal({
       if (filters.sellerTypeIds) backendFilters.sellerTypeIds = filters.sellerTypeIds;
       if (searchQuery) backendFilters.searchQuery = searchQuery;
 
+      const trimmedName = alertName.trim();
       const request: SavedSearchRequest = {
-        nameEn: alertName.trim(),
-        nameAr: '', // TODO: Add Arabic name support
+        nameEn: trimmedName,
+        nameAr: trimmedName,
         filters: backendFilters,
         notificationPreferences: {
           email: emailNotifications,

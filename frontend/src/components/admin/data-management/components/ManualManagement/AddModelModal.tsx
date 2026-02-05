@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CarBrand, CarModel, AddForm, CreateModelData } from '../../types';
 import { useValidation } from '../../hooks/useValidation';
+import { useToastHelpers } from '@/components/ui/ToastProvider';
 
 interface AddModelModalProps {
   isOpen: boolean;
@@ -28,12 +29,13 @@ export const AddModelModal: React.FC<AddModelModalProps> = ({
     validateModelForm,
     checkModelDuplicate
   } = useValidation(brands, models);
+  const { showError } = useToastHelpers();
 
   const handleSave = async () => {
     // Validate model form
     const modelError = validateModelForm(form);
     if (modelError) {
-      alert(modelError); // TODO: Replace with proper toast
+      showError(modelError);
       return;
     }
 
@@ -41,7 +43,7 @@ export const AddModelModal: React.FC<AddModelModalProps> = ({
     if (form.brandId) {
       const duplicateError = checkModelDuplicate(form, form.brandId);
       if (duplicateError) {
-        alert(duplicateError); // TODO: Replace with proper toast
+        showError(duplicateError);
         return;
       }
     }

@@ -24,12 +24,13 @@ import TrialBanner from './TrialBanner';
 import UpgradeModal from './UpgradeModal';
 
 // Import React Query hooks
-import { 
-  useMyListings, 
-  useFavorites, 
+import {
+  useMyListings,
+  useFavorites,
   useSavedSearches,
   useDealerTrialStatus,
-  useCreateSubscription
+  useCreateSubscription,
+  useConversationStats
 } from '@/hooks/queries';
 
 // Import common components
@@ -48,6 +49,7 @@ export default function DealerDashboard() {
   const { data: trialStatus } = useDealerTrialStatus();
   const { data: favoritesData = [] } = useFavorites();
   const { data: savedSearchesData = [] } = useSavedSearches();
+  const { data: conversationStats } = useConversationStats();
   
   // Type assertions for array data
   const favorites = Array.isArray(favoritesData) ? favoritesData : [];
@@ -72,11 +74,11 @@ export default function DealerDashboard() {
   const dashboardStats = useMemo(() => ({
     totalListings: listings.length,
     activeListings: listings.filter(l => l.status === 'active').length,
-    views: 0, // TODO: replace with real analytics data
-    inquiries: 0, // TODO: replace with real analytics data
+    totalInquiries: conversationStats?.totalConversations ?? 0,
+    unreadMessages: conversationStats?.unreadMessages ?? 0,
     favorites: favorites.length,
     alerts: savedSearches.length
-  }), [listings, favorites.length, savedSearches.length]);
+  }), [listings, favorites.length, savedSearches.length, conversationStats]);
 
   // Loading state - show skeleton while waiting for initial data
   // Using the same skeleton as loading.tsx for seamless transition
@@ -133,7 +135,7 @@ export default function DealerDashboard() {
     },
     {
       title: t('messages'),
-      value: 12, // Keep hardcoded from original (replace with real data when available)
+      value: dashboardStats.unreadMessages,
       icon: <MdMessage className="w-6 h-6" />,
       color: 'purple',
       href: `/${currentLang}/dashboard/dealer/leads`

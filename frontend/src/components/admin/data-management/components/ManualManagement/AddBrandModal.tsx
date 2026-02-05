@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CarBrand, CarModel, AddForm, CreateBrandData, CreateModelData } from '../../types';
 import { useValidation } from '../../hooks/useValidation';
+import { useToastHelpers } from '@/components/ui/ToastProvider';
 
 interface AddBrandModalProps {
   isOpen: boolean;
@@ -29,26 +30,27 @@ export const AddBrandModal: React.FC<AddBrandModalProps> = ({
     validateModelFormForNewBrand,
     checkBrandDuplicate
   } = useValidation(brands, models);
+  const { showError } = useToastHelpers();
 
   const handleSave = async () => {
     // Validate brand form
     const brandError = validateBrandForm(form);
     if (brandError) {
-      alert(brandError); // TODO: Replace with proper toast
+      showError(brandError);
       return;
     }
 
     // Validate model form (without brandId requirement)
     const modelError = validateModelFormForNewBrand(form);
     if (modelError) {
-      alert(modelError); // TODO: Replace with proper toast
+      showError(modelError);
       return;
     }
 
     // Check for duplicates
     const duplicateError = checkBrandDuplicate(form);
     if (duplicateError) {
-      alert(duplicateError); // TODO: Replace with proper toast
+      showError(duplicateError);
       return;
     }
 

@@ -78,7 +78,14 @@ public class ListingApprovedListener {
                 }
             }
 
-            // TODO: Update analytics or reporting
+            // Structured log for analytics pipeline consumption
+            log.info("LISTING_APPROVED listing_id={} seller_id={} brand={} model={} year={} price={}",
+                    listing.getId(),
+                    sellerId,
+                    listing.getBrandNameEn(),
+                    listing.getModelNameEn(),
+                    listing.getModelYear(),
+                    listing.getPrice());
         });
     }
 }

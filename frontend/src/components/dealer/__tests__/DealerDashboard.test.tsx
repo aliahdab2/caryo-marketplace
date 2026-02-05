@@ -10,6 +10,7 @@ import * as dealerApi from '@/services/dealerApi';
 import * as listingsService from '@/services/listings';
 import * as favoritesService from '@/services/favorites';
 import { getUserSavedSearches } from '@/services/savedSearches';
+import { MessagingService } from '@/services/messaging';
 
 // Mock all dependencies
 jest.mock('react-i18next', () => ({
@@ -31,6 +32,13 @@ jest.mock('@/services/savedSearches', () => ({
 jest.mock('@/services/favorites', () => ({
   getFavoriteListings: jest.fn(),
   getUserFavorites: jest.fn()
+}));
+jest.mock('@/services/messaging', () => ({
+  MessagingService: {
+    getConversationStats: jest.fn(),
+    getUnreadMessageCount: jest.fn(),
+    getUserConversations: jest.fn(),
+  }
 }));
 
 // Helper to create a wrapper with QueryClientProvider
@@ -157,6 +165,12 @@ describe('DealerDashboard', () => {
     (listingsService.getMyListings as jest.Mock).mockResolvedValue(mockListings);
     (getUserSavedSearches as jest.Mock).mockResolvedValue([]);
     (favoritesService.getUserFavorites as jest.Mock).mockResolvedValue([]);
+    (MessagingService.getConversationStats as jest.Mock).mockResolvedValue({
+      totalConversations: 8,
+      activeConversations: 5,
+      unreadMessages: 3,
+      archivedConversations: 2
+    });
   });
 
   it('should render without crashing', () => {
@@ -301,6 +315,35 @@ describe('DealerDashboard', () => {
       expect(screen.getByText('API Error')).toBeInTheDocument();
       // Also verify we show the standard error title from translation (mocked)
       expect(screen.getByText('error.title')).toBeInTheDocument();
+    });
+  });
+
+  it('should display real conversation stats from API', async () => {
+    const Wrapper = createWrapper();
+    render(<DealerDashboard />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(MessagingService.getConversationStats).toHaveBeenCalled();
+    });
+
+    // Unread messages count (3) should be rendered in the messages stat card
+    await waitFor(() => {
+      expect(screen.getByText('3')).toBeInTheDocument();
+    });
+  });
+
+  it('should handle missing conversation stats gracefully', async () => {
+    (MessagingService.getConversationStats as jest.Mock).mockRejectedValue(
+      new Error('Messaging API failed')
+    );
+
+    const Wrapper = createWrapper();
+    const { container } = render(<DealerDashboard />, { wrapper: Wrapper });
+
+    // Dashboard should still render even if messaging API fails
+    await waitFor(() => {
+      expect(container.firstChild).not.toBeNull();
+      expect(listingsService.getMyListings).toHaveBeenCalled();
     });
   });
 

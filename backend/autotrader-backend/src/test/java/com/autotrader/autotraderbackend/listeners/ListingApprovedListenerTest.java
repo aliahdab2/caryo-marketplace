@@ -101,6 +101,27 @@ class ListingApprovedListenerTest {
     }
 
     @Test
+    void handleListingApproved_shouldSendEmailAndCompleteAnalyticsLog() {
+        // Arrange
+        seller.setEmail("seller@test.com");
+        when(eventUtils.getListingInfo(any())).thenReturn("listing info");
+
+        // Act
+        listener.handleListingApproved(event);
+
+        // Assert
+        verify(txService).executeInTransaction(runnableCaptor.capture());
+        runnableCaptor.getValue().run();
+
+        // Verify email was sent
+        verify(emailService).sendListingApprovedEmail(seller, listing);
+
+        // Verify the entire transaction body executed without exceptions
+        // (covers the structured analytics log at the end of the transaction)
+        verify(eventUtils).getListingInfo(listing);
+    }
+
+    @Test
     void handleListingApproved_withNullEvent_shouldThrowException() {
         // Act & Assert
         assertThrows(NullPointerException.class, () -> listener.handleListingApproved(null));
