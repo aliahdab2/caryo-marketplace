@@ -43,7 +43,8 @@ public class CarListingQueryService {
      * @return Specification for approved, not sold, not archived, and user active listings
      */
     private Specification<CarListing> getBaseApprovedListingsSpec() {
-        return Specification.where(CarListingSpecification.isApproved())
+        // Use direct specification chaining instead of deprecated Specification.where()
+        return CarListingSpecification.isApproved()
                            .and(CarListingSpecification.isNotSold())
                            .and(CarListingSpecification.isNotArchived())
                            .and(CarListingSpecification.isUserActive());

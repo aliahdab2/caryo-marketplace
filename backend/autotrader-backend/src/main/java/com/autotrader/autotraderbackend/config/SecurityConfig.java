@@ -19,12 +19,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.context.annotation.Profile;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@Profile("!test")
 public class SecurityConfig {
 
     @Bean
@@ -131,10 +134,7 @@ public class SecurityConfig {
             .referrerPolicy(referrer -> referrer
                 .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
             )
-            // Permissions Policy
-            .permissionsPolicy(permissions -> permissions
-                .policy("geolocation=(), microphone=(), camera=()")
-            )
+            // Note: permissionsPolicy() is deprecated and removed - use browser-side permissions if needed
         );
 
         // Add JWT token filter using the injected parameter
