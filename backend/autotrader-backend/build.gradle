@@ -59,7 +59,6 @@ dependencies {
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'
-    implementation 'com.h2database:h2:2.2.224'
 
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
@@ -82,6 +81,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Testing
+    testImplementation 'com.h2database:h2:2.2.224'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
