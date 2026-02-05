@@ -1,16 +1,8 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
 const eslintConfig = [
-  // Global ignores - these need to be in a separate object at the root level
+  // Global ignores
   {
     ignores: [
       ".next/**",
@@ -19,36 +11,30 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "dist/**",
-      "__mocks__/**", 
+      "__mocks__/**",
       "*.config.js",
       "*.config.mjs",
       "*.config.ts",
       ".husky/**",
       "public/**",
-      "scripts/**", // Allow CommonJS in scripts directory
+      "scripts/**",
     ],
   },
-  
-  // Apply Next.js configurations with explicit plugin detection
-  ...compat.config({ 
-    extends: ["next/core-web-vitals", "next/typescript"],
-    env: {
-      browser: true,
-      es6: true,
-      node: true,
-    },
-  }),
+
+  // Next.js recommended configs (native flat config)
+  ...nextCoreWebVitals,
+  ...nextTypescript,
 
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "error",             // ❌ Prevent using `any`
-      "@typescript-eslint/no-unused-vars": ["error", {           // ❌ No unused vars unless start with _
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": ["error", {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_"
       }],
-      "react-hooks/exhaustive-deps": "warn",                      // ⚠️ Warn if useEffect deps missing
-      "no-console": "off",                                       // ⚠️ Warn on console.log (optional)
+      "react-hooks/exhaustive-deps": "warn",
+      "no-console": "off",
     },
   },
 ];
