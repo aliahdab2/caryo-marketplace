@@ -19,6 +19,11 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+// Handle duplicate JARs in bootJar (jakarta.mail comes from both starter-mail and explicit dep)
+tasks.named('bootJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 repositories {
     mavenCentral()
 }

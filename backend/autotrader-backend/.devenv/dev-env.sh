@@ -22,7 +22,6 @@ error_exit() {
 # Helper function to pull Docker images in parallel
 pull_docker_images() {
     local images=(
-        "gradle:8.5-jdk21"
         "postgres:15-alpine"
         "minio/minio"
         "minio/mc"
@@ -39,7 +38,7 @@ pull_docker_images() {
         echo -e "${YELLOW}Using AMD64 architecture${NC}"
     fi
     
-    echo -e "${YELLOW}Pulling ${#images[@]} Docker images in parallel...${NC}"
+    echo -e "${YELLOW}Pulling Docker images in parallel...${NC}"
     
     # Start all pulls in background with platform specification
     local pids=()
@@ -65,53 +64,26 @@ pull_docker_images() {
     echo -e "${GREEN}All Docker images pulled successfully${NC}"
 }
 
-# Helper function to run Gradle build in Docker container
+# Helper function to run Gradle build
 run_gradle_build() {
     local gradle_args="$1"
-    local gradle_image="gradle:8.5-jdk21"
-    
-    echo -e "${YELLOW}Running: gradle ${gradle_args}${NC}"
-    
-    # Detect platform for proper Docker image selection
-    local platform=""
-    if [[ "$(uname -m)" == "arm64" ]] || [[ "$(uname -m)" == "aarch64" ]]; then
-        platform="--platform linux/arm64"
-        echo -e "${YELLOW}Detected ARM64 architecture, using ARM64 Docker image${NC}"
-    else
-        platform="--platform linux/amd64"
-        echo -e "${YELLOW}Using AMD64 Docker image${NC}"
-    fi
-    
-    # Try Docker Gradle container first
-    echo -e "${YELLOW}Attempting build with Docker Gradle container...${NC}"
-    if docker run --rm \
-        ${platform} \
-        -v "${PROJECT_ROOT}:/app" \
-        -w /app \
-        -e GRADLE_USER_HOME=/tmp/.gradle \
-        "${gradle_image}" \
-        gradle ${gradle_args} 2>/dev/null; then
-        echo -e "${GREEN}Gradle build completed successfully${NC}"
-        return 0
-    fi
-    
-    # Fallback to local Gradle wrapper if Docker fails
-    echo -e "${YELLOW}Docker build failed, falling back to local Gradle wrapper...${NC}"
-    
-    # Check if gradlew exists and is executable
+
+    echo -e "${YELLOW}Running: ./gradlew ${gradle_args}${NC}"
+
+    # Check if gradlew exists
     if [ ! -f "./gradlew" ]; then
-        error_exit "No gradlew found and Docker build failed"
+        error_exit "No gradlew found in project"
     fi
-    
+
     # Make gradlew executable if it isn't
     chmod +x ./gradlew
-    
-    # Try local Gradle wrapper
+
+    # Use local Gradle wrapper (configured for correct version in gradle-wrapper.properties)
     if ./gradlew ${gradle_args}; then
-        echo -e "${GREEN}Gradle build completed successfully with local wrapper${NC}"
+        echo -e "${GREEN}Gradle build completed successfully${NC}"
         return 0
     else
-        error_exit "Both Docker and local Gradle builds failed"
+        error_exit "Gradle build failed"
     fi
 }
 
