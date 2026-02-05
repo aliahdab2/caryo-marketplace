@@ -43,6 +43,11 @@ npm-debug.log*
 /public/sitemap.xml
 /public/robots.txt
 
+# Translation tool generated files
+.translation-cache.json
+translation-needs-analysis.json
+translation-report.json
+
 # Playwright test results
 e2e/test-results/
 playwright-report/

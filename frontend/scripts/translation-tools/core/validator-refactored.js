@@ -272,17 +272,14 @@ function main() {
       break;
 
     case 'incomplete':
-      console.log('🔍 Checking for incomplete translations...');
-      console.log('This shows keys that exist in one language but are missing in another.');
-      console.log('Run: npm run translation:incomplete');
-      console.log('');
+      generateDetailedReport(translations, 'missing');
       break;
 
     case 'verify-needs':
-      console.log('🔍 Verifying translation needs...');
-      console.log('This cross-references incomplete translations with source code usage.');
-      console.log('Run: npm run translation:verify-needs');
-      console.log('');
+      require('./verify-needs').main().catch(error => {
+        console.error('❌ Error:', error.message);
+        process.exit(1);
+      });
       break;
 
     case 'orphaned-safe':
