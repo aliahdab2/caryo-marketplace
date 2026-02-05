@@ -18,8 +18,33 @@ interface Step1UserTypeSelectionProps {
 }
 
 /**
- * Step 1: User Type Selection Component
- * Displays seller type options with comprehensive RTL support
+ * Step 1: User Type Selection
+ *
+ * First step of the signup flow where users select their account type:
+ * - **Private Seller**: Individual users selling personal vehicles
+ * - **Dealer**: Business accounts for car dealerships/showrooms
+ *
+ * Features:
+ * - Full RTL (Arabic) support with proper text alignment
+ * - Visual selection indicators with animated transitions
+ * - Feature list display for each account type
+ * - Integrates with dealer intent for age validation
+ *
+ * @param props.sellerTypes - Available seller type options (from API)
+ * @param props.selectedSellerType - Currently selected type ('private' or 'dealer')
+ * @param props.setSelectedSellerType - Callback to update selection
+ * @param props.setDealerIntent - Optional callback for dealer age validation
+ * @param props.loading - Loading state (disables interaction)
+ *
+ * @example
+ * ```tsx
+ * <Step1UserTypeSelection
+ *   sellerTypes={apiSellerTypes}
+ *   selectedSellerType={formData.sellerType}
+ *   setSelectedSellerType={(type) => setFormData({ ...formData, sellerType: type })}
+ *   setDealerIntent={setIsDealerFlow}
+ * />
+ * ```
  */
 export default function Step1UserTypeSelection({
   sellerTypes: _sellerTypes,

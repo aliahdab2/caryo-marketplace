@@ -9,6 +9,14 @@ import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.DealerTrialService;
 import com.autotrader.autotraderbackend.service.DealerTrialService.TrialStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +37,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/dealer")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Dealer", description = "Dealer profile management, trial status, and subscription operations")
+@SecurityRequirement(name = "bearer-token")
 public class DealerController {
 
     private final DealerService dealerService;
@@ -40,6 +50,17 @@ public class DealerController {
      * @param userDetails Authenticated user details
      * @return Trial status including days remaining, listings used, etc.
      */
+    @Operation(
+        summary = "Get dealer trial status",
+        description = "Returns trial status including days remaining, listings used/limit, and subscription info"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Trial status retrieved successfully",
+            content = @Content(schema = @Schema(implementation = TrialStatus.class))),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Not a dealer account"),
+        @ApiResponse(responseCode = "404", description = "Dealer profile not found")
+    })
     @GetMapping("/trial-status")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
     public ResponseEntity<?> getTrialStatus(@AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -75,12 +96,22 @@ public class DealerController {
      * @param reason Reason for extension (audit trail)
      * @return Success message
      */
+    @Operation(
+        summary = "Extend dealer trial period",
+        description = "Admin-only endpoint to extend a dealer's trial period by a specified number of days"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Trial extended successfully"),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Admin role required"),
+        @ApiResponse(responseCode = "404", description = "Dealer not found")
+    })
     @PostMapping("/extend-trial/{dealerId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> extendTrial(
-            @PathVariable Long dealerId,
-            @RequestParam int additionalDays,
-            @RequestParam String reason,
+            @Parameter(description = "Dealer ID to extend trial for") @PathVariable Long dealerId,
+            @Parameter(description = "Number of days to add to trial") @RequestParam int additionalDays,
+            @Parameter(description = "Reason for extension (audit trail)") @RequestParam String reason,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         try {
             Dealer dealer = dealerService.getDealerById(dealerId)
@@ -111,6 +142,17 @@ public class DealerController {
      * @param userDetails Authenticated user details
      * @return Dealer profile
      */
+    @Operation(
+        summary = "Get dealer profile",
+        description = "Returns the authenticated dealer's full profile including business info, branding, and subscription status"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully",
+            content = @Content(schema = @Schema(implementation = DealerProfileResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Not a dealer account"),
+        @ApiResponse(responseCode = "404", description = "Dealer profile not found")
+    })
     @GetMapping("/profile")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
     public ResponseEntity<?> getDealerProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -172,6 +214,18 @@ public class DealerController {
      * @param updateRequest Profile update payload
      * @return Updated dealer profile
      */
+    @Operation(
+        summary = "Update dealer profile",
+        description = "Updates dealer's public profile including business info, logo, banner, description, and social links"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile updated successfully",
+            content = @Content(schema = @Schema(implementation = Dealer.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input (duplicate email, invalid URL, etc.)"),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Not a dealer account"),
+        @ApiResponse(responseCode = "404", description = "Dealer profile not found")
+    })
     @PutMapping("/profile")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
     public ResponseEntity<?> updateDealerProfile(
@@ -204,6 +258,17 @@ public class DealerController {
      * @param userDetails Authenticated user details
      * @return Response with canCreate flag, reason, and trial status
      */
+    @Operation(
+        summary = "Check listing creation permission",
+        description = "Checks if the dealer can create a new listing based on trial status, subscription, and limits"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Permission status retrieved",
+            content = @Content(schema = @Schema(implementation = CanCreateListingResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Not a dealer account"),
+        @ApiResponse(responseCode = "404", description = "Dealer profile not found")
+    })
     @GetMapping("/can-create-listing")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
     public ResponseEntity<?> canCreateListing(@AuthenticationPrincipal UserDetailsImpl userDetails) {

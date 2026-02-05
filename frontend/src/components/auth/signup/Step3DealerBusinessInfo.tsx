@@ -34,6 +34,31 @@ interface Step3DealerBusinessInfoProps {
   hasAttemptedValidation: boolean;
 }
 
+/**
+ * Step 3: Dealer Business Information Form
+ *
+ * Collects business registration details for dealer accounts:
+ * - Business/company name
+ * - VAT/Tax number (country-specific format)
+ * - Trading/business address
+ * - Business location (governorate selection)
+ *
+ * Features:
+ * - Country-specific VAT validation (via businessRegistration config)
+ * - Dynamic governorate dropdown loaded from API
+ * - Real-time validation with localized error messages
+ * - Full RTL (Arabic) support
+ *
+ * Note: City-level selection is prepared but not yet active (governorate only).
+ *
+ * @param props - Business info form fields, setters, and validation states
+ * @param props.businessName - Dealership/company name
+ * @param props.vatNumber - VAT/Tax registration number
+ * @param props.tradingAddress - Full business address
+ * @param props.dealerGovernorateSlug - Selected governorate slug
+ * @param props.loading - Disables form during submission
+ * @param props.hasAttemptedValidation - Shows errors only after first submit attempt
+ */
 export default function Step3DealerBusinessInfo({
   businessName,
   setBusinessName,

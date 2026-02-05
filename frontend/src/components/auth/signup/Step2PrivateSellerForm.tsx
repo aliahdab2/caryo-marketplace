@@ -35,6 +35,34 @@ interface Step2PrivateSellerFormProps {
   confirmPasswordError?: string;
 }
 
+/**
+ * Step 2: Private Seller Registration Form
+ *
+ * Collects personal information for individual (non-dealer) users:
+ * - Full name and email
+ * - Syrian phone number with validation
+ * - City selection (Syrian governorates)
+ * - Date of birth with age validation (18+)
+ * - Password with confirmation
+ *
+ * Features:
+ * - Full RTL (Arabic) support
+ * - Real-time field validation with error messages
+ * - Syrian-specific phone format validation
+ * - Password strength requirements
+ * - Accessible form controls with proper labels
+ *
+ * @param props - Form field values, setters, and error states
+ * @param props.username - User's full name
+ * @param props.email - Email address
+ * @param props.phone - Syrian phone number
+ * @param props.city - Selected city/governorate
+ * @param props.dateOfBirth - Date of birth (YYYY-MM-DD)
+ * @param props.password - Password
+ * @param props.confirmPassword - Password confirmation
+ * @param props.loading - Disables form during submission
+ * @param props.hasAttemptedValidation - Shows errors only after first submit attempt
+ */
 export default function Step2PrivateSellerForm({
   username,
   setUsername,

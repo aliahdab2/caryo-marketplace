@@ -7,6 +7,62 @@ import { useRTL } from '@/hooks/useRTL';
 import ApiErrorModal from '@/components/ui/ApiErrorModal';
 import { api } from '@/services/api';
 
+/**
+ * Step 4: Dealer Contact Information Form
+ *
+ * Final step of dealer registration collecting:
+ * - **Business Email**: Contact email for the dealership
+ * - **Business Phone**: Syrian phone number with country code validation
+ * - **Password**: Account credentials with confirmation
+ * - **Logo Upload**: Optional business logo (uploaded to temp/ folder, moved after account creation)
+ *
+ * Features:
+ * - File upload to MinIO via unauthenticated endpoint (user has no account during signup)
+ * - Image preview with remove capability
+ * - Password visibility toggle
+ * - RTL (Arabic) layout support
+ * - Real-time validation with error display
+ *
+ * @param props.businessEmail - Business contact email
+ * @param props.setBusinessEmail - Callback to update email
+ * @param props.businessPhone - Syrian phone number (format: 9XX XXX XXX)
+ * @param props.setBusinessPhone - Callback to update phone
+ * @param props.logoUrl - URL of uploaded logo (from MinIO temp/ folder)
+ * @param props.setLogoUrl - Callback to update logo URL
+ * @param props.password - Account password
+ * @param props.setPassword - Callback to update password
+ * @param props.confirmPassword - Password confirmation
+ * @param props.setConfirmPassword - Callback to update confirmation
+ * @param props.businessEmailError - Email validation error message
+ * @param props.businessPhoneError - Phone validation error message
+ * @param props.passwordError - Password validation error message
+ * @param props.loading - Disables inputs during form submission
+ * @param props.hasAttemptedValidation - Enables validation display after first submit attempt
+ *
+ * @example
+ * ```tsx
+ * <Step4DealerContactInfo
+ *   businessEmail={formData.businessEmail}
+ *   setBusinessEmail={(email) => updateFormData('businessEmail', email)}
+ *   businessPhone={formData.businessPhone}
+ *   setBusinessPhone={(phone) => updateFormData('businessPhone', phone)}
+ *   logoUrl={formData.logoUrl}
+ *   setLogoUrl={(url) => updateFormData('logoUrl', url)}
+ *   password={formData.password}
+ *   setPassword={(pwd) => updateFormData('password', pwd)}
+ *   confirmPassword={formData.confirmPassword}
+ *   setConfirmPassword={(pwd) => updateFormData('confirmPassword', pwd)}
+ *   businessEmailError={errors.businessEmail}
+ *   setBusinessEmailError={(err) => setErrors({ ...errors, businessEmail: err })}
+ *   businessPhoneError={errors.businessPhone}
+ *   setBusinessPhoneError={(err) => setErrors({ ...errors, businessPhone: err })}
+ *   passwordError={errors.password}
+ *   setPasswordError={(err) => setErrors({ ...errors, password: err })}
+ *   loading={isSubmitting}
+ *   hasAttemptedValidation={hasAttemptedSubmit}
+ * />
+ * ```
+ */
 interface Step4DealerContactInfoProps {
   businessEmail: string;
   setBusinessEmail: (value: string) => void;

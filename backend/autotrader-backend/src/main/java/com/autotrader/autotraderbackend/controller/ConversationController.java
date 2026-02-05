@@ -13,6 +13,13 @@ import com.autotrader.autotraderbackend.security.ratelimit.RateLimit;
 import com.autotrader.autotraderbackend.security.ratelimit.RateLimitKeyType;
 
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +45,8 @@ import java.util.Map;
 @RequestMapping("/api/conversations")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Conversations", description = "Messaging system for buyer-seller communication")
+@SecurityRequirement(name = "bearer-token")
 public class ConversationController {
 
     private final ConversationService conversationService;
@@ -47,6 +56,12 @@ public class ConversationController {
     /**
      * Create a new conversation
      */
+    @Operation(summary = "Create conversation", description = "Start a new conversation about a listing with the seller")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Conversation created"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     @PostMapping
     public ResponseEntity<ApiResponse<ConversationResponse>> createConversation(
             @Valid @RequestBody CreateConversationRequest request,
@@ -67,6 +82,7 @@ public class ConversationController {
     /**
      * Get user's conversations with pagination
      */
+    @Operation(summary = "Get my conversations", description = "Retrieve all conversations for the authenticated user with pagination")
     @GetMapping("/my-conversations")
     public ResponseEntity<Page<ConversationResponse>> getUserConversations(
             @RequestParam(defaultValue = "0") int page,
@@ -90,6 +106,7 @@ public class ConversationController {
     /**
      * Get a specific conversation by ID
      */
+    @Operation(summary = "Get conversation", description = "Retrieve a specific conversation by ID")
     @GetMapping("/{id}")
     public ResponseEntity<ConversationResponse> getConversation(
             @PathVariable Long id,
@@ -104,6 +121,7 @@ public class ConversationController {
     /**
      * Get messages in a conversation with pagination
      */
+    @Operation(summary = "Get messages", description = "Retrieve messages in a conversation with pagination")
     @GetMapping("/{id}/messages")
     public ResponseEntity<Page<MessageResponse>> getConversationMessages(
             @PathVariable Long id,
@@ -128,6 +146,7 @@ public class ConversationController {
     /**
      * Send a message in a conversation
      */
+    @Operation(summary = "Send message", description = "Send a text message in a conversation (rate limited: 20/min)")
     @RateLimit(maxRequests = 20, windowSeconds = 60, keyType = RateLimitKeyType.USER,
         message = "Too many messages sent. Please wait a moment before sending more.")
     @PostMapping("/{id}/messages")
@@ -150,7 +169,8 @@ public class ConversationController {
     /**
      * Mark a message as read
      */
-        @PatchMapping("/messages/{messageId}/read")
+    @Operation(summary = "Mark message as read", description = "Mark a specific message as read")
+    @PatchMapping("/messages/{messageId}/read")
     public ResponseEntity<ApiResponse<Void>> markMessageAsRead(
             @PathVariable Long messageId,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -168,6 +188,7 @@ public class ConversationController {
     /**
      * Mark all messages in a conversation as read
      */
+    @Operation(summary = "Mark all as read", description = "Mark all messages in a conversation as read")
     @PatchMapping("/{id}/messages/read-all")
     public ResponseEntity<ApiResponse<Void>> markAllMessagesAsRead(
             @PathVariable Long id,
@@ -186,6 +207,7 @@ public class ConversationController {
     /**
      * Archive a conversation
      */
+    @Operation(summary = "Archive conversation", description = "Archive a conversation to hide it from the main list")
     @PatchMapping("/{id}/archive")
     public ResponseEntity<ApiResponse<Void>> archiveConversation(
             @PathVariable Long id,
@@ -204,6 +226,7 @@ public class ConversationController {
     /**
      * Block a user in a conversation
      */
+    @Operation(summary = "Block user", description = "Block the other user in a conversation to prevent further messages")
     @PatchMapping("/{id}/block")
     public ResponseEntity<ApiResponse<Void>> blockUser(
             @PathVariable Long id,
@@ -222,6 +245,7 @@ public class ConversationController {
     /**
      * Update conversation status
      */
+    @Operation(summary = "Update status", description = "Update conversation status (active, archived, closed)")
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponse<Void>> updateConversationStatus(
             @PathVariable Long id,
@@ -241,6 +265,7 @@ public class ConversationController {
     /**
      * Upload file attachment for a message
      */
+    @Operation(summary = "Upload attachment", description = "Upload a file attachment to use in a message")
     @PostMapping("/{id}/messages/attachments")
     public ResponseEntity<ApiResponse<Map<String, Object>>> uploadMessageAttachment(
             @PathVariable Long id,
@@ -261,6 +286,7 @@ public class ConversationController {
     /**
      * Send message with attachments
      */
+    @Operation(summary = "Send message with attachments", description = "Send a message with one or more file attachments")
     @PostMapping("/{id}/messages/with-attachments")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessageWithAttachments(
             @PathVariable Long id,

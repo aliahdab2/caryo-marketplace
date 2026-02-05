@@ -24,6 +24,30 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * S3-based implementation of {@link StorageService}.
+ * Handles file storage operations using Amazon S3 or S3-compatible services (MinIO).
+ *
+ * <p>Key features:
+ * <ul>
+ *   <li>Server-side copy/move operations (no data download to server)</li>
+ *   <li>Paginated listing for large buckets</li>
+ *   <li>Signed URL generation for temporary access</li>
+ *   <li>CDN and public URL support</li>
+ *   <li>Automatic bucket routing based on file type</li>
+ * </ul>
+ *
+ * <p>This service requires:
+ * <ul>
+ *   <li>{@link S3Client} - AWS SDK S3 client</li>
+ *   <li>{@link StorageConfigurationManager} - Bucket and configuration management</li>
+ *   <li>{@link StorageUrlGenerator} - URL generation for different access patterns</li>
+ * </ul>
+ *
+ * @see StorageService
+ * @see StorageKeyGenerator
+ * @see NoOpStorageService for test environments
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class S3StorageService implements StorageService {
@@ -32,6 +56,15 @@ public class S3StorageService implements StorageService {
     private final StorageConfigurationManager configManager;
     private final StorageUrlGenerator urlGenerator;
 
+    /**
+     * Initializes the S3 storage service and verifies bucket accessibility.
+     *
+     * <p>Called automatically after bean construction. Validates that the S3 client,
+     * configuration manager, and URL generator are properly injected, then verifies
+     * the default bucket exists and is accessible.
+     *
+     * @throws StorageException if bucket name is not configured or bucket doesn't exist
+     */
     @Override
     @PostConstruct
     public void init() {
@@ -68,6 +101,14 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Stores a file in S3 with the specified key.
+     *
+     * @param file The file to store (must not be null or empty)
+     * @param key The storage key/path (e.g., "temp/uuid.jpg" or "dealers/logos/file.png")
+     * @return The storage key on success
+     * @throws StorageException if file is null/empty, key is invalid, or S3 operation fails
+     */
     @Override
     public String store(MultipartFile file, String key) {
         Objects.requireNonNull(file, "File cannot be null");
@@ -99,6 +140,14 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Loads a file from S3 as a Spring Resource.
+     *
+     * @param key The storage key of the file to load
+     * @return A Resource wrapping the S3 input stream
+     * @throws StorageException if key is invalid or S3 operation fails
+     * @throws StorageFileNotFoundException if the file doesn't exist
+     */
     @Override
     public Resource loadAsResource(String key) {
         if (!StringUtils.hasText(key)) {
@@ -134,6 +183,12 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Deletes a file from S3.
+     *
+     * @param key The storage key of the file to delete
+     * @return true if deletion succeeded, false if key is invalid or deletion failed
+     */
     @Override
     public boolean delete(String key) {
         if (!StringUtils.hasText(key)) {
@@ -160,6 +215,14 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Deletes all objects from the default bucket.
+     *
+     * <p><strong>Warning:</strong> This is a destructive operation that removes all files.
+     * Use with caution, typically only in test cleanup scenarios.
+     *
+     * @throws StorageException if the deletion operation fails
+     */
     @Override
     public void deleteAll() {
         try {
@@ -205,17 +268,47 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Not implemented for S3 storage.
+     *
+     * <p>S3 doesn't support filesystem-style path listing. Use {@link #listByPrefix(String)}
+     * to list objects with a common prefix.
+     *
+     * @return An empty stream (always)
+     */
     @Override
     public Stream<Path> loadAll() {
         log.warn("loadAll is not implemented for S3. Returning empty stream.");
         return Stream.empty();
     }
 
+    /**
+     * Not supported for S3 storage.
+     *
+     * <p>S3 objects are not accessible via filesystem paths. Use {@link #loadAsResource(String)}
+     * to load file content, or {@link #getSignedUrl(String, long)} for direct URL access.
+     *
+     * @param key The storage key (ignored)
+     * @return Never returns
+     * @throws UnsupportedOperationException always
+     */
     @Override
     public Path load(String key) {
         throw new UnsupportedOperationException("Loading as Path is not supported in S3.");
     }
 
+    /**
+     * Generates a URL for accessing a file.
+     *
+     * <p>Returns either a signed URL (with expiration) or a public URL depending on
+     * the storage configuration. Signed URLs provide temporary access without
+     * requiring authentication.
+     *
+     * @param key The storage key of the file
+     * @param expirationSeconds URL validity period in seconds (ignored for public URLs)
+     * @return The generated URL (signed or public)
+     * @throws StorageException if key is invalid, expiration is negative, or URL generation fails
+     */
     @Override
     public String getSignedUrl(String key, long expirationSeconds) {
         if (!StringUtils.hasText(key)) {
@@ -284,6 +377,19 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Copies a file from one storage key to another using server-side S3 copy.
+     *
+     * <p>This operation is performed entirely on the S3 server side, meaning the file
+     * content is never downloaded to the application server. This makes it efficient
+     * for large files.
+     *
+     * @param sourceKey The source storage key (e.g., "temp/uuid.jpg")
+     * @param destinationKey The destination storage key (e.g., "dealers/logos/uuid.jpg")
+     * @return The destination key on success
+     * @throws StorageException if either key is invalid or the S3 copy operation fails
+     * @throws StorageFileNotFoundException if the source file doesn't exist
+     */
     @Override
     public String copy(String sourceKey, String destinationKey) {
         if (!StringUtils.hasText(sourceKey)) {
@@ -315,6 +421,20 @@ public class S3StorageService implements StorageService {
         }
     }
 
+    /**
+     * Moves a file from one storage key to another.
+     *
+     * <p>Implemented as a server-side copy followed by delete. If the delete fails,
+     * the method logs a warning but still returns successfully (the file exists at
+     * the destination). The orphaned source file will be cleaned up by the scheduled
+     * temp cleanup job.
+     *
+     * @param sourceKey The source storage key (e.g., "temp/uuid.jpg")
+     * @param destinationKey The destination storage key (e.g., "dealers/logos/uuid.jpg")
+     * @return The destination key on success
+     * @throws StorageException if copy fails
+     * @throws StorageFileNotFoundException if source file doesn't exist
+     */
     @Override
     public String move(String sourceKey, String destinationKey) {
         copy(sourceKey, destinationKey);
@@ -330,6 +450,26 @@ public class S3StorageService implements StorageService {
         return destinationKey;
     }
 
+    /**
+     * Lists all objects in S3 with the specified prefix.
+     *
+     * <p>Uses paginated listing to handle large result sets. Returns metadata about
+     * each object including the key, last modified timestamp, and size in bytes.
+     *
+     * <p>Example usage:
+     * <pre>{@code
+     * List<StorageObjectInfo> tempFiles = storageService.listByPrefix("temp/");
+     * for (StorageObjectInfo file : tempFiles) {
+     *     if (file.lastModified().isBefore(cutoffTime)) {
+     *         storageService.delete(file.key());
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param prefix The key prefix to filter by (e.g., "temp/" or "dealers/logos/")
+     * @return List of StorageObjectInfo containing key, lastModified, and size for each object
+     * @throws StorageException if prefix is invalid or S3 operation fails
+     */
     @Override
     public List<StorageObjectInfo> listByPrefix(String prefix) {
         if (!StringUtils.hasText(prefix)) {
