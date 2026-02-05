@@ -25,7 +25,7 @@ export function usePublicDealerProfile(
     enabled: options?.enabled ?? true,
     // Use initial data from server if provided (prevents refetch on hydration)
     initialData: options?.initialData,
-    initialDataUpdatedAt: options?.initialData ? Date.now() : undefined,
+    initialDataUpdatedAt: options?.initialData ? Date.now() : undefined, // eslint-disable-line react-hooks/purity -- intentionally captures current time for React Query staleness
   });
 }
 

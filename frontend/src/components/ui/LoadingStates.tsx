@@ -47,7 +47,7 @@ export function FiltersSkeleton() {
           <div
             key={index}
             className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
-            style={{ width: `${Math.random() * 60 + 80}px` }}
+            style={{ width: `${80 + (index * 15) % 60}px` }}
           />
         ))}
       </div>

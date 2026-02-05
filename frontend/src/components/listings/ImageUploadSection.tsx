@@ -12,7 +12,7 @@ import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 
 // Optimized throttle hook for frequent operations
 function useThrottle<T extends (...args: any[]) => any>(func: T, delay: number): T { // eslint-disable-line @typescript-eslint/no-explicit-any -- Necessary for generic function throttling
-  const lastRun = useRef(Date.now());
+  const lastRun = useRef(0);
 
   return useCallbackPerf((...args: Parameters<T>) => {
     if (Date.now() - lastRun.current >= delay) {

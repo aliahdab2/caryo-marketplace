@@ -72,8 +72,8 @@ export default function DealerDashboard() {
   const dashboardStats = useMemo(() => ({
     totalListings: listings.length,
     activeListings: listings.filter(l => l.status === 'active').length,
-    views: Math.floor(Math.random() * 1000) + 100, // Mock data - replace with real data when available
-    inquiries: Math.floor(Math.random() * 50) + 5, // Mock data - replace with real data when available
+    views: 0, // TODO: replace with real analytics data
+    inquiries: 0, // TODO: replace with real analytics data
     favorites: favorites.length,
     alerts: savedSearches.length
   }), [listings, favorites.length, savedSearches.length]);

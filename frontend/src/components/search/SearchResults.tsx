@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MdViewModule, MdViewList } from 'react-icons/md';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useLanguageDirection } from '@/utils/languageDirection';
@@ -45,7 +45,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
   const { t } = useLazyTranslation('search');
   const { isRTL } = useLanguageDirection();
   const { announce } = useAnnouncements();
-  const retryCount = useRef(0);
+  const [retryCount, setRetryCount] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
 
 
@@ -76,7 +76,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
 
   // Enhanced retry functionality
   const handleRetry = async () => {
-    retryCount.current = retryCount.current + 1;
+    setRetryCount(prev => prev + 1);
     try {
       await onRetry();
       announce(t('retrySuccess', 'Retry successful, results reloaded'));
@@ -189,7 +189,7 @@ const SearchResults = React.memo<SearchResultsProps>(({
               type="network"
               title={t('errorLoadingResults', 'Error loading results')}
               message={error}
-              onRetry={retryCount.current < 3 ? handleRetry : undefined}
+              onRetry={retryCount < 3 ? handleRetry : undefined}
             />
           </div>
         ) : carListings?.content?.length ? (

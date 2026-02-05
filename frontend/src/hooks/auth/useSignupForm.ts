@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 
 export interface SignupFormData {
   // Common fields
@@ -98,12 +98,10 @@ export function useSignupForm() {
   }, []);
 
   // Debounced save function
-  const debouncedSave = useMemo(() => {
-    let timeoutId: NodeJS.Timeout;
-    return (data: SignupFormData, state: SignupUIState) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => saveToLocalStorage(data, state), 500);
-    };
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const debouncedSave = useCallback((data: SignupFormData, state: SignupUIState) => {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => saveToLocalStorage(data, state), 500);
   }, [saveToLocalStorage]);
 
   // Load from localStorage
