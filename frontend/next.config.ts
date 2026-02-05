@@ -31,12 +31,6 @@ if (!minioUrl && showWarnings) {
 }
 
 const nextConfig: NextConfig = {
-  // ESLint configuration for Next.js integration
-  eslint: {
-    // Skip ESLint during builds - we use our own lint scripts
-    ignoreDuringBuilds: true,
-  },
-  
   // Performance optimizations
   experimental: {
     // Enable optimizePackageImports for better tree shaking
