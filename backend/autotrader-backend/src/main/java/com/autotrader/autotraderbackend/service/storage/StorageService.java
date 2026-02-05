@@ -4,6 +4,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -71,4 +72,30 @@ public interface StorageService {
      * @throws UnsupportedOperationException if the storage backend does not support signed URLs.
      */
     String getSignedUrl(String key, long expirationSeconds);
+
+    /**
+     * Copy a file from one key to another within the same bucket.
+     *
+     * @param sourceKey      The source storage key.
+     * @param destinationKey The destination storage key.
+     * @return The destination key on success.
+     */
+    String copy(String sourceKey, String destinationKey);
+
+    /**
+     * Move a file from one key to another (copy then delete source).
+     *
+     * @param sourceKey      The source storage key.
+     * @param destinationKey The destination storage key.
+     * @return The destination key on success.
+     */
+    String move(String sourceKey, String destinationKey);
+
+    /**
+     * List all storage keys under a given prefix.
+     *
+     * @param prefix The key prefix to list (e.g., "temp/").
+     * @return List of object info entries matching the prefix.
+     */
+    List<StorageObjectInfo> listByPrefix(String prefix);
 }

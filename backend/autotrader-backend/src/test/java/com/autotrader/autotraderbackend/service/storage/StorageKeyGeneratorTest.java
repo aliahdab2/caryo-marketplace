@@ -410,4 +410,92 @@ void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
         // Assert
         assertThat(result).isFalse();
     }
+
+    @Test
+    void extractKeyFromUrl_WithFullUrlContainingApiFiles_ShouldExtractKey() {
+        // Arrange
+        String url = "http://localhost:8080/api/files/temp/uuid-123.jpg";
+
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(url);
+
+        // Assert
+        assertThat(result).isEqualTo("temp/uuid-123.jpg");
+    }
+
+    @Test
+    void extractKeyFromUrl_WithRelativePathContainingApiFiles_ShouldExtractKey() {
+        // Arrange
+        String path = "/api/files/dealers/logos/uuid-456.png";
+
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(path);
+
+        // Assert
+        assertThat(result).isEqualTo("dealers/logos/uuid-456.png");
+    }
+
+    @Test
+    void extractKeyFromUrl_WithApiImagesPath_ShouldExtractKey() {
+        // Arrange
+        String url = "http://localhost:8080/api/images/public/images/uuid.jpg";
+
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(url);
+
+        // Assert
+        assertThat(result).isEqualTo("public/images/uuid.jpg");
+    }
+
+    @Test
+    void extractKeyFromUrl_WithBareKey_ShouldReturnUnchanged() {
+        // Arrange
+        String key = "temp/uuid-123.jpg";
+
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(key);
+
+        // Assert
+        assertThat(result).isEqualTo("temp/uuid-123.jpg");
+    }
+
+    @Test
+    void extractKeyFromUrl_WithNull_ShouldReturnNull() {
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(null);
+
+        // Assert
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void extractKeyFromUrl_WithEmpty_ShouldReturnEmpty() {
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl("");
+
+        // Assert
+        assertThat(result).isEqualTo("");
+    }
+
+    @Test
+    void extractKeyFromUrl_WithWhitespace_ShouldReturnOriginalInput() {
+        // Act - whitespace-only input is treated as "not matching any pattern"
+        String result = storageKeyGenerator.extractKeyFromUrl("   ");
+
+        // Assert - returns trimmed but since it's whitespace-only, it becomes empty check fails
+        // and returns the cleaned (trimmed) value
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void extractKeyFromUrl_WithExternalUrl_ShouldReturnUnchanged() {
+        // Arrange - external URL not matching our patterns
+        String externalUrl = "https://example.com/images/logo.png";
+
+        // Act
+        String result = storageKeyGenerator.extractKeyFromUrl(externalUrl);
+
+        // Assert
+        assertThat(result).isEqualTo("https://example.com/images/logo.png");
+    }
 }

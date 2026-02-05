@@ -15,7 +15,9 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
@@ -324,5 +326,164 @@ class S3StorageServiceTest {
         });
 
         assertTrue(exception.getMessage().contains("Expiration seconds cannot be negative"));
+    }
+
+    @Test
+    void testCopySuccess() {
+        String sourceKey = "temp/source.jpg";
+        String destKey = "dealers/logos/source.jpg";
+
+        when(s3Client.copyObject(any(CopyObjectRequest.class)))
+                .thenReturn(CopyObjectResponse.builder().build());
+
+        String result = s3StorageService.copy(sourceKey, destKey);
+
+        assertEquals(destKey, result);
+        verify(s3Client, times(1)).copyObject(any(CopyObjectRequest.class));
+    }
+
+    @Test
+    void testCopySourceNotFound() {
+        String sourceKey = "temp/missing.jpg";
+        String destKey = "dealers/logos/missing.jpg";
+
+        when(s3Client.copyObject(any(CopyObjectRequest.class)))
+                .thenThrow(NoSuchKeyException.builder().build());
+
+        StorageFileNotFoundException exception = assertThrows(StorageFileNotFoundException.class, () -> {
+            s3StorageService.copy(sourceKey, destKey);
+        });
+
+        assertTrue(exception.getMessage().contains("Source file not found"));
+    }
+
+    @Test
+    void testCopyNullSourceKeyThrows() {
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.copy(null, "dest/key.jpg");
+        });
+
+        assertTrue(exception.getMessage().contains("Source key cannot be null or empty"));
+    }
+
+    @Test
+    void testCopyNullDestKeyThrows() {
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.copy("source/key.jpg", null);
+        });
+
+        assertTrue(exception.getMessage().contains("Destination key cannot be null or empty"));
+    }
+
+    @Test
+    void testMoveSuccess() {
+        String sourceKey = "temp/file.jpg";
+        String destKey = "dealers/logos/file.jpg";
+
+        when(s3Client.copyObject(any(CopyObjectRequest.class)))
+                .thenReturn(CopyObjectResponse.builder().build());
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
+                .thenReturn(DeleteObjectResponse.builder().build());
+
+        String result = s3StorageService.move(sourceKey, destKey);
+
+        assertEquals(destKey, result);
+        verify(s3Client, times(1)).copyObject(any(CopyObjectRequest.class));
+        verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    void testMoveDeleteFailsStillReturnsDestKey() {
+        String sourceKey = "temp/file.jpg";
+        String destKey = "dealers/logos/file.jpg";
+
+        when(s3Client.copyObject(any(CopyObjectRequest.class)))
+                .thenReturn(CopyObjectResponse.builder().build());
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
+                .thenThrow(S3Exception.builder().message("Delete failed").build());
+
+        // Should still return destKey even if delete fails
+        String result = s3StorageService.move(sourceKey, destKey);
+
+        assertEquals(destKey, result);
+        verify(s3Client, times(1)).copyObject(any(CopyObjectRequest.class));
+        verify(s3Client, times(1)).deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    void testListByPrefixSuccess() {
+        String prefix = "temp/";
+        Instant now = Instant.now();
+
+        S3Object obj1 = S3Object.builder().key("temp/file1.jpg").lastModified(now).size(1000L).build();
+        S3Object obj2 = S3Object.builder().key("temp/file2.jpg").lastModified(now).size(2000L).build();
+
+        ListObjectsV2Response listResponse = ListObjectsV2Response.builder()
+                .contents(List.of(obj1, obj2))
+                .isTruncated(false)
+                .build();
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResponse);
+
+        List<StorageObjectInfo> result = s3StorageService.listByPrefix(prefix);
+
+        assertEquals(2, result.size());
+        assertEquals("temp/file1.jpg", result.get(0).key());
+        assertEquals("temp/file2.jpg", result.get(1).key());
+        verify(s3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+    }
+
+    @Test
+    void testListByPrefixEmpty() {
+        String prefix = "temp/";
+
+        ListObjectsV2Response listResponse = ListObjectsV2Response.builder()
+                .contents(Collections.emptyList())
+                .isTruncated(false)
+                .build();
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listResponse);
+
+        List<StorageObjectInfo> result = s3StorageService.listByPrefix(prefix);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testListByPrefixNullPrefixThrows() {
+        StorageException exception = assertThrows(StorageException.class, () -> {
+            s3StorageService.listByPrefix(null);
+        });
+
+        assertTrue(exception.getMessage().contains("Prefix cannot be null or empty"));
+    }
+
+    @Test
+    void testListByPrefixPaginated() {
+        String prefix = "temp/";
+        Instant now = Instant.now();
+
+        S3Object obj1 = S3Object.builder().key("temp/file1.jpg").lastModified(now).size(1000L).build();
+        S3Object obj2 = S3Object.builder().key("temp/file2.jpg").lastModified(now).size(2000L).build();
+
+        ListObjectsV2Response firstPage = ListObjectsV2Response.builder()
+                .contents(List.of(obj1))
+                .isTruncated(true)
+                .nextContinuationToken("token123")
+                .build();
+
+        ListObjectsV2Response secondPage = ListObjectsV2Response.builder()
+                .contents(List.of(obj2))
+                .isTruncated(false)
+                .build();
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+                .thenReturn(firstPage)
+                .thenReturn(secondPage);
+
+        List<StorageObjectInfo> result = s3StorageService.listByPrefix(prefix);
+
+        assertEquals(2, result.size());
+        verify(s3Client, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
     }
 }

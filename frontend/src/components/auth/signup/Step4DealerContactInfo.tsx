@@ -116,11 +116,10 @@ export default function Step4DealerContactInfo({
       const formData = new FormData();
       formData.append('file', file);
 
-      // Upload to backend (no Content-Type needed - browser sets it with boundary)
-      // Note: /api/images/upload is used for signup (unauthenticated)
-      // TODO: Consider migrating to S3 storage after account creation
+      // Upload to MinIO via unauthenticated endpoint (user has no account yet during signup)
+      // Files go to temp/ folder and are moved to dealers/logos/ after account creation
       const response = await api.post<{ fileName: string; fileDownloadUri: string }>(
-        '/api/images/upload',
+        '/api/images/upload?folder=temp',
         formData
       );
 

@@ -17,6 +17,7 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -280,6 +281,92 @@ public class S3StorageService implements StorageService {
             return url;
         } catch (Exception e) {
             throw new StorageException("Failed to generate public URL for key: " + key, e);
+        }
+    }
+
+    @Override
+    public String copy(String sourceKey, String destinationKey) {
+        if (!StringUtils.hasText(sourceKey)) {
+            throw new StorageException("Source key cannot be null or empty");
+        }
+        if (!StringUtils.hasText(destinationKey)) {
+            throw new StorageException("Destination key cannot be null or empty");
+        }
+
+        try {
+            final String bucketName = configManager.getDefaultBucketName();
+            log.debug("Copying file from '{}' to '{}' in bucket '{}'", sourceKey, destinationKey, bucketName);
+
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                    .sourceBucket(bucketName)
+                    .sourceKey(sourceKey)
+                    .destinationBucket(bucketName)
+                    .destinationKey(destinationKey)
+                    .build();
+
+            s3Client.copyObject(copyRequest);
+            log.info("Successfully copied file from '{}' to '{}'", sourceKey, destinationKey);
+            return destinationKey;
+
+        } catch (NoSuchKeyException e) {
+            throw new StorageFileNotFoundException("Source file not found: " + sourceKey, e);
+        } catch (S3Exception e) {
+            throw new StorageException("Failed to copy file from " + sourceKey + " to " + destinationKey, e);
+        }
+    }
+
+    @Override
+    public String move(String sourceKey, String destinationKey) {
+        copy(sourceKey, destinationKey);
+
+        try {
+            delete(sourceKey);
+            log.info("Successfully moved file from '{}' to '{}'", sourceKey, destinationKey);
+        } catch (Exception e) {
+            log.warn("File copied to '{}' but failed to delete source '{}'. "
+                    + "Source will be cleaned up by the temp cleanup job.", destinationKey, sourceKey, e);
+        }
+
+        return destinationKey;
+    }
+
+    @Override
+    public List<StorageObjectInfo> listByPrefix(String prefix) {
+        if (!StringUtils.hasText(prefix)) {
+            throw new StorageException("Prefix cannot be null or empty");
+        }
+
+        List<StorageObjectInfo> results = new ArrayList<>();
+        final String bucketName = configManager.getDefaultBucketName();
+
+        try {
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix(prefix)
+                    .build();
+
+            ListObjectsV2Response listResponse;
+            do {
+                listResponse = s3Client.listObjectsV2(listRequest);
+
+                if (listResponse.contents() != null) {
+                    listResponse.contents().stream()
+                            .filter(Objects::nonNull)
+                            .map(obj -> new StorageObjectInfo(obj.key(), obj.lastModified(), obj.size()))
+                            .forEach(results::add);
+                }
+
+                listRequest = listRequest.toBuilder()
+                        .continuationToken(listResponse.nextContinuationToken())
+                        .build();
+
+            } while (Boolean.TRUE.equals(listResponse.isTruncated()));
+
+            log.debug("Listed {} objects with prefix '{}'", results.size(), prefix);
+            return results;
+
+        } catch (S3Exception e) {
+            throw new StorageException("Failed to list objects with prefix: " + prefix, e);
         }
     }
 }

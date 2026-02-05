@@ -257,6 +257,44 @@ public class StorageKeyGenerator {
     }
 
     /**
+     * Extract the storage key from a URL or path.
+     * Handles formats like:
+     * <ul>
+     *   <li>{@code http://host/api/files/temp/uuid.ext} → {@code temp/uuid.ext}</li>
+     *   <li>{@code /api/files/dealers/logos/uuid.ext} → {@code dealers/logos/uuid.ext}</li>
+     *   <li>{@code temp/uuid.ext} → {@code temp/uuid.ext} (already a key)</li>
+     * </ul>
+     *
+     * @param urlOrKey The URL, relative path, or bare key
+     * @return The extracted storage key, or the input unchanged if no pattern matched
+     */
+    public String extractKeyFromUrl(String urlOrKey) {
+        if (urlOrKey == null) {
+            return null;
+        }
+
+        String cleaned = urlOrKey.trim();
+        if (cleaned.isEmpty()) {
+            return cleaned;
+        }
+
+        // Pattern 1: URL or path containing /api/files/
+        int apiFilesIdx = cleaned.indexOf("/api/files/");
+        if (apiFilesIdx >= 0) {
+            return cleaned.substring(apiFilesIdx + "/api/files/".length());
+        }
+
+        // Pattern 2: URL or path containing /api/images/
+        int apiImagesIdx = cleaned.indexOf("/api/images/");
+        if (apiImagesIdx >= 0) {
+            return cleaned.substring(apiImagesIdx + "/api/images/".length());
+        }
+
+        // Otherwise assume it is already a bare key
+        return cleaned;
+    }
+
+    /**
      * Sanitize filename to prevent path traversal and invalid characters.
      *
      * @param filename The original filename

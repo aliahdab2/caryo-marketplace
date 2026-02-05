@@ -50,10 +50,11 @@ public class ImageController {
     /**
      * Upload an image (public endpoint for signup flow).
      * Rate limited to 10 uploads per hour per IP address.
-     * Stores to S3/MinIO in the "public/images" folder.
+     * Stores to S3/MinIO in the "temp" folder by default. Files are moved to
+     * their permanent location (e.g., dealers/logos) after account creation.
      *
      * @param file The image file to upload
-     * @param folder Optional folder path (default: "public/images")
+     * @param folder Optional folder path (default: "temp")
      * @param request HTTP request to get client IP
      * @return A map containing the fileName and fileDownloadUri
      */
@@ -69,7 +70,7 @@ public class ImageController {
     )
     public ResponseEntity<Map<String, String>> uploadImage(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "folder", required = false, defaultValue = "public/images") String folder,
+            @RequestParam(value = "folder", required = false, defaultValue = "temp") String folder,
             HttpServletRequest request) {
         
         // Get client IP address

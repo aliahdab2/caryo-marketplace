@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Service
@@ -59,5 +61,23 @@ public class NoOpStorageService implements StorageService {
     public String getSignedUrl(String key, long expirationSeconds) {
         // No-op
         return "http://localhost/noop/" + key;
+    }
+
+    @Override
+    public String copy(String sourceKey, String destinationKey) {
+        // No-op
+        return destinationKey;
+    }
+
+    @Override
+    public String move(String sourceKey, String destinationKey) {
+        // No-op
+        return destinationKey;
+    }
+
+    @Override
+    public List<StorageObjectInfo> listByPrefix(String prefix) {
+        // No-op
+        return Collections.emptyList();
     }
 }
