@@ -56,8 +56,6 @@ dependencies {
     // Web scraping for SyrianCars.net data
     implementation 'org.jsoup:jsoup:1.22.1'
 
-    // OpenAI integration for translations
-    implementation 'com.openai:openai-java:4.17.0'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

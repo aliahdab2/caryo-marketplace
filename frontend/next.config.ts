@@ -149,14 +149,17 @@ export default withSentryConfig(
 
     // Suppresses source map uploading logs during build
     silent: true,
-    
+
     // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
     // tunnelRoute: "/monitoring",
 
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
+    // Webpack-specific Sentry options
+    webpack: {
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      treeshake: { removeDebugLogging: true },
 
-    // Enables automatic instrumentation of Vercel Cron Monitors.
-    automaticVercelMonitors: true,
+      // Enables automatic instrumentation of Vercel Cron Monitors.
+      automaticVercelMonitors: true,
+    },
   }
 );
