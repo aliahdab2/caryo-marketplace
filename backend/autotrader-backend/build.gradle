@@ -41,21 +41,22 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // Added for email templates
     implementation 'com.sun.mail:jakarta.mail:2.0.2' // Jakarta Mail implementation
     
-   // Flyway for database migrations
-   implementation 'org.flywaydb:flyway-core:9.22.3'
+    // Flyway for database migrations
+    implementation 'org.flywaydb:flyway-core:9.22.3'
 
-    // JSR 305 for @NonNull, @Nullable, etc.
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    // Utilities
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'         // JSR 305 (@NonNull, @Nullable)
+    implementation 'org.apache.commons:commons-lang3:3.20.0'       // Apache Commons Lang
 
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.42'
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
+    // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
     // Web scraping for SyrianCars.net data
     implementation 'org.jsoup:jsoup:1.22.1'
-
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'
@@ -89,8 +90,6 @@ dependencies {
     testImplementation 'org.testcontainers:minio:1.21.4'
     testImplementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation 'org.apache.commons:commons-lang3:3.20.0' // Added Apache Commons Lang
 }
 
 // Common configuration for all test tasks
