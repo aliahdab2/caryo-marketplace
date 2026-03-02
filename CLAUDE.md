@@ -32,6 +32,7 @@ make translation       # translation validation
 
 ## Essential Rules
 
+- **Follow best practices and industry standards** — use framework-recommended patterns, no shortcuts or quick workarounds
 - **Java 21 required** — `sdk use java 21.0.8-zulu`
 - **No `any` in TypeScript** — define proper types
 - **All user-facing text via i18n** — `t('key')` with no fallback strings
