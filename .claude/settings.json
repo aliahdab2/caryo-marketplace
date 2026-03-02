@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm audit fix)",
+      "Read(//Users/aliahdab/.claude/plugins/**)",
+      "Read(//Users/aliahdab/.claude/**)",
+      "Read(//Users/aliahdab/**)"
+    ]
+  }
+}
