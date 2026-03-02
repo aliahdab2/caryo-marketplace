@@ -1,8 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
-import com.autotrader.autotraderbackend.payload.response.ErrorResponse;
 import com.autotrader.autotraderbackend.payload.response.FavoriteResponse;
 import com.autotrader.autotraderbackend.service.FavoriteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,12 +41,12 @@ public class FavoriteController {
             @ApiResponse(
                 responseCode = "404",
                 description = "Listing not found",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             ),
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - User must be authenticated",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             )
         }
     )
@@ -58,15 +56,7 @@ public class FavoriteController {
             @Parameter(description = "ID of the car listing to add to favorites", required = true)
             @PathVariable Long listingId) {
         log.debug("REST request to add listing {} to favorites for user {}", listingId, userDetails.getUsername());
-        try {
-            return ResponseEntity.ok(favoriteService.addToFavorites(userDetails.getUsername(), listingId));
-        } catch (ResourceNotFoundException e) {
-            log.error("Resource not found while adding to favorites: {}", e.getMessage());
-            throw e; // Re-throw the exception so tests can catch it
-        } catch (Exception e) {
-            log.error("Error adding to favorites: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(favoriteService.addToFavorites(userDetails.getUsername(), listingId));
     }
 
     @DeleteMapping("/{listingId}")
@@ -82,12 +72,12 @@ public class FavoriteController {
             @ApiResponse(
                 responseCode = "404",
                 description = "Listing not found",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             ),
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - User must be authenticated",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             )
         }
     )
@@ -97,16 +87,8 @@ public class FavoriteController {
             @Parameter(description = "ID of the car listing to remove from favorites", required = true)
             @PathVariable Long listingId) {
         log.debug("REST request to remove listing {} from favorites for user {}", listingId, userDetails.getUsername());
-        try {
-            favoriteService.removeFromFavorites(userDetails.getUsername(), listingId);
-            return ResponseEntity.ok().build();
-        } catch (ResourceNotFoundException e) {
-            log.error("Error removing from favorites: {}", e.getMessage());
-            throw e; // Re-throw the exception so tests can catch it
-        } catch (Exception e) {
-            log.error("Error removing from favorites: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+        favoriteService.removeFromFavorites(userDetails.getUsername(), listingId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping
@@ -123,7 +105,7 @@ public class FavoriteController {
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - User must be authenticated",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             )
         }
     )
@@ -131,12 +113,7 @@ public class FavoriteController {
             @Parameter(description = "The authenticated user", hidden = true)
             @AuthenticationPrincipal UserDetails userDetails) {
         log.debug("REST request to get favorites for user {}", userDetails.getUsername());
-        try {
-            return ResponseEntity.ok(favoriteService.getUserFavoriteListingResponses(userDetails.getUsername()));
-        } catch (Exception e) {
-            log.error("Error getting user favorites: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(favoriteService.getUserFavoriteListingResponses(userDetails.getUsername()));
     }
 
     @GetMapping("/check/{listingId}")
@@ -153,7 +130,7 @@ public class FavoriteController {
             @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized - User must be authenticated",
-                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+                content = @Content(schema = @Schema(implementation = com.autotrader.autotraderbackend.payload.response.ApiResponse.class))
             )
         }
     )

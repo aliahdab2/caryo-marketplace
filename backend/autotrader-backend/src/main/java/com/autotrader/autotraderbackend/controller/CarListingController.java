@@ -1,7 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
 
-import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
@@ -22,6 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+
+import static com.autotrader.autotraderbackend.payload.response.ApiResponse.success;
 
 @RestController
 @RequestMapping("/api/listings")
@@ -62,18 +63,10 @@ public class CarListingController {
             @Parameter(description = "ID of the listing to delete", required = true)
             @PathVariable("id") Long id) {
 
-        try {
-            log.info("Admin requested to delete listing with ID: {}", id);
-            carListingService.deleteListingAsAdmin(id);
-            log.info("Admin successfully deleted listing with ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (ResourceNotFoundException e) {
-            log.error("Listing not found with ID: {}", id, e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Error deleting listing with ID: {}", id, e);
-            throw e;
-        }
+        log.info("Admin requested to delete listing with ID: {}", id);
+        carListingService.deleteListingAsAdmin(id);
+        log.info("Admin successfully deleted listing with ID: {}", id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/admin/all")
@@ -92,25 +85,20 @@ public class CarListingController {
             @PageableDefault(size = 20, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC)
             Pageable pageable) {
 
-        try {
-            log.info("Admin requested to get all listings. Pageable: {}", pageable);
-            Page<CarListingResponse> listingPage = carListingService.getAllListingsAsAdmin(pageable);
+        log.info("Admin requested to get all listings. Pageable: {}", pageable);
+        Page<CarListingResponse> listingPage = carListingService.getAllListingsAsAdmin(pageable);
 
-            PageResponse<CarListingResponse> response = new PageResponse<>(
-                    listingPage.getContent(),
-                    listingPage.getNumber(),
-                    listingPage.getSize(),
-                    listingPage.getTotalElements(),
-                    listingPage.getTotalPages(),
-                    listingPage.isLast()
-            );
+        PageResponse<CarListingResponse> response = new PageResponse<>(
+                listingPage.getContent(),
+                listingPage.getNumber(),
+                listingPage.getSize(),
+                listingPage.getTotalElements(),
+                listingPage.getTotalPages(),
+                listingPage.isLast()
+        );
 
-            log.info("Returning {} total listings to admin", response.getContent().size());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error getting all listings for admin", e);
-            throw e;
-        }
+        log.info("Returning {} total listings to admin", response.getContent().size());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/admin/{id}/approve")
@@ -133,27 +121,10 @@ public class CarListingController {
             @Parameter(description = "ID of the listing to approve", required = true)
             @PathVariable("id") Long id) {
 
-        try {
-            log.info("Admin requested to approve listing with ID: {}", id);
-            CarListingResponse approvedListing = carListingService.approveListingAsAdmin(id);
-            log.info("Admin successfully approved listing with ID: {}", id);
-            return ResponseEntity.ok(Map.of(
-                "message", "Listing approved successfully",
-                "listing", approvedListing
-            ));
-        } catch (ResourceNotFoundException e) {
-            log.error("Listing not found with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "Listing not found", "message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Invalid operation on listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", "Conflict", "message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error approving listing with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error", "message", "Failed to approve listing"));
-        }
+        log.info("Admin requested to approve listing with ID: {}", id);
+        CarListingResponse approvedListing = carListingService.approveListingAsAdmin(id);
+        log.info("Admin successfully approved listing with ID: {}", id);
+        return ResponseEntity.ok(success(approvedListing, "Listing approved successfully"));
     }
 
     @PutMapping("/admin/{id}/reject")
@@ -176,29 +147,15 @@ public class CarListingController {
             @Parameter(description = "Rejection reason")
             @RequestBody(required = false) Map<String, String> rejectionData) {
 
-        try {
-            log.info("Admin requested to reject listing with ID: {}", id);
-            String reason = rejectionData != null ? rejectionData.get("reason") : "Rejected by admin";
+        log.info("Admin requested to reject listing with ID: {}", id);
+        String reason = rejectionData != null ? rejectionData.get("reason") : "Rejected by admin";
 
-            // For now, we'll delete the listing when rejected
-            // In the future, you might want to add a rejected status instead
-            carListingService.deleteListingAsAdmin(id);
+        carListingService.deleteListingAsAdmin(id);
 
-            log.info("Admin successfully rejected and deleted listing with ID: {} with reason: {}", id, reason);
-            return ResponseEntity.ok(Map.of(
-                "message", "Listing rejected and removed successfully",
-                "listingId", id,
-                "reason", reason
-            ));
-        } catch (ResourceNotFoundException e) {
-            log.error("Listing not found with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "Listing not found", "message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error rejecting listing with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error", "message", "Failed to reject listing"));
-        }
+        log.info("Admin successfully rejected and deleted listing with ID: {} with reason: {}", id, reason);
+        return ResponseEntity.ok(success(
+                Map.of("listingId", id, "reason", reason),
+                "Listing rejected and removed successfully"));
     }
 
 

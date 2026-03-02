@@ -1,6 +1,7 @@
 package com.autotrader.autotraderbackend.controller;
 
 import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
+import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
 import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.CarListingService;
@@ -104,55 +105,39 @@ class CarListingControllerTest {
         // Then
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof Map);
+        assertTrue(response.getBody() instanceof ApiResponse);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Listing approved successfully", responseBody.get("message"));
-        assertEquals(carListingResponse, responseBody.get("listing"));
+        ApiResponse<?> responseBody = (ApiResponse<?>) response.getBody();
+        assertEquals("success", responseBody.getStatus());
+        assertEquals("Listing approved successfully", responseBody.getMessage());
+        assertEquals(carListingResponse, responseBody.getData());
 
         verify(carListingService).approveListingAsAdmin(1L);
     }
 
     @Test
-    void approveListingAsAdmin_ShouldReturnNotFound_WhenListingNotFound() {
+    void approveListingAsAdmin_ShouldThrowException_WhenListingNotFound() {
         // Arrange
         when(carListingService.approveListingAsAdmin(1L))
                 .thenThrow(new ResourceNotFoundException("Listing", "id", 1L));
 
-        // Act
-        ResponseEntity<?> response = carListingController.approveListingAsAdmin(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertTrue(response.getBody() instanceof Map);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Listing not found", responseBody.get("error"));
+        // Act & Assert — exception propagates to GlobalExceptionHandler
+        assertThrows(ResourceNotFoundException.class, () ->
+                carListingController.approveListingAsAdmin(1L));
 
         verify(carListingService).approveListingAsAdmin(1L);
     }
 
     @Test
-    void approveListingAsAdmin_ShouldReturnConflict_WhenInvalidState() {
+    void approveListingAsAdmin_ShouldThrowException_WhenInvalidState() {
         // Arrange
         when(carListingService.approveListingAsAdmin(1L))
                 .thenThrow(new IllegalStateException("Listing already approved"));
 
-        // Act
-        ResponseEntity<?> response = carListingController.approveListingAsAdmin(1L);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertTrue(response.getBody() instanceof Map);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Conflict", responseBody.get("error"));
-        assertEquals("Listing already approved", responseBody.get("message"));
+        // Act & Assert — exception propagates to GlobalExceptionHandler
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+                carListingController.approveListingAsAdmin(1L));
+        assertEquals("Listing already approved", ex.getMessage());
 
         verify(carListingService).approveListingAsAdmin(1L);
     }
@@ -168,13 +153,16 @@ class CarListingControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof Map);
+        assertTrue(response.getBody() instanceof ApiResponse);
+
+        ApiResponse<?> responseBody = (ApiResponse<?>) response.getBody();
+        assertEquals("success", responseBody.getStatus());
+        assertEquals("Listing rejected and removed successfully", responseBody.getMessage());
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Listing rejected and removed successfully", responseBody.get("message"));
-        assertEquals(1L, responseBody.get("listingId"));
-        assertEquals("Rejected by admin", responseBody.get("reason"));
+        Map<String, Object> data = (Map<String, Object>) responseBody.getData();
+        assertEquals(1L, data.get("listingId"));
+        assertEquals("Rejected by admin", data.get("reason"));
 
         verify(carListingService).deleteListingAsAdmin(1L);
     }
@@ -193,30 +181,23 @@ class CarListingControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
+        ApiResponse<?> responseBody = (ApiResponse<?>) response.getBody();
         @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Inappropriate content", responseBody.get("reason"));
+        Map<String, Object> data = (Map<String, Object>) responseBody.getData();
+        assertEquals("Inappropriate content", data.get("reason"));
 
         verify(carListingService).deleteListingAsAdmin(1L);
     }
 
     @Test
-    void rejectListingAsAdmin_ShouldReturnNotFound_WhenListingNotFound() {
+    void rejectListingAsAdmin_ShouldThrowException_WhenListingNotFound() {
         // Arrange
         doThrow(new ResourceNotFoundException("Listing", "id", 1L))
                 .when(carListingService).deleteListingAsAdmin(1L);
 
-        // Act
-        ResponseEntity<?> response = carListingController.rejectListingAsAdmin(1L, null);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertTrue(response.getBody() instanceof Map);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("Listing not found", responseBody.get("error"));
+        // Act & Assert — exception propagates to GlobalExceptionHandler
+        assertThrows(ResourceNotFoundException.class, () ->
+                carListingController.rejectListingAsAdmin(1L, null));
 
         verify(carListingService).deleteListingAsAdmin(1L);
     }

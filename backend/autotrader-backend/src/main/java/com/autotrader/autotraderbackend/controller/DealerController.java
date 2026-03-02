@@ -63,29 +63,18 @@ public class DealerController {
     })
     @GetMapping("/trial-status")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getTrialStatus(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        try {
-            Long userId = userDetails.getId();
+    public ResponseEntity<TrialStatus> getTrialStatus(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long userId = userDetails.getId();
 
-            Dealer dealer = dealerService.getDealerByUserId(userId)
-                .orElseThrow(() -> new DealerNotFoundException(userId));
+        Dealer dealer = dealerService.getDealerByUserId(userId)
+            .orElseThrow(() -> new DealerNotFoundException(userId));
 
-            TrialStatus status = dealerTrialService.getTrialStatus(dealer);
+        TrialStatus status = dealerTrialService.getTrialStatus(dealer);
 
-            log.info("Trial status requested for dealer: {} - Active: {}, Listings: {}/{}",
-                dealer.getId(), status.isActive(), status.getListingsUsed(), status.getListingsLimit());
+        log.info("Trial status requested for dealer: {} - Active: {}, Listings: {}/{}",
+            dealer.getId(), status.isActive(), status.getListingsUsed(), status.getListingsLimit());
 
-            return ResponseEntity.ok(status);
-
-        } catch (DealerNotFoundException e) {
-            log.error("Dealer not found for user: {}", userDetails.getId());
-            return ResponseEntity.status(404)
-                .body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error fetching trial status", e);
-            return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: Could not fetch trial status"));
-        }
+        return ResponseEntity.ok(status);
     }
 
     /**
@@ -108,32 +97,22 @@ public class DealerController {
     })
     @PostMapping("/extend-trial/{dealerId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> extendTrial(
+    public ResponseEntity<MessageResponse> extendTrial(
             @Parameter(description = "Dealer ID to extend trial for") @PathVariable Long dealerId,
             @Parameter(description = "Number of days to add to trial") @RequestParam int additionalDays,
             @Parameter(description = "Reason for extension (audit trail)") @RequestParam String reason,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        try {
-            Dealer dealer = dealerService.getDealerById(dealerId)
-                .orElseThrow(() -> new DealerNotFoundException("Dealer not found with ID: " + dealerId, dealerId));
 
-            dealerTrialService.extendTrial(dealer, additionalDays, reason);
+        Dealer dealer = dealerService.getDealerById(dealerId)
+            .orElseThrow(() -> new DealerNotFoundException("Dealer not found with ID: " + dealerId, dealerId));
 
-            log.info("Trial extended by admin {} for dealer {}: {} days. Reason: {}",
-                userDetails.getUsername(), dealerId, additionalDays, reason);
+        dealerTrialService.extendTrial(dealer, additionalDays, reason);
 
-            return ResponseEntity.ok(
-                new MessageResponse("Trial extended successfully by " + additionalDays + " days"));
+        log.info("Trial extended by admin {} for dealer {}: {} days. Reason: {}",
+            userDetails.getUsername(), dealerId, additionalDays, reason);
 
-        } catch (DealerNotFoundException e) {
-            log.error("Dealer not found: {}", dealerId);
-            return ResponseEntity.status(404)
-                .body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error extending trial for dealer: {}", dealerId, e);
-            return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: Could not extend trial"));
-        }
+        return ResponseEntity.ok(
+            new MessageResponse("Trial extended successfully by " + additionalDays + " days"));
     }
 
     /**
@@ -155,26 +134,14 @@ public class DealerController {
     })
     @GetMapping("/profile")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getDealerProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        try {
-            Long userId = userDetails.getId();
+    public ResponseEntity<DealerProfileResponse> getDealerProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long userId = userDetails.getId();
 
-            Dealer dealer = dealerService.getDealerByUserId(userId)
-                .orElseThrow(() -> new DealerNotFoundException(userId));
+        Dealer dealer = dealerService.getDealerByUserId(userId)
+            .orElseThrow(() -> new DealerNotFoundException(userId));
 
-            // Map entity to DTO to avoid Hibernate proxy serialization issues
-            DealerProfileResponse response = mapDealerToProfileResponse(dealer);
-            return ResponseEntity.ok(response);
-
-        } catch (DealerNotFoundException e) {
-            log.error("Dealer profile not found for user: {}", userDetails.getId());
-            return ResponseEntity.status(404)
-                .body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error fetching dealer profile", e);
-            return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: Could not fetch dealer profile"));
-        }
+        DealerProfileResponse response = mapDealerToProfileResponse(dealer);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -220,7 +187,7 @@ public class DealerController {
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Profile updated successfully",
-            content = @Content(schema = @Schema(implementation = Dealer.class))),
+            content = @Content(schema = @Schema(implementation = DealerProfileResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input (duplicate email, invalid URL, etc.)"),
         @ApiResponse(responseCode = "401", description = "Not authenticated"),
         @ApiResponse(responseCode = "403", description = "Not a dealer account"),
@@ -228,28 +195,17 @@ public class DealerController {
     })
     @PutMapping("/profile")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateDealerProfile(
+    public ResponseEntity<DealerProfileResponse> updateDealerProfile(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody com.autotrader.autotraderbackend.payload.request.DealerProfileUpdateRequest updateRequest) {
-        try {
-            Long userId = userDetails.getId();
 
-            Dealer dealer = dealerService.getDealerByUserId(userId)
-                .orElseThrow(() -> new DealerNotFoundException(userId));
+        Long userId = userDetails.getId();
 
-            Dealer updatedDealer = dealerService.updatePublicProfile(dealer, updateRequest);
-            return ResponseEntity.ok(updatedDealer);
-        } catch (DealerNotFoundException e) {
-            log.error("Dealer profile not found for user: {}", userDetails.getId());
-            return ResponseEntity.status(404)
-                .body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error updating dealer profile", e);
-            return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: Could not update dealer profile"));
-        }
+        Dealer dealer = dealerService.getDealerByUserId(userId)
+            .orElseThrow(() -> new DealerNotFoundException(userId));
+
+        Dealer updatedDealer = dealerService.updatePublicProfile(dealer, updateRequest);
+        return ResponseEntity.ok(mapDealerToProfileResponse(updatedDealer));
     }
 
     /**
@@ -271,47 +227,35 @@ public class DealerController {
     })
     @GetMapping("/can-create-listing")
     @PreAuthorize("hasRole('DEALER') or hasRole('ADMIN')")
-    public ResponseEntity<?> canCreateListing(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        try {
-            Long userId = userDetails.getId();
+    public ResponseEntity<CanCreateListingResponse> canCreateListing(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long userId = userDetails.getId();
 
-            Dealer dealer = dealerService.getDealerByUserId(userId)
-                .orElseThrow(() -> new DealerNotFoundException(userId));
+        Dealer dealer = dealerService.getDealerByUserId(userId)
+            .orElseThrow(() -> new DealerNotFoundException(userId));
 
-            boolean canCreate = dealerTrialService.canCreateListing(dealer);
-            TrialStatus status = dealerTrialService.getTrialStatus(dealer);
+        boolean canCreate = dealerTrialService.canCreateListing(dealer);
+        TrialStatus status = dealerTrialService.getTrialStatus(dealer);
 
-            // Determine reason based on status
-            CanCreateListingResponse response;
-            if (canCreate) {
-                if (status.isInGracePeriod()) {
-                    response = CanCreateListingResponse.gracePeriod(status);
-                } else if (dealer.hasActiveSubscription()) {
-                    response = CanCreateListingResponse.subscriptionActive(status);
-                } else {
-                    response = CanCreateListingResponse.allowed(status);
-                }
+        CanCreateListingResponse response;
+        if (canCreate) {
+            if (status.isInGracePeriod()) {
+                response = CanCreateListingResponse.gracePeriod(status);
+            } else if (dealer.hasActiveSubscription()) {
+                response = CanCreateListingResponse.subscriptionActive(status);
             } else {
-                if (!dealer.getCanCreateListings()) {
-                    response = CanCreateListingResponse.featureDisabled(status);
-                } else if (dealer.getTrialListingsCount() >= status.getListingsLimit()) {
-                    response = CanCreateListingResponse.limitReached(status);
-                } else {
-                    response = CanCreateListingResponse.trialExpired(status);
-                }
+                response = CanCreateListingResponse.allowed(status);
             }
-
-            return ResponseEntity.ok(response);
-
-        } catch (DealerNotFoundException e) {
-            log.error("Dealer not found for user: {}", userDetails.getId());
-            return ResponseEntity.status(404)
-                .body(new MessageResponse("Error: " + e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error checking listing creation permission", e);
-            return ResponseEntity.badRequest()
-                .body(new MessageResponse("Error: Could not check listing permission"));
+        } else {
+            if (!dealer.getCanCreateListings()) {
+                response = CanCreateListingResponse.featureDisabled(status);
+            } else if (dealer.getTrialListingsCount() >= status.getListingsLimit()) {
+                response = CanCreateListingResponse.limitReached(status);
+            } else {
+                response = CanCreateListingResponse.trialExpired(status);
+            }
         }
+
+        return ResponseEntity.ok(response);
     }
 }
 

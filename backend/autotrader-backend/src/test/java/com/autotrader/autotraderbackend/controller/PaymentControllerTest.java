@@ -447,12 +447,13 @@ class PaymentControllerTest {
         // When & Then
         mockMvc.perform(get("/api/payments/history"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.transactions").isArray())
-                .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.dealerId").value(1))
-                .andExpect(jsonPath("$.dealerName").value("Test Dealership"))
-                .andExpect(jsonPath("$.transactions[0].transactionId").value("TXN-001"))
-                .andExpect(jsonPath("$.transactions[1].transactionId").value("TXN-002"));
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.transactions").isArray())
+                .andExpect(jsonPath("$.data.count").value(2))
+                .andExpect(jsonPath("$.data.dealerId").value(1))
+                .andExpect(jsonPath("$.data.dealerName").value("Test Dealership"))
+                .andExpect(jsonPath("$.data.transactions[0].transactionId").value("TXN-001"))
+                .andExpect(jsonPath("$.data.transactions[1].transactionId").value("TXN-002"));
 
         verify(paymentService).getPaymentHistory(testDealer);
     }
@@ -472,8 +473,9 @@ class PaymentControllerTest {
         // When & Then
         mockMvc.perform(get("/api/payments/providers"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.manual_transfer").value("Manual Bank Transfer"))
-                .andExpect(jsonPath("$.cham_bank").value("Cham Bank"));
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.manual_transfer").value("Manual Bank Transfer"))
+                .andExpect(jsonPath("$.data.cham_bank").value("Cham Bank"));
 
         verify(paymentService).getAvailableProviders();
     }
@@ -493,9 +495,10 @@ class PaymentControllerTest {
         // When & Then
         mockMvc.perform(get("/api/payments/providers/{providerId}/methods", providerId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.providerId").value(providerId))
-                .andExpect(jsonPath("$.supportedMethods").isArray())
-                .andExpect(jsonPath("$.supportedCurrencies").isArray());
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.data.providerId").value(providerId))
+                .andExpect(jsonPath("$.data.supportedMethods").isArray())
+                .andExpect(jsonPath("$.data.supportedCurrencies").isArray());
 
         verify(paymentService).getSupportedPaymentMethods(providerId);
         verify(paymentService).getSupportedCurrencies(providerId);

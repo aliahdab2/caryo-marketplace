@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -32,6 +33,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 
+    @JsonIgnore
     @NotBlank
     @Size(max = 120)
     @Column(nullable = false, length = 120)
@@ -62,9 +64,11 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
+    @JsonIgnore
     @Column(name = "email_verification_token")
     private String emailVerificationToken;
 
+    @JsonIgnore
     @Column(name = "email_verification_sent_at")
     private LocalDateTime emailVerificationSentAt;
 
@@ -90,6 +94,7 @@ public class User {
     private String preferredLanguage;
 
     // Token version for JWT revocation (incremented on logout, password change, etc.)
+    @JsonIgnore
     @Column(name = "token_version", nullable = false)
     private Integer tokenVersion = 0;
 

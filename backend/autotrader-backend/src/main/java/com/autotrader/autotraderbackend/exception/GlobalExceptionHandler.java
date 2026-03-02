@@ -6,7 +6,6 @@ import com.autotrader.autotraderbackend.payment.InvalidPaymentMethodException;
 import com.autotrader.autotraderbackend.payment.PaymentException;
 import com.autotrader.autotraderbackend.payment.PaymentProcessingException;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
-import com.autotrader.autotraderbackend.payload.response.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import jakarta.validation.ConstraintViolationException;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -72,10 +70,9 @@ public class GlobalExceptionHandler {
 
     /**
      * Handle dealer not found exceptions.
-     * Returns structured error response following industry best practices.
      */
     @ExceptionHandler(DealerNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleDealerNotFoundException(
+    public ResponseEntity<ApiResponse<Void>> handleDealerNotFoundException(
             DealerNotFoundException ex, WebRequest request) {
 
         Locale locale = getUserLocale(request);
@@ -83,14 +80,8 @@ public class GlobalExceptionHandler {
 
         log.warn("Dealer not found: {}", ex.getMessage());
 
-        ErrorResponse errorResponse = new ErrorResponse(
-            HttpStatus.NOT_FOUND.value(),
-            message,
-            ex.getMessage(),
-            Instant.now().toString()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -136,6 +127,19 @@ public class GlobalExceptionHandler {
         log.warn("Security exception: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(message));
+    }
+
+    /**
+     * Handle illegal state exceptions (e.g., listing already approved, already archived)
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(
+            IllegalStateException ex, WebRequest request) {
+
+        log.warn("Illegal state: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     /**

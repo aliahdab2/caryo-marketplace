@@ -6,6 +6,7 @@ import com.autotrader.autotraderbackend.payload.request.SendMessageRequest;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.ConversationResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
+import com.autotrader.autotraderbackend.payload.response.PageResponse;
 import com.autotrader.autotraderbackend.service.ConversationService;
 import com.autotrader.autotraderbackend.service.I18nService;
 import com.autotrader.autotraderbackend.service.MessageSanitizationService;
@@ -84,7 +85,7 @@ public class ConversationController {
      */
     @Operation(summary = "Get my conversations", description = "Retrieve all conversations for the authenticated user with pagination")
     @GetMapping("/my-conversations")
-    public ResponseEntity<Page<ConversationResponse>> getUserConversations(
+    public ResponseEntity<PageResponse<ConversationResponse>> getUserConversations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "lastMessageAt") String sortBy,
@@ -100,7 +101,15 @@ public class ConversationController {
         Page<ConversationResponse> conversations = conversationService.getUserConversations(
                 userDetails.getId(), pageable);
 
-        return ResponseEntity.ok(conversations);
+        PageResponse<ConversationResponse> response = new PageResponse<>(
+                conversations.getContent(),
+                conversations.getNumber(),
+                conversations.getSize(),
+                conversations.getTotalElements(),
+                conversations.getTotalPages(),
+                conversations.isLast());
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -123,7 +132,7 @@ public class ConversationController {
      */
     @Operation(summary = "Get messages", description = "Retrieve messages in a conversation with pagination")
     @GetMapping("/{id}/messages")
-    public ResponseEntity<Page<MessageResponse>> getConversationMessages(
+    public ResponseEntity<PageResponse<MessageResponse>> getConversationMessages(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
@@ -140,7 +149,15 @@ public class ConversationController {
         Page<MessageResponse> messages = conversationService.getConversationMessages(
                 id, userDetails.getId(), pageable);
 
-        return ResponseEntity.ok(messages);
+        PageResponse<MessageResponse> response = new PageResponse<>(
+                messages.getContent(),
+                messages.getNumber(),
+                messages.getSize(),
+                messages.getTotalElements(),
+                messages.getTotalPages(),
+                messages.isLast());
+
+        return ResponseEntity.ok(response);
     }
 
     /**

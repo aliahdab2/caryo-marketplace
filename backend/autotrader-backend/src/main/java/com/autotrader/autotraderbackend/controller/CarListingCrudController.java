@@ -1,6 +1,5 @@
 package com.autotrader.autotraderbackend.controller;
 
-import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.payload.request.ListingFilterRequest;
 import com.autotrader.autotraderbackend.payload.request.UpdateListingRequest;
 import com.autotrader.autotraderbackend.payload.response.CarListingResponse;
@@ -21,17 +20,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -252,21 +250,10 @@ public class CarListingCrudController {
             @Valid @RequestBody UpdateListingRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        try {
-            log.info("Received request to update listing with ID: {}", id);
-            CarListingResponse updatedListing = carListingService.updateListing(id, request, userDetails.getUsername());
-            log.info("Successfully updated listing with ID: {}", id);
-            return ResponseEntity.ok(updatedListing);
-        } catch (ResourceNotFoundException e) {
-            log.error("Listing not found with ID: {}", id, e);
-            throw e;
-        } catch (SecurityException e) {
-            log.error("User {} not authorized to update listing with ID: {}", userDetails.getUsername(), id, e);
-            throw new AccessDeniedException(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error updating listing with ID: {}", id, e);
-            throw e;
-        }
+        log.info("Received request to update listing with ID: {}", id);
+        CarListingResponse updatedListing = carListingService.updateListing(id, request, userDetails.getUsername());
+        log.info("Successfully updated listing with ID: {}", id);
+        return ResponseEntity.ok(updatedListing);
     }
 
     // DELETE OPERATIONS
@@ -290,21 +277,10 @@ public class CarListingCrudController {
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        try {
-            log.info("Received request to delete listing with ID: {}", id);
-            carListingService.deleteListing(id, userDetails.getUsername());
-            log.info("Successfully deleted listing with ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (ResourceNotFoundException e) {
-            log.error("Listing not found with ID: {}", id, e);
-            throw e;
-        } catch (SecurityException e) {
-            log.error("User {} not authorized to delete listing with ID: {}", userDetails.getUsername(), id, e);
-            throw new AccessDeniedException(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error deleting listing with ID: {}", id, e);
-            throw e;
-        }
+        log.info("Received request to delete listing with ID: {}", id);
+        carListingService.deleteListing(id, userDetails.getUsername());
+        log.info("Successfully deleted listing with ID: {}", id);
+        return ResponseEntity.noContent().build();
     }
 
 
@@ -324,24 +300,14 @@ public class CarListingCrudController {
             @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing is archived or already sold)")
         }
     )
-    public ResponseEntity<?> markListingAsSold(
+    public ResponseEntity<CarListingResponse> markListingAsSold(
             @Parameter(description = "ID of the listing to mark as sold", required = true) @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            log.info("User {} attempting to mark listing ID {} as sold", userDetails.getUsername(), id);
-            CarListingResponse response = carListingStatusService.markListingAsSold(id, userDetails.getUsername());
-            log.info("Successfully marked listing ID {} as sold by user {}", id, userDetails.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Mark as sold failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (SecurityException e) {
-            log.warn("User {} not authorized to mark listing ID {} as sold: {}", userDetails.getUsername(), id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Mark as sold failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
+
+        log.info("User {} attempting to mark listing ID {} as sold", userDetails.getUsername(), id);
+        CarListingResponse response = carListingStatusService.markListingAsSold(id, userDetails.getUsername());
+        log.info("Successfully marked listing ID {} as sold by user {}", id, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/listings/{id}/archive")
@@ -358,24 +324,14 @@ public class CarListingCrudController {
             @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing already archived)")
         }
     )
-    public ResponseEntity<?> archiveListing(
+    public ResponseEntity<CarListingResponse> archiveListing(
             @Parameter(description = "ID of the listing to archive", required = true) @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            log.info("User {} attempting to archive listing ID {}", userDetails.getUsername(), id);
-            CarListingResponse response = carListingStatusService.archiveListing(id, userDetails.getUsername());
-            log.info("Successfully archived listing ID {} by user {}", id, userDetails.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Archive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (SecurityException e) {
-            log.warn("User {} not authorized to archive listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Archive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
+
+        log.info("User {} attempting to archive listing ID {}", userDetails.getUsername(), id);
+        CarListingResponse response = carListingStatusService.archiveListing(id, userDetails.getUsername());
+        log.info("Successfully archived listing ID {} by user {}", id, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/listings/{id}/unarchive")
@@ -392,23 +348,13 @@ public class CarListingCrudController {
             @ApiResponse(responseCode = "409", description = "Conflict (e.g., listing not archived)")
         }
     )
-    public ResponseEntity<?> unarchiveListing(
+    public ResponseEntity<CarListingResponse> unarchiveListing(
             @Parameter(description = "ID of the listing to unarchive", required = true) @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            log.info("User {} attempting to unarchive listing ID {}", userDetails.getUsername(), id);
-            CarListingResponse response = carListingStatusService.unarchiveListing(id, userDetails.getUsername());
-            log.info("Successfully unarchived listing ID {} by user {}", id, userDetails.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            log.warn("Unarchive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
-        } catch (SecurityException e) {
-            log.warn("User {} not authorized to unarchive listing ID {}: {}", userDetails.getUsername(), id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
-        } catch (IllegalStateException e) {
-            log.warn("Unarchive failed for listing ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
-        }
+
+        log.info("User {} attempting to unarchive listing ID {}", userDetails.getUsername(), id);
+        CarListingResponse response = carListingStatusService.unarchiveListing(id, userDetails.getUsername());
+        log.info("Successfully unarchived listing ID {} by user {}", id, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 }

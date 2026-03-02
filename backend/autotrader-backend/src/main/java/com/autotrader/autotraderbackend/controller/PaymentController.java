@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import static com.autotrader.autotraderbackend.payload.response.ApiResponse.success;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -171,12 +173,13 @@ public class PaymentController {
         Dealer dealer = getCurrentDealer(userDetails);
         List<PaymentTransaction> history = paymentService.getPaymentHistory(dealer);
 
-        return ResponseEntity.ok(Map.of(
-            "transactions", history,
-            "count", history.size(),
-            "dealerId", dealer.getId(),
-            "dealerName", dealer.getBusinessName()
-        ));
+        return ResponseEntity.ok(
+            success(Map.of(
+                "transactions", history,
+                "count", history.size(),
+                "dealerId", dealer.getId(),
+                "dealerName", dealer.getBusinessName()
+            )));
     }
 
     /**
@@ -209,7 +212,8 @@ public class PaymentController {
                description = "Get list of available payment providers")
     public ResponseEntity<?> getPaymentProviders() {
         Map<String, String> providers = paymentService.getAvailableProviders();
-        return ResponseEntity.ok(providers);
+        return ResponseEntity.ok(
+            success(providers));
     }
 
     /**
@@ -225,11 +229,12 @@ public class PaymentController {
         PaymentMethod[] methods = paymentService.getSupportedPaymentMethods(providerId);
         Currency[] currencies = paymentService.getSupportedCurrencies(providerId);
 
-        return ResponseEntity.ok(Map.of(
-            "providerId", providerId,
-            "supportedMethods", methods,
-            "supportedCurrencies", currencies
-        ));
+        return ResponseEntity.ok(
+            success(Map.of(
+                "providerId", providerId,
+                "supportedMethods", methods,
+                "supportedCurrencies", currencies
+            )));
     }
 
     /**

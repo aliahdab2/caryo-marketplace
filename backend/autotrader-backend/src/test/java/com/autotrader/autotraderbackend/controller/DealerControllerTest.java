@@ -132,16 +132,15 @@ class DealerControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 404 when dealer not found")
+        @DisplayName("Should throw DealerNotFoundException when dealer not found")
         void getDealerProfile_NotFound() {
             // Arrange
             when(dealerService.getDealerByUserId(TEST_USER_ID)).thenReturn(Optional.empty());
 
-            // Act
-            ResponseEntity<?> response = dealerController.getDealerProfile(userDetails);
+            // Act & Assert — exception propagates to GlobalExceptionHandler
+            assertThrows(DealerNotFoundException.class, () ->
+                    dealerController.getDealerProfile(userDetails));
 
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
             verify(dealerService).getDealerByUserId(TEST_USER_ID);
         }
 
@@ -229,16 +228,14 @@ class DealerControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 404 when dealer not found")
+        @DisplayName("Should throw DealerNotFoundException when dealer not found")
         void getTrialStatus_DealerNotFound() {
             // Arrange
             when(dealerService.getDealerByUserId(TEST_USER_ID)).thenReturn(Optional.empty());
 
-            // Act
-            ResponseEntity<?> response = dealerController.getTrialStatus(userDetails);
-
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            // Act & Assert — exception propagates to GlobalExceptionHandler
+            assertThrows(DealerNotFoundException.class, () ->
+                    dealerController.getTrialStatus(userDetails));
         }
     }
 
@@ -320,16 +317,14 @@ class DealerControllerTest {
         }
 
         @Test
-        @DisplayName("Should return 404 when dealer not found")
+        @DisplayName("Should throw DealerNotFoundException when dealer not found")
         void canCreateListing_DealerNotFound() {
             // Arrange
             when(dealerService.getDealerByUserId(TEST_USER_ID)).thenReturn(Optional.empty());
 
-            // Act
-            ResponseEntity<?> response = dealerController.canCreateListing(userDetails);
-
-            // Assert
-            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            // Act & Assert — exception propagates to GlobalExceptionHandler
+            assertThrows(DealerNotFoundException.class, () ->
+                    dealerController.canCreateListing(userDetails));
         }
     }
 }
