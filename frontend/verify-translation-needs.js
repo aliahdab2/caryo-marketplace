@@ -7,6 +7,7 @@
  * Provides detailed analysis, caching, and export capabilities.
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 
@@ -50,7 +51,7 @@ function loadCache() {
         return cacheData;
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Cache invalid, continue with fresh scan
   }
   return null;
@@ -72,7 +73,7 @@ function saveCache(data) {
       stats: data.stats
     };
     fs.writeFileSync(CONFIG.cacheFile, JSON.stringify(cacheData, null, 2));
-  } catch (error) {
+  } catch (_error) {
     // Non-critical, continue
   }
 }

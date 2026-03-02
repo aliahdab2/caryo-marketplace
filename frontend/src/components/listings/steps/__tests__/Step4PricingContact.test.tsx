@@ -17,8 +17,8 @@ const baseProps = () => ({
     { id: 2, slug: 'aleppo', displayNameAr: 'حلب', displayNameEn: 'Aleppo' },
   ],
   locations: [
-    { id: 10, slug: 'muhajireen', displayNameAr: 'المهاجرين', displayNameEn: 'Muhajireen' },
-    { id: 20, slug: 'mazzeh', displayNameAr: 'المزة', displayNameEn: 'Mazzeh' },
+    { id: 10, slug: 'muhajireen', displayNameAr: 'المهاجرين', displayNameEn: 'Muhajireen', region: 'Damascus', countryCode: 'SY', active: true },
+    { id: 20, slug: 'mazzeh', displayNameAr: 'المزة', displayNameEn: 'Mazzeh', region: 'Damascus', countryCode: 'SY', active: true },
   ],
   isLoadingGovernorates: false,
   isLoadingLocations: false,

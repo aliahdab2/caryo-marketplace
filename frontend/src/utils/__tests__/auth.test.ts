@@ -7,7 +7,7 @@ import { handleLogout, clearSessionCache } from '../auth';
 import { signOut } from 'next-auth/react';
 
 describe('handleLogout', () => {
-  let mockSignOut: jest.MockedFunction<() => Promise<void>>;
+  let mockSignOut: jest.MockedFunction<typeof signOut>;
   let mockClearSessionCache: jest.MockedFunction<() => void>;
 
   beforeEach(() => {

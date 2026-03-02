@@ -1,5 +1,7 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useListingData } from '../useListingData';
+import type { CarModel } from '@/types/referenceData';
+import type { Location as ServiceLocation } from '@/services/locations';
 
 // Mock the external dependencies
 jest.mock('@/services/api', () => ({
@@ -180,7 +182,7 @@ describe('useListingData - Comprehensive Tests', () => {
   describe('Locations loading', () => {
     it('should load locations for a governorate', async () => {
       const mockLocations = [
-        { id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1 }
+        { id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1, region: 'Damascus', countryCode: 'SY', active: true }
       ];
 
       mockGetLocationsByGovernorateSlug.mockResolvedValue(mockLocations);
@@ -233,7 +235,7 @@ describe('useListingData - Comprehensive Tests', () => {
 
     it('should clear locations when requested', async () => {
       const mockLocations = [
-        { id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1 }
+        { id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1, region: 'Damascus', countryCode: 'SY', active: true }
       ];
 
       mockGetLocationsByGovernorateSlug.mockResolvedValue(mockLocations);
@@ -262,7 +264,7 @@ describe('useListingData - Comprehensive Tests', () => {
   describe('Loading states management', () => {
     it('should manage loading states correctly during concurrent operations', async () => {
       const mockModels = [{ id: 101, name: 'camry', slug: 'camry', displayNameEn: 'Camry', displayNameAr: 'كامري', brandId: 1, isActive: true }];
-      const mockLocations = [{ id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1 }];
+      const mockLocations = [{ id: 1, displayNameEn: 'Damascus Center', displayNameAr: 'دمشق المركز', slug: 'damascus-center', governorateId: 1, region: 'Damascus', countryCode: 'SY', active: true }];
 
       // Create delayed promises to test loading states
       let resolveModels: (value: unknown) => void;
@@ -272,7 +274,7 @@ describe('useListingData - Comprehensive Tests', () => {
       const locationsPromise = new Promise(resolve => { resolveLocations = resolve; });
 
       mockGetVehicleModels.mockReturnValue(modelsPromise as Promise<CarModel[]>);
-      mockGetLocationsByGovernorateSlug.mockReturnValue(locationsPromise as Promise<Location[]>);
+      mockGetLocationsByGovernorateSlug.mockReturnValue(locationsPromise as Promise<ServiceLocation[]>);
 
       const { result } = renderHook(() => useListingData(mockT));
 

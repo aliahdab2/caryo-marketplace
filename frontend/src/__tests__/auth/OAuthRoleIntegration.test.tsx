@@ -16,9 +16,7 @@ describe('OAuth Role Integration Tests', () => {
     jest.resetModules();
 
     // Clear fetch mocks specifically
-    if (global.fetch && typeof global.fetch.mockClear === 'function') {
-      (global.fetch as jest.Mock).mockClear();
-    }
+    (global.fetch as jest.Mock).mockClear();
 
     // Reset any stored state
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -57,6 +55,7 @@ describe('OAuth Role Integration Tests', () => {
       };
 
       const mockAccount = {
+        type: 'oauth' as const,
         provider: 'google',
         providerAccountId: '123456789'
       };
@@ -109,6 +108,7 @@ describe('OAuth Role Integration Tests', () => {
       };
 
       const mockAccount = {
+        type: 'oauth' as const,
         provider: 'google',
         providerAccountId: '987654321'
       };
@@ -153,6 +153,7 @@ describe('OAuth Role Integration Tests', () => {
       };
 
       const mockAccount = {
+        type: 'oauth' as const,
         provider: 'google',
         providerAccountId: '555666777'
       };
@@ -197,6 +198,7 @@ describe('OAuth Role Integration Tests', () => {
       };
 
       const mockAccount = {
+        type: 'oauth' as const,
         provider: 'google',
         providerAccountId: '111222333'
       };
@@ -229,7 +231,7 @@ describe('OAuth Role Integration Tests', () => {
       });
 
       const mockProfile = { email: 'fail@example.com', name: 'Fail User' };
-      const mockAccount = { provider: 'google', providerAccountId: '000111222' };
+      const mockAccount = { provider: 'google', providerAccountId: '000111222', type: 'oauth' as const };
       const mockUser = { id: '1', name: 'Fail User', email: 'fail@example.com' };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -248,7 +250,7 @@ describe('OAuth Role Integration Tests', () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
       const mockProfile = { email: 'network@example.com', name: 'Network User' };
-      const mockAccount = { provider: 'google', providerAccountId: '777888999' };
+      const mockAccount = { provider: 'google', providerAccountId: '777888999', type: 'oauth' as const };
       const mockUser = { id: '1', name: 'Network User', email: 'network@example.com' };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -281,7 +283,7 @@ describe('OAuth Role Integration Tests', () => {
       });
 
       const mockProfile = { email: 'token@example.com', name: 'Token Test' };
-      const mockAccount = { provider: 'google', providerAccountId: '999888777' };
+      const mockAccount = { provider: 'google', providerAccountId: '999888777', type: 'oauth' as const };
       const mockUser = { id: '1', name: 'Token Test', email: 'token@example.com' };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -312,7 +314,7 @@ describe('OAuth Role Integration Tests', () => {
       });
 
       const mockProfile = { email: 'alt@example.com', name: 'Alt Token' };
-      const mockAccount = { provider: 'google', providerAccountId: '444555666' };
+      const mockAccount = { provider: 'google', providerAccountId: '444555666', type: 'oauth' as const };
       const mockUser = { id: '1', name: 'Alt Token', email: 'alt@example.com' };
 
       const signInCallback = authOptions.callbacks?.signIn;
@@ -350,7 +352,8 @@ describe('OAuth Role Integration Tests', () => {
 
         const result = await jwtCallback({
           token: mockToken,
-          user: mockUser
+          user: mockUser,
+          account: null
         });
 
         expect(result.roles).toEqual(['ROLE_USER']);
@@ -382,11 +385,14 @@ describe('OAuth Role Integration Tests', () => {
 
         const result = await sessionCallback({
           session: mockSession,
-          token: mockToken
+          token: mockToken,
+          user: { id: '1', name: 'Test User', email: 'test@example.com', emailVerified: null },
+          newSession: undefined,
+          trigger: 'update' as const,
         });
 
-        expect(result.user.roles).toEqual(['ROLE_USER']);
-        expect(result.accessToken).toBe('jwt_token_123');
+        expect((result as { user: { roles?: string[] } }).user.roles).toEqual(['ROLE_USER']);
+        expect((result as { accessToken?: string }).accessToken).toBe('jwt_token_123');
         // Note: isAdmin is computed by useOptimizedSession hook, not by session callback
       }
     });
@@ -413,10 +419,13 @@ describe('OAuth Role Integration Tests', () => {
 
         const result = await sessionCallback({
           session: mockSession,
-          token: mockToken
+          token: mockToken,
+          user: { id: '2', name: 'Admin User', email: 'admin@example.com', emailVerified: null },
+          newSession: undefined,
+          trigger: 'update' as const,
         });
 
-        expect(result.user.roles).toEqual(['ROLE_USER', 'ROLE_ADMIN']);
+        expect((result as { user: { roles?: string[] } }).user.roles).toEqual(['ROLE_USER', 'ROLE_ADMIN']);
         // Note: isAdmin is computed by useOptimizedSession hook, not by session callback
       }
     });

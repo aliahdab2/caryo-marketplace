@@ -1,19 +1,17 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Check Incomplete Translations
  * Shows keys that exist in one language but are missing in another
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 console.log('🔍 CHECKING INCOMPLETE TRANSLATIONS');
 console.log('=====================================\n');
-
-// Load translation files
-const enFiles = fs.readdirSync('./public/locales/en/');
-const arFiles = fs.readdirSync('./public/locales/ar/');
 
 const namespaces = ['auth', 'common', 'contact', 'dashboard', 'errors', 'favorites', 'home', 'listings', 'mediaGallery', 'messages', 'search', 'translation'];
 

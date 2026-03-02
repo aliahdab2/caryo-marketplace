@@ -80,7 +80,7 @@ const mockProps = {
   isLoadingAllModels: false,
   referenceData: {
     transmissions: [
-      { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual' }
+      { id: 1, displayNameEn: 'Manual', displayNameAr: 'يدوي', name: 'manual', slug: 'manual' }
     ],
     fuelTypes: [
       { id: 1, displayNameEn: 'Gasoline', displayNameAr: 'بنزين', name: 'gasoline', slug: 'gasoline' }
@@ -89,13 +89,13 @@ const mockProps = {
       { id: 1, displayNameEn: 'Sedan', displayNameAr: 'سيدان', name: 'sedan', slug: 'sedan' }
     ],
     sellerTypes: [
-      { id: 1, displayNameEn: 'Dealer', displayNameAr: 'معرض', name: 'dealer' }
+      { id: 1, displayNameEn: 'Dealer', displayNameAr: 'معرض', name: 'dealer', slug: 'dealer' }
     ],
     carConditions: [
-      { id: 1, displayNameEn: 'New', displayNameAr: 'جديد', name: 'new' }
+      { id: 1, displayNameEn: 'New', displayNameAr: 'جديد', name: 'new', slug: 'new' }
     ],
     driveTypes: [
-      { id: 1, displayNameEn: 'FWD', displayNameAr: 'دفع أمامي', name: 'fwd' }
+      { id: 1, displayNameEn: 'FWD', displayNameAr: 'دفع أمامي', name: 'fwd', slug: 'fwd' }
     ]
   },
   fuelTypeCounts: {

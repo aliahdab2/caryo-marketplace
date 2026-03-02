@@ -293,7 +293,7 @@ describe('Form Utils - Clean Modular Architecture', () => {
         contactPhone: '1234567890',
         governorateSlug: 'damascus',
         locationSlug: 'damascus-city',
-        images: ['image1.jpg', 'image2.jpg'],
+        images: [new File([''], 'image1.jpg'), new File([''], 'image2.jpg')],
         currency: 'USD',
         mileage: '50000',
         engine: '',

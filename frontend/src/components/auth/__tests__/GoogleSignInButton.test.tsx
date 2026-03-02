@@ -38,7 +38,7 @@ describe('GoogleSignInButton', () => {
     jest.clearAllMocks();
     mockSignIn.mockResolvedValue({ ok: true, error: null });
     // Set NODE_ENV to test to skip provider check
-    process.env.NODE_ENV = 'test';
+    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true, configurable: true });
   });
 
   it('renders the button with Google icon', async () => {

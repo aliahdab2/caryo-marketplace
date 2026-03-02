@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, logout, TEST_USER, ensureLoggedOut } from '../helpers';
+import { loginAsTestUser, TEST_USER, ensureLoggedOut } from '../helpers';
 import { urls, invalidCredentials } from '../fixtures/test-data';
 
 test.describe('Authentication', () => {

@@ -132,7 +132,7 @@ async function waitForBackend(apiUrl: string, maxRetries = 30, retryInterval = 2
           return;
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Backend not ready yet
     }
     

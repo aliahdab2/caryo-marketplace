@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useListingCount } from '../useListingCount';
+import { useListingCount, ListingCountFilters } from '../useListingCount';
 
 jest.useFakeTimers();
 
@@ -26,8 +26,8 @@ describe('useListingCount', () => {
     mockGetCount.mockResolvedValueOnce(42);
 
     const { result, rerender } = renderHook(
-      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 300),
-      { initialProps: { filters: { brands: ['toyota'] } } }
+      (props: { filters: ListingCountFilters }) => useListingCount(props.filters, 300),
+      { initialProps: { filters: { brands: ['toyota'] } as ListingCountFilters } }
     );
 
     // Trigger debounce window
@@ -52,8 +52,8 @@ describe('useListingCount', () => {
     mockGetCount.mockResolvedValue(7);
 
     const { rerender } = renderHook(
-      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 200),
-      { initialProps: { filters: { brands: ['toyota'] } } }
+      (props: { filters: ListingCountFilters }) => useListingCount(props.filters, 200),
+      { initialProps: { filters: { brands: ['toyota'] } as ListingCountFilters } }
     );
 
     // Rapid changes before debounce threshold
@@ -90,8 +90,8 @@ describe('useListingCount', () => {
     mockGetCount.mockResolvedValue(55);
 
     const { rerender, result } = renderHook(
-      (props: { filters: { brands?: string[]; models?: string[]; locations?: string[] } }) => useListingCount(props.filters, 10),
-      { initialProps: { filters: { brands: ['a'] } } }
+      (props: { filters: ListingCountFilters }) => useListingCount(props.filters, 10),
+      { initialProps: { filters: { brands: ['a'] } as ListingCountFilters } }
     );
 
     await act(async () => {

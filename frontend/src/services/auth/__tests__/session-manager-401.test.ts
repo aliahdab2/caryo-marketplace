@@ -15,22 +15,29 @@ describe('handleSessionExpired', () => {
   beforeEach(() => {
     // Save original location
     originalLocation = window.location;
-    
+
     // Mock window.location
-    delete (window as Window & { location?: Location }).location;
-    window.location = {
-      ...originalLocation,
-      href: '',
-      pathname: '/dashboard',
-    } as Location;
-    
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...originalLocation,
+        href: '',
+        pathname: '/dashboard',
+      },
+      writable: true,
+      configurable: true,
+    });
+
     // Clear mocks
     jest.clearAllMocks();
   });
 
   afterEach(() => {
     // Restore original location
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
   });
 
   it('should call signOut with redirect: false', async () => {

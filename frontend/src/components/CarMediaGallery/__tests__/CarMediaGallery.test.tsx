@@ -92,7 +92,7 @@ jest.mock('keen-slider/react', () => ({
       mockInstanceRef, // instanceRef
     ] as const;
   },
-}));
+}), { virtual: true });
 
 // Mock headlessui Dialog
 jest.mock('@headlessui/react', () => {

@@ -12,8 +12,8 @@ jest.mock('react-i18next', () => ({
 const mockUseTranslation = useTranslation as jest.MockedFunction<typeof useTranslation>;
 
 const mockBrands: CarMake[] = [
-  { id: 1, slug: 'toyota', displayNameEn: 'Toyota', displayNameAr: 'تويوتا' },
-  { id: 2, slug: 'honda', displayNameEn: 'Honda', displayNameAr: 'هوندا' },
+  { id: 1, name: 'toyota', slug: 'toyota', displayNameEn: 'Toyota', displayNameAr: 'تويوتا', isActive: true },
+  { id: 2, name: 'honda', slug: 'honda', displayNameEn: 'Honda', displayNameAr: 'هوندا', isActive: true },
 ];
 
 describe('BrandSelect', () => {

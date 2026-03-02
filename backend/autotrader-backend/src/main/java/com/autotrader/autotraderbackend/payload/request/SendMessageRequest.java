@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.payload.request;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,8 +15,9 @@ public class SendMessageRequest {
 
     /**
      * The content of the message to send.
-     * Optional when sending attachments, must be between 1 and 1000 characters if provided.
+     * Must be between 1 and 1000 characters.
      */
+    @NotBlank(message = "Message content cannot be empty")
     @Size(max = 1000, message = "Message cannot exceed 1000 characters")
     private String content;
 

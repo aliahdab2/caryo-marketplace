@@ -323,7 +323,7 @@ describe('/api/auth/auto-login', () => {
   describe('Production Environment', () => {
     it('should set secure cookies in production', async () => {
       const originalNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', writable: true, configurable: true });
 
       const request = createValidRequest(validAutoLoginRequest);
       await POST(request);
@@ -340,7 +340,7 @@ describe('/api/auth/auto-login', () => {
         })
       );
 
-      process.env.NODE_ENV = originalNodeEnv;
+      Object.defineProperty(process.env, 'NODE_ENV', { value: originalNodeEnv, writable: true, configurable: true });
     });
   });
 

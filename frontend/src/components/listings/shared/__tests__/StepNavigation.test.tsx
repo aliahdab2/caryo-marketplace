@@ -4,9 +4,9 @@ import StepNavigation, { StepNavigationItem } from '../StepNavigation';
 
 describe('StepNavigation', () => {
   const items: StepNavigationItem[] = [
-    { step: 1, title: 'Step One', icon: '1️⃣', isComplete: true },
-    { step: 2, title: 'Step Two', icon: '2️⃣', isComplete: false },
-    { step: 3, title: 'Step Three', icon: '3️⃣', isComplete: false },
+    { step: 1, title: 'Step One', icon: '1️⃣', isComplete: true, completionStatus: 'complete' as const },
+    { step: 2, title: 'Step Two', icon: '2️⃣', isComplete: false, completionStatus: 'incomplete' as const },
+    { step: 3, title: 'Step Three', icon: '3️⃣', isComplete: false, completionStatus: 'not-started' as const },
   ];
 
   it('renders steps, progress and handles step change', () => {

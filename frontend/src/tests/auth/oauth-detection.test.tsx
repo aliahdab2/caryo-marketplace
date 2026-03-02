@@ -79,11 +79,14 @@ describe('OAuth User Detection in Profile Page', () => {
         email: 'john@gmail.com',
         image: 'https://lh3.googleusercontent.com/a/xyz',
         roles: ['USER'],
+        isAdmin: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',
       isLoading: false,
-      isAuthenticated: true
+      isAuthenticated: true,
+      session: null,
+      refreshSession: jest.fn()
     });
 
     render(<ProfilePage />, { wrapper: createWrapper() });
@@ -104,11 +107,14 @@ describe('OAuth User Detection in Profile Page', () => {
         email: 'john@gmail.com',
         image: 'https://lh3.googleusercontent.com/a/xyz',
         roles: ['USER'],
+        isAdmin: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',
       isLoading: false,
-      isAuthenticated: true
+      isAuthenticated: true,
+      session: null,
+      refreshSession: jest.fn()
     });
 
     render(<ProfilePage />, { wrapper: createWrapper() });
@@ -128,11 +134,14 @@ describe('OAuth User Detection in Profile Page', () => {
         email: 'john@email.com',
         image: null,
         roles: ['USER'],
+        isAdmin: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',
       isLoading: false,
       isAuthenticated: true,
+      session: null,
+      refreshSession: jest.fn()
     });
 
     render(<ProfilePage />, { wrapper: createWrapper() });

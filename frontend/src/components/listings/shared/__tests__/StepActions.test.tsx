@@ -19,6 +19,7 @@ describe('StepActions', () => {
         onPrev={onPrev}
         onNext={onNext}
         submitButtonText={'Submit'}
+        submittingText={'Submitting...'}
         previousText={'Previous'}
         nextText={'Next'}
         leftArrowPath={'M10 19l-7-7 7-7'}
@@ -45,6 +46,7 @@ describe('StepActions', () => {
         onPrev={onPrev}
         onNext={onNext}
         submitButtonText={'Create Listing'}
+        submittingText={'Creating...'}
         previousText={'Previous'}
         nextText={'Next'}
         leftArrowPath={'M10 19l-7-7 7-7'}
@@ -62,6 +64,7 @@ describe('StepActions', () => {
         onPrev={onPrev}
         onNext={onNext}
         submitButtonText={'Create Listing'}
+        submittingText={'Creating...'}
         previousText={'Previous'}
         nextText={'Next'}
         leftArrowPath={'M10 19l-7-7 7-7'}
@@ -70,7 +73,7 @@ describe('StepActions', () => {
       />
     );
     const buttons = screen.getAllByRole('button');
-    const submitBtn = buttons.find((b) => b.type === 'submit') as HTMLButtonElement;
+    const submitBtn = buttons.find((b) => (b as HTMLButtonElement).type === 'submit') as HTMLButtonElement;
     expect(submitBtn).toBeTruthy();
     const spinner = submitBtn.querySelector('.animate-spin');
     expect(spinner).toBeTruthy();

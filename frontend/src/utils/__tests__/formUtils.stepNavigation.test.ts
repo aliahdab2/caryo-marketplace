@@ -29,7 +29,7 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     title: '',
     description: '',
     price: '',
-    
+
     // Step 2 fields
     mileage: '',
     transmission: '',
@@ -41,7 +41,7 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     engine: '',
     exteriorColor: '',
     interiorColor: '',
-    
+
     // Step 3 fields
     images: [],
     videos: [],
@@ -49,7 +49,7 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     existingImageUrls: [],
     existingVideoUrls: [],
     features: [],
-    
+
     // Step 4 fields
     currency: 'USD',
     contactName: '',
@@ -62,6 +62,9 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     location: '',
     categoryId: '',
     attributes: {},
+    state: '',
+    zipCode: '',
+    status: '',
   };
 
   // Fill in required fields based on completed steps
@@ -86,7 +89,7 @@ const createFormDataForStep = (completedSteps: number[]): ListingFormData => {
     // Step 3 requires title, description, and images
     baseData.title = 'Great Car';
     baseData.description = 'Excellent condition';
-    baseData.images = ['car-image1.jpg', 'car-image2.jpg'];
+    baseData.images = [new File([''], 'car-image1.jpg'), new File([''], 'car-image2.jpg')];
   }
 
   if (completedSteps.includes(4)) {
@@ -281,7 +284,7 @@ describe('Step Navigation Tests', () => {
       // Complete step 3 requirements (title/description/images)
       formData.title = 'Great Car';
       formData.description = 'Excellent condition';
-      formData.images = ['car-image1.jpg', 'car-image2.jpg'];
+      formData.images = [new File([''], 'car-image1.jpg'), new File([''], 'car-image2.jpg')];
 
       // Now step 4 is accessible (step 3 is now valid)
       expect(isStepAccessible(1, formData)).toBe(true);

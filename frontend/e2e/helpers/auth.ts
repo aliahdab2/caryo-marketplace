@@ -275,7 +275,7 @@ export async function ensureLoggedOut(page: Page): Promise<void> {
  * Create a fresh dealer account and login with it
  * This avoids rate limiting issues with shared test accounts
  */
-export async function createFreshDealerAndLogin(page: Page): Promise<any> {
+export async function createFreshDealerAndLogin(page: Page): Promise<{ username: string; email: string; password: string }> {
   const apiUrl = process.env.E2E_API_URL || 'http://localhost:8080';
   const timestamp = Date.now();
   const username = `dealer_${timestamp}`;

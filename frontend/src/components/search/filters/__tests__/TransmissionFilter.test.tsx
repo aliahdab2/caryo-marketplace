@@ -23,12 +23,14 @@ const mockReferenceData: CarReferenceData = {
     {
       id: 1,
       name: 'manual',
+      slug: 'manual',
       displayNameEn: 'Manual',
       displayNameAr: 'يدوي'
     },
     {
       id: 2,
       name: 'automatic',
+      slug: 'automatic',
       displayNameEn: 'Automatic',
       displayNameAr: 'أوتوماتيك'
     }

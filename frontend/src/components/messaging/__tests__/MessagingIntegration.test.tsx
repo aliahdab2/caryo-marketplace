@@ -90,18 +90,23 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('Messaging Integration Tests', () => {
-  const createMockMessage = (overrides?: Partial<MessageResponse>): MessageResponse => ({
+  const createMockMessage = (overrides?: Record<string, unknown>): MessageResponse => ({
     id: 1,
     conversationId: 1,
-    senderId: 1,
-    senderName: 'John Doe',
+    content: 'Test message content',
     displayContent: 'Test message content',
     messageType: 'text',
     createdAt: '2024-01-01T11:00:00Z',
     isRead: false,
+    isEdited: false,
+    isDeleted: false,
+    version: 1,
+    canBeEdited: true,
+    canBeDeleted: true,
+    sender: { id: 1, username: 'johndoe', email: 'john@example.com' },
     attachments: [],
     ...overrides
-  });
+  } as MessageResponse);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -128,6 +133,7 @@ describe('Messaging Integration Tests', () => {
           onDocumentSelect={jest.fn()}
           onRemoveFile={jest.fn()}
           onClearAllFiles={jest.fn()}
+          onKeyPress={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
@@ -156,6 +162,7 @@ describe('Messaging Integration Tests', () => {
           onDocumentSelect={jest.fn()}
           onRemoveFile={jest.fn()}
           onClearAllFiles={jest.fn()}
+          onKeyPress={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
@@ -190,6 +197,7 @@ describe('Messaging Integration Tests', () => {
           onDocumentSelect={jest.fn()}
           onRemoveFile={jest.fn()}
           onClearAllFiles={jest.fn()}
+          onKeyPress={jest.fn()}
           sending={false}
           uploading={false}
           isRTL={false}
@@ -222,6 +230,14 @@ describe('Messaging Integration Tests', () => {
             contentType: 'image/jpeg',
             size: 1024000,
             image: true,
+            document: false,
+            video: false,
+            audio: false,
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T11:00:00Z',
+            isDeleted: false,
+            fileExtension: 'jpg',
+            validFileType: true,
             humanReadableSize: '1 MB'
           },
           {
@@ -231,6 +247,14 @@ describe('Messaging Integration Tests', () => {
             contentType: 'image/png',
             size: 2048000,
             image: true,
+            document: false,
+            video: false,
+            audio: false,
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T11:00:00Z',
+            isDeleted: false,
+            fileExtension: 'jpg',
+            validFileType: true,
             humanReadableSize: '2 MB'
           }
         ]
@@ -288,6 +312,14 @@ describe('Messaging Integration Tests', () => {
             contentType: 'image/png',
             size: 1024000,
             image: true,
+            document: false,
+            video: false,
+            audio: false,
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T11:00:00Z',
+            isDeleted: false,
+            fileExtension: 'jpg',
+            validFileType: true,
             humanReadableSize: '1 MB'
           },
           {
@@ -297,6 +329,14 @@ describe('Messaging Integration Tests', () => {
             contentType: 'application/pdf',
             size: 2048000,
             image: false,
+            document: true,
+            video: false,
+            audio: false,
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T11:00:00Z',
+            isDeleted: false,
+            fileExtension: 'pdf',
+            validFileType: true,
             humanReadableSize: '2 MB'
           }
         ]
@@ -347,17 +387,16 @@ describe('Messaging Integration Tests', () => {
     it('should handle conversation flow with multiple messages', () => {
       const mockDownload = jest.fn();
 
+      const isOwnFlags = [false, true, false, true];
       const messages = [
         createMockMessage({
           id: 1,
           displayContent: 'Hello! Are you still selling the car?',
-          isOwn: false,
           createdAt: '2024-01-01T11:00:00Z'
         }),
         createMockMessage({
           id: 2,
           displayContent: 'Yes, it\'s still available. Here are some additional photos:',
-          isOwn: true,
           createdAt: '2024-01-01T10:05:00Z',
           attachments: [
             {
@@ -374,13 +413,11 @@ describe('Messaging Integration Tests', () => {
         createMockMessage({
           id: 3,
           displayContent: 'Looks great! Can you send me the maintenance records?',
-          isOwn: false,
           createdAt: '2024-01-01T10:10:00Z'
         }),
         createMockMessage({
           id: 4,
           displayContent: 'Sure, here they are:',
-          isOwn: true,
           createdAt: '2024-01-01T10:15:00Z',
           attachments: [
             {
@@ -398,11 +435,11 @@ describe('Messaging Integration Tests', () => {
 
       const { container } = render(
         <div>
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <MessageBubble
               key={message.id}
               message={message}
-              isOwn={message.isOwn || false}
+              isOwn={isOwnFlags[index]}
               isRTL={false}
               onDownloadDocument={mockDownload}
             />
@@ -453,6 +490,7 @@ describe('Messaging Integration Tests', () => {
           onDocumentSelect={jest.fn()}
           onRemoveFile={jest.fn()}
           onClearAllFiles={jest.fn()}
+          onKeyPress={jest.fn()}
           sending={true}
           uploading={false}
           isRTL={false}
@@ -475,6 +513,7 @@ describe('Messaging Integration Tests', () => {
           onDocumentSelect={jest.fn()}
           onRemoveFile={jest.fn()}
           onClearAllFiles={jest.fn()}
+          onKeyPress={jest.fn()}
           sending={false}
           uploading={true}
           isRTL={false}
@@ -502,6 +541,14 @@ describe('Messaging Integration Tests', () => {
             contentType: 'image/jpeg',
             size: 1024000,
             image: true,
+            document: false,
+            video: false,
+            audio: false,
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T11:00:00Z',
+            isDeleted: false,
+            fileExtension: 'jpg',
+            validFileType: true,
             humanReadableSize: '1 MB'
           }
         ]

@@ -105,7 +105,7 @@ test.describe('Listing Details', () => {
     // Wait a bit as these might load after main content or require scroll
     try {
       await expect(contactButton.first()).toBeVisible({ timeout: 15000 });
-    } catch (e) {
+    } catch (_e) {
       console.log('Contact buttons not found, trying fallback check');
        // If failed, try looking for the container
        const stickyBar = page.locator('.fixed.bottom-0'); // Mobile sticky bar
@@ -129,7 +129,6 @@ test.describe('Listing Details', () => {
 
     await page.waitForLoadState('networkidle');
     
-    const similarSection = page.getByText(/similar cars|you might also like|similar listings/i);
     // This might not always be present if no similar cars, so we make it a soft check or check if section structure exists
     // For now, checks if we scroll down we don't crash and if text is visible optionally
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

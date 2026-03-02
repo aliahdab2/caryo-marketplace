@@ -6,15 +6,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Public test controller for development and testing purposes
+ * Test controller for development and testing purposes.
+ * Requires ADMIN role to prevent unauthorized access to data import operations.
  */
 @RestController
 @RequestMapping("/api/public")
 @Slf4j
-@Tag(name = "Public Test", description = "Public endpoints for testing (development only)")
+@PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Public Test", description = "Admin-only endpoints for testing (development only)")
 public class PublicTestController {
 
     private final SyrianCarsDataService syrianCarsDataService;

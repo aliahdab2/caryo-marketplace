@@ -36,12 +36,15 @@ const mockGovernorates = [
 ];
 
 const mockLocations = [
-  { 
-    id: 1, 
-    displayNameEn: 'Test Location', 
-    displayNameAr: 'موقع تست', 
+  {
+    id: 1,
+    displayNameEn: 'Test Location',
+    displayNameAr: 'موقع تست',
     slug: 'test-location',
-    governorateId: 1 
+    governorateId: 1,
+    region: 'Test Region',
+    countryCode: 'SY',
+    active: true
   },
 ];
 

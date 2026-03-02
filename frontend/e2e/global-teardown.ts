@@ -4,7 +4,7 @@ import { FullConfig } from '@playwright/test';
  * Global teardown for E2E tests
  * Runs once after all tests complete
  */
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown(_config: FullConfig) {
   console.log('🧹 E2E Global Teardown...');
   
   // Clean up test data if needed

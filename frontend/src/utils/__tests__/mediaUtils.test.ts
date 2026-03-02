@@ -85,8 +85,8 @@ describe('mediaUtils', () => {
     });
 
     it('should return false for null or undefined items', () => {
-      expect(isVideoMedia(null)).toBe(false);
-      expect(isVideoMedia(undefined)).toBe(false);
+      expect(isVideoMedia(null as unknown as MediaItem)).toBe(false);
+      expect(isVideoMedia(undefined as unknown as MediaItem)).toBe(false);
     });
 
     it('should return false for items without video indicators', () => {
@@ -130,8 +130,8 @@ describe('mediaUtils', () => {
     });
 
     it('should return "image" for null or undefined items', () => {
-      expect(getMediaType(null)).toBe('image');
-      expect(getMediaType(undefined)).toBe('image');
+      expect(getMediaType(null as unknown as MediaItem)).toBe('image');
+      expect(getMediaType(undefined as unknown as MediaItem)).toBe('image');
     });
   });
 
@@ -156,8 +156,8 @@ describe('mediaUtils', () => {
       expect(isYouTubeUrl('https://example.com/video')).toBe(false);
       expect(isYouTubeUrl('not-a-url')).toBe(false);
       expect(isYouTubeUrl('')).toBe(false);
-      expect(isYouTubeUrl(null)).toBe(false);
-      expect(isYouTubeUrl(undefined)).toBe(false);
+      expect(isYouTubeUrl(null as unknown as string)).toBe(false);
+      expect(isYouTubeUrl(undefined as unknown as string)).toBe(false);
     });
   });
 
@@ -174,7 +174,7 @@ describe('mediaUtils', () => {
       expect(getYouTubeEmbedUrl('https://vimeo.com/123456')).toBe(null);
       expect(getYouTubeEmbedUrl('not-a-url')).toBe(null);
       expect(getYouTubeEmbedUrl('')).toBe(null);
-      expect(getYouTubeEmbedUrl(null)).toBe(null);
+      expect(getYouTubeEmbedUrl(null as unknown as string)).toBe(null);
     });
   });
 
@@ -191,7 +191,7 @@ describe('mediaUtils', () => {
       expect(getYouTubeThumbnailUrl('https://vimeo.com/123456')).toBe(null);
       expect(getYouTubeThumbnailUrl('not-a-url')).toBe(null);
       expect(getYouTubeThumbnailUrl('')).toBe(null);
-      expect(getYouTubeThumbnailUrl(null)).toBe(null);
+      expect(getYouTubeThumbnailUrl(null as unknown as string)).toBe(null);
     });
   });
 

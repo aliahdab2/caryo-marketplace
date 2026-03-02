@@ -62,7 +62,7 @@ test.describe('Listing Wizard', () => {
       if (isVisible) {
         // Try different selection methods
         try {
-          await makeSelect.selectOption({ label: /toyota/i });
+          await makeSelect.selectOption({ label: 'toyota' });
         } catch {
           try {
             await makeSelect.click();

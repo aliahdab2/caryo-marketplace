@@ -27,7 +27,7 @@ mockProcessVideoForGallery.mockReturnValue({
   isYouTube: true,
   videoId: 'test'
 });
-mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated' });
+mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated', update: jest.fn() });
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
@@ -251,7 +251,7 @@ describe('HoverImageNavigation Accessibility', () => {
       const overlayButton = closeButtons.find(btn =>
         btn.getAttribute('aria-label')?.includes('anywhere outside')
       );
-      fireEvent.click(overlayButton);
+      fireEvent.click(overlayButton!);
 
       expect(mockOnVideoPlayingChange).toHaveBeenCalledWith(false);
     });

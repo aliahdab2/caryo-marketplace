@@ -219,7 +219,7 @@ describe('Form Validation Tests', () => {
       const formData = createFormData({
         title: 'Amazing Car',
         description: 'This car is in excellent condition',
-        images: ['car-image1.jpg', 'car-image2.jpg']
+        images: [new File([''], 'car-image1.jpg'), new File([''], 'car-image2.jpg')]
       });
       
       const errors = validateStep(3, formData, mockT);

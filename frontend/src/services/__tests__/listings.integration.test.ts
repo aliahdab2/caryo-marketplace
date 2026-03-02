@@ -1,6 +1,7 @@
 import { createListing } from '../listings';
 import { api } from '../api';
 import { getCarReferenceData, getVehicleMakes, getVehicleModels } from '../referenceData';
+import type { ListingFormData } from '@/types/listings';
 
 // Mock dependencies
 jest.mock('../api');
@@ -155,7 +156,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await createListing(formData );
+      await createListing(formData as unknown as ListingFormData);
 
       // V2: No lookups are performed since IDs are provided directly
       // Verify NO location lookup is called
@@ -206,7 +207,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await createListing(formData );
+      await createListing(formData as unknown as ListingFormData);
 
       // Verify the fetch call was made (createListing uses fetch directly)
       expect(mockFetch).toHaveBeenCalledWith(
@@ -222,7 +223,7 @@ describe('Listings Service - Data Conversion Integration', () => {
 
       // Verify transmissionId is not in the request body
       const fetchCall = mockFetch.mock.calls[0];
-      const requestBody = fetchCall[1].body;
+      const requestBody = fetchCall[1]!.body;
       expect(requestBody).not.toContain('transmissionId');
     });
 
@@ -250,7 +251,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await expect(createListing(formData )).rejects.toThrow('Model ID is required and must be valid');
+      await expect(createListing(formData as unknown as ListingFormData)).rejects.toThrow('Model ID is required and must be valid');
     });
 
     it('should validate required model ID', async () => {
@@ -273,7 +274,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await expect(createListing(formData )).rejects.toThrow('Model ID is required and must be valid');
+      await expect(createListing(formData as unknown as ListingFormData)).rejects.toThrow('Model ID is required and must be valid');
     });
 
     it('should validate required location', async () => {
@@ -296,7 +297,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await expect(createListing(formData )).rejects.toThrow('Location ID is required');
+      await expect(createListing(formData as unknown as ListingFormData)).rejects.toThrow('Location ID is required');
     });
 
     it('should handle API errors during listing creation', async () => {
@@ -323,7 +324,7 @@ describe('Listings Service - Data Conversion Integration', () => {
         videoUrls: []
       };
 
-      await expect(createListing(formData )).rejects.toThrow('Failed to create listing');
+      await expect(createListing(formData as unknown as ListingFormData)).rejects.toThrow('Failed to create listing');
     });
   });
 });

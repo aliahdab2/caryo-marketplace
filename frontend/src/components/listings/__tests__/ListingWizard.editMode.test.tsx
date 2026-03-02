@@ -127,7 +127,7 @@ const mockExistingListing = {
   contactPhone: '+963 123 456 789',
   contactEmail: 'john@example.com',
   existingImageUrls: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-  status: 'active'
+  status: 'active' as const
 };
 
 jest.mock('@/services/ListingDataService', () => ({

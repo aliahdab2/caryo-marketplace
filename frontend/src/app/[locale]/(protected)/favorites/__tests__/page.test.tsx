@@ -166,9 +166,11 @@ const renderWithProviders = (ui: React.ReactElement) => {
 
 // Factory for creating mock listings
 const createMockListing = (overrides?: Partial<Listing>): Listing => ({
-  id: 1,
+  id: '1',
   title: 'Toyota Camry 2023',
   price: 25000,
+  year: 2023,
+  mileage: 10000,
   currency: 'USD',
   status: 'active',
   createdAt: '2024-01-15T10:00:00Z',
@@ -233,8 +235,8 @@ describe('FavoritesPage', () => {
   describe('Favorites List', () => {
     it('should render favorites when data is available', () => {
       mockState.favorites = [
-        createMockListing({ id: 1, title: 'Toyota Camry 2023' }),
-        createMockListing({ id: 2, title: 'Honda Accord 2022' }),
+        createMockListing({ id: '1', title: 'Toyota Camry 2023' }),
+        createMockListing({ id: '2', title: 'Honda Accord 2022' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -245,8 +247,8 @@ describe('FavoritesPage', () => {
 
     it('should show item count', () => {
       mockState.favorites = [
-        createMockListing({ id: 1 }),
-        createMockListing({ id: 2 }),
+        createMockListing({ id: '1' }),
+        createMockListing({ id: '2' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -256,11 +258,11 @@ describe('FavoritesPage', () => {
 
     it('should display listing price and location', () => {
       mockState.favorites = [
-        createMockListing({ 
-          id: 1, 
+        createMockListing({
+          id: '1',
           title: 'Test Car',
           price: 30000,
-          location: { city: 'Aleppo' } 
+          location: { city: 'Aleppo' }
         }),
       ];
 
@@ -274,9 +276,9 @@ describe('FavoritesPage', () => {
   describe('Tab Filtering', () => {
     it('should show all tabs with counts', () => {
       mockState.favorites = [
-        createMockListing({ id: 1, status: 'active' }),
-        createMockListing({ id: 2, status: 'sold' }),
-        createMockListing({ id: 3, status: 'expired' }),
+        createMockListing({ id: '1', status: 'active' }),
+        createMockListing({ id: '2', status: 'sold' }),
+        createMockListing({ id: '3', status: 'expired' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -290,8 +292,8 @@ describe('FavoritesPage', () => {
     it('should filter to available listings when clicking Available tab', async () => {
       const user = userEvent.setup();
       mockState.favorites = [
-        createMockListing({ id: 1, title: 'Available Car', status: 'active' }),
-        createMockListing({ id: 2, title: 'Sold Car', status: 'sold' }),
+        createMockListing({ id: '1', title: 'Available Car', status: 'active' }),
+        createMockListing({ id: '2', title: 'Sold Car', status: 'sold' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -312,9 +314,9 @@ describe('FavoritesPage', () => {
     it('should filter to removed listings when clicking Removed tab', async () => {
       const user = userEvent.setup();
       mockState.favorites = [
-        createMockListing({ id: 1, title: 'Available Car', status: 'active' }),
-        createMockListing({ id: 2, title: 'Sold Car', status: 'sold' }),
-        createMockListing({ id: 3, title: 'Expired Car', status: 'expired' }),
+        createMockListing({ id: '1', title: 'Available Car', status: 'active' }),
+        createMockListing({ id: '2', title: 'Sold Car', status: 'sold' }),
+        createMockListing({ id: '3', title: 'Expired Car', status: 'expired' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -333,7 +335,7 @@ describe('FavoritesPage', () => {
   describe('Status Badges', () => {
     it('should show sold badge for sold listings', () => {
       mockState.favorites = [
-        createMockListing({ id: 1, title: 'Sold Car', status: 'sold' }),
+        createMockListing({ id: '1', title: 'Sold Car', status: 'sold' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -343,7 +345,7 @@ describe('FavoritesPage', () => {
 
     it('should show expired badge for expired listings', () => {
       mockState.favorites = [
-        createMockListing({ id: 1, title: 'Expired Car', status: 'expired' }),
+        createMockListing({ id: '1', title: 'Expired Car', status: 'expired' }),
       ];
 
       renderWithProviders(<FavoritesPage />);
@@ -354,7 +356,7 @@ describe('FavoritesPage', () => {
 
   describe('Remove All Action', () => {
     it('should show remove all button when favorites exist', () => {
-      mockState.favorites = [createMockListing({ id: 1 })];
+      mockState.favorites = [createMockListing({ id: '1' })];
 
       renderWithProviders(<FavoritesPage />);
 
@@ -363,7 +365,7 @@ describe('FavoritesPage', () => {
 
     it('should open confirmation modal when clicking remove all', async () => {
       const user = userEvent.setup();
-      mockState.favorites = [createMockListing({ id: 1 })];
+      mockState.favorites = [createMockListing({ id: '1' })];
 
       renderWithProviders(<FavoritesPage />);
 
@@ -376,7 +378,7 @@ describe('FavoritesPage', () => {
 
     it('should close modal when clicking cancel', async () => {
       const user = userEvent.setup();
-      mockState.favorites = [createMockListing({ id: 1 })];
+      mockState.favorites = [createMockListing({ id: '1' })];
 
       renderWithProviders(<FavoritesPage />);
 

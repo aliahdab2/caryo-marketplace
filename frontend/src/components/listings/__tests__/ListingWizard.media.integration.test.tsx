@@ -11,7 +11,7 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }))
 
 // Mock NextAuth and session hooks
 jest.mock('next-auth/react', () => ({
-  SessionProvider: ({ children }) => ({ type: 'div', props: { children } }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => ({ type: 'div', props: { children } }),
   useSession: () => ({
     data: {
       user: {
@@ -128,7 +128,7 @@ describe('ListingWizard Step 3 media integration', () => {
         autoLoad={false}
         autoSave={false}
         showHeader={false}
-        initialData={fillStep1AndStep2() as ListingFormData}
+        initialData={fillStep1AndStep2() as unknown as ListingFormData}
       />
     );
 
@@ -164,7 +164,7 @@ describe('ListingWizard Step 3 media integration', () => {
         autoLoad={false}
         autoSave={false}
         showHeader={false}
-        initialData={fillStep1AndStep2() as ListingFormData}
+        initialData={fillStep1AndStep2() as unknown as ListingFormData}
       />
     );
 
@@ -200,7 +200,7 @@ describe('ListingWizard Step 3 media integration', () => {
         autoLoad={false}
         autoSave={false}
         showHeader={false}
-        initialData={fillStep1AndStep2() as ListingFormData}
+        initialData={fillStep1AndStep2() as unknown as ListingFormData}
       />
     );
 
@@ -233,7 +233,7 @@ describe('ListingWizard Step 3 media integration', () => {
         autoLoad={false}
         autoSave={false}
         showHeader={false}
-        initialData={fillStep1AndStep2() as ListingFormData}
+        initialData={fillStep1AndStep2() as unknown as ListingFormData}
       />
     );
 

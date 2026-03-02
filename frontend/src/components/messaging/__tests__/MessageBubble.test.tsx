@@ -38,12 +38,17 @@ describe('MessageBubble', () => {
   const createMockMessage = (overrides?: Partial<MessageResponse>): MessageResponse => ({
     id: 1,
     conversationId: 1,
-    senderId: 1,
-    senderName: 'John Doe',
+    content: 'Test message content',
     displayContent: 'Test message content',
     messageType: 'text',
     createdAt: '2024-01-01T11:00:00Z',
     isRead: false,
+    isEdited: false,
+    isDeleted: false,
+    version: 1,
+    canBeEdited: true,
+    canBeDeleted: true,
+    sender: { id: 1, username: 'johndoe', email: 'john@example.com' },
     attachments: [],
     ...overrides
   });
@@ -144,6 +149,14 @@ describe('MessageBubble', () => {
           contentType: 'image/jpeg',
           size: 1024000,
           image: true,
+          document: false,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'jpg',
+          validFileType: true,
           humanReadableSize: '1 MB'
         },
         {
@@ -153,6 +166,14 @@ describe('MessageBubble', () => {
           contentType: 'image/png',
           size: 2048000,
           image: true,
+          document: false,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'jpg',
+          validFileType: true,
           humanReadableSize: '2 MB'
         }
       ]
@@ -248,6 +269,14 @@ describe('MessageBubble', () => {
           contentType: 'application/pdf',
           size: 5120000,
           image: false,
+          document: true,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'pdf',
+          validFileType: true,
           humanReadableSize: '5 MB'
         },
         {
@@ -257,6 +286,14 @@ describe('MessageBubble', () => {
           contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           size: 1024000,
           image: false,
+          document: true,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'pdf',
+          validFileType: true,
           humanReadableSize: '1 MB'
         }
       ]
@@ -322,6 +359,14 @@ describe('MessageBubble', () => {
           contentType: 'image/jpeg',
           size: 1024000,
           image: true,
+          document: false,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'jpg',
+          validFileType: true,
           humanReadableSize: '1 MB'
         },
         {
@@ -331,6 +376,14 @@ describe('MessageBubble', () => {
           contentType: 'application/pdf',
           size: 2048000,
           image: false,
+          document: true,
+          video: false,
+          audio: false,
+          uploadStatus: 'COMPLETED',
+          createdAt: '2024-01-01T11:00:00Z',
+          isDeleted: false,
+          fileExtension: 'pdf',
+          validFileType: true,
           humanReadableSize: '2 MB'
         }
       ]
@@ -414,7 +467,15 @@ describe('MessageBubble', () => {
             contentType: 'image/jpeg',
             size: 1024000,
             image: true,
-            humanReadableSize: '1 MB'
+            document: false,
+            video: false,
+            audio: false,
+            humanReadableSize: '1 MB',
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T00:00:00Z',
+            isDeleted: false,
+            fileExtension: 'jpg',
+            validFileType: true
           }
         ]
       });
@@ -441,7 +502,15 @@ describe('MessageBubble', () => {
             contentType: 'application/pdf',
             size: 1024000,
             image: false,
-            humanReadableSize: '1 MB'
+            document: true,
+            video: false,
+            audio: false,
+            humanReadableSize: '1 MB',
+            uploadStatus: 'COMPLETED',
+            createdAt: '2024-01-01T00:00:00Z',
+            isDeleted: false,
+            fileExtension: 'pdf',
+            validFileType: true
           }
         ]
       });

@@ -1,5 +1,6 @@
 import { ListingDataService } from '../ListingDataService';
 import { getMyListingById } from '../listings';
+import type { ListingFormData } from '@/types/listings';
 
 // Mock the listings service
 jest.mock('../listings', () => ({
@@ -113,7 +114,9 @@ describe('ListingDataService', () => {
         },
         createdAt: '2023-01-01T00:00:00Z',
         seller: {
+          id: '1',
           name: 'John Doe',
+          type: 'private' as const,
           phone: '+963123456789',
           email: 'john@example.com'
         },
@@ -208,7 +211,7 @@ describe('ListingDataService', () => {
         mileage: 50000,
         media: [], // Empty media array
         location: { city: 'Damascus' },
-        governorate: { nameEn: 'Damascus' },
+        governorate: { nameEn: 'Damascus', nameAr: 'دمشق' },
         createdAt: '2023-01-01T00:00:00Z'
       };
 
@@ -224,6 +227,10 @@ describe('ListingDataService', () => {
     it('should use fallback values for missing data', async () => {
       const mockListing = {
         id: '123',
+        title: '',
+        price: 0,
+        year: 0,
+        mileage: 0,
         // Missing most fields to test fallbacks
         createdAt: '2023-01-01T00:00:00Z'
       };
@@ -257,14 +264,14 @@ describe('ListingDataService', () => {
         existingImageUrls: []
       };
 
-      const errors = ListingDataService.validateFormData(validData, 'create');
+      const errors = ListingDataService.validateFormData(validData as unknown as Partial<ListingFormData>, 'create');
       expect(errors).toEqual([]);
     });
 
     it('should return errors for missing required fields', () => {
       const invalidData = {};
 
-      const errors = ListingDataService.validateFormData(invalidData, 'create');
+      const errors = ListingDataService.validateFormData(invalidData as Partial<ListingFormData>, 'create');
 
       expect(errors).toContain('Title is required');
       expect(errors).toContain('Description is required');
@@ -291,7 +298,7 @@ describe('ListingDataService', () => {
         existingImageUrls: ['existing-image.jpg'] // But has existing
       };
 
-      const errors = ListingDataService.validateFormData(editData, 'edit');
+      const errors = ListingDataService.validateFormData(editData as unknown as Partial<ListingFormData>, 'edit');
       expect(errors).toEqual([]);
     });
 
@@ -309,7 +316,7 @@ describe('ListingDataService', () => {
         existingImageUrls: []
       };
 
-      const errors = ListingDataService.validateFormData(dataWithNewImages, 'create');
+      const errors = ListingDataService.validateFormData(dataWithNewImages as unknown as Partial<ListingFormData>, 'create');
       expect(errors).not.toContain('At least one image is required');
     });
   });

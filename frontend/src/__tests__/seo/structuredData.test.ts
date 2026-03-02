@@ -41,8 +41,14 @@ const mockCarListing: CarListing = {
   modelYear: 2023,
   price: 45000,
   mileage: 15000,
-  transmission: 'Automatic',
-  fuelType: 'Gasoline',
+  transmission: { id: 1, name: 'automatic', slug: 'automatic', displayNameEn: 'Automatic', displayNameAr: 'أوتوماتيك' },
+  fuelType: { id: 1, name: 'gasoline', slug: 'gasoline', displayNameEn: 'Gasoline', displayNameAr: 'بنزين' },
+  brand: { id: 1, name: 'toyota', slug: 'toyota', displayNameEn: 'Toyota', displayNameAr: 'تويوتا', isActive: true },
+  model: { id: 1, name: 'camry', slug: 'camry', displayNameEn: 'Camry', displayNameAr: 'كامري', isActive: true, brandId: 1 },
+  transmissionNameEn: 'Automatic',
+  transmissionNameAr: 'أوتوماتيك',
+  fuelTypeNameEn: 'Gasoline',
+  fuelTypeNameAr: 'بنزين',
   description: 'Excellent condition Toyota Camry with low mileage',
   media: [
     {
@@ -141,9 +147,9 @@ describe('Structured Data Generation', () => {
 
     it('should include fuel type and transmission when available', () => {
       const schema = generateVehicleSchema(mockCarListing, '/listings/1');
-      
-      expect(schema.fuelType).toBe(mockCarListing.fuelType);
-      expect(schema.vehicleTransmission).toBe(mockCarListing.transmission);
+
+      expect(schema.fuelType).toBe('Gasoline');
+      expect(schema.vehicleTransmission).toBe('Automatic');
     });
 
     it('should validate Schema.org Vehicle format', () => {
@@ -304,8 +310,14 @@ describe('Structured Data Generation', () => {
         modelYear: 2020,
         price: 0,
         mileage: 0,
-        transmission: '',
-        fuelType: '',
+        transmission: { id: 0, name: '', slug: '', displayNameEn: '', displayNameAr: '' },
+        fuelType: { id: 0, name: '', slug: '', displayNameEn: '', displayNameAr: '' },
+        brand: { id: 1, name: 'brand', slug: 'brand', displayNameEn: 'Brand', displayNameAr: 'براند', isActive: true },
+        model: { id: 1, name: 'model', slug: 'model', displayNameEn: 'Model', displayNameAr: 'موديل', isActive: true, brandId: 1 },
+        transmissionNameEn: '',
+        transmissionNameAr: '',
+        fuelTypeNameEn: '',
+        fuelTypeNameAr: '',
         description: '',
         media: [],
         approved: false,
