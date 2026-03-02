@@ -7,12 +7,12 @@ import com.autotrader.autotraderbackend.payload.request.LoginRequest;
 import com.autotrader.autotraderbackend.payload.request.SignupRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
-import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.SellerTypeRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
+import com.autotrader.autotraderbackend.service.RoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +52,7 @@ public class AuthControllerTest {
     private UserRepository userRepository;
 
     @Mock
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -154,9 +154,9 @@ public class AuthControllerTest {
         when(userRepository.existsByEmail("newuser@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
 
-        // Setup role repository mock
+        // Setup role service mock
         Role userRole = new Role("ROLE_USER");
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
 
         User savedUser = new User();
         savedUser.setUsername("newuser");
@@ -193,7 +193,7 @@ public class AuthControllerTest {
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("newuser@example.com");
         verify(passwordEncoder).encode("password");
-        verify(roleRepository).findByName("ROLE_USER");
+        verify(roleService).getOrCreateRole("ROLE_USER");
         verify(userRepository).save(any(User.class));
     }
 
@@ -246,12 +246,12 @@ public class AuthControllerTest {
         when(userRepository.existsByEmail("newadmin@example.com")).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
 
-        // Setup role repository mocks
+        // Setup role service mocks
         Role userRole = new Role("ROLE_USER");
         Role adminRole = new Role("ROLE_ADMIN");
         // Use lenient() for the USER role as it might not be used in this test
-        lenient().when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
-        when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
+        lenient().when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
+        when(roleService.getOrCreateRole("ROLE_ADMIN")).thenReturn(adminRole);
 
         User savedUser = new User();
         savedUser.setUsername("newadmin");
@@ -299,7 +299,7 @@ public class AuthControllerTest {
         verify(userRepository).existsByUsername("newadmin");
         verify(userRepository).existsByEmail("newadmin@example.com");
         verify(passwordEncoder).encode("password");
-        verify(roleRepository).findByName("ROLE_ADMIN");
+        verify(roleService).getOrCreateRole("ROLE_ADMIN");
         verify(userRepository).save(any(User.class));
     }
 }

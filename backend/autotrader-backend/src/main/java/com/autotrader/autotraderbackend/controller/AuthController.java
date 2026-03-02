@@ -10,7 +10,6 @@ import com.autotrader.autotraderbackend.payload.request.ForgotPasswordRequest;
 import com.autotrader.autotraderbackend.payload.request.ResetPasswordRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
 import com.autotrader.autotraderbackend.payload.response.MessageResponse;
-import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.SellerTypeRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
@@ -18,6 +17,7 @@ import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
 import com.autotrader.autotraderbackend.service.DealerService;
 import com.autotrader.autotraderbackend.service.PasswordResetService;
 import com.autotrader.autotraderbackend.service.EmailVerificationService;
+import com.autotrader.autotraderbackend.service.RoleService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
 import com.autotrader.autotraderbackend.payload.response.SellerTypeResponse;
 import com.autotrader.autotraderbackend.service.EmailService;
@@ -57,7 +57,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Autowired
     private SellerTypeRepository sellerTypeRepository;
@@ -194,33 +194,15 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            // Get or create ROLE_USER
-            Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseGet(() -> {
-                    Role newRole = new Role("ROLE_USER");
-                    return roleRepository.save(newRole);
-                });
-            roles.add(userRole);
+            roles.add(roleService.getOrCreateRole("ROLE_USER"));
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
                 case "admin":
-                    // Get or create ROLE_ADMIN
-                    Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                        .orElseGet(() -> {
-                            Role newRole = new Role("ROLE_ADMIN");
-                            return roleRepository.save(newRole);
-                        });
-                    roles.add(adminRole);
+                    roles.add(roleService.getOrCreateRole("ROLE_ADMIN"));
                     break;
                 default:
-                    // Get or create ROLE_USER
-                    Role userRole = roleRepository.findByName("ROLE_USER")
-                        .orElseGet(() -> {
-                            Role newRole = new Role("ROLE_USER");
-                            return roleRepository.save(newRole);
-                        });
-                    roles.add(userRole);
+                    roles.add(roleService.getOrCreateRole("ROLE_USER"));
                 }
             });
         }
@@ -278,12 +260,7 @@ public class AuthController {
             // Ensure existing OAuth users have at least the default role
             if (user.getRoles() == null || user.getRoles().isEmpty()) {
                 Set<Role> roles = new HashSet<>();
-                Role userRole = roleRepository.findByName("ROLE_USER")
-                    .orElseGet(() -> {
-                        Role newRole = new Role("ROLE_USER");
-                        return roleRepository.save(newRole);
-                    });
-                roles.add(userRole);
+                roles.add(roleService.getOrCreateRole("ROLE_USER"));
                 user.setRoles(roles);
                 needsSave = true;
             }
@@ -331,12 +308,7 @@ public class AuthController {
 
             // Add default role
             Set<Role> roles = new HashSet<>();
-            Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseGet(() -> {
-                    Role newRole = new Role("ROLE_USER");
-                    return roleRepository.save(newRole);
-                });
-            roles.add(userRole);
+            roles.add(roleService.getOrCreateRole("ROLE_USER"));
             user.setRoles(roles);
 
             // Set default seller type to "private" for social login users

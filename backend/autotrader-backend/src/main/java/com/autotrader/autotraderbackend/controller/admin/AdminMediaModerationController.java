@@ -1,12 +1,8 @@
 package com.autotrader.autotraderbackend.controller.admin;
 
-import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.ListingMedia;
-import com.autotrader.autotraderbackend.model.ListingMedia.ModerationStatus;
-import com.autotrader.autotraderbackend.model.User;
-import com.autotrader.autotraderbackend.repository.ListingMediaRepository;
-import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
+import com.autotrader.autotraderbackend.service.MediaModerationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,8 +35,7 @@ import java.util.Map;
 @Slf4j
 public class AdminMediaModerationController {
 
-    private final ListingMediaRepository mediaRepository;
-    private final UserRepository userRepository;
+    private final MediaModerationService mediaModerationService;
 
     /**
      * Get pending media for moderation queue
@@ -58,10 +52,10 @@ public class AdminMediaModerationController {
     public ResponseEntity<Page<MediaModerationResponse>> getPendingMedia(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<ListingMedia> pendingMedia = mediaRepository.findPendingMedia(pageable);
-        
+        Page<ListingMedia> pendingMedia = mediaModerationService.getPendingMedia(pageable);
+
         Page<MediaModerationResponse> response = pendingMedia.map(this::toResponse);
         return ResponseEntity.ok(response);
     }
@@ -75,11 +69,7 @@ public class AdminMediaModerationController {
         description = "Returns counts of pending, approved, and rejected media"
     )
     public ResponseEntity<Map<String, Long>> getModerationStats() {
-        Map<String, Long> stats = new HashMap<>();
-        stats.put("pending", mediaRepository.countByModerationStatus(ModerationStatus.PENDING));
-        stats.put("approved", mediaRepository.countByModerationStatus(ModerationStatus.APPROVED));
-        stats.put("rejected", mediaRepository.countByModerationStatus(ModerationStatus.REJECTED));
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(mediaModerationService.getModerationStats());
     }
 
     /**
@@ -97,18 +87,9 @@ public class AdminMediaModerationController {
     public ResponseEntity<MediaModerationResponse> approveMedia(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        ListingMedia media = mediaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Media", "id", id));
-        
-        User moderator = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
-        
-        media.approve(moderator);
-        mediaRepository.save(media);
-        
+
+        ListingMedia media = mediaModerationService.approveMedia(id, userDetails.getId());
         log.info("Media {} approved by admin {}", id, userDetails.getUsername());
-        
         return ResponseEntity.ok(toResponse(media));
     }
 
@@ -128,19 +109,10 @@ public class AdminMediaModerationController {
             @PathVariable Long id,
             @RequestBody(required = false) @Valid RejectMediaRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        ListingMedia media = mediaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Media", "id", id));
-        
-        User moderator = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
-        
-        String notes = request != null ? request.getReason() : null;
-        media.reject(moderator, notes);
-        mediaRepository.save(media);
-        
-        log.info("Media {} rejected by admin {} - reason: {}", id, userDetails.getUsername(), notes);
-        
+
+        String reason = request != null ? request.getReason() : null;
+        ListingMedia media = mediaModerationService.rejectMedia(id, userDetails.getId(), reason);
+        log.info("Media {} rejected by admin {} - reason: {}", id, userDetails.getUsername(), reason);
         return ResponseEntity.ok(toResponse(media));
     }
 
@@ -155,31 +127,14 @@ public class AdminMediaModerationController {
     public ResponseEntity<Map<String, Object>> bulkApprove(
             @RequestBody @Valid BulkModerationRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        User moderator = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
-        
-        int approved = 0;
-        for (Long id : request.getIds()) {
-            try {
-                ListingMedia media = mediaRepository.findById(id).orElse(null);
-                if (media != null && media.isPending()) {
-                    media.approve(moderator);
-                    mediaRepository.save(media);
-                    approved++;
-                }
-            } catch (Exception e) {
-                log.warn("Failed to approve media {}: {}", id, e.getMessage());
-            }
-        }
-        
+
+        int approved = mediaModerationService.bulkApprove(request.getIds(), userDetails.getId());
         log.info("Bulk approved {} media items by admin {}", approved, userDetails.getUsername());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("approved", approved);
-        response.put("total", request.getIds().size());
-        
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(Map.of(
+                "approved", approved,
+                "total", request.getIds().size()
+        ));
     }
 
     /**
@@ -193,31 +148,15 @@ public class AdminMediaModerationController {
     public ResponseEntity<Map<String, Object>> bulkReject(
             @RequestBody @Valid BulkRejectRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        User moderator = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userDetails.getId()));
-        
-        int rejected = 0;
-        for (Long id : request.getIds()) {
-            try {
-                ListingMedia media = mediaRepository.findById(id).orElse(null);
-                if (media != null && media.isPending()) {
-                    media.reject(moderator, request.getReason());
-                    mediaRepository.save(media);
-                    rejected++;
-                }
-            } catch (Exception e) {
-                log.warn("Failed to reject media {}: {}", id, e.getMessage());
-            }
-        }
-        
+
+        int rejected = mediaModerationService.bulkReject(
+                request.getIds(), userDetails.getId(), request.getReason());
         log.info("Bulk rejected {} media items by admin {}", rejected, userDetails.getUsername());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("rejected", rejected);
-        response.put("total", request.getIds().size());
-        
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(Map.of(
+                "rejected", rejected,
+                "total", request.getIds().size()
+        ));
     }
 
     // ============ DTOs ============

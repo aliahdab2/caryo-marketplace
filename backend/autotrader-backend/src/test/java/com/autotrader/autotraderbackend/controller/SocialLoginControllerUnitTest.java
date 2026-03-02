@@ -4,10 +4,10 @@ import com.autotrader.autotraderbackend.model.Role;
 import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.dto.SocialLoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
-import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
 import com.autotrader.autotraderbackend.service.EmailService;
+import com.autotrader.autotraderbackend.service.RoleService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ public class SocialLoginControllerUnitTest {
     private UserRepository userRepository;
 
     @Mock
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Mock
     private PasswordEncoder encoder;
@@ -119,7 +119,7 @@ public class SocialLoginControllerUnitTest {
 
         // Role setup
         Role userRole = new Role("ROLE_USER");
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
 
         // Password encoding
         when(encoder.encode(any())).thenReturn("encodedRandomPassword");
@@ -157,7 +157,7 @@ public class SocialLoginControllerUnitTest {
         verify(userRepository).existsByEmail("test.user@gmail.com");
         verify(userRepository).existsByUsername("test.user");
         verify(encoder).encode(any());
-        verify(roleRepository).findByName("ROLE_USER");
+        verify(roleService).getOrCreateRole("ROLE_USER");
         verify(userRepository).save(any(User.class));
 
         // Verify welcome email was sent to new user
@@ -175,7 +175,7 @@ public class SocialLoginControllerUnitTest {
 
         // Role setup
         Role userRole = new Role("ROLE_USER");
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
 
         // Password encoding
         when(encoder.encode(any())).thenReturn("encodedRandomPassword");
@@ -219,7 +219,7 @@ public class SocialLoginControllerUnitTest {
 
         // Role setup
         Role userRole = new Role("ROLE_USER");
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
 
         // Password encoding
         when(encoder.encode(any())).thenReturn("encodedRandomPassword");
@@ -266,7 +266,7 @@ public class SocialLoginControllerUnitTest {
 
         // Role setup
         Role userRole = new Role("ROLE_USER");
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+        when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
 
         // Password encoding
         when(encoder.encode(any())).thenReturn("encodedRandomPassword");

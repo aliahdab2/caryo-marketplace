@@ -6,9 +6,9 @@ import com.autotrader.autotraderbackend.model.User;
 import com.autotrader.autotraderbackend.model.VerificationMethod;
 import com.autotrader.autotraderbackend.model.dto.SocialLoginRequest;
 import com.autotrader.autotraderbackend.payload.response.JwtResponse;
-import com.autotrader.autotraderbackend.repository.RoleRepository;
 import com.autotrader.autotraderbackend.repository.UserRepository;
 import com.autotrader.autotraderbackend.security.jwt.JwtUtils;
+import com.autotrader.autotraderbackend.service.RoleService;
 import com.autotrader.autotraderbackend.service.SellerTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,7 @@ public class OAuthRoleAssignmentTest {
     private UserRepository userRepository;
 
     @Mock
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Mock
     private PasswordEncoder encoder;
@@ -81,7 +81,7 @@ public class OAuthRoleAssignmentTest {
             // Given
             when(userRepository.existsByEmail(anyString())).thenReturn(false);
             when(userRepository.existsByUsername(anyString())).thenReturn(false);
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(encoder.encode(anyString())).thenReturn("encoded_password");
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -112,8 +112,7 @@ public class OAuthRoleAssignmentTest {
             // Given
             when(userRepository.existsByEmail(anyString())).thenReturn(false);
             when(userRepository.existsByUsername(anyString())).thenReturn(false);
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
-            when(roleRepository.save(any(Role.class))).thenReturn(userRole);
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(encoder.encode(anyString())).thenReturn("encoded_password");
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -128,10 +127,8 @@ public class OAuthRoleAssignmentTest {
             // Then
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            // Verify ROLE_USER was created
-            verify(roleRepository).save(argThat(role ->
-                "ROLE_USER".equals(role.getName())
-            ));
+            // Verify ROLE_USER was fetched/created via service
+            verify(roleService).getOrCreateRole("ROLE_USER");
         }
     }
 
@@ -151,7 +148,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
@@ -184,7 +181,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
@@ -234,7 +231,7 @@ public class OAuthRoleAssignmentTest {
 
             // Verify the user was NOT saved (already verified and has roles)
             verify(userRepository, never()).save(any(User.class));
-            verify(roleRepository, never()).findByName(anyString());
+            verify(roleService, never()).getOrCreateRole(anyString());
         }
 
         @Test
@@ -292,8 +289,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
-            when(roleRepository.save(any(Role.class))).thenThrow(new RuntimeException("Database error"));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenThrow(new RuntimeException("Database error"));
 
             // When & Then
             assertThrows(RuntimeException.class, () -> {
@@ -329,7 +325,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
                 // Simulate the role assignment and OAuth verification
@@ -376,7 +372,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User savedUser = invocation.getArgument(0);
@@ -418,7 +414,7 @@ public class OAuthRoleAssignmentTest {
 
             when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User savedUser = invocation.getArgument(0);
@@ -447,7 +443,7 @@ public class OAuthRoleAssignmentTest {
             // Given - New user
             when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
             when(userRepository.existsByUsername("test")).thenReturn(false);
-            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(roleService.getOrCreateRole("ROLE_USER")).thenReturn(userRole);
             when(encoder.encode(anyString())).thenReturn("encoded_password");
             when(jwtUtils.generateJwtTokenForUser(any(User.class))).thenReturn("jwt_token");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {

@@ -1,6 +1,10 @@
 package com.autotrader.autotraderbackend.exception;
 
 import com.autotrader.autotraderbackend.exception.dealer.DealerNotFoundException;
+import com.autotrader.autotraderbackend.payment.DuplicatePaymentException;
+import com.autotrader.autotraderbackend.payment.InvalidPaymentMethodException;
+import com.autotrader.autotraderbackend.payment.PaymentException;
+import com.autotrader.autotraderbackend.payment.PaymentProcessingException;
 import com.autotrader.autotraderbackend.payload.response.ApiResponse;
 import com.autotrader.autotraderbackend.payload.response.ErrorResponse;
 import lombok.RequiredArgsConstructor;
@@ -208,6 +212,60 @@ public class GlobalExceptionHandler {
                 .header("X-RateLimit-Reset", String.valueOf(ex.getSecondsUntilReset()))
                 .header("Retry-After", String.valueOf(ex.getSecondsUntilReset()))
                 .body(ApiResponse.error(message));
+    }
+
+    // ============ Payment exceptions ============
+
+    /**
+     * Handle duplicate payment attempts (idempotency key collision)
+     */
+    @ExceptionHandler(DuplicatePaymentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicatePaymentException(
+            DuplicatePaymentException ex, WebRequest request) {
+
+        log.warn("Duplicate payment detected: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handle invalid payment method exceptions
+     */
+    @ExceptionHandler(InvalidPaymentMethodException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidPaymentMethodException(
+            InvalidPaymentMethodException ex, WebRequest request) {
+
+        log.warn("Invalid payment method: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handle payment processing failures
+     */
+    @ExceptionHandler(PaymentProcessingException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentProcessingException(
+            PaymentProcessingException ex, WebRequest request) {
+
+        log.error("Payment processing failed: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handle generic payment exceptions
+     */
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentException(
+            PaymentException ex, WebRequest request) {
+
+        log.error("Payment error: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
     /**

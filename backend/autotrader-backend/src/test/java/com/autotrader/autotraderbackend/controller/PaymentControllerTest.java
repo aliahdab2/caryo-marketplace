@@ -191,8 +191,8 @@ class PaymentControllerTest {
 
     @Test
     @WithMockUserDetailsImpl(userId = 1L, username = "dealer", roles = {"DEALER"})
-    @DisplayName("Should return 400 when dealer not found")
-    void createSubscription_ShouldReturn400WhenDealerNotFound() throws Exception {
+    @DisplayName("Should return 404 when dealer not found")
+    void createSubscription_ShouldReturn404WhenDealerNotFound() throws Exception {
         // Given
         PaymentController.SubscriptionRequest request = new PaymentController.SubscriptionRequest();
         request.setTier("basic");
@@ -201,21 +201,21 @@ class PaymentControllerTest {
 
         when(dealerService.getDealerByUserId(1L)).thenReturn(Optional.empty());
 
-        // When & Then
+        // When & Then — ResourceNotFoundException is handled by GlobalExceptionHandler → 404
         mockMvc.perform(post("/api/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("DEALER_NOT_FOUND"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("error"));
 
         verify(paymentService, never()).createSubscription(any(), any(), any(), any(), any());
     }
 
     @Test
     @WithMockUserDetailsImpl(userId = 1L, username = "dealer", roles = {"DEALER"})
-    @DisplayName("Should return 400 when payment service fails")
-    void createSubscription_ShouldReturn400WhenPaymentFails() throws Exception {
+    @DisplayName("Should return error when payment service fails")
+    void createSubscription_ShouldReturnErrorWhenPaymentFails() throws Exception {
         // Given
         PaymentController.SubscriptionRequest request = new PaymentController.SubscriptionRequest();
         request.setTier("basic");
@@ -225,15 +225,15 @@ class PaymentControllerTest {
         when(dealerService.getDealerByUserId(1L)).thenReturn(Optional.of(testDealer));
         when(paymentService.generateIdempotencyKey()).thenReturn("idempotency-key-123");
         when(paymentService.createSubscription(any(), any(), any(), any(), any()))
-            .thenThrow(new RuntimeException("Payment provider unavailable"));
+            .thenThrow(new com.autotrader.autotraderbackend.payment.PaymentException("SUBSCRIPTION_CREATION_FAILED", "Payment provider unavailable"));
 
-        // When & Then
+        // When & Then — PaymentException is handled by GlobalExceptionHandler → 400
         mockMvc.perform(post("/api/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("SUBSCRIPTION_CREATION_FAILED"))
+                .andExpect(jsonPath("$.status").value("error"))
                 .andExpect(jsonPath("$.message").value("Payment provider unavailable"));
     }
 

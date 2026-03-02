@@ -43,6 +43,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### Claude Code ###
+.claude/settings.local.json
+
 ### OS specific files ###
 .DS_Store
 Thumbs.db

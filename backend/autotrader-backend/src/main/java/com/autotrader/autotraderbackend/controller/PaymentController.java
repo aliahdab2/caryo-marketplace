@@ -1,5 +1,6 @@
 package com.autotrader.autotraderbackend.controller;
 
+import com.autotrader.autotraderbackend.exception.ResourceNotFoundException;
 import com.autotrader.autotraderbackend.model.Dealer;
 import com.autotrader.autotraderbackend.payment.*;
 import com.autotrader.autotraderbackend.security.services.UserDetailsImpl;
@@ -69,75 +70,30 @@ public class PaymentController {
             @Valid @RequestBody SubscriptionRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        Dealer dealer;
-        try {
-            // Get current dealer
-            dealer = getCurrentDealer(userDetails);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "DEALER_NOT_FOUND",
-                "message", e.getMessage()
-            ));
-        }
+        Dealer dealer = getCurrentDealer(userDetails);
 
-        try {
+        String idempotencyKey = request.getIdempotencyKey() != null
+            ? request.getIdempotencyKey()
+            : paymentService.generateIdempotencyKey();
 
-            // Generate idempotency key if not provided
-            String idempotencyKey = request.getIdempotencyKey() != null
-                ? request.getIdempotencyKey()
-                : paymentService.generateIdempotencyKey();
+        PaymentMethod paymentMethod = parsePaymentMethod(request.getPaymentMethod());
 
-            // Validate payment method
-            PaymentMethod paymentMethod;
-            try {
-                paymentMethod = PaymentMethod.valueOf(request.getPaymentMethod().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "INVALID_PAYMENT_METHOD",
-                    "message", "Unsupported payment method: " + request.getPaymentMethod()
-                ));
-            }
+        PaymentMethodDetails paymentMethodDetails = PaymentMethodDetails.builder()
+            .paymentMethod(paymentMethod)
+            .build();
 
-            // Create payment method details
-            PaymentMethodDetails paymentMethodDetails = PaymentMethodDetails.builder()
-                .paymentMethod(paymentMethod)
-                .build();
+        PaymentResponse response = paymentService.createSubscription(
+            dealer,
+            request.getTier(),
+            request.getProviderId(),
+            paymentMethodDetails,
+            idempotencyKey
+        );
 
-            // Create subscription payment
-            PaymentResponse response = paymentService.createSubscription(
-                dealer,
-                request.getTier(),
-                request.getProviderId(),
-                paymentMethodDetails,
-                idempotencyKey
-            );
-
-            if (response.isSuccess()) {
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", response.getErrorCode(),
-                    "message", response.getMessage(),
-                    "details", response.getErrorDetails()
-                ));
-            }
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "INVALID_REQUEST_DATA",
-                "message", e.getMessage()
-            ));
-        } catch (RuntimeException e) {
-            // Handle business logic errors (like payment provider issues)
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "SUBSCRIPTION_CREATION_FAILED",
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "error", "INTERNAL_SERVER_ERROR",
-                "message", "An unexpected error occurred while processing your request"
-            ));
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
@@ -154,81 +110,33 @@ public class PaymentController {
             @Valid @RequestBody OneTimePaymentRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        Dealer dealer;
-        try {
-            // Get current dealer
-            dealer = getCurrentDealer(userDetails);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "DEALER_NOT_FOUND",
-                "message", e.getMessage()
-            ));
-        }
+        Dealer dealer = getCurrentDealer(userDetails);
 
-        try {
-            // Generate idempotency key if not provided
-            String idempotencyKey = request.getIdempotencyKey() != null
-                ? request.getIdempotencyKey()
-                : paymentService.generateIdempotencyKey();
+        String idempotencyKey = request.getIdempotencyKey() != null
+            ? request.getIdempotencyKey()
+            : paymentService.generateIdempotencyKey();
 
-            // Validate payment method
-            PaymentMethod paymentMethod;
-            try {
-                paymentMethod = PaymentMethod.valueOf(request.getPaymentMethod().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "INVALID_PAYMENT_METHOD",
-                    "message", "Unsupported payment method: " + request.getPaymentMethod()
-                ));
-            }
+        PaymentMethod paymentMethod = parsePaymentMethod(request.getPaymentMethod());
+        Currency currency = parseCurrency(request.getCurrency());
 
-            // Validate currency
-            Currency currency;
-            try {
-                currency = Currency.valueOf(request.getCurrency().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "INVALID_CURRENCY",
-                    "message", "Unsupported currency: " + request.getCurrency()
-                ));
-            }
+        PaymentMethodDetails paymentMethodDetails = PaymentMethodDetails.builder()
+            .paymentMethod(paymentMethod)
+            .build();
 
-            // Create payment method details
-            PaymentMethodDetails paymentMethodDetails = PaymentMethodDetails.builder()
-                .paymentMethod(paymentMethod)
-                .build();
+        PaymentResponse response = paymentService.processOneTimePayment(
+            dealer,
+            request.getAmount(),
+            currency,
+            request.getProviderId(),
+            paymentMethodDetails,
+            request.getDescription(),
+            idempotencyKey
+        );
 
-            // Process payment
-            PaymentResponse response = paymentService.processOneTimePayment(
-                dealer,
-                request.getAmount(),
-                currency,
-                request.getProviderId(),
-                paymentMethodDetails,
-                request.getDescription(),
-                idempotencyKey
-            );
-
-            if (response.isSuccess()) {
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", response.getErrorCode(),
-                    "message", response.getMessage(),
-                    "details", response.getErrorDetails()
-                ));
-            }
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "INVALID_REQUEST_DATA",
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "error", "INTERNAL_SERVER_ERROR",
-                "message", "An unexpected error occurred while processing your request"
-            ));
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
@@ -243,23 +151,12 @@ public class PaymentController {
             @Parameter(description = "Transaction ID")
             @PathVariable String transactionId) {
 
-        // Validate transaction ID
         if (transactionId == null || transactionId.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "INVALID_TRANSACTION_ID",
-                "message", "Transaction ID cannot be empty"
-            ));
+            throw new IllegalArgumentException("Transaction ID cannot be empty");
         }
 
-        try {
-            PaymentResponse response = paymentService.getPaymentStatus(transactionId.trim());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "error", "STATUS_CHECK_FAILED",
-                "message", "Failed to retrieve payment status"
-            ));
-        }
+        PaymentResponse response = paymentService.getPaymentStatus(transactionId.trim());
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -271,24 +168,15 @@ public class PaymentController {
                description = "Get payment history for the current dealer")
     public ResponseEntity<?> getPaymentHistory(@AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        try {
-            Dealer dealer = getCurrentDealer(userDetails);
-            List<PaymentTransaction> history = paymentService.getPaymentHistory(dealer);
+        Dealer dealer = getCurrentDealer(userDetails);
+        List<PaymentTransaction> history = paymentService.getPaymentHistory(dealer);
 
-            // Return structured response with metadata
-            return ResponseEntity.ok(Map.of(
-                "transactions", history,
-                "count", history.size(),
-                "dealerId", dealer.getId(),
-                "dealerName", dealer.getBusinessName()
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of(
-                "error", "HISTORY_FETCH_FAILED",
-                "message", "Failed to retrieve payment history"
-            ));
-        }
+        return ResponseEntity.ok(Map.of(
+            "transactions", history,
+            "count", history.size(),
+            "dealerId", dealer.getId(),
+            "dealerName", dealer.getBusinessName()
+        ));
     }
 
     /**
@@ -301,24 +189,16 @@ public class PaymentController {
     public ResponseEntity<?> cancelSubscription(
             @Valid @RequestBody CancelSubscriptionRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        
-        try {
-            Dealer dealer = getCurrentDealer(userDetails);
-            
-            PaymentResponse response = paymentService.cancelSubscription(
-                dealer,
-                request.getSubscriptionId(),
-                request.getProviderId()
-            );
 
-            return ResponseEntity.ok(response);
+        Dealer dealer = getCurrentDealer(userDetails);
 
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "CANCELLATION_FAILED",
-                "message", e.getMessage()
-            ));
-        }
+        PaymentResponse response = paymentService.cancelSubscription(
+            dealer,
+            request.getSubscriptionId(),
+            request.getProviderId()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -328,15 +208,8 @@ public class PaymentController {
     @Operation(summary = "Get payment providers", 
                description = "Get list of available payment providers")
     public ResponseEntity<?> getPaymentProviders() {
-        try {
-            Map<String, String> providers = paymentService.getAvailableProviders();
-            return ResponseEntity.ok(providers);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "PROVIDERS_FETCH_FAILED",
-                "message", e.getMessage()
-            ));
-        }
+        Map<String, String> providers = paymentService.getAvailableProviders();
+        return ResponseEntity.ok(providers);
     }
 
     /**
@@ -346,24 +219,17 @@ public class PaymentController {
     @Operation(summary = "Get supported payment methods", 
                description = "Get payment methods supported by a specific provider")
     public ResponseEntity<?> getSupportedPaymentMethods(
-            @Parameter(description = "Provider ID") 
+            @Parameter(description = "Provider ID")
             @PathVariable String providerId) {
-        
-        try {
-            PaymentMethod[] methods = paymentService.getSupportedPaymentMethods(providerId);
-            Currency[] currencies = paymentService.getSupportedCurrencies(providerId);
-            
-            return ResponseEntity.ok(Map.of(
-                "providerId", providerId,
-                "supportedMethods", methods,
-                "supportedCurrencies", currencies
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "METHODS_FETCH_FAILED",
-                "message", e.getMessage()
-            ));
-        }
+
+        PaymentMethod[] methods = paymentService.getSupportedPaymentMethods(providerId);
+        Currency[] currencies = paymentService.getSupportedCurrencies(providerId);
+
+        return ResponseEntity.ok(Map.of(
+            "providerId", providerId,
+            "supportedMethods", methods,
+            "supportedCurrencies", currencies
+        ));
     }
 
     /**
@@ -373,26 +239,34 @@ public class PaymentController {
     @Operation(summary = "Payment webhook", 
                description = "Handle webhook notifications from payment providers")
     public ResponseEntity<?> handleWebhook(
-            @Parameter(description = "Provider ID") 
+            @Parameter(description = "Provider ID")
             @PathVariable String providerId,
             @RequestBody String payload,
             @RequestHeader(value = "X-Signature", required = false) String signature) {
-        
+
+        PaymentResponse response = paymentService.handleWebhook(providerId, payload, signature);
+        return ResponseEntity.ok(response);
+    }
+
+    private Dealer getCurrentDealer(UserDetailsImpl userDetails) {
+        return dealerService.getDealerByUserId(userDetails.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Dealer", "userId", userDetails.getId()));
+    }
+
+    private PaymentMethod parsePaymentMethod(String method) {
         try {
-            PaymentResponse response = paymentService.handleWebhook(providerId, payload, signature);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "WEBHOOK_PROCESSING_FAILED",
-                "message", e.getMessage()
-            ));
+            return PaymentMethod.valueOf(method.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidPaymentMethodException("Unsupported payment method: " + method);
         }
     }
 
-    // Helper method to get current dealer
-    private Dealer getCurrentDealer(UserDetailsImpl userDetails) {
-        return dealerService.getDealerByUserId(userDetails.getId())
-            .orElseThrow(() -> new RuntimeException("Dealer not found for user: " + userDetails.getUsername()));
+    private Currency parseCurrency(String currency) {
+        try {
+            return Currency.valueOf(currency.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new PaymentException("INVALID_CURRENCY", "Unsupported currency: " + currency);
+        }
     }
 
     // Request DTOs

@@ -78,4 +78,11 @@ public interface ListingMediaRepository extends JpaRepository<ListingMedia, Long
     default long countPendingMedia() {
         return countByModerationStatus(ModerationStatus.PENDING);
     }
+
+    /**
+     * Find pending media by IDs (for batch moderation operations).
+     * Avoids N+1 queries by fetching all items in one query.
+     */
+    @Query("SELECT m FROM ListingMedia m WHERE m.id IN :ids AND m.moderationStatus = 'PENDING'")
+    List<ListingMedia> findPendingByIdIn(@Param("ids") List<Long> ids);
 }
