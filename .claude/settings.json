@@ -4,7 +4,8 @@
       "Bash(npm audit fix)",
       "Read(//Users/aliahdab/.claude/plugins/**)",
       "Read(//Users/aliahdab/.claude/**)",
-      "Read(//Users/aliahdab/**)"
+      "Read(//Users/aliahdab/**)",
+      "Bash(SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon)"
     ]
   }
 }
