@@ -24,7 +24,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         lfs: true # Explicitly enable LFS file download
@@ -126,7 +126,7 @@ jobs:
     # Only run this job for pull_request events to main branch
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
         lfs: true
@@ -182,7 +182,7 @@ jobs:
   #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
   #   steps:
-  #   - uses: actions/checkout@v4
+  #   - uses: actions/checkout@v6
   #     with:
   #       fetch-depth: 0
 
@@ -217,7 +217,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 

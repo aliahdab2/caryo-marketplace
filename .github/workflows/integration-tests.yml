@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 20  # Prevent hanging builds
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0  # Fetch all history for better change detection
         lfs: true
