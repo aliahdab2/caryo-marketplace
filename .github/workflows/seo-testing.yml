@@ -65,7 +65,7 @@ jobs:
     - name: Run SEO structured data tests
       working-directory: ./frontend
       run: |
-        npm test -- --testPathPattern=seo --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text --watchAll=false
+        npm test -- --testPathPattern=seo --coverage --collectCoverageFrom='src/utils/structuredData.ts' --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text --watchAll=false
         
     - name: Build application for testing
       working-directory: ./frontend

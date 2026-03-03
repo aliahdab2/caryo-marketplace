@@ -287,8 +287,135 @@ public class PaymentService {
     }
 
     /**
+     * Reject a manual transfer payment
+     *
+     * @param transactionId The transaction ID to reject
+     * @param adminUserId ID of the admin performing the rejection
+     * @param reason Reason for rejection
+     * @return PaymentResponse with result
+     */
+    public PaymentResponse rejectPaymentManually(String transactionId, Long adminUserId, String reason) {
+        try {
+            PaymentTransaction transaction = transactionRepository
+                .findByTransactionId(transactionId)
+                .orElseThrow(() -> new PaymentException("Transaction not found: " + transactionId));
+
+            if (transaction.getProviderType() != PaymentProviderType.MANUAL_TRANSFER) {
+                return PaymentResponse.failure(
+                    "INVALID_REJECTION",
+                    "Only manual transfers can be rejected manually",
+                    "Transaction type: " + transaction.getProviderType()
+                );
+            }
+
+            if (transaction.getStatus() != PaymentStatus.PENDING_VERIFICATION) {
+                return PaymentResponse.failure(
+                    "INVALID_STATUS",
+                    "Transaction is not pending verification",
+                    "Current status: " + transaction.getStatus()
+                );
+            }
+
+            transaction.updateStatus(PaymentStatus.CANCELLED);
+            transaction.addMetadata("rejectionReason", reason);
+            transaction.addMetadata("rejectedBy", adminUserId.toString());
+            transaction.addMetadata("rejectedAt", java.time.ZonedDateTime.now().toString());
+
+            transactionRepository.save(transaction);
+
+            auditService.logPaymentRejected(transactionId, adminUserId.toString(), reason, "N/A");
+
+            PaymentResponse response = PaymentResponse.builder()
+                .success(true)
+                .status(PaymentStatus.CANCELLED)
+                .transactionId(transactionId)
+                .amount(transaction.getAmount())
+                .currency(transaction.getCurrency().name())
+                .message("Payment rejected: " + reason)
+                .timestamp(java.time.ZonedDateTime.now())
+                .build();
+            response.addMetadata("rejectionReason", reason);
+            return response;
+
+        } catch (PaymentException e) {
+            throw e;
+        } catch (Exception e) {
+            return PaymentResponse.failure(
+                "REJECTION_ERROR",
+                "Failed to reject payment: " + e.getMessage(),
+                e.toString()
+            );
+        }
+    }
+
+    /**
+     * Search payment transactions by criteria
+     *
+     * @param transactionId Optional transaction ID for exact match
+     * @param status Optional payment status filter
+     * @param dealerEmail Optional dealer email filter
+     * @param startDate Optional start date for date range
+     * @param endDate Optional end date for date range
+     * @return List of matching transactions
+     */
+    @Transactional(readOnly = true)
+    public List<PaymentTransaction> searchPayments(String transactionId, String status,
+            String dealerEmail, java.time.ZonedDateTime startDate, java.time.ZonedDateTime endDate) {
+
+        // If transactionId is provided, return exact match
+        if (transactionId != null && !transactionId.isBlank()) {
+            return transactionRepository.findByTransactionId(transactionId)
+                .map(List::of)
+                .orElse(List.of());
+        }
+
+        // Normalize date range: if only startDate given, default endDate to now
+        java.time.ZonedDateTime effectiveStart = startDate;
+        java.time.ZonedDateTime effectiveEnd = endDate;
+        if (effectiveStart != null && effectiveEnd == null) {
+            effectiveEnd = java.time.ZonedDateTime.now();
+        }
+
+        // Determine primary filter
+        List<PaymentTransaction> results;
+        boolean usedDateRange = false;
+
+        if (status != null && !status.isBlank()) {
+            PaymentStatus paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
+            results = transactionRepository.findByStatus(paymentStatus);
+        } else if (effectiveStart != null && effectiveEnd != null) {
+            results = transactionRepository.findByDateRange(effectiveStart, effectiveEnd);
+            usedDateRange = true;
+        } else {
+            results = transactionRepository.findAll();
+        }
+
+        // Apply remaining filters in-memory
+        if (dealerEmail != null && !dealerEmail.isBlank()) {
+            results = results.stream()
+                .filter(t -> t.getDealer() != null
+                    && t.getDealer().getUser() != null
+                    && dealerEmail.equalsIgnoreCase(t.getDealer().getUser().getEmail()))
+                .toList();
+        }
+
+        // If date range wasn't the primary filter but was provided, apply it in-memory
+        if (!usedDateRange && effectiveStart != null && effectiveEnd != null) {
+            final java.time.ZonedDateTime filterStart = effectiveStart;
+            final java.time.ZonedDateTime filterEnd = effectiveEnd;
+            results = results.stream()
+                .filter(t -> t.getCreatedAt() != null
+                    && !t.getCreatedAt().isBefore(filterStart)
+                    && !t.getCreatedAt().isAfter(filterEnd))
+                .toList();
+        }
+
+        return results;
+    }
+
+    /**
      * Get all available payment providers
-     * 
+     *
      * @return Map of provider ID -> provider name
      */
     public Map<String, String> getAvailableProviders() {

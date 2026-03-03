@@ -195,23 +195,26 @@ jobs:
                 message = `Issues found: ${missingCount} missing, ${duplicateCount} duplicates, ${inconsistencyCount} inconsistencies`;
               }
 
-              const body = `## 🌐 Translation Validation ${status}
-
-**Summary:**
-- **English:** ${enPercent}% complete (${report.summary.completeness.en.translated}/${report.summary.completeness.en.total} keys)
-- **Arabic:** ${arPercent}% complete (${report.summary.completeness.ar.translated}/${report.summary.completeness.ar.total} keys)
-- **Missing translations:** ${missingCount}
-- **Duplicate keys:** ${duplicateCount}
-- **Type inconsistencies:** ${inconsistencyCount}
-
-**Validation Results:**
-${missingCount > 0 ? '⚠️ **Missing Translations:** Review workflow artifacts for details\n' : '✅ **No missing translations**\n'}
-${duplicateCount > 0 ? '⚠️ **Duplicate Keys Found:** Check for key conflicts\n' : '✅ **No duplicate keys**\n'}
-${inconsistencyCount > 0 ? '⚠️ **Type Inconsistencies:** Fix data type mismatches\n' : '✅ **All types consistent**\n'}
-
-${missingCount > 0 || duplicateCount > 0 || inconsistencyCount > 0
-  ? '**Next Steps:**\n- Run `npm run translation:export-missing en` for detailed export\n- Run `npm run translation:validate` for naming convention check\n- Review artifacts for complete validation report'
-  : '**All validations passed!** 🎉'}`;
+              const lines = [
+                `## 🌐 Translation Validation ${status}`,
+                '',
+                '**Summary:**',
+                `- **English:** ${enPercent}% complete (${report.summary.completeness.en.translated}/${report.summary.completeness.en.total} keys)`,
+                `- **Arabic:** ${arPercent}% complete (${report.summary.completeness.ar.translated}/${report.summary.completeness.ar.total} keys)`,
+                `- **Missing translations:** ${missingCount}`,
+                `- **Duplicate keys:** ${duplicateCount}`,
+                `- **Type inconsistencies:** ${inconsistencyCount}`,
+                '',
+                '**Validation Results:**',
+                missingCount > 0 ? '⚠️ **Missing Translations:** Review workflow artifacts for details' : '✅ **No missing translations**',
+                duplicateCount > 0 ? '⚠️ **Duplicate Keys Found:** Check for key conflicts' : '✅ **No duplicate keys**',
+                inconsistencyCount > 0 ? '⚠️ **Type Inconsistencies:** Fix data type mismatches' : '✅ **All types consistent**',
+                '',
+                missingCount > 0 || duplicateCount > 0 || inconsistencyCount > 0
+                  ? '**Next Steps:**\n- Run `npm run translation:export-missing en` for detailed export\n- Run `npm run translation:validate` for naming convention check\n- Review artifacts for complete validation report'
+                  : '**All validations passed!** 🎉',
+              ];
+              const body = lines.join('\n');
 
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,

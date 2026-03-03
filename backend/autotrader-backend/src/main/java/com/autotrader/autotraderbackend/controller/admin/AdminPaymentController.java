@@ -19,6 +19,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,19 +126,25 @@ public class AdminPaymentController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
         try {
-            // Get admin user ID
             Long adminUserId = userDetails.getId();
-            
-            // TODO: Implement payment rejection logic
-            // For now, we'll return a placeholder response
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Payment rejected",
-                "transactionId", transactionId,
-                "reason", request.getReason(),
-                "rejectedBy", adminUserId
-            ));
+
+            PaymentResponse response = paymentService.rejectPaymentManually(
+                transactionId, adminUserId, request.getReason());
+
+            if (response.isSuccess()) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Payment rejected",
+                    "transactionId", transactionId,
+                    "reason", request.getReason(),
+                    "rejectedBy", adminUserId
+                ));
+            }
+
+            Map<String, Object> errorBody = new HashMap<>();
+            errorBody.put("error", response.getErrorCode());
+            errorBody.put("message", response.getMessage());
+            return ResponseEntity.badRequest().body(errorBody);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -194,24 +203,61 @@ public class AdminPaymentController {
             @RequestParam(required = false) String dateTo) {
         
         try {
-            // TODO: Implement advanced search functionality
-            // For now, return pending payments as placeholder
-            
-            List<PaymentTransaction> results = paymentService.getPendingVerifications();
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "results", results,
-                "count", results.size(),
-                "searchCriteria", Map.of(
-                    "dealerEmail", dealerEmail,
-                    "status", status,
-                    "transactionId", transactionId,
-                    "dateFrom", dateFrom,
-                    "dateTo", dateTo
-                )
+            ZonedDateTime startDate = null;
+            ZonedDateTime endDate = null;
+
+            if (dateFrom != null && !dateFrom.isBlank()) {
+                try {
+                    startDate = ZonedDateTime.parse(dateFrom);
+                } catch (DateTimeParseException e) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "INVALID_DATE_FORMAT",
+                        "message", "Invalid dateFrom format. Use ISO-8601 (e.g. 2024-01-01T00:00:00Z)"
+                    ));
+                }
+            }
+
+            if (dateTo != null && !dateTo.isBlank()) {
+                try {
+                    endDate = ZonedDateTime.parse(dateTo);
+                } catch (DateTimeParseException e) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "INVALID_DATE_FORMAT",
+                        "message", "Invalid dateTo format. Use ISO-8601 (e.g. 2024-12-31T23:59:59Z)"
+                    ));
+                }
+            }
+
+            if (endDate != null && startDate == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "INVALID_DATE_RANGE",
+                    "message", "dateFrom is required when dateTo is provided"
+                ));
+            }
+
+            List<PaymentTransaction> results = paymentService.searchPayments(
+                transactionId, status, dealerEmail, startDate, endDate);
+
+            Map<String, Object> searchCriteria = new HashMap<>();
+            if (dealerEmail != null) searchCriteria.put("dealerEmail", dealerEmail);
+            if (status != null) searchCriteria.put("status", status);
+            if (transactionId != null) searchCriteria.put("transactionId", transactionId);
+            if (dateFrom != null) searchCriteria.put("dateFrom", dateFrom);
+            if (dateTo != null) searchCriteria.put("dateTo", dateTo);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("results", results);
+            response.put("count", results.size());
+            response.put("searchCriteria", searchCriteria);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "INVALID_STATUS",
+                "message", "Invalid payment status: " + status
             ));
-            
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", "SEARCH_FAILED",
