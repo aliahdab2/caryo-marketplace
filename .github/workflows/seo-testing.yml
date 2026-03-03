@@ -196,7 +196,7 @@ jobs:
         echo "Checking for SEO regressions..."
         
         # Run specific tests that could indicate SEO problems
-        npm test -- --testPathPattern=seo --testNamePattern="should generate valid.*schema" --passWithNoTests
+        npm test -- --testPathPattern=seo --testNamePattern="should generate valid.*schema" --passWithNoTests --coverage=false
         
         # Check that structured data utility exists and exports expected functions
         if [ ! -f "src/utils/structuredData.ts" ]; then
