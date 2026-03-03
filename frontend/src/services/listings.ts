@@ -597,21 +597,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
   try {
     const headers = await getAuthHeaders();
     
-    console.log('[Create Listing] Starting with form data:', {
-      title: formData.title,
-      imagesCount: formData.images?.length || 0,
-      hasImages: formData.images && formData.images.length > 0,
-      videosCount: formData.videos?.length || 0,
-      hasVideos: formData.videos && formData.videos.length > 0,
-      videoUrlsCount: formData.videoUrls?.length || 0,
-      hasVideoUrls: formData.videoUrls && formData.videoUrls.length > 0,
-      // V3: Contact fields debug
-      contactName: formData.contactName,
-      contactEmail: formData.contactEmail,
-      contactPhone: formData.contactPhone,
-      contactPreference: formData.contactPreference
-    });
-
     // V2: Location ID should be provided directly from form data
     if (!formData.locationId) {
       throw new ApiError('Location ID is required', 400);
@@ -707,12 +692,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       throw new ApiError('Valid price is required', 400);
     }
     
-    // V3: Debug log the final API data being sent
-    console.log('[Create Listing] Final API data:', {
-      ...apiData,
-      hasContactInfo: !!(apiData.contactName || apiData.contactEmail || apiData.contactPhone || apiData.contactPreference)
-    });
-
     // Using FormData for file uploads
     const formDataObj = new FormData();
     
@@ -772,8 +751,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     
     // Upload additional images if there are more than one
     if (formData.images && formData.images.length > 1) {
-      console.log(`[Create Listing] Uploading ${formData.images.length - 1} additional images`);
-      
       // Upload remaining images (skip the first one as it was already uploaded)
       for (let i = 1; i < formData.images.length; i++) {
         try {
@@ -795,8 +772,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           
           if (!uploadResponse.ok) {
             console.warn(`[Create Listing] Failed to upload additional image ${i + 1}:`, await uploadResponse.text());
-          } else {
-            console.log(`[Create Listing] Successfully uploaded additional image ${i + 1}`);
           }
         } catch (error) {
           console.warn(`[Create Listing] Error uploading additional image ${i + 1}:`, error);
@@ -827,8 +802,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
 
     // Upload video files if present
     if (formData.videos && formData.videos.length > 0) {
-      console.log(`[Create Listing] Uploading ${formData.videos.length} video files`);
-      
       for (let i = 0; i < formData.videos.length; i++) {
         try {
           const videoFile = formData.videos[i];
@@ -850,8 +823,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           
           if (!uploadResponse.ok) {
             console.warn(`[Create Listing] Failed to upload video ${i + 1}:`, await uploadResponse.text());
-          } else {
-            console.log(`[Create Listing] Successfully uploaded video ${i + 1}`);
           }
         } catch (error) {
           console.warn(`[Create Listing] Error uploading video ${i + 1}:`, error);
@@ -861,8 +832,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
 
     // Add external video URLs if present
     if (formData.videoUrls && formData.videoUrls.length > 0) {
-      console.log(`[Create Listing] Adding ${formData.videoUrls.length} external video URLs`);
-      
       for (let i = 0; i < formData.videoUrls.length; i++) {
         try {
           const videoUrl = formData.videoUrls[i];
@@ -887,8 +856,6 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           
           if (!videoResponse.ok) {
             console.warn(`[Create Listing] Failed to add external video URL ${i + 1}:`, await videoResponse.text());
-          } else {
-            console.log(`[Create Listing] Successfully added external video URL ${i + 1}`);
           }
         } catch (error) {
           console.warn(`[Create Listing] Error adding external video URL ${i + 1}:`, error);
@@ -1002,11 +969,8 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
  */
 export async function getMyListingById(id: string | number): Promise<Listing> {
   try {
-    console.log(`[Get My Listing] Fetching listing with ID: ${id}`);
-    
     // First get all user's listings (this uses the authenticated endpoint)
     const myListings = await getMyListings();
-    console.log(`[Get My Listing] Found ${myListings.length} total listings for user`);
     
     // Find the specific listing by ID
     const listing = myListings.find(listing => listing.id === id.toString());
@@ -1015,16 +979,6 @@ export async function getMyListingById(id: string | number): Promise<Listing> {
       console.error(`[Get My Listing] Listing with ID ${id} not found in user's listings`);
       throw new Error('Listing not found or you do not have permission to edit this listing');
     }
-    
-    console.log(`[Get My Listing] Successfully found listing:`, {
-      id: listing.id,
-      title: listing.title,
-      hasMedia: listing.media && listing.media.length > 0,
-      mediaCount: listing.media?.length || 0,
-      hasSeller: !!listing.seller,
-      hasLocation: !!listing.location,
-      hasGovernorate: !!listing.governorate
-    });
     
     return listing;
   } catch (error) {
@@ -1085,7 +1039,6 @@ export async function uploadListingImage(listingId: string | number, imageFile: 
     }
     
     const result = await response.json();
-    console.log('[Upload Image] Success:', result);
     return result;
   } catch (error) {
     console.error('[Upload Image] Error:', error);

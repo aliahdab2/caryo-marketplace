@@ -237,10 +237,6 @@ const ListingsPage = () => {
               <CarListingCard
                 key={listing.id}
                 listing={cardData}
-                onFavoriteToggle={(isFavorite) => {
-                  // Handle favorite toggle if needed
-                  console.log(`Car ${listing.id} favorite toggled:`, isFavorite);
-                }}
                 initialFavorite={false}
               />
             );

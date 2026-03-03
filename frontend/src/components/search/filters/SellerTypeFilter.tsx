@@ -2,6 +2,7 @@ import React from 'react';
 import { CarReferenceData } from '@/services/api';
 import { SellerTypeCounts, SellerType } from '@/types/sellerTypes';
 import { filterPublicSellerTypes } from '@/utils/sellerTypeUtils';
+import { TranslateFunction } from '@/types/i18n';
 
 interface SellerTypeFilterProps {
   referenceData: CarReferenceData | null | undefined;
@@ -12,7 +13,7 @@ interface SellerTypeFilterProps {
   isLoading?: boolean;
   disableScroll?: boolean;
   sellerTypeCounts?: SellerTypeCounts;
-  t: (key: string, fallback?: string) => string;
+  t: TranslateFunction;
 }
 
 const SellerTypeFilter: React.FC<SellerTypeFilterProps> = ({

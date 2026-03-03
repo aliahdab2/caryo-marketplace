@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import type { ComponentProps } from './components';
+import type { TranslateFunction } from './i18n';
 
 /**
  * Alert Types - Base for various alert components
@@ -75,7 +76,7 @@ export interface PriceSliderProps {
   className?: string;
   showInputs?: boolean;
   // Translation function
-  t?: (key: string, fallback: string) => string;
+  t?: TranslateFunction;
   // Locale for number formatting
   locale?: string;
 }

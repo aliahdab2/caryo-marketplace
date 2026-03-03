@@ -71,5 +71,14 @@
   "listView": "List View",
   "retrySuccess": "Retry successful, results reloaded",
   "retryFailed": "Retry failed, please try again",
-  "savedAlerts": "Saved Alerts"
+  "savedAlerts": "Saved Alerts",
+  "filterAndSort": "Filter and sort",
+  "closeFilterModal": "Close filter modal",
+  "clearAll": "Clear all",
+  "searchCars": "Search cars",
+  "showResults": "Show {{count}} results",
+  "clearFilterLabel": "Clear {{filterName}} filter",
+  "searchMakeModel": "Search for make or model",
+  "showAllBrands": "Show all brands",
+  "remove": "Remove"
 }

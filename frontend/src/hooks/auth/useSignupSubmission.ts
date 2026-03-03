@@ -154,13 +154,6 @@ export function useSignupSubmission({
       }
 
       const signupData = prepareSignupData();
-      
-      // Log what we're sending for debugging
-      console.log('📤 Sending signup data:', {
-        ...signupData,
-        password: '***',
-        confirmPassword: '***'
-      });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await authService.signup(signupData as any); // Type assertion needed for dealer/private union

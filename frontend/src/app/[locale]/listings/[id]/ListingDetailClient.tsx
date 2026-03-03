@@ -114,9 +114,6 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                     size="sm"
                     className="text-gray-500 hover:text-red-500"
                     initialFavorite={false}
-                    onToggle={(newState) => {
-                      console.log(`[LISTING] Favorite state changed to ${newState}`);
-                    }}
                     user={user}
                   />
                   <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">

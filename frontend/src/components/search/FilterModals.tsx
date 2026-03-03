@@ -6,6 +6,7 @@ import { useLazyTranslation } from '@/hooks/useLazyTranslation';
 import { useAnnouncements } from '@/hooks/useAccessibility';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData } from '@/services/api';
+import { TranslateFunction } from '@/types/i18n';
 import { SellerTypeCounts } from '@/types/sellerTypes';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
@@ -298,8 +299,12 @@ const FilterModals = React.memo<FilterModalsProps>(({
   onSelectedModelChange,
   carListingsCount = 0
 }) => {
-  const { t, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
+  const { t: tRaw, i18n } = useLazyTranslation(SEARCH_NAMESPACES);
   const currentLanguage = i18n.language;
+  const t: TranslateFunction = useCallback(
+    (key: string, fallback?: string, options?: Record<string, unknown>) => tRaw(key, { defaultValue: fallback ?? key, ...options }),
+    [tRaw]
+  );
 
   // 🚀 UX Enhancement: Accessibility and feedback
   const { announce } = useAnnouncements();
@@ -556,8 +561,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 handleInputChange('minMileage', min);
                 handleInputChange('maxMileage', max);
               }}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              t={t as any}
+                t={t}
               locale={currentLanguage}
               className="w-full"
             />
@@ -573,7 +577,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
             onTransmissionChange={(transmissionId) => handleInputChange('transmissionId', transmissionId)}
             variant="dropdown"
             isLoading={isLoadingReferenceData}
-            t={t as (key: string, fallback?: string) => string}
+            t={t}
           />
         );
 
@@ -590,7 +594,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 variant="cards"
                 isLoading={isLoadingReferenceData}
                 fuelTypeCounts={fuelTypeCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </div>
           </div>
@@ -609,7 +613,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
                 variant="cards"
                 isLoading={isLoadingReferenceData}
                 bodyStyleCounts={bodyStyleCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </div>
           </div>
@@ -629,7 +633,7 @@ const FilterModals = React.memo<FilterModalsProps>(({
               variant="cards"
               isLoading={isLoadingReferenceData}
               sellerTypeCounts={sellerTypeCounts}
-              t={t as (key: string, fallback?: string) => string}
+              t={t}
             />
           </div>
         );

@@ -67,9 +67,7 @@ export default function SubscriptionPage() {
         
         // Show payment instructions if manual transfer
         if (result.paymentInstructions) {
-             // In a real app, we might redirect to a "Thank You" or "Instructions" page
-             // For now, we'll rely on the toast and potentially a modal in the future
-             console.log("Payment Instructions:", result.paymentInstructions);
+             // TODO: redirect to a "Thank You" or "Instructions" page, or show a modal
         }
       } else {
         throw new Error('Upgrade failed');

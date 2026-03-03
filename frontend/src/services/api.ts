@@ -51,7 +51,7 @@ export interface CarReferenceData {
   bodyStyles: BodyStyle[];
   fuelTypes: FuelType[];
   transmissions: Transmission[];
-  sellerTypes: Record<string, unknown>[];
+  sellerTypes: import('@/types/sellerTypes').SellerType[];
 }
 
 export interface Governorate {
@@ -926,8 +926,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
 
     // Make PUBLIC API call (no authentication headers)
     const url = `${API_BASE_URL}/api/listings/filter?${queryParams.toString()}`;
-    console.log('Public API call:', url);
-    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -943,7 +941,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
     }
 
     const result = await response.json();
-    console.log('Public listings fetched:', result.totalElements, 'total items');
     return result;
 
   } catch (error) {
@@ -958,8 +955,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
 export async function fetchCarListingPublic(id: string | number): Promise<CarListing> {
   try {
     const url = `${API_BASE_URL}/api/listings/${id}`;
-    console.log('Public listing API call:', url);
-    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -977,7 +972,6 @@ export async function fetchCarListingPublic(id: string | number): Promise<CarLis
     }
 
     const listing = await response.json();
-    console.log('Public listing fetched:', listing.id);
     return listing;
 
   } catch (error) {

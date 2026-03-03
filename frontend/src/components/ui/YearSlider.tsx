@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import RangeSlider from './RangeSlider';
 import { formatNumber } from '../../utils/localization';
-import type { TFunction } from 'i18next';
+import { TranslateFunction } from '@/types/i18n';
 
 // Year slider defaults
 const YEAR_SLIDER_DEFAULTS = {
@@ -23,7 +23,7 @@ export interface YearSliderProps {
   className?: string;
   showInputs?: boolean;
   disabled?: boolean;
-  t?: TFunction;
+  t?: TranslateFunction;
   locale?: string;
 }
 

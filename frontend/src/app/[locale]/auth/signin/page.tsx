@@ -152,7 +152,6 @@ const SignInPage: React.FC = () => {
 
       // Handle auto-login for verified users
       if (autoLogin === 'true' && verified === 'true' && email) {
-        console.log('🔄 Auto-login requested for verified user:', email);
         setShowSuccess(true);
 
         // Show a message that they're verified and can sign in

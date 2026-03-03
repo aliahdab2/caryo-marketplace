@@ -2,6 +2,7 @@ import React from 'react';
 import { CarReferenceData } from '@/services/api';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { getCarIcon } from '@/utils/carIcons';
+import { TranslateFunction } from '@/types/i18n';
 
 interface BodyStyleFilterProps {
   referenceData: CarReferenceData | null | undefined;
@@ -12,7 +13,7 @@ interface BodyStyleFilterProps {
   isLoading?: boolean;
   disableScroll?: boolean;
   bodyStyleCounts?: BodyStyleCounts;
-  t: (key: string, fallback?: string) => string;
+  t: TranslateFunction;
 }
 
 const BodyStyleFilter: React.FC<BodyStyleFilterProps> = ({

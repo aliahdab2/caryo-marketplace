@@ -98,17 +98,16 @@ describe('handleLogout', () => {
     expect(window.location.href).toBe('/');
   });
 
-  it('should log logout process', async () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  it('should complete logout without errors', async () => {
     mockSignOut.mockResolvedValue(undefined);
     mockClearSessionCache.mockImplementation(() => {});
 
     await handleLogout('/');
 
-    expect(consoleSpy).toHaveBeenCalledWith('🚪 Starting logout process...');
-    expect(consoleSpy).toHaveBeenCalledWith('✅ NextAuth signout completed');
-
-    consoleSpy.mockRestore();
+    expect(mockSignOut).toHaveBeenCalledWith({
+      redirect: false,
+      callbackUrl: '/'
+    });
   });
 
   it('should handle errors gracefully', async () => {

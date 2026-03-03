@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import RangeSlider from './RangeSlider';
 import { formatNumber } from '../../utils/localization';
-import type { TFunction } from 'i18next';
+import { TranslateFunction } from '@/types/i18n';
 
 // Mileage slider defaults
 const MILEAGE_SLIDER_DEFAULTS = {
@@ -25,7 +25,7 @@ export interface MileageSliderProps {
   className?: string;
   showInputs?: boolean;
   disabled?: boolean;
-  t?: TFunction;
+  t?: TranslateFunction;
   locale?: string;
 }
 

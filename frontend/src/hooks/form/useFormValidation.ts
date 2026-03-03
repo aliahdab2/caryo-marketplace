@@ -1,13 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import { ListingFormData } from '@/types/listings';
 import { FormErrors } from '@/types/forms';
+import { TranslateFunction } from '@/types/i18n';
 import { validateStep } from '@/utils/formUtils';
 import { createLogger } from '@/utils/logger';
 import { validatePhoneNumber } from './useFormState';
 
 interface UseFormValidationOptions {
   debugEnabled?: boolean;
-  translationFunction?: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
+  translationFunction?: TranslateFunction;
 }
 
 interface UseFormValidationReturn {
@@ -56,7 +57,8 @@ export const useFormValidation = ({
     logger.debug(`Validating step ${step} in ${mode} mode`);
     
     try {
-      const errors = validateStep(step, formData, translationFunction, { mode });
+      const tFn = (key: string, fallback: string) => translationFunction ? translationFunction(key, fallback) : fallback;
+      const errors = validateStep(step, formData, tFn, { mode });
       
       // Add phone number validation for step 4 (contact information)
       if (step === 4 && formData.contactPhone) {

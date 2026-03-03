@@ -299,7 +299,7 @@ export function useSearchFilters({
     const names = ids.map(id => {
       const sellerType = carReferenceData.sellerTypes.find(s => s.id === id);
       const count = sellerTypeCounts[id] || 0;
-      return sellerType ? `${sellerType.nameEn} (${count})` : '';
+      return sellerType ? `${sellerType.displayNameEn} (${count})` : '';
     }).filter(Boolean);
     
     return names.join(', ');

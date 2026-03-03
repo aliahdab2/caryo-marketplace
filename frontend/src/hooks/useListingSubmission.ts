@@ -70,9 +70,6 @@ export function useListingSubmission({
         };
         const result = await createListing(formDataWithEmail);
         
-        // Images are already uploaded by createListing() - no need to upload again
-        console.log(`[Create Mode] Images already handled by createListing() - skipping duplicate upload of ${formData.images?.length || 0} images`);
-
         // Add external video URLs if provided
         if (formData.videoUrls && formData.videoUrls.length > 0) {
           for (const videoUrl of formData.videoUrls) {
@@ -94,14 +91,6 @@ export function useListingSubmission({
         setShowSuccessAlert(true);
         onSuccess?.(result.id);
       } else if (mode === 'edit' && listingId) {
-        // Debug: Log the current state of images in edit mode
-        console.log('[Edit Mode Debug]', {
-          existingImageUrls: formData.existingImageUrls?.length || 0,
-          newImages: formData.images?.length || 0,
-          imageTypes: formData.images?.map(img => typeof img === 'object' && img instanceof File ? 'File' : typeof img),
-          existingUrls: formData.existingImageUrls?.slice(0, 2), // First 2 URLs for debugging
-        });
-        
         const locationId = formData.locationId;
         const updateData: UpdateListingData = {
           title: formData.title,
@@ -133,8 +122,7 @@ export function useListingSubmission({
         // In edit mode, only upload File objects (new images), not existing URLs
         if (formData.images && formData.images.length > 0) {
           const newImages = formData.images.filter((img) => img && img instanceof File);
-          console.log(`[Edit Mode] Uploading ${newImages.length} new images out of ${formData.images.length} total images`);
-          
+
           // Additional safety check: log any non-File objects that might have gotten into the array
           const nonFileItems = formData.images.filter((img) => img && !(img instanceof File));
           if (nonFileItems.length > 0) {

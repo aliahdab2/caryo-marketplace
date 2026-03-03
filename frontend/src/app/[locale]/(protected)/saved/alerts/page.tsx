@@ -392,10 +392,7 @@ export default function SavedAlertsPage() {
                               <CarListingListItem
                                 key={listing.id}
                                 listing={listing}
-                                onFavoriteToggle={(isFavorite) => {
-                                  // Handle favorite toggle if needed
-                                  console.log('Favorite toggled:', isFavorite);
-                                }}
+                                onFavoriteToggle={() => {}}
                                 t={(key: string, fallback?: string) => fallback ? t(key, fallback) : t(key)}
                                 isRTL={isRTL}
                               />

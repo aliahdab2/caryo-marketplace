@@ -2,6 +2,7 @@ import React from 'react';
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { AdvancedSearchFilters } from '@/hooks/useSearchFilters';
 import { Governorate } from '@/services/api';
+import { TranslateFunction } from '@/types/i18n';
 
 interface LocationDropdownProps {
   filters: AdvancedSearchFilters;
@@ -10,7 +11,7 @@ interface LocationDropdownProps {
   setShowLocationDropdown: (show: boolean) => void;
   governorates?: Governorate[];
   currentLanguage: string;
-  t: (key: string, fallback?: string, options?: { count?: number }) => string;
+  t: TranslateFunction;
 }
 
 export default function LocationDropdown({

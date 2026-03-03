@@ -1,6 +1,7 @@
 import React from 'react';
 import { CarReferenceData } from '@/services/api';
 import { TransmissionCounts } from '@/hooks/useTransmissionCounts';
+import { TranslateFunction } from '@/types/i18n';
 
 interface TransmissionFilterProps {
   referenceData: CarReferenceData | null | undefined;
@@ -11,7 +12,7 @@ interface TransmissionFilterProps {
   isLoading?: boolean;
   disableScroll?: boolean;
   transmissionCounts?: TransmissionCounts;
-  t: (key: string, fallback?: string) => string;
+  t: TranslateFunction;
 }
 
 const TransmissionFilter: React.FC<TransmissionFilterProps> = ({

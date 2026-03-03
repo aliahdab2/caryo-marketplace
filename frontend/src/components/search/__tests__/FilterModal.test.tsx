@@ -125,7 +125,15 @@ const mockProps = {
   currentLanguage: 'en',
   isRTL: false,
   dirClass: 'ltr',
-  t: jest.fn((key: string, fallback?: string) => fallback || key),
+  t: jest.fn((key: string, fallback?: string, options?: Record<string, unknown>) => {
+    let result = fallback || key;
+    if (options) {
+      Object.entries(options).forEach(([k, v]) => {
+        result = result.replace(`{{${k}}}`, String(v));
+      });
+    }
+    return result;
+  }),
   updateFiltersAndState: jest.fn(),
   handleInputChange: jest.fn(),
   clearSpecificFilter: jest.fn()
@@ -584,7 +592,8 @@ describe('FilterModal', () => {
       render(<FilterModal {...propsWithArabic} filterType="makeModel" />);
 
       expect(screen.getByText('Make & Model')).toBeInTheDocument();
-      expect(screen.getByText('إلغاء')).toBeInTheDocument();
+      // Cancel button now uses t() which returns the fallback text from the mock
+      expect(screen.getByText('Cancel')).toBeInTheDocument();
     });
 
     it('displays Arabic brand names correctly after loading', async () => {

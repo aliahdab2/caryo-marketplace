@@ -2,6 +2,7 @@ import React from 'react';
 import { CarReferenceData } from '@/services/api';
 import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
 import { getFuelTypeIcon } from '@/utils/fuelTypeIcons';
+import { TranslateFunction } from '@/types/i18n';
 
 interface FuelTypeFilterProps {
   referenceData: CarReferenceData | null | undefined;
@@ -12,7 +13,7 @@ interface FuelTypeFilterProps {
   isLoading?: boolean;
   disableScroll?: boolean;
   fuelTypeCounts?: FuelTypeCounts;
-  t: (key: string, fallback?: string) => string;
+  t: TranslateFunction;
 }
 
 const FuelTypeFilter: React.FC<FuelTypeFilterProps> = ({

@@ -2,6 +2,7 @@ import React from 'react';
 import { MdClose, MdSearch } from 'react-icons/md';
 import { AdvancedSearchFilters } from '@/hooks/useSearchFilters';
 import { Governorate } from '@/services/api';
+import { TranslateFunction } from '@/types/i18n';
 import LocationDropdown from './LocationDropdown';
 
 interface SearchBarProps {
@@ -15,7 +16,7 @@ interface SearchBarProps {
   setShowLocationDropdown: (show: boolean) => void;
   governorates?: Governorate[];
   currentLanguage: string;
-  t: (key: string, fallback?: string) => string;
+  t: TranslateFunction;
 }
 
 export default function SearchBar({
@@ -126,8 +127,7 @@ export default function SearchBar({
             setShowLocationDropdown={setShowLocationDropdown}
             governorates={governorates}
             currentLanguage={currentLanguage}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            t={t as any}
+            t={t}
           />
         </div>
       </div>

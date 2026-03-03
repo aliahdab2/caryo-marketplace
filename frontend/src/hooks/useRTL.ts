@@ -37,7 +37,6 @@ export function useRTL() {
   const isRTL = useMemo(() => {
     // First check i18n language
     if (i18n.language && RTL_LANGUAGES.has(i18n.language as 'ar' | 'he' | 'fa' | 'ur')) {
-      console.log('🎯 useRTL: Detected RTL from i18n language:', i18n.language);
       return true;
     }
 
@@ -45,12 +44,10 @@ export function useRTL() {
     if (typeof document !== 'undefined') {
       const docDir = document.documentElement.dir;
       if (docDir === 'rtl') {
-        console.log('🎯 useRTL: Detected RTL from document.dir:', docDir, 'i18n.language:', i18n.language);
         return true;
       }
     }
 
-    console.log('🎯 useRTL: No RTL detected. i18n.language:', i18n.language, 'document.dir:', typeof document !== 'undefined' ? document.documentElement.dir : 'N/A');
     return false;
   }, [i18n.language]);
   

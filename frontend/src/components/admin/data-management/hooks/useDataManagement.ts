@@ -43,7 +43,6 @@ export const useDataManagement = () => {
     };
     
     const url = `${getApiUrl()}${endpoint}`;
-    console.log(`Sending ${method} request to ${url} with headers:`, options.headers);
     return fetch(url, options);
   }, [getApiUrl]);
 
@@ -80,7 +79,6 @@ export const useDataManagement = () => {
       }
       
       setSyncStatus(newSyncStatus);
-      console.log("Updated sync status:", newSyncStatus);
       return newSyncStatus;
     } catch (error) {
       console.error('Error fetching sync status:', error);
@@ -124,7 +122,6 @@ export const useDataManagement = () => {
         }
       }
 
-      console.log(`Loaded ${allModels.length} models out of ${totalElements} total`);
       setModels(allModels);
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -149,7 +146,6 @@ export const useDataManagement = () => {
       if (brandsRes.ok) {
         const brandsResponse = await brandsRes.json();
         brandsData = brandsResponse.data?.content || []; // Extract from paginated response
-        console.log('Loaded brands:', brandsData);
         setBrands(brandsData);
       } else {
         console.error('Failed to load brands:', brandsRes.status, brandsRes.statusText);
@@ -160,7 +156,6 @@ export const useDataManagement = () => {
 
       if (statsRes.ok) {
         const statsData = await statsRes.json();
-        console.log('Loaded statistics:', statsData);
         setStatistics(statsData.data || statsData);
       } else {
         console.error('Failed to load statistics:', statsRes.status, statsRes.statusText);
@@ -194,7 +189,6 @@ export const useDataManagement = () => {
 
   // Manual sync status fetching (no automatic polling)
   const refreshSyncStatus = useCallback(async () => {
-    console.log("Manually refreshing sync status...");
     await fetchAndSetSyncStatus();
   }, [fetchAndSetSyncStatus]);
 

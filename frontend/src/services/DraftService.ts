@@ -38,8 +38,6 @@ export class DraftService {
 
       drafts[draftId] = draftData;
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-      
-      console.log('[DraftService] Draft saved:', draftId, 'Title:', draftTitle);
     } catch (error) {
       console.error('[DraftService] Error saving draft:', error);
     }
@@ -69,7 +67,6 @@ export class DraftService {
         return null;
       }
 
-      console.log('[DraftService] Draft loaded:', draftId);
       return draft;
     } catch (error) {
       console.error('[DraftService] Error loading draft:', error);
@@ -107,7 +104,6 @@ export class DraftService {
       const drafts = this.getAllDrafts();
       delete drafts[draftId];
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-      console.log('[DraftService] Draft deleted:', draftId);
     } catch (error) {
       console.error('[DraftService] Error deleting draft:', error);
     }
@@ -134,7 +130,6 @@ export class DraftService {
 
       if (cleanedCount > 0) {
         localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-        console.log('[DraftService] Cleaned up', cleanedCount, 'expired drafts');
       }
     } catch (error) {
       console.error('[DraftService] Error cleaning up drafts:', error);
@@ -153,11 +148,6 @@ export class DraftService {
     // Save if at least 1 meaningful field is filled (for easier testing)
     const meaningfulFields = [hasTitle, hasDescription, hasMake, hasPrice].filter(Boolean).length;
     const isWorthy = meaningfulFields >= 1;
-    
-    console.log('[DraftService] isDraftWorthy check:', {
-      hasTitle, hasDescription, hasMake, hasPrice,
-      meaningfulFields, isWorthy
-    });
     
     return isWorthy;
   }

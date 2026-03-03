@@ -143,8 +143,7 @@ export default function TrialBanner({
     if (onUpgradeClick) {
       onUpgradeClick();
     } else {
-      // Default action - could navigate to pricing page
-      console.log('Upgrade clicked - implement navigation');
+      // TODO: navigate to pricing page
     }
   };
 

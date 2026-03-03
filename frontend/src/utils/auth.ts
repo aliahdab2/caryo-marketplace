@@ -194,8 +194,6 @@ export function logout(): void {
  */
 export const handleLogout = async (redirectTo: string = '/'): Promise<void> => {
   try {
-    console.log('🚪 Starting logout process...');
-
     // Import signOut dynamically to avoid circular dependencies
     const { signOut } = await import('next-auth/react');
 
@@ -217,8 +215,6 @@ export const handleLogout = async (redirectTo: string = '/'): Promise<void> => {
       redirect: false, // Don't redirect automatically to prevent race conditions
       callbackUrl: redirectTo
     });
-
-    console.log('✅ NextAuth signout completed');
 
     // Add a small delay to ensure NextAuth cleanup is complete
     await new Promise(resolve => setTimeout(resolve, 100));

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { TranslateFunction } from '@/types/i18n';
 
 interface FormErrorBoundaryProps {
   children: ReactNode;
@@ -46,7 +47,11 @@ export const FormErrorBoundary: React.FC<FormErrorBoundaryProps> = ({
   enableAutoSave = false,
   onDataLoss
 }) => {
-  const { t } = useLazyTranslation(['common', 'forms']);
+  const { t: tRaw } = useLazyTranslation(['common', 'forms']);
+  const translate: TranslateFunction = useCallback(
+    (key: string, fallback?: string) => tRaw(key, fallback ?? key),
+    [tRaw]
+  );
 
   const handleFormError = (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
     // Log form-specific error details
@@ -87,7 +92,7 @@ export const FormErrorBoundary: React.FC<FormErrorBoundaryProps> = ({
       formName={formName}
       enableAutoSave={enableAutoSave}
       onRetry={retry}
-      t={t}
+      t={translate}
     />
   );
 
@@ -112,7 +117,7 @@ interface FormErrorFallbackProps {
   formName: string;
   enableAutoSave: boolean;
   onRetry: () => void;
-  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
+  t: TranslateFunction;
 }
 
 const FormErrorFallback: React.FC<FormErrorFallbackProps> = ({

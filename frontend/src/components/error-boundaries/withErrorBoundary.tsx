@@ -151,12 +151,6 @@ export const withMediaErrorBoundary = <T = Record<string, unknown>>(
   onError: (error, errorInfo, errorId) => {
     console.warn('Media component error:', { error: error.message, errorId });
 
-    // Clear any stored media URLs to prevent memory leaks
-    if (typeof window !== 'undefined') {
-      // This would be implemented based on your media management system
-      console.log('Cleaning up media resources due to error');
-    }
-
     config.onError?.(error, errorInfo, errorId);
   },
   ...config

@@ -147,7 +147,6 @@ export default function SearchRedirector({ segments }: SearchRedirectorProps) {
 
     try {
       const sanitizedSegments = segments.map(sanitizeSegment);
-      console.log('Processing segments:', sanitizedSegments);
 
       // Initialize search parameters
       const searchParams = new URLSearchParams();
@@ -157,14 +156,12 @@ export default function SearchRedirector({ segments }: SearchRedirectorProps) {
       if (segmentIndex < sanitizedSegments.length && isValidYear(sanitizedSegments[segmentIndex])) {
         const year = parseInt(sanitizedSegments[segmentIndex]);
         searchParams.set('years', year.toString());
-        console.log('Found year filter:', year);
         segmentIndex++;
       }
 
       // Check for condition filter (new/used/certified)
       if (segmentIndex < sanitizedSegments.length && isConditionFilter(sanitizedSegments[segmentIndex])) {
         searchParams.set('condition', sanitizedSegments[segmentIndex]);
-        console.log('Found condition filter:', sanitizedSegments[segmentIndex]);
         segmentIndex++;
       }
 
@@ -207,7 +204,6 @@ export default function SearchRedirector({ segments }: SearchRedirectorProps) {
         const priceParams = parsePriceFilter(sanitizedSegments[segmentIndex]);
         if (priceParams.minPrice) searchParams.set('minPrice', priceParams.minPrice.toString());
         if (priceParams.maxPrice) searchParams.set('maxPrice', priceParams.maxPrice.toString());
-        console.log('Found price filter:', priceParams);
         segmentIndex++;
       }
 
@@ -227,14 +223,6 @@ export default function SearchRedirector({ segments }: SearchRedirectorProps) {
 
       // Build the redirect URL
       const redirectUrl = `/search${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-
-      // Log for debugging (can be removed in production)
-      console.log('Enhanced SEO URL parsing:', {
-        originalSegments: segments,
-        sanitizedSegments,
-        redirectUrl,
-        searchParams: Object.fromEntries(searchParams.entries())
-      });
 
       // Redirect to search page with extracted parameters
       router.replace(redirectUrl);

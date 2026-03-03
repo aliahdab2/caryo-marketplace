@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { CarMake, CarModel } from '@/types/car';
 import { CarReferenceData, CarListing, PageResponse, fetchBrandCounts, fetchModelCounts } from '@/services/api';
 import { SellerTypeCounts } from '@/types/sellerTypes';
+import { TranslateFunction } from '@/types/i18n';
 import { BodyStyleCounts } from '@/hooks/useBodyStyleCounts';
 import { FuelTypeCounts } from '@/hooks/useFuelTypeCounts';
 import { TransmissionCounts } from '@/hooks/useTransmissionCounts';
@@ -40,7 +41,7 @@ interface FilterModalProps {
   currentLanguage: string;
   isRTL: boolean;
   dirClass: string;
-  t: (key: string, fallback?: string, options?: Record<string, unknown>) => string;
+  t: TranslateFunction;
   updateFiltersAndState: (
     filterUpdates: Partial<AdvancedSearchFilters>,
     stateUpdates?: { selectedMake?: number | null; selectedModel?: number | null }
@@ -596,8 +597,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   maxYear: max
                 });
               }}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              t={t as any}
+              t={t}
               locale={currentLanguage}
               className="w-full"
             />
@@ -616,8 +616,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   maxMileage: max
                 });
               }}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              t={t as any}
+              t={t}
               locale={currentLanguage}
               className="w-full"
             />
@@ -634,7 +633,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     transmissionCounts={transmissionCounts}
-                    t={t as (key: string, fallback?: string) => string}
+                    t={t}
                   />
                 );
 
@@ -648,7 +647,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     fuelTypeCounts={fuelTypeCounts}
-                    t={t as (key: string, fallback?: string) => string}
+                    t={t}
                   />
                 );
 
@@ -662,7 +661,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     bodyStyleCounts={bodyStyleCounts}
-                    t={t as (key: string, fallback?: string) => string}
+                    t={t}
                   />
                 );
 
@@ -676,7 +675,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     variant="cards"
                     isLoading={_isLoadingReferenceData}
                     sellerTypeCounts={sellerTypeCounts}
-                    t={t as (key: string, fallback?: string) => string}
+                    t={t}
                   />
                 );
 
@@ -1070,8 +1069,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                     maxYear: max
                   });
                 }}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                t={t as any}
+                t={t}
                 locale={currentLanguage}
                 className="w-full"
               />
@@ -1097,8 +1095,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                       maxMileage: max
                     });
                   }}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  t={t as any}
+                  t={t}
                   locale={currentLanguage}
                   className="w-full"
                 />
@@ -1124,7 +1121,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 fuelTypeCounts={fuelTypeCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </CollapsibleSection>
 
@@ -1147,7 +1144,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 bodyStyleCounts={bodyStyleCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </CollapsibleSection>
 
@@ -1170,7 +1167,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 sellerTypeCounts={sellerTypeCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </CollapsibleSection>
 
@@ -1193,7 +1190,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
                 isLoading={_isLoadingReferenceData}
                 disableScroll={true}
                 transmissionCounts={transmissionCounts}
-                t={t as (key: string, fallback?: string) => string}
+                t={t}
               />
             </CollapsibleSection>
           </div>
@@ -1232,7 +1229,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           <div className="flex items-center justify-between mb-6">
             <h2 id="filter-modal-title" className="text-xl font-semibold text-gray-900">
               {filterType === 'allFilters'
-                ? (currentLanguage === 'ar' ? 'تصفية وترتيب' : 'Filter and sort')
+                ? t('search:filterAndSort', 'Filter and sort')
                 : getModalTitle(filterType)
               }
             </h2>
@@ -1241,9 +1238,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
               type="button"
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
               onClick={onClose}
-              aria-label={currentLanguage === 'ar' ? 'إغلاق نافذة التصفية' : 'Close filter modal'}
+              aria-label={t('search:closeFilterModal', 'Close filter modal')}
             >
-              {currentLanguage === 'ar' ? 'إلغاء' : 'Cancel'}
+              {t('search:cancel', 'Cancel')}
             </button>
           </div>
 
@@ -1265,17 +1262,14 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   className="flex-none px-4 py-3 rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-medium"
                   onClick={handleClearFilters}
                 >
-                  {currentLanguage === 'ar' ? 'مسح' : 'Clear'}
+                  {t('search:clear', 'Clear')}
                 </button>
                 <button
                   type="button"
                   className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold shadow-sm"
                   onClick={handleApplyFilters}
                 >
-                  {currentLanguage === 'ar'
-                    ? `عرض ${carListings?.totalElements || 0} نتيجة`
-                    : `Show ${carListings?.totalElements || 0} results`
-                  }
+                  {t('search:showResults', 'Show {{count}} results', { count: carListings?.totalElements || 0 })}
                 </button>
               </>
             ) : (
@@ -1314,16 +1308,16 @@ const FilterModal: React.FC<FilterModalProps> = ({
                       clearSpecificFilter(filterType);
                     }
                   }}
-                  aria-label={currentLanguage === 'ar' ? `مسح تصفية ${getModalTitle(filterType)}` : `Clear ${getModalTitle(filterType)} filter`}
+                  aria-label={t('search:clearFilterLabel', 'Clear {{filterName}} filter', { filterName: getModalTitle(filterType) })}
                 >
-                  {currentLanguage === 'ar' ? 'مسح الكل' : 'Clear all'}
+                  {t('search:clearAll', 'Clear all')}
                 </button>
                 <button
                   type="button"
                   className={BUTTON_CLASSES.PRIMARY}
                   onClick={onClose}
                 >
-                  {currentLanguage === 'ar' ? 'البحث عن السيارات' : 'Search cars'}
+                  {t('search:searchCars', 'Search cars')}
                 </button>
               </>
             )}

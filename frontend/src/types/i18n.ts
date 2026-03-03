@@ -1,4 +1,10 @@
 /**
+ * Simplified translation function type used by components.
+ * Bridges the complex TFunction from react-i18next to a simple callable signature.
+ */
+export type TranslateFunction = (key: string, fallback?: string, options?: Record<string, unknown>) => string;
+
+/**
  * Defines the supported languages for the application.
  */
 export type Lang = 'en' | 'ar';

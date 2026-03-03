@@ -10,6 +10,7 @@ import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
 import { useOptimizedFiltering } from '@/hooks/useOptimizedFiltering';
 
 import { CarMake, CarModel } from '@/types/car';
+import { TranslateFunction } from '@/types/i18n';
 import {
   fetchCarBrands,
   fetchCarModels,
@@ -58,6 +59,12 @@ export default function AdvancedSearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { dirClass, isRTL } = useLanguageDirection();
+
+  // Type-safe wrapper around i18next's t function for child components
+  const translate: TranslateFunction = useCallback(
+    (key: string, fallback?: string) => t(key, fallback ?? key),
+    [t]
+  );
 
   // Extract language to prevent i18n object recreation causing re-renders
   const currentLanguage = currentLang;
@@ -475,7 +482,6 @@ export default function AdvancedSearchPage() {
 
     // Only reset if filters actually changed (not on first render or isMonitoring change)
     if (prevFiltersRef.current && prevFiltersRef.current !== currentFiltersString && isMonitoring) {
-      console.log('🔄 Filters changed, resetting monitoring state');
       setIsMonitoring(false);
     }
 
@@ -1229,13 +1235,6 @@ export default function AdvancedSearchPage() {
       // Simple feedback and set monitoring state
       setIsMonitoring(true); // Now monitoring these criteria
       if (response?.id) setSavedSearchId(response.id);
-
-      if (response.wasUpdated) {
-        console.log('✅ Alert updated with new criteria!');
-      } else {
-        console.log('✅ New alert created successfully!');
-      }
-
     } catch (error) {
       console.error('Error creating alert:', error);
     } finally {
@@ -1298,8 +1297,7 @@ export default function AdvancedSearchPage() {
           setShowLocationDropdown={setShowLocationDropdown}
           governorates={governorates || undefined}
           currentLanguage={currentLanguage}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          t={t as any}
+          t={translate}
         />
 
         {/* Enhanced Filter Bar */}
@@ -1308,8 +1306,7 @@ export default function AdvancedSearchPage() {
             setActiveFilterModal={setActiveFilterModal}
             isFilterActive={isFilterActive}
             getFilterDisplayText={getFilterDisplayText}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            t={t as any}
+            t={translate}
             isRTL={isRTL}
           />
 
@@ -1329,8 +1326,7 @@ export default function AdvancedSearchPage() {
           selectedMake={selectedMake}
           selectedModel={selectedModel}
           referenceData={referenceData}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          t={t as any}
+          t={translate}
           isRTL={isRTL}
         />
         </div>
@@ -1349,8 +1345,7 @@ export default function AdvancedSearchPage() {
             <ViewModeToggle
               viewMode={viewMode}
               onViewModeChange={setViewMode}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              t={t as any}
+              t={translate}
               isRTL={isRTL}
             />
           </div>
@@ -1400,8 +1395,7 @@ export default function AdvancedSearchPage() {
           executeSearch={executeSearch}
           viewMode={viewMode}
           isRTL={isRTL}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          t={t as any}
+          t={translate}
           user={user}
         />
         </div>
@@ -1475,8 +1469,7 @@ export default function AdvancedSearchPage() {
             currentLanguage={currentLanguage}
             isRTL={isRTL}
             dirClass={dirClass}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            t={t as any}
+            t={translate}
             updateFiltersAndState={updateFiltersAndState}
             handleInputChange={handleInputChange}
             clearSpecificFilter={clearSpecificFilter}

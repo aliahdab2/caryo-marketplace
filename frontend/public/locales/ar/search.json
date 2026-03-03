@@ -71,5 +71,14 @@
   "noResultsAnnouncement": "لم يتم العثور على سيارات لـ \"{{searchQuery}}\"",
   "retrySuccess": "تم إعادة المحاولة بنجاح، تم إعادة تحميل النتائج",
   "retryFailed": "فشلت إعادة المحاولة، يرجى المحاولة مرة أخرى",
-  "savedAlerts": "التنبيهات المحفوظة"
+  "savedAlerts": "التنبيهات المحفوظة",
+  "filterAndSort": "تصفية وترتيب",
+  "closeFilterModal": "إغلاق نافذة التصفية",
+  "clearAll": "مسح الكل",
+  "searchCars": "البحث عن السيارات",
+  "showResults": "عرض {{count}} نتيجة",
+  "clearFilterLabel": "مسح تصفية {{filterName}}",
+  "searchMakeModel": "البحث عن ماركة أو موديل",
+  "showAllBrands": "عرض جميع الماركات",
+  "remove": "إزالة"
 }

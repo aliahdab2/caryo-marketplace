@@ -110,12 +110,10 @@ export function useSessionActions() {
   const { update } = useSession();
 
   const invalidateSession = useCallback(() => {
-    console.log(`🔄 [OptimizedSession] Invalidating session`);
     update(); // Trigger NextAuth session refresh
   }, [update]);
 
   const clearSession = useCallback(() => {
-    console.log(`🗑️ [OptimizedSession] Clearing session`);
     // NextAuth handles session clearing automatically
     update();
   }, [update]);

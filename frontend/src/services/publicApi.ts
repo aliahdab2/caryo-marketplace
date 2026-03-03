@@ -191,8 +191,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
 
     // Make PUBLIC API call (no authentication headers)
     const url = `${API_BASE_URL}/api/listings/filter?${queryParams.toString()}`;
-    console.log('Server-side public API call:', url);
-    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -207,7 +205,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
     }
 
     const result = await response.json();
-    console.log('Server-side public listings fetched:', result.totalElements, 'total items');
     return result;
 
   } catch (error) {
@@ -222,8 +219,6 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
 export async function fetchCarListingPublic(id: string | number): Promise<CarListing> {
   try {
     const url = `${API_BASE_URL}/api/listings/${id}`;
-    console.log('Server-side public listing API call:', url);
-    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -241,7 +236,6 @@ export async function fetchCarListingPublic(id: string | number): Promise<CarLis
     }
 
     const listing = await response.json();
-    console.log('Server-side public listing fetched:', listing.id);
     return listing;
 
   } catch (error) {
@@ -276,7 +270,6 @@ export async function fetchLatestListingsPublic(limit: number = 12): Promise<Car
     }
 
     const result = await response.json();
-    console.log('Server-side latest listings fetched:', result.content?.length || 0, 'items');
     return result.content || [];
 
   } catch (error) {
@@ -515,7 +508,6 @@ export async function subscribeToNewsletter(request: NewsletterSubscriptionReque
     }
 
     const result = await response.json();
-    console.log('Newsletter subscription successful:', result.email);
     return result;
 
   } catch (error) {

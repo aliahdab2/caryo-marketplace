@@ -1,8 +1,9 @@
 "use client";
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useLazyTranslation } from '@/hooks/useLazyTranslation';
+import { TranslateFunction } from '@/types/i18n';
 
 interface MediaErrorBoundaryProps {
   children: ReactNode;
@@ -44,7 +45,11 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
   enableFallbackMode = true,
   maxRetries = 2
 }) => {
-  const { t } = useLazyTranslation(['common', 'media']);
+  const { t: tRaw } = useLazyTranslation(['common', 'media']);
+  const translate: TranslateFunction = useCallback(
+    (key: string, fallback?: string) => tRaw(key, fallback ?? key),
+    [tRaw]
+  );
 
   const handleMediaError = (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
     // Log media-specific error details
@@ -118,7 +123,7 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
           error={error}
           mediaType={mediaType}
           onRetry={retry}
-          t={t}
+          t={translate}
         />
       );
     }
@@ -128,7 +133,7 @@ export const MediaErrorBoundary: React.FC<MediaErrorBoundaryProps> = ({
         error={error}
         mediaType={mediaType}
         onRetry={retry}
-        t={t}
+        t={translate}
       />
     );
   };
@@ -153,7 +158,7 @@ interface MediaErrorFallbackProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
+  t: TranslateFunction;
 }
 
 const MediaErrorFallback: React.FC<MediaErrorFallbackProps> = ({
@@ -236,10 +241,8 @@ const MediaErrorFallback: React.FC<MediaErrorFallbackProps> = ({
                 accept={getAcceptTypes()}
                 multiple={mediaType !== 'video'}
                 className="sr-only"
-                onChange={(e) => {
-                  // Basic file handling - could integrate with parent component
-                  const files = Array.from(e.target.files || []);
-                  console.log('Basic upload selected files:', files);
+                onChange={() => {
+                  // TODO: integrate file handling with parent component
                 }}
               />
               <span className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200">
@@ -283,7 +286,7 @@ interface MediaErrorMessageProps {
   error: Error;
   mediaType: 'image' | 'video' | 'mixed';
   onRetry: () => void;
-  t: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Translation function - complex react-i18next signature
+  t: TranslateFunction;
 }
 
 const MediaErrorMessage: React.FC<MediaErrorMessageProps> = ({

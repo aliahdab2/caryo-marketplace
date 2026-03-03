@@ -82,13 +82,7 @@ export default function SettingsPage() {
 
   // Handle save settings
   const handleSaveSettings = () => {
-    // Here you would make API calls to save the settings
-    console.log("Saving settings:", {
-      accountSettings,
-      notificationSettings,
-      privacySettings
-    });
-
+    // TODO: make API calls to save the settings
     // TODO: If a global notification system exists and is preferred for "Settings Saved",
     // trigger it here. For now, this component will not show its own toast for this action.
     // alert(t('settings.savedSuccessfully')); // Example of a simple browser alert if needed
