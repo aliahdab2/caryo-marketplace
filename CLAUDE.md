@@ -56,3 +56,4 @@ make translation       # translation validation
 - `/review` — code review against project standards
 - `/local-ci` — run the right CI checks for what changed
 - `/diagnose` — troubleshoot environment, build, or test issues
+- `/run` — run Caryo locally: start backend, frontend, and infrastructure
