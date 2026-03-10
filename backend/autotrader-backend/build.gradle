@@ -76,7 +76,7 @@ dependencies {
     implementation 'org.apache.tika:tika-core:3.2.3'
 
     // AWS SDK (S3-compatible storage - works with MinIO)
-    implementation platform('software.amazon.awssdk:bom:2.41.20')
+    implementation platform('software.amazon.awssdk:bom:2.42.9')
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:url-connection-client'
 
