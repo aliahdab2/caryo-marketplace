@@ -170,4 +170,44 @@ public interface CarListingRepository extends JpaRepository<CarListing, Long>, J
                      "AND cl.expired = false " +
                      "AND (cl.expirationDate IS NULL OR cl.expirationDate > CURRENT_TIMESTAMP)")
        long countActiveListingsByUser(@Param("user") User user);
+
+       /**
+        * Full-text search using PostgreSQL tsvector/tsquery.
+        * Returns listing IDs ranked by relevance (brand/model matches rank highest).
+        * Uses 'simple' text search config for bilingual (Arabic + English) support.
+        * The limit parameter caps results to keep the subsequent IN clause efficient.
+        */
+       @Query(value = """
+              SELECT id FROM car_listings
+              WHERE search_vector @@ plainto_tsquery('simple', :query)
+              ORDER BY ts_rank_cd(search_vector, plainto_tsquery('simple', :query)) DESC
+              LIMIT :maxResults
+              """, nativeQuery = true)
+       List<Long> findIdsByFullTextSearch(@Param("query") String query, @Param("maxResults") int maxResults);
+
+       /**
+        * Prefix-based full-text search for autocomplete/typeahead.
+        * Appends :* to the last word so partial input matches (e.g., "Toy" → "Toyota").
+        * Input is sanitized to alphanumeric + Arabic characters + whitespace only.
+        * Uses 'simple' text search config for bilingual support.
+        */
+       @Query(value = """
+              SELECT id FROM car_listings
+              WHERE search_vector @@ to_tsquery('simple',
+                  regexp_replace(
+                      trim(regexp_replace(:query, '[^a-zA-Z0-9\\u0600-\\u06FF\\s]', '', 'g')),
+                      '\\s+', ' & ', 'g'
+                  ) || ':*'
+              )
+              ORDER BY ts_rank_cd(search_vector,
+                  to_tsquery('simple',
+                      regexp_replace(
+                          trim(regexp_replace(:query, '[^a-zA-Z0-9\\u0600-\\u06FF\\s]', '', 'g')),
+                          '\\s+', ' & ', 'g'
+                      ) || ':*'
+                  )
+              ) DESC
+              LIMIT :maxResults
+              """, nativeQuery = true)
+       List<Long> findIdsByFullTextSearchPrefix(@Param("query") String query, @Param("maxResults") int maxResults);
 }

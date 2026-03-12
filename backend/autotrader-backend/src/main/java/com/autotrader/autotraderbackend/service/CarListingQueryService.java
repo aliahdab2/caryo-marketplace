@@ -11,6 +11,7 @@ import com.autotrader.autotraderbackend.repository.specification.CarListingSpeci
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,8 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service responsible for querying and filtering car listings.
@@ -35,6 +39,15 @@ public class CarListingQueryService {
     private final CarListingRepository carListingRepository;
     private final GovernorateRepository governorateRepository;
     private final CarListingMapper carListingMapper;
+
+    @Value("${app.search.fulltext.enabled:false}")
+    private boolean fullTextSearchEnabled;
+
+    @Value("${app.search.fulltext.max-results:1000}")
+    private int fullTextSearchMaxResults;
+
+    /** Maximum IDs per IN clause chunk to avoid query planner degradation */
+    private static final int IN_CLAUSE_BATCH_SIZE = 1000;
 
     /**
      * Get the base specification for approved, active listings.
@@ -107,13 +120,26 @@ public class CarListingQueryService {
             return emptyPage.map(carListingMapper::toCarListingResponse);
         }
 
-        // Build the complete specification
-        Specification<CarListing> spec = buildFilteredListingsSpec(filterRequest, locationResult);
+        // Full-text search pre-filtering (PostgreSQL only, skipped on H2)
+        FullTextSearchResult ftsResult = applyFullTextSearch(filterRequest);
+        if (ftsResult.wasApplied && ftsResult.matchIds.isEmpty()) {
+            log.info("Full-text search returned no matches. Returning empty page.");
+            return Page.<CarListing>empty(pageable).map(carListingMapper::toCarListingResponse);
+        }
+
+        // Build specification using the FTS-adjusted filter (searchQuery cleared when FTS is used)
+        Specification<CarListing> spec = buildFilteredListingsSpec(ftsResult.adjustedFilter, locationResult);
+
+        // Restrict to FTS matches using batched IN clauses
+        if (ftsResult.wasApplied) {
+            spec = spec.and(buildBatchedIdSpec(ftsResult.matchIds));
+        }
 
         // Execute query and return mapped results
         Page<CarListing> listingPage = carListingRepository.findAll(spec, pageable);
-        log.info("Found {} filtered listings matching criteria on page {}",
-                 listingPage.getNumberOfElements(), pageable.getPageNumber());
+        log.info("Found {} filtered listings matching criteria on page {}{}",
+                 listingPage.getNumberOfElements(), pageable.getPageNumber(),
+                 ftsResult.wasApplied ? " (FTS-filtered)" : "");
 
         return listingPage.map(carListingMapper::toCarListingResponse);
     }
@@ -247,13 +273,133 @@ public class CarListingQueryService {
             return 0L;
         }
 
+        // Full-text search pre-filtering (PostgreSQL only, skipped on H2)
+        FullTextSearchResult ftsResult = applyFullTextSearch(filterRequest);
+        if (ftsResult.wasApplied && ftsResult.matchIds.isEmpty()) {
+            log.info("Full-text search returned no matches. Returning count of 0.");
+            return 0L;
+        }
+
         // Use the same optimized specification building logic
-        Specification<CarListing> countSpec = buildFilteredListingsSpec(filterRequest, locationResult);
+        Specification<CarListing> countSpec = buildFilteredListingsSpec(ftsResult.adjustedFilter, locationResult);
+
+        // Restrict to FTS matches using batched IN clauses
+        if (ftsResult.wasApplied) {
+            countSpec = countSpec.and(buildBatchedIdSpec(ftsResult.matchIds));
+        }
 
         long count = carListingRepository.count(countSpec);
-        log.info("Found {} filtered listings matching criteria", count);
+        log.info("Found {} filtered listings matching criteria{}", count,
+                 ftsResult.wasApplied ? " (FTS-filtered)" : "");
 
         return count;
+    }
+
+    /**
+     * Result of full-text search pre-filtering.
+     */
+    private static class FullTextSearchResult {
+        final Set<Long> matchIds;
+        final boolean wasApplied;
+        final ListingFilterRequest adjustedFilter;
+
+        /** FTS was not applicable — pass through the original filter unchanged. */
+        static FullTextSearchResult notApplied(ListingFilterRequest original) {
+            return new FullTextSearchResult(Collections.emptySet(), false, original);
+        }
+
+        /** FTS was applied — provides match IDs and a filter copy with searchQuery cleared. */
+        static FullTextSearchResult applied(Set<Long> ids, ListingFilterRequest adjusted) {
+            return new FullTextSearchResult(ids, true, adjusted);
+        }
+
+        private FullTextSearchResult(Set<Long> matchIds, boolean wasApplied, ListingFilterRequest adjustedFilter) {
+            this.matchIds = matchIds;
+            this.wasApplied = wasApplied;
+            this.adjustedFilter = adjustedFilter;
+        }
+    }
+
+    /**
+     * Apply full-text search pre-filtering if enabled and searchQuery is present.
+     * Returns a result containing match IDs and a filter copy with searchQuery cleared
+     * (so the LIKE-based search in CarListingSpecification is skipped).
+     * Does NOT mutate the original filterRequest.
+     */
+    private FullTextSearchResult applyFullTextSearch(ListingFilterRequest filterRequest) {
+        if (!fullTextSearchEnabled
+                || filterRequest == null
+                || filterRequest.getSearchQuery() == null
+                || filterRequest.getSearchQuery().trim().isEmpty()) {
+            return FullTextSearchResult.notApplied(filterRequest);
+        }
+
+        String query = filterRequest.getSearchQuery().trim();
+        List<Long> ids = carListingRepository.findIdsByFullTextSearch(query, fullTextSearchMaxResults);
+        log.info("Full-text search for '{}' matched {} listings", query, ids.size());
+
+        // Create a copy with searchQuery cleared so LIKE-based search is skipped.
+        // The original filterRequest is NOT mutated.
+        ListingFilterRequest adjusted = copyFilterWithoutSearchQuery(filterRequest);
+
+        return FullTextSearchResult.applied(new HashSet<>(ids), adjusted);
+    }
+
+    /**
+     * Create a shallow copy of the filter with searchQuery set to null.
+     */
+    private ListingFilterRequest copyFilterWithoutSearchQuery(ListingFilterRequest original) {
+        ListingFilterRequest copy = new ListingFilterRequest();
+        copy.setBrandSlugs(original.getBrandSlugs());
+        copy.setModelSlugs(original.getModelSlugs());
+        copy.setMinYear(original.getMinYear());
+        copy.setMaxYear(original.getMaxYear());
+        copy.setLocations(original.getLocations());
+        copy.setLocationId(original.getLocationId());
+        copy.setMinPrice(original.getMinPrice());
+        copy.setMaxPrice(original.getMaxPrice());
+        copy.setMinMileage(original.getMinMileage());
+        copy.setMaxMileage(original.getMaxMileage());
+        copy.setIsSold(original.getIsSold());
+        copy.setIsArchived(original.getIsArchived());
+        copy.setSellerTypeIds(original.getSellerTypeIds());
+        copy.setTransmissionIds(original.getTransmissionIds());
+        copy.setFuelTypeSlugs(original.getFuelTypeSlugs());
+        copy.setBodyStyleIds(original.getBodyStyleIds());
+        copy.setBodyStyleSlugs(original.getBodyStyleSlugs());
+        // searchQuery intentionally NOT copied — FTS replaces LIKE-based search
+        return copy;
+    }
+
+    /**
+     * Build a Specification that restricts results to the given IDs,
+     * batching into chunks of IN_CLAUSE_BATCH_SIZE to avoid query planner degradation.
+     */
+    private Specification<CarListing> buildBatchedIdSpec(Set<Long> ids) {
+        if (ids.size() <= IN_CLAUSE_BATCH_SIZE) {
+            // Small enough for a single IN clause
+            return (root, query, cb) -> root.get("id").in(ids);
+        }
+
+        // Split into chunks and OR them together
+        List<List<Long>> chunks = new ArrayList<>(ids).stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        list -> {
+                            List<List<Long>> result = new ArrayList<>();
+                            for (int i = 0; i < list.size(); i += IN_CLAUSE_BATCH_SIZE) {
+                                result.add(list.subList(i, Math.min(i + IN_CLAUSE_BATCH_SIZE, list.size())));
+                            }
+                            return result;
+                        }
+                ));
+
+        return (root, query, cb) -> {
+            var predicates = chunks.stream()
+                    .map(chunk -> root.get("id").in(chunk))
+                    .toArray(jakarta.persistence.criteria.Predicate[]::new);
+            return cb.or(predicates);
+        };
     }
 
     /**

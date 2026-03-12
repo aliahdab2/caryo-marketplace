@@ -134,9 +134,11 @@ tasks.named('test') {
 tasks.register('integrationTest', Test) {
     description = 'Runs integration tests only'
     group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
     include '**/*IntegrationTest.class'
     configureTestTask(it)
-    
+
     // Integration tests should run after unit tests
     mustRunAfter tasks.named('test')
 }
@@ -145,6 +147,8 @@ tasks.register('integrationTest', Test) {
 tasks.register('testAll', Test) {
     description = 'Runs all tests (unit and integration)'
     group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
     include '**/*Test.class' // This includes both unit and integration tests
     configureTestTask(it)
 }
