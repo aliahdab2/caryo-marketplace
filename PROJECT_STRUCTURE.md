@@ -74,7 +74,6 @@ caryo-marketplace/
 
 ### **External Tools**
 - **`postman/`** - API testing collections and scripts
-- **`ml-service/`** - Machine learning service (if applicable)
 
 ## 📋 **File Organization Rules**
 

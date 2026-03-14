@@ -9,7 +9,10 @@ The following environment variables are required for the frontend to function pr
 ### Core Variables
 
 - `NEXT_PUBLIC_API_URL`: The URL of the backend API server.
-- `NEXT_PUBLIC_MINIO_URL`: The URL of the MinIO storage server for media files.
+- `NEXT_PUBLIC_MINIO_URL`: The URL of the MinIO storage server for media files (defaults to `http://localhost:9000`).
+- `NEXT_PUBLIC_APP_URL`: The public application URL (defaults to `https://caryo.sy`).
+- `NEXT_PUBLIC_SITE_URL`: Site URL used for sitemaps and SEO.
+- `SITE_URL`: Server-side site URL (for sitemap generation).
 - `NEXTAUTH_URL`: The base URL of your Next.js application.
 - `NEXTAUTH_SECRET`: A secret string used to encrypt the NextAuth.js JWT.
 
@@ -18,6 +21,29 @@ The following environment variables are required for the frontend to function pr
 For Google OAuth authentication:
 - `GOOGLE_CLIENT_ID`: Your Google OAuth client ID.
 - `GOOGLE_CLIENT_SECRET`: Your Google OAuth client secret.
+
+### Feature Flags
+
+- `NEXT_PUBLIC_VIDEO_UPLOAD_ENABLED`: Enable video uploads (defaults to `true`).
+- `NEXT_PUBLIC_VIDEO_URL_ENABLED`: Enable external video URLs (defaults to `true`).
+
+### Image Processing
+
+- `NEXT_PUBLIC_IMGPROXY_URL`: ImgProxy service URL (defaults to `http://localhost:8081`).
+- `NEXT_PUBLIC_IMGPROXY_ENABLED`: Enable ImgProxy integration (defaults to `true`).
+- `NEXT_PUBLIC_S3_BUCKET_NAME`: MinIO/S3 bucket name (used in admin moderation).
+
+### Debug Flags (Development Only)
+
+These are optional and off by default:
+- `NEXT_PUBLIC_DEBUG_SESSION`: Debug session/auth hooks.
+- `NEXT_PUBLIC_I18N_DEBUG`: Debug translation system.
+- `NEXT_PUBLIC_DEBUG_API`: Debug API calls.
+- `NEXT_PUBLIC_DEBUG_SEARCH`: Debug search functionality.
+- `NEXT_PUBLIC_DEBUG_FILTERS`: Debug filter system.
+- `NEXT_PUBLIC_DEBUG_WIZARD`: Debug listing wizard.
+- `NEXT_PUBLIC_DEBUG_ERRORS`: Debug error boundaries.
+- `NEXT_PUBLIC_DEBUG_FORM_VALIDATION`: Debug form validation.
 
 ## Environment Files
 

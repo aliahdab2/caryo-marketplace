@@ -1,10 +1,9 @@
 # Node.js Upgrade Guide for macOS with Zsh
 
-## Current Situation
-- **Current Node:** 16.13.0
-- **Required:** 18.18.0+ or 20.0.0+
+## Requirements
+- **Minimum:** Node 18.18.0+
+- **Recommended:** Node 20 LTS (used in CI)
 - **Shell:** Zsh (macOS default)
-- **NVM:** Not installed yet
 
 ---
 
@@ -170,16 +169,11 @@ nvm --version
 
 ## 📋 Summary
 
-**Right now you have:**
-- ✅ Dealer dashboard code (clean & working)
-- ✅ All commits ready
-- ❌ Node 16 (need to upgrade)
-
-**After upgrading to Node 20:**
+**After installing Node 20:**
 - ✅ Can run `npm run lint`
 - ✅ Can run `npm run build`
 - ✅ Can run `npm run dev`
-- ✅ Can test everything properly
+- ✅ Can run `npm test`
 
-**Choose your upgrade method and let me know if you need help!**
+**Last updated:** March 2026
 
