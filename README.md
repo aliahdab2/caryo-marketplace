@@ -38,7 +38,7 @@ The project is currently in active development with these key features implement
 - **📋 [Implementation Summaries](docs/README.md#-implementation-summaries)** - Completed features and improvements
 
 ### 🔗 External Documentation
-- [CI/CD Workflows](.github/workflows/README.md) - GitHub Actions setup and usage
+- [CI/CD Workflows](.github/workflows/docs/WORKFLOWS_OVERVIEW.md) - GitHub Actions setup and usage
 - [Backend API](backend/autotrader-backend/API.md) - Complete REST API documentation
 - [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Caching implementation
 - [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
@@ -135,15 +135,12 @@ caryo-marketplace/
 ├── testing/
 │   └── integration/         # 🧪 Integration testing scripts
 │
-├── frontend/                 # React/Next.js frontend
-│   ├── src/                  # Source code
-│   ├── public/               # Static assets
-│   └── components/           # React components
+├── frontend/                 # Next.js 16 frontend
+│   ├── src/                  # Source code (components, hooks, services, etc.)
+│   └── public/               # Static assets and translation files
 │
-├── .github/                  # GitHub configurations
-│   └── workflows/            # GitHub Actions CI/CD
-│
-└── docs/                     # Project documentation
+└── .github/                  # GitHub configurations
+    └── workflows/            # GitHub Actions CI/CD
 ```
 
 ## CI/CD Pipeline
@@ -154,7 +151,7 @@ This project uses GitHub Actions for CI/CD with three main workflows:
 2. **Integration Tests**: Runs tests requiring Docker services
 3. **API Tests**: Executes Postman collections
 
-For details on the CI/CD setup, see the [CI/CD Documentation](.github/workflows/README.md).
+For details on the CI/CD setup, see the [CI/CD Documentation](.github/workflows/docs/WORKFLOWS_OVERVIEW.md).
 
 ## AutoTrader CLI Script
 
@@ -256,20 +253,6 @@ cd backend/autotrader-backend
 ./autotrader.sh test endpoints   # API endpoint tests
 ```
 
-### Quick API Tests (Alternative)
-Run all API tests locally with a single command:
-
-```bash
-# Run Postman API tests
-./run-postman-tests.sh
-```
-
-This script will:
-- Check if Newman (Postman CLI) is installed and install it if needed
-- Verify the Spring Boot backend is running
-- Execute all API tests with authentication
-- Generate an HTML report at `results/html-report.html`
-
 ### Manual API Testing
 You can also run tests manually:
 
@@ -336,10 +319,10 @@ npm run dev
 
 ## Contributing
 
-1. Create feature branches from `develop`
+1. Create feature branches from `main`
 2. Write tests for new features
 3. Run ALL tests locally before submitting PRs
-4. Submit PRs to the `develop` branch
+4. Submit PRs to the `main` branch
 
 ## License
 

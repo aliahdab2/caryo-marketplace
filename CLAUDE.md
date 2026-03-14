@@ -14,11 +14,18 @@ Car buying/selling platform for Syria.
 
 ```
 backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/
-  controller/ service/ repository/ model/ payload/ exception/ config/
+  config/        controller/    converter/     dto/
+  events/        exception/     health/        listeners/
+  mapper/        model/         payload/       payment/
+  repository/    security/      service/       util/
+  validation/    constants/
 
 frontend/src/
-  app/[locale]/   components/   hooks/queries/   services/   lib/   types/
-  public/locales/{en,ar}/  ← translation JSON files
+  app/[locale]/   components/   hooks/        services/
+  lib/            types/        stores/       utils/
+  providers/      constants/    config/
+
+frontend/public/locales/{en,ar}/   ← translation JSON files
 ```
 
 ## Quick Commands
@@ -47,6 +54,10 @@ make translation       # translation validation
 - Never include `Co-Authored-By:` lines, AI attribution, or any trailer/footer with Claude's email in commit messages.
 - Commit messages should contain only the subject and optional body — no trailers.
 - The commit author should always be the user.
+
+## Detailed Guidelines
+
+@.github/workflows/docs/CODING_STANDARDS.md — detailed coding standards: SQL patterns, RTL/accessibility requirements, translation rules, and code quality checklists.
 
 ## Skills (use `/skill-name` for detailed workflows)
 

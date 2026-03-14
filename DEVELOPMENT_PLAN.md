@@ -255,7 +255,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - [x] Configured in docker-compose.dev.yml with proper database initialization
   - [x] Exposed on port 5432 for local development tools
   - [x] PgAdmin integration for easier database management
-- [ ] **Flyway for DB Migrations** (auto versioning of database schema)
+- [x] **Flyway for DB Migrations** (auto versioning of database schema — Flyway 11.8.2, 44 migrations)
 - [x] **Set up Redis** (implemented caching annotations for location data)
   - [x] Configured in docker-compose.dev.yml with persistent volume
   - [x] Integration documentation in /docs/redis-integration-guide.md
@@ -275,7 +275,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - [x] **API Documentation** (markdown-based for all endpoints)
 - [x] **Swagger/OpenAPI Documentation** (for all public APIs)
 - [x] **Exception handling** (implemented GlobalExceptionHandler with appropriate status codes and messages)
-- [ ] **API Rate Limiting/Throttling** (optional for security)
+- [x] **API Rate Limiting/Throttling** (implemented: RateLimitAspect, PaymentRateLimitService, EmailRateLimitService, PublicUploadRateLimitService, ReportRateLimitService)
 
 ### Phase 5: Deployment (🚧 Testing Complete, Deployment Setup Needed)
 
@@ -402,7 +402,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 ### Phase 7: Frontend Development ✅
 
 - [x] **Next.js Application Setup**
-  - [x] Next.js 15.3.2 with TypeScript configuration
+  - [x] Next.js 16.1.6 with TypeScript configuration
   - [x] Tailwind CSS for styling
   - [x] ESLint and Prettier setup
   - [x] Jest testing framework configuration
@@ -510,7 +510,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
   - Docker & Docker Compose for development environment
 
 - **Frontend** ✅:
-  - Next.js 15.3.2 with TypeScript
+  - Next.js 16.1.6 with TypeScript
   - Tailwind CSS for styling
   - NextAuth.js for authentication
   - next-i18next for internationalization (English/Arabic)
@@ -525,15 +525,12 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ## Documentation
 
-- [System Design](docs/system_design.md) - Overall architecture and technology choices
 - [Backend API Documentation](backend/autotrader-backend/API.md) - Details on API endpoints and usage
-- [Database Schema](docs/database_schema.md) - Complete database structure and relationships
-- [Testing Plan](docs/testing_plan.md) - Testing approach and coverage goals
-- [Frontend Development Plan](docs/frontend_development_plan.md) - Detailed frontend implementation roadmap
-- [Translation Guide for Developers](docs/translation_guide_for_developers.md) - Internationalization best practices for bilingual support
-- [SEO-Friendly URLs Implementation](FRONTEND_SLUG_FILTERING_IMPLEMENTATION.md) - SEO URLs implementation and URL structure for car marketplace
-- [SEO Strategy & Implementation](docs/seo_strategy.md) - Comprehensive SEO strategy, current progress, and implementation roadmap
-- [Voice Search Implementation Plan](docs/voice_search_implementation_plan.md) - Comprehensive plan for implementing voice search functionality
+- [Database Schema](docs/architecture/database_schema.md) - Complete database structure and relationships
+- [Frontend Development Plan](docs/development/frontend_development_plan.md) - Detailed frontend implementation roadmap
+- [Translation Guide for Developers](docs/development/translation_guide_for_developers.md) - Internationalization best practices for bilingual support
+- [SEO-Friendly URLs Implementation](docs/implementation/FRONTEND_SLUG_FILTERING_IMPLEMENTATION.md) - SEO URLs implementation and URL structure for car marketplace
+- [SEO Strategy & Implementation](docs/development/seo_strategy.md) - Comprehensive SEO strategy, current progress, and implementation roadmap
 
 ## Future Enhancements Roadmap 🚀
 
@@ -567,8 +564,8 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ### Phase 9: Advanced Search & Voice Features (Planned)
 
-### Phase 10: Dealer Portal & B2B Features ⭐⭐⭐ **NEW HIGH PRIORITY**
-**Status**: 🚀 **READY TO START - Leverage Existing Infrastructure**
+### Phase 10: Dealer Portal & B2B Features ⭐⭐⭐ **HIGH PRIORITY**
+**Status**: 🔄 **IN PROGRESS - Foundation implemented, extensions needed**
 **Priority**: Critical
 **Business Value**: High Revenue Potential
 **Target Completion**: 2-3 months (Faster due to existing foundation!)
@@ -584,6 +581,8 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 - ✅ **Messaging System** - Real-time communication
 - ✅ **Saved Searches** - Advanced filtering and notifications
 - ✅ **Image Management** - MinIO integration, media handling
+- ✅ **Dealer Infrastructure** - Dealer entity, DealerController, DealerService, DealerRepository, DealerTrialService, PublicDealerController, PublicDealerService (DB migrations V20, V51, V56)
+- ✅ **Payment System** - PaymentController, AdminPaymentController, Stripe/PayPal integration, manual bank transfer
 
 #### **What We Need to Add (Focused Extensions):**
 

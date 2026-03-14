@@ -6,7 +6,7 @@ This is the backend service for the Autotrader Marketplace application, built wi
 
 - Java 21 or higher
 - Gradle (or use the included Gradle wrapper)
-- PostgreSQL (for production, H2 is used for development)
+- PostgreSQL (for development and production; H2 is used in unit tests only)
 
 ## Project Structure
 
@@ -15,14 +15,26 @@ autotrader-backend/
 ├── src/main/java/com/autotrader/autotraderbackend/
 │   ├── AutotraderBackendApplication.java    # Main application class
 │   ├── config/                              # Configuration classes
+│   ├── constants/                           # Constants
 │   ├── controller/                          # REST controllers
+│   ├── converter/                           # Type converters
+│   ├── dto/                                 # Data transfer objects
+│   ├── events/                              # Domain event classes
+│   ├── exception/                           # Exception handlers
+│   ├── health/                              # Health check components
+│   ├── listeners/                           # Event listeners
+│   ├── mapper/                              # Entity mappers
 │   ├── model/                               # Entity models
 │   ├── payload/                             # Request/response objects
+│   ├── payment/                             # Payment system (Stripe, PayPal, bank transfer)
 │   ├── repository/                          # Data access layer
-│   ├── security/                            # Security related classes
-│   └── service/                             # Service layer
+│   ├── security/                            # Security and rate limiting
+│   ├── service/                             # Service layer
+│   ├── util/                                # Utility classes
+│   └── validation/                          # Custom validators
 └── src/main/resources/
-    └── application.properties               # Application configuration
+    ├── application.properties               # Application configuration
+    └── db/migration/                        # Flyway migrations (44 files)
 ```
 
 ## Getting Started
@@ -47,10 +59,11 @@ The application will start on port 8080 by default.
 
 The application uses different configurations for development and production:
 
-- **Development**: Uses H2 in-memory database by default
+- **Development**: Uses PostgreSQL via Docker Compose (`docker-compose.dev.yml`)
 - **Production**: Requires PostgreSQL database connection
+- **Unit Tests**: Uses H2 in-memory database for fast test execution
 
-Configure the database connection in `application.properties` for production or use environment variables.
+Configure the database connection in `application.properties` or use environment variables.
 
 ## API Documentation
 
@@ -75,8 +88,7 @@ The API endpoints are documented in detail in the [API.md](API.md) file, includi
 - `POST /api/listings` - Create a new car listing
 - `GET /api/listings/my-listings` - Get all listings for the current user
 
-Additional endpoints coming soon:
-- `GET /api/listings` - Get all car listings
+- `GET /api/listings` - Get all car listings (paginated, with filters)
 - `GET /api/listings/{id}` - Get car by ID
 - `PUT /api/listings/{id}` - Update car listing
 - `DELETE /api/listings/{id}` - Delete car listing
@@ -179,9 +191,9 @@ We've chosen not to include API tests in the CI/CD pipeline for the following re
 
 ### Test Profiles
 
-- **Default Profile**: Standard configuration for development
-- **Test Profile**: Used for application tests with mock email service and H2 database
-- **Integration Tests**: Use dedicated test configurations with mocks
+- **Default/Dev Profile**: PostgreSQL database for development
+- **Test Profile**: H2 in-memory database for fast unit tests, mock email service
+- **Integration Tests**: Testcontainers (PostgreSQL, MinIO) for realistic integration testing
 
 ### Test Tools
 
@@ -218,18 +230,13 @@ The backend provides comprehensive internationalization support with:
 
 ## Development Notes
 
-### H2 Console
+### Database Access
 
-The H2 console is enabled in development mode and can be accessed at:
+Development uses PostgreSQL via Docker Compose. Access the database through:
+- **pgAdmin**: http://localhost:5050 (configured in `docker-compose.dev.yml`)
+- **Direct connection**: `jdbc:postgresql://localhost:5432/autotrader`
 
-```
-http://localhost:8080/h2-console
-```
-
-JDBC URL: Check the application startup logs for the current URL
-
-Username: SA
-Password: (leave empty)
+> **Note**: H2 is only used in unit tests (`testImplementation` dependency), not in development.
 
 ### Lombok
 

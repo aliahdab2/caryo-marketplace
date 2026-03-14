@@ -47,7 +47,11 @@ caryo-marketplace/
 │
 ├── 📁 postman/                  # API Testing
 │   ├── *.json                   # Postman collections
-│   └── *.sh                     # Test automation scripts
+│   └── *.sh                     # Collection fix scripts
+│
+├── 📁 payments/                 # Payment system documentation
+│
+├── 📁 config/                   # Configuration files
 │
 └── 📁 archive/                  # Legacy/Experimental Code
     └── src/                     # Old source files (may be removed)
@@ -56,8 +60,8 @@ caryo-marketplace/
 ## 🎯 **Directory Purposes**
 
 ### **Core Application**
-- **`backend/`** - Spring Boot 3.2.3 + Java 21 backend
-- **`frontend/`** - Next.js 15.5.2 + TypeScript frontend
+- **`backend/`** - Spring Boot 3.5.3 + Java 21 backend
+- **`frontend/`** - Next.js 16.1.6 + TypeScript frontend
 
 ### **Documentation**
 - **`docs/`** - All project documentation organized by category
@@ -107,5 +111,5 @@ This structure should be maintained as the project grows:
 
 ---
 
-**Last updated:** $(date)
-**Structure version:** 2.0 (Reorganized for production readiness)
+**Last updated:** 2026-03-14
+**Structure version:** 2.1 (Version corrections and missing directories added)

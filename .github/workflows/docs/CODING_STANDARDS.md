@@ -1,10 +1,10 @@
-# GitHub Copilot Instructions for Caryo Marketplace
+# Coding Standards — Caryo Marketplace
 
 ## Project Overview
 Caryo Marketplace is a bilingual (English/Arabic) car marketplace application built with:
-- Backend: Spring Boot 3.2.3 (Java 21)
-- Database: PostgreSQL 16 (dev/prod), H2 (test)
-- Frontend: Next.js
+- Backend: Spring Boot 3.5.3 (Java 21)
+- Database: PostgreSQL 16 (dev/prod), H2 (unit tests only)
+- Frontend: Next.js 16.1.6 + TypeScript
 
 ## Key Architectural Decisions
 
@@ -15,8 +15,8 @@ Caryo Marketplace is a bilingual (English/Arabic) car marketplace application bu
 
 2. **Database Environments**
    - Development/Production: PostgreSQL 16
-   - Testing: H2 in-memory database
-   - Migrations must be compatible with both
+   - Unit Tests: H2 in-memory database (fast execution)
+   - Integration Tests: Testcontainers with PostgreSQL (realistic testing)
 
 3. **Migration Patterns**
    - Version migrations in `db/migration/`
@@ -89,17 +89,20 @@ private ListingStatus listingStatus;
 ### Creating New Migrations
 1. Check existing schema and dependencies
 2. Use the template from `db/migration/TEMPLATE.sql`
-3. Test against both H2 and PostgreSQL
+3. Test against PostgreSQL (use Testcontainers for integration tests)
 4. Include validation queries
 5. Document rollback procedure
 
 ### Running the Application
 ```bash
-# Development with PostgreSQL
+# Development with PostgreSQL (requires Docker services running)
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 
-# Testing with H2
-./gradlew bootRun
+# Run unit tests (uses H2)
+./gradlew test
+
+# Run integration tests (uses Testcontainers with PostgreSQL)
+./gradlew integrationTest
 ```
 
 ## Repository Structure
@@ -579,7 +582,7 @@ npm run format
 7. ✅ No hardcoded strings remaining
 
 ### Testing
-- Write tests for both H2 and PostgreSQL environments
+- Unit tests use H2; integration tests use Testcontainers (PostgreSQL)
 - Include rollback scenarios in tests
 - Test bilingual content handling
 
@@ -589,7 +592,7 @@ npm run format
 - Follow Spring Security best practices
 
 ## Reminders
-1. Always test with both databases
+1. Unit tests use H2; integration tests use Testcontainers (PostgreSQL)
 2. Keep migrations idempotent
 3. Include bilingual support
 4. Document breaking changes
