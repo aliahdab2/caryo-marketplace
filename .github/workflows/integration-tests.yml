@@ -6,7 +6,7 @@ on:
   #  - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight
   pull_request:
     paths:
-      - 'backend/autotrader-backend/**'
+      - 'backend/caryo-backend/**'
       - '.github/workflows/integration-tests.yml'
       - '.github/actions/docker-services-setup/**'
       - '.github/actions/gradle-setup/**'
@@ -30,13 +30,13 @@ jobs:
     - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
-        working-directory: "./backend/autotrader-backend"
+        working-directory: "./backend/caryo-backend"
         java-version: "21"
         cache: true
         
     # Ensure Gradle Wrapper exists
     - name: Ensure Gradle Wrapper
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       run: |
         if [ ! -f "./gradlew" ]; then
           echo "gradlew script not found! Generating a new one..."
@@ -71,7 +71,7 @@ jobs:
         
     # Add a static analysis check for proper database cleanup order
     - name: Check for proper database cleanup order in tests
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       run: |
         echo "Checking for proper database cleanup order in integration tests..."
         
@@ -103,20 +103,20 @@ jobs:
         POSTGRES_PASSWORD: "testpassword"
         REDIS_PASSWORD: "testredispassword"
       with:
-        docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+        docker-compose-file: "./backend/caryo-backend/docker-compose.dev.yml"
         services: "db minio createbuckets redis"
         wait-time: '10'  # Increase wait time for CI environment
-        db-container-name: "autotrader-backend-db-1"
-        db-user: "autotrader"
-        minio-container-name: "autotrader-backend-minio-1"
-        createbuckets-container-name: "autotrader-backend-createbuckets-1"
+        db-container-name: "caryo-backend-db-1"
+        db-user: "caryo"
+        minio-container-name: "caryo-backend-minio-1"
+        createbuckets-container-name: "caryo-backend-createbuckets-1"
         post-minio-ready-wait-seconds: '10'  # Increase post-ready wait for CI
         minio-root-user: "testuser"  # Custom MinIO user
         minio-root-password: "testpassword123"  # Custom MinIO password
 
     # Run the actual integration tests
     - name: Run Integration Tests
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       env:
         SPRING_PROFILES_ACTIVE: integration,test
         POSTGRES_PASSWORD: testpassword
@@ -167,19 +167,19 @@ jobs:
     - name: Verify JaCoCo report exists
       run: |
         echo "Checking for JaCoCo report file..."
-        if ls -la ./backend/autotrader-backend/build/reports/jacoco/test/ &>/dev/null; then
+        if ls -la ./backend/caryo-backend/build/reports/jacoco/test/ &>/dev/null; then
           echo "✅ JaCoCo test reports found"
         else
           echo "::warning::JaCoCo test directory not found. Code coverage reporting may fail."
         fi
         
         echo "Found report files:"
-        find ./backend/autotrader-backend/build/reports/ -name "*.xml" -type f || echo "::warning::No XML report files found"
+        find ./backend/caryo-backend/build/reports/ -name "*.xml" -type f || echo "::warning::No XML report files found"
         
         # Check for test failures and create annotations
-        if [ -d "./backend/autotrader-backend/build/test-results" ]; then
+        if [ -d "./backend/caryo-backend/build/test-results" ]; then
           echo "Analyzing test failures..."
-          FAILURES=$(find ./backend/autotrader-backend/build/test-results -name "TEST-*.xml" -exec grep -l "<failure" {} \; || echo "")
+          FAILURES=$(find ./backend/caryo-backend/build/test-results -name "TEST-*.xml" -exec grep -l "<failure" {} \; || echo "")
           
           if [ ! -z "$FAILURES" ]; then
             echo "::warning::Found test failures in the following files:"
@@ -199,17 +199,17 @@ jobs:
       with:
         name: integration-test-results
         path: |
-          backend/autotrader-backend/build/reports/tests/integrationTest/
-          backend/autotrader-backend/build/test-results/integrationTest/
+          backend/caryo-backend/build/reports/tests/integrationTest/
+          backend/caryo-backend/build/test-results/integrationTest/
 
     - name: Upload test coverage
       if: success() || failure()
       uses: codecov/codecov-action@v4
       with:
         files: |
-          ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
-          ./backend/autotrader-backend/build/reports/jacoco/integrationTest/jacocoIntegrationTestReport.xml
-        directory: ./backend/autotrader-backend/build/reports/
+          ./backend/caryo-backend/build/reports/jacoco/test/jacocoTestReport.xml
+          ./backend/caryo-backend/build/reports/jacoco/integrationTest/jacocoIntegrationTestReport.xml
+        directory: ./backend/caryo-backend/build/reports/
         flags: integration-tests
         fail_ci_if_error: false
         verbose: true
@@ -221,9 +221,9 @@ jobs:
         echo "## Backend Integration Tests Summary" > test-summary.md
         echo "### Test Results" >> test-summary.md
         
-        if [ -d "./backend/autotrader-backend/build/test-results/integrationTest" ]; then
-          TOTAL=$(find ./backend/autotrader-backend/build/test-results/integrationTest -name "TEST-*.xml" | wc -l)
-          FAILED=$(find ./backend/autotrader-backend/build/test-results/integrationTest -name "TEST-*.xml" -exec grep -l "<failure" {} \; | wc -l)
+        if [ -d "./backend/caryo-backend/build/test-results/integrationTest" ]; then
+          TOTAL=$(find ./backend/caryo-backend/build/test-results/integrationTest -name "TEST-*.xml" | wc -l)
+          FAILED=$(find ./backend/caryo-backend/build/test-results/integrationTest -name "TEST-*.xml" -exec grep -l "<failure" {} \; | wc -l)
           PASSED=$((TOTAL - FAILED))
           
           echo "✅ Passed: $PASSED" >> test-summary.md
@@ -233,7 +233,7 @@ jobs:
           if [ $FAILED -gt 0 ]; then
             echo "### Failed Tests" >> test-summary.md
             echo "\`\`\`" >> test-summary.md
-            find ./backend/autotrader-backend/build/test-results/integrationTest -name "TEST-*.xml" -exec grep -l "<failure" {} \; | while read file; do
+            find ./backend/caryo-backend/build/test-results/integrationTest -name "TEST-*.xml" -exec grep -l "<failure" {} \; | while read file; do
               TEST_CLASS=$(basename "$file" | sed 's/TEST-\(.*\)\.xml/\1/')
               echo "- $TEST_CLASS" >> test-summary.md
             done

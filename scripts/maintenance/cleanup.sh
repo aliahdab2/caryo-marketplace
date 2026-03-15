@@ -225,8 +225,8 @@ print_header "Postman Collection Check"
 # Try to find the collection file
 COLLECTION_PATH=""
 POSSIBLE_PATHS=(
-  "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
-  "./postman/autotrader-api-collection.json"
+  "./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json"
+  "./postman/caryo-api-collection.json"
   "./postman/Caryo_Marketplace_API_Tests.json"
 )
 

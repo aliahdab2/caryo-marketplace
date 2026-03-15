@@ -127,4 +127,4 @@ These components are:
 - ✅ Mobile responsive
 - ✅ RTL compatible
 
-**Your dealer dashboard is now AutoTrader-level professional!** 🎉
+**Your dealer dashboard is now Caryo-level professional!** 🎉

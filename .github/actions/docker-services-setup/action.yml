@@ -5,7 +5,7 @@ inputs:
   docker-compose-file:
     description: "Path to the docker-compose file to use"
     required: false
-    default: './backend/autotrader-backend/docker-compose.dev.yml'
+    default: './backend/caryo-backend/docker-compose.dev.yml'
   down-flags:
     description: "Flags to pass to docker-compose down"
     required: false
@@ -25,7 +25,7 @@ inputs:
   db-user:
     description: "Database user"
     required: false
-    default: "autotrader"
+    default: "caryo"
   minio-health-check:
     description: "Whether to check MinIO health"
     required: false

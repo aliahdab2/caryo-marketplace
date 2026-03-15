@@ -66,7 +66,7 @@ Email sending is triggered by domain events:
 Comprehensive test suite covering:
 - **Unit Tests**: EmailServiceImpl methods (95% coverage) - `EmailServiceTest.java`
 - **Integration Tests**: Contact controller with mock JavaMailSender - `ContactControllerTest.java`
-- **Application Tests**: Full Spring Boot context with real templates - `AutotraderBackendApplicationTests.java`
+- **Application Tests**: Full Spring Boot context with real templates - `CaryoMarketplaceApplicationTests.java`
 - **Event Tests**: Event listener email triggers
 - **Template Tests**: Email template rendering with real Thymeleaf templates
 

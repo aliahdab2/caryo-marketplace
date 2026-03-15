@@ -80,9 +80,9 @@ COLLECTION_PATH=""
 if [ -f "./postman/Caryo_Marketplace_API_Tests.json" ]; then
     COLLECTION_PATH="./postman/Caryo_Marketplace_API_Tests.json"
     log_info "Using Caryo_Marketplace_API_Tests.json collection file"
-elif [ -f "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" ]; then
-    COLLECTION_PATH="./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
-    log_info "Using autotrader-api-collection.json collection file"
+elif [ -f "./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json" ]; then
+    COLLECTION_PATH="./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json"
+    log_info "Using caryo-api-collection.json collection file"
 else
     log_error "ERROR: Postman collection file not found"
     log_info "Searching for collection files in project..."
@@ -100,7 +100,7 @@ if curl -s http://localhost:8080/actuator/health | grep -q "UP"; then
 else
     log_warning "⚠️ Spring Boot application might not be running. Trying to continue..."
     log_info "If tests fail, please start the Spring Boot application with:"
-    log_info "cd backend/autotrader-backend && ./gradlew bootRun --args='--spring.profiles.active=dev'"
+    log_info "cd backend/caryo-backend && ./gradlew bootRun --args='--spring.profiles.active=dev'"
 fi
 
 # Environment file path

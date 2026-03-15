@@ -231,7 +231,7 @@ npm run translation maintenance       # Complete translation workflow
 ```
 
 ### **Enhanced User Experience**
-- **Hover Image Navigation**: AutoTrader.co.uk style image navigation
+- **Hover Image Navigation**: autotrader.co.uk style image navigation
 - **Advanced Messaging**: File uploads with validation and progress indicators
 - **Responsive Media Gallery**: RTL-aware gallery with keyboard navigation
 - **Smart Search Filters**: Real-time filtering with translation support

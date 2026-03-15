@@ -10,12 +10,12 @@ The project is currently in active development with these key features implement
 - Admin approval workflow for listings
 - Location-based filtering system
 - Multiple media uploads with S3-compatible storage
-- **Hover Image Navigation** - AutoTrader.co.uk style image browsing
+- **Hover Image Navigation** - autotrader.co.uk style image browsing
 - **Internationalization (i18n)** - Full Arabic/English support with RTL
 - **Advanced Messaging System** - File uploads with validation and translations
 - **CarMediaGallery** - Responsive gallery with RTL support
 - Development environment with Docker Compose
-- **AutoTrader CLI** - Unified script for development and deployment
+- **Caryo CLI** - Unified script for development and deployment
 - CI/CD workflows with GitHub Actions
 - Secrets management with HashiCorp Vault
 
@@ -27,7 +27,7 @@ The project is currently in active development with these key features implement
 - **📁 Project Structure**: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - **READ FIRST** - Project organization guide
 - **☕ Java 21 Setup**: [setup/JAVA_SETUP_INSTRUCTIONS.md](setup/JAVA_SETUP_INSTRUCTIONS.md) - **REQUIRED** Java 21 configuration
 - **🚀 Quick Setup**: Run `setup/setup-java21.sh` - One-click environment setup
-- **📖 API Documentation**: [backend/autotrader-backend/API.md](backend/autotrader-backend/API.md) - Complete API reference
+- **📖 API Documentation**: [backend/caryo-backend/API.md](backend/caryo-backend/API.md) - Complete API reference
 - **📋 Development Plan**: [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) - Project roadmap and current status
 
 ### 📖 Documentation Categories
@@ -39,9 +39,9 @@ The project is currently in active development with these key features implement
 
 ### 🔗 External Documentation
 - [CI/CD Workflows](.github/workflows/docs/WORKFLOWS_OVERVIEW.md) - GitHub Actions setup and usage
-- [Backend API](backend/autotrader-backend/API.md) - Complete REST API documentation
-- [Redis Integration](backend/autotrader-backend/docs/redis-integration-guide.md) - Caching implementation
-- [MailDev Integration](backend/autotrader-backend/docs/maildev-integration-guide.md) - Email testing setup
+- [Backend API](backend/caryo-backend/API.md) - Complete REST API documentation
+- [Redis Integration](backend/caryo-backend/docs/redis-integration-guide.md) - Caching implementation
+- [MailDev Integration](backend/caryo-backend/docs/maildev-integration-guide.md) - Email testing setup
 
 ## Getting Started
 
@@ -59,15 +59,15 @@ The project is currently in active development with these key features implement
    cd caryo-marketplace
    ```
 
-2. **Start all services using the AutoTrader CLI**:
+2. **Start all services using the Caryo CLI**:
    ```bash
-   cd backend/autotrader-backend
+   cd backend/caryo-backend
    
    # Start development environment (includes backend, database, and all services)
-   ./autotrader.sh dev start
+   ./caryo.sh dev start
    
    # Or rebuild and start (recommended for first time setup)
-   ./autotrader.sh dev rebuild
+   ./caryo.sh dev rebuild
    ```
 
 3. **Start the frontend development server**:
@@ -122,7 +122,7 @@ This repository uses Git LFS (Large File Storage) to handle large files. To work
 ```
 caryo-marketplace/
 ├── backend/
-│   └── autotrader-backend/   # Spring Boot backend (Gradle)
+│   └── caryo-backend/   # Spring Boot backend (Gradle)
 │       ├── src/              # Source code
 │       ├── docker-compose.dev.yml  # Development Docker setup
 │       ├── Dockerfile        # Production Docker image
@@ -153,72 +153,72 @@ This project uses GitHub Actions for CI/CD with three main workflows:
 
 For details on the CI/CD setup, see the [CI/CD Documentation](.github/workflows/docs/WORKFLOWS_OVERVIEW.md).
 
-## AutoTrader CLI Script
+## Caryo CLI Script
 
-The project includes a powerful CLI script (`autotrader.sh`) that simplifies development and deployment tasks:
+The project includes a powerful CLI script (`caryo.sh`) that simplifies development and deployment tasks:
 
 ### Development Commands
 
 ```bash
-cd backend/autotrader-backend
+cd backend/caryo-backend
 
 # Start development environment
-./autotrader.sh dev start                      # Start all services
-./autotrader.sh dev start --rebuild            # Rebuild and start
-./autotrader.sh dev start --rebuild --skip-tests # Rebuild without tests and start
+./caryo.sh dev start                      # Start all services
+./caryo.sh dev start --rebuild            # Rebuild and start
+./caryo.sh dev start --rebuild --skip-tests # Rebuild without tests and start
 
 # Manage development environment
-./autotrader.sh dev rebuild                    # Rebuild environment
-./autotrader.sh dev rebuild-notest             # Rebuild without tests
-./autotrader.sh dev stop                       # Stop all services
-./autotrader.sh dev restart                    # Restart services
-./autotrader.sh dev status                     # Check service status
-./autotrader.sh dev logs                       # View service logs
-./autotrader.sh dev health                     # Health check
+./caryo.sh dev rebuild                    # Rebuild environment
+./caryo.sh dev rebuild-notest             # Rebuild without tests
+./caryo.sh dev stop                       # Stop all services
+./caryo.sh dev restart                    # Restart services
+./caryo.sh dev status                     # Check service status
+./caryo.sh dev logs                       # View service logs
+./caryo.sh dev health                     # Health check
 ```
 
 ### Production Commands
 
 ```bash
 # Production deployment
-./autotrader.sh prod deploy                    # Build and deploy production
-./autotrader.sh prod rebuild                   # Rebuild production (no data seeding)
-./autotrader.sh prod clean-rebuild             # Wipe DB/volumes and rebuild from scratch
-./autotrader.sh prod backup                    # Create DB/uploads/logs backups
-./autotrader.sh prod health                    # Check production health
+./caryo.sh prod deploy                    # Build and deploy production
+./caryo.sh prod rebuild                   # Rebuild production (no data seeding)
+./caryo.sh prod clean-rebuild             # Wipe DB/volumes and rebuild from scratch
+./caryo.sh prod backup                    # Create DB/uploads/logs backups
+./caryo.sh prod health                    # Check production health
 ```
 
 ### API Server Commands
 
 ```bash
 # API server management
-./autotrader.sh api start                      # Start API server only
-./autotrader.sh api start --rebuild            # Rebuild and start API server
+./caryo.sh api start                      # Start API server only
+./caryo.sh api start --rebuild            # Rebuild and start API server
 ```
 
 ### Testing Commands
 
 ```bash
 # Run tests
-./autotrader.sh test all                       # Run all tests
-./autotrader.sh test auth                      # Run authentication tests
-./autotrader.sh test endpoints                 # Test API endpoints
+./caryo.sh test all                       # Run all tests
+./caryo.sh test auth                      # Run authentication tests
+./caryo.sh test endpoints                 # Test API endpoints
 ```
 
 ### Documentation Commands
 
 ```bash
 # Generate documentation
-./autotrader.sh docs generate                  # Generate API documentation
+./caryo.sh docs generate                  # Generate API documentation
 ```
 
 ### Help
 
 ```bash
-./autotrader.sh help                           # Show all available commands
+./caryo.sh help                           # Show all available commands
 ```
 
-### Benefits of Using AutoTrader CLI
+### Benefits of Using Caryo CLI
 
 - **Unified Interface**: Single script for all development tasks
 - **Environment Management**: Handles Docker containers, databases, and services
@@ -231,7 +231,7 @@ cd backend/autotrader-backend
 
 The backend is built with Spring Boot and provides RESTful APIs for authentication and car listings.
 
-See [backend/autotrader-backend/README.md](backend/autotrader-backend/README.md) for detailed backend documentation, including:
+See [backend/caryo-backend/README.md](backend/caryo-backend/README.md) for detailed backend documentation, including:
 
 - Setup instructions
 - API documentation
@@ -240,17 +240,17 @@ See [backend/autotrader-backend/README.md](backend/autotrader-backend/README.md)
 
 ## API Testing
 
-### Using AutoTrader CLI (Recommended)
+### Using Caryo CLI (Recommended)
 
 ```bash
-cd backend/autotrader-backend
+cd backend/caryo-backend
 
 # Run all tests
-./autotrader.sh test all
+./caryo.sh test all
 
 # Run specific test suites
-./autotrader.sh test auth        # Authentication tests
-./autotrader.sh test endpoints   # API endpoint tests
+./caryo.sh test auth        # Authentication tests
+./caryo.sh test endpoints   # API endpoint tests
 ```
 
 ### Manual API Testing
@@ -261,7 +261,7 @@ You can also run tests manually:
 npm install -g newman newman-reporter-htmlextra
 
 # Run tests manually
-newman run "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" \
+newman run "./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json" \
   --environment "./postman/test_environment.json" \
   --reporters cli,htmlextra \
   --reporter-htmlextra-export results/html-report.html
@@ -269,7 +269,7 @@ newman run "./backend/autotrader-backend/src/test/resources/postman/autotrader-a
 
 ## API Documentation
 
-Detailed API documentation is available in [backend/autotrader-backend/API.md](backend/autotrader-backend/API.md), which includes:
+Detailed API documentation is available in [backend/caryo-backend/API.md](backend/caryo-backend/API.md), which includes:
 
 - Authentication endpoints
 - Car listing endpoints  
@@ -289,14 +289,14 @@ Detailed API documentation is available in [backend/autotrader-backend/API.md](b
 
 ### Running the Application
 
-#### Using AutoTrader CLI (Recommended)
+#### Using Caryo CLI (Recommended)
 
 ```bash
 # 1. Start all backend services (database, API, storage, etc.)
-cd backend/autotrader-backend
-./autotrader.sh dev rebuild  # First time setup
+cd backend/caryo-backend
+./caryo.sh dev rebuild  # First time setup
 # or
-./autotrader.sh dev start    # Subsequent runs
+./caryo.sh dev start    # Subsequent runs
 
 # 2. Start frontend development server
 cd ../../frontend
@@ -308,7 +308,7 @@ npm run dev
 
 ```bash
 # Backend
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew bootRun
 
 # Frontend (in another terminal)

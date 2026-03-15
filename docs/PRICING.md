@@ -74,7 +74,7 @@ subscription.professional.listing_limit=-1
 ### **Backend**
 
 Prices are configured in:
-- `backend/autotrader-backend/src/main/resources/application.properties`
+- `backend/caryo-backend/src/main/resources/application.properties`
 - Lines 173-179
 
 ### **Frontend**

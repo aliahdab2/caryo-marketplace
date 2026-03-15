@@ -27,6 +27,6 @@ export default async function DashboardPage() {
   }
 
   // 3. Normal User / Buyer Fallback
-  // Best Practice: Redirect to Saved Searches ("My Autotrader") for immediate engagement
+  // Best Practice: Redirect to Saved Searches ("My Caryo") for immediate engagement
   redirect("/dashboard/saved-searches");
 }

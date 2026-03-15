@@ -156,7 +156,7 @@ sudo certbot renew --dry-run
 
 ```bash
 # Build the backend
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew build
 
 # Build the frontend

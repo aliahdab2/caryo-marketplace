@@ -1,13 +1,13 @@
 # Brand/Model Management Strategy - Industry Best Practices
 
-## Research Summary: AutoTrader.co.uk & Industry Standards
+## Research Summary: autotrader.co.uk & Industry Standards
 
 ### Current Problem
 When an admin deactivates a brand/model, what happens to existing listings using that brand/model?
 
 ### Industry Research Findings
 
-#### AutoTrader.co.uk Approach:
+#### autotrader.co.uk Approach:
 1. **Immutable Listings**: Users cannot change make/model once live
 2. **Manufacturer-Driven Updates**: Changes come from official manufacturer updates
 3. **Support-Mediated**: Critical changes require customer service intervention

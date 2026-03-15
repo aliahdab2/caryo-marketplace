@@ -29,7 +29,7 @@ A helper script to run after rebuilding the development environment. This script
 
 **Usage:**
 ```bash
-# After running ./autotrader.sh dev rebuild:
+# After running ./caryo.sh dev rebuild:
 ./scripts/post_rebuild.sh
 ```
 
@@ -58,7 +58,7 @@ Car images are stored in MinIO at the following paths:
 
 ## After a Rebuild
 
-After running `./autotrader.sh dev rebuild`, the MinIO data will be reset. To restore the car images:
+After running `./caryo.sh dev rebuild`, the MinIO data will be reset. To restore the car images:
 
 ```bash
 ./scripts/post_rebuild.sh

@@ -17,7 +17,7 @@ ADMIN_PASSWORD="Admin123!"
 echo -e "${BLUE}Step 1: Starting Application${NC}"
 echo "-------------------------------"
 
-cd /Users/aliahdab/Documents/caryo-marketplace/backend/autotrader-backend
+cd /Users/aliahdab/Documents/caryo-marketplace/backend/caryo-backend
 
 echo "Starting Spring Boot application in background..."
 ./gradlew bootRun --args='--spring.profiles.active=integration' > /tmp/spring-boot.log 2>&1 &

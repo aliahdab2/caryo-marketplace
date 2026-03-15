@@ -42,7 +42,7 @@ The project already has comprehensive testing infrastructure. Use these instead 
 ```
 
 ### Manual Frontend Testing
-1. Start backend: `./autotrader.sh dev start`
+1. Start backend: `./caryo.sh dev start`
 2. Start frontend: `npm run dev`
 3. Navigate to: `http://localhost:3000/dashboard/listings/new`
 4. Test the 4-step form with real data

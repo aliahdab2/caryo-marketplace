@@ -273,4 +273,4 @@ If you encounter any issues:
 3. Check `page.original.tsx` for original code
 4. Revert with: `git checkout main -- frontend/src/app/[locale]/(protected)/dashboard/page.tsx`
 
-**🎉 Congratulations! Your dealer dashboard is now AutoTrader-level professional!**
+**🎉 Congratulations! Your dealer dashboard is now Caryo-level professional!**

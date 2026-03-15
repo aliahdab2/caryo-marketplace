@@ -98,12 +98,12 @@ Add `--debug` flag to any script for verbose output:
 ```
 
 ### **Logs Location**
-- Application logs: `backend/autotrader-backend/logs/`
+- Application logs: `backend/caryo-backend/logs/`
 - Test logs: Console output and Gradle test reports
 
 ### **Manual Verification**
 If automated tests fail, you can manually verify:
-1. Start the application: `./backend/autotrader-backend/gradlew bootRun`
+1. Start the application: `./backend/caryo-backend/gradlew bootRun`
 2. Test endpoints: `curl http://localhost:8080/api/admin/data/carquery/load`
 3. Check database: Connect to PostgreSQL and verify `makes`/`models` tables
 

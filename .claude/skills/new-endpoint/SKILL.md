@@ -18,7 +18,7 @@ Controller → Service → Repository → Entity
 ## Base Package
 
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/
 ```
 
 ## Step-by-Step
@@ -131,7 +131,7 @@ Use the `/new-migration` skill to create the database migration.
 
 - **Unit tests**: `src/test/java/.../service/YourServiceTest.java` — mock the repository
 - **Integration tests**: `src/test/java/.../controller/YourControllerIntegrationTest.java` — use `@SpringBootTest` + Testcontainers (NOT H2)
-- Run: `cd backend/autotrader-backend && ./gradlew test --no-daemon`
+- Run: `cd backend/caryo-backend && ./gradlew test --no-daemon`
 
 ## Conventions
 

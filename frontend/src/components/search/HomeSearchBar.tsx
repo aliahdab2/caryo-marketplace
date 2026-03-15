@@ -114,7 +114,7 @@ const HomeSearchBar = React.memo<HomeSearchBarProps>(({ initialBrands, initialGo
       params.append('location', selectedGovernorateSlug);
     }
 
-    // NEW: AutoTrader UK style slug-based URLs
+    // AutoTrader UK style slug-based URLs
     // Add brand slugs if selected
     if (selectedMake !== null) {
       const selectedBrand = carMakes?.find(make => make.id === selectedMake);

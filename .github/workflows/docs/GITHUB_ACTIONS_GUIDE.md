@@ -40,10 +40,10 @@ You can test the GitHub Actions workflows locally using the scripts in the `scri
 
 ```bash
 # Run unit tests
-./backend/autotrader-backend/gradlew test
+./backend/caryo-backend/gradlew test
 
 # Run integration tests
-./backend/autotrader-backend/gradlew integrationTest
+./backend/caryo-backend/gradlew integrationTest
 
 # Run Postman tests
 npm install -g newman
@@ -74,6 +74,6 @@ jobs:
     - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
-        working-directory: "./backend/autotrader-backend"
+        working-directory: "./backend/caryo-backend"
         java-version: "21"
 ```

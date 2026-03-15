@@ -57,8 +57,8 @@ if [ -z "$COLLECTION_PATH" ]; then
   log_warning "⚠️ No collection path provided, searching for collection files..."
   if [ -f "./postman/Caryo_Marketplace_API_Tests.json" ]; then
     COLLECTION_PATH="./postman/Caryo_Marketplace_API_Tests.json"
-  elif [ -f "./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json" ]; then
-    COLLECTION_PATH="./backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
+  elif [ -f "./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json" ]; then
+    COLLECTION_PATH="./backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json"
   else
     # Try to find collection files
     COLLECTION_FILES=$(find . -name "*.json" | grep -i -E "collection|postman|api[-_]test" | grep -v "node_modules")

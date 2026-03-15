@@ -25,7 +25,7 @@ docker --version
 docker compose version
 
 # Gradle wrapper
-cd backend/autotrader-backend && ./gradlew --version
+cd backend/caryo-backend && ./gradlew --version
 ```
 
 **Java 21 is mandatory.** If wrong version:
@@ -47,7 +47,7 @@ cd frontend && npm run build 2>&1 | tail -50
 
 **Backend won't build:**
 ```bash
-cd backend/autotrader-backend && ./gradlew assemble --no-daemon --stacktrace 2>&1 | tail -50
+cd backend/caryo-backend && ./gradlew assemble --no-daemon --stacktrace 2>&1 | tail -50
 ```
 
 ### Test Failures
@@ -59,7 +59,7 @@ cd frontend && npm test -- --watchAll=false --verbose 2>&1 | tail -80
 
 **Backend tests:**
 ```bash
-cd backend/autotrader-backend && SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon --info 2>&1 | tail -80
+cd backend/caryo-backend && SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon --info 2>&1 | tail -80
 ```
 
 **Integration tests (need Docker running):**
@@ -85,14 +85,14 @@ cd frontend && npm audit --production
 
 **Backend:**
 ```bash
-cd backend/autotrader-backend && ./gradlew dependencies --configuration runtimeClasspath | head -100
+cd backend/caryo-backend && ./gradlew dependencies --configuration runtimeClasspath | head -100
 ```
 
 ### Docker / Services
 
 ```bash
 docker ps                          # running containers
-docker compose -f backend/autotrader-backend/docker-compose.dev.yml ps
+docker compose -f backend/caryo-backend/docker-compose.dev.yml ps
 make services-up                   # start services
 make services-down                 # stop services
 ```

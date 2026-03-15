@@ -19,7 +19,7 @@ sdk use java 21.0.8-zulu
 java -version
 
 # 3. Build backend
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew build
 ```
 

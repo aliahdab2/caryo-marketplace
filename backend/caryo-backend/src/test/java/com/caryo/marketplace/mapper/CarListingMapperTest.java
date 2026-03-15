@@ -1,0 +1,327 @@
+package com.caryo.marketplace.mapper;
+
+import com.caryo.marketplace.model.CarBrand;
+import com.caryo.marketplace.model.CarListing;
+import com.caryo.marketplace.model.CarModel;
+import com.caryo.marketplace.model.ListingMedia;
+import com.caryo.marketplace.model.ListingMedia.ModerationStatus;
+import com.caryo.marketplace.model.User;
+import com.caryo.marketplace.model.Location; // Ensure this import is present
+import com.caryo.marketplace.model.Country;
+import com.caryo.marketplace.model.Governorate;
+import com.caryo.marketplace.payload.response.CarListingResponse;
+import com.caryo.marketplace.payload.response.ListingMediaResponse;
+// Ensure com.caryo.marketplace.payload.response.LocationResponse is NOT imported here
+import com.caryo.marketplace.service.storage.StorageService;
+import com.caryo.marketplace.util.TestDataGenerator;
+import com.caryo.marketplace.util.TestGeographyUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+
+class CarListingMapperTest {
+
+    @Mock
+    private StorageService storageService;
+
+    @InjectMocks
+    private CarListingMapper carListingMapper;
+
+    private CarListing testCarListing;
+    private User testSeller;
+
+    @BeforeEach
+    void setUp() {
+        testSeller = new User();
+        testSeller.setId(1L);
+        testSeller.setUsername("testseller");
+
+        // Create location with full hierarchy (Country > Governorate > Location)
+        Location testLocation = TestDataGenerator.createTestLocationWithHierarchy("SY");
+
+        // Create brand and model for car listing
+        CarBrand testBrand = new CarBrand();
+        testBrand.setId(1L);
+        testBrand.setDisplayNameEn("Toyota");
+        testBrand.setDisplayNameAr("تويوتا");
+        testBrand.setName("Toyota");
+        testBrand.setSlug("toyota");
+        testBrand.setIsActive(true);
+
+        CarModel testModel = new CarModel();
+        testModel.setId(1L);
+        testModel.setDisplayNameEn("Camry");
+        testModel.setDisplayNameAr("كامري");
+        testModel.setName("Camry");
+        testModel.setSlug("camry");
+        testModel.setBrand(testBrand);
+        testModel.setIsActive(true);
+
+        testCarListing = new CarListing();
+        testCarListing.setId(10L);
+        testCarListing.setTitle("Test Toyota");
+
+        // Set model and denormalized fields
+        testCarListing.setModel(testModel);
+        testCarListing.setBrandNameEn(testModel.getBrand().getDisplayNameEn());
+        testCarListing.setBrandNameAr(testModel.getBrand().getDisplayNameAr());
+        testCarListing.setModelNameEn(testModel.getDisplayNameEn());
+        testCarListing.setModelNameAr(testModel.getDisplayNameAr());
+
+        testCarListing.setModelYear(2021);
+        testCarListing.setPrice(new BigDecimal("25000.00"));
+        testCarListing.setMileage(15000);
+        testCarListing.setDescription("A great test car");
+        testCarListing.setLocation(testLocation); // Use setLocation instead of setLocationEntity
+        testCarListing.setCreatedAt(LocalDateTime.now().minusDays(1));
+        testCarListing.setApproved(true);
+        testCarListing.setSeller(testSeller);
+
+        // Add media instead of imageKey
+        ListingMedia primaryImage = new ListingMedia();
+        primaryImage.setCarListing(testCarListing);
+        primaryImage.setFileKey("listings/10/image.jpg");
+        primaryImage.setFileName("image.jpg");
+        primaryImage.setContentType("image/jpeg");
+        primaryImage.setSize(1024L);
+        primaryImage.setSortOrder(0);
+        primaryImage.setIsPrimary(true);
+        primaryImage.setMediaType("image");
+        primaryImage.setModerationStatus(ModerationStatus.APPROVED); // Set as approved for tests
+        testCarListing.addMedia(primaryImage);
+    }
+
+    @Test
+    void toCarListingResponse_WithFullData_ShouldMapCorrectly() {
+        // Arrange - No longer using storageService mocking
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(testCarListing.getId(), response.getId());
+        assertEquals(testCarListing.getTitle(), response.getTitle());
+
+        // Test denormalized brand and model name fields
+        assertEquals(testCarListing.getBrandNameEn(), response.getBrand().getDisplayNameEn());
+        assertEquals(testCarListing.getBrandNameAr(), response.getBrand().getDisplayNameAr());
+        assertEquals(testCarListing.getModelNameEn(), response.getModel().getDisplayNameEn());
+        assertEquals(testCarListing.getModelNameAr(), response.getModel().getDisplayNameAr());
+
+        assertEquals(testCarListing.getModelYear(), response.getModelYear());
+        assertEquals(0, testCarListing.getPrice().compareTo(response.getPrice()));
+        assertEquals(testCarListing.getMileage(), response.getMileage());
+        assertEquals(testCarListing.getDescription(), response.getDescription());
+
+        // Assert LocationDetails (new way)
+        assertNotNull(response.getLocationDetails());
+        assertEquals(testCarListing.getLocation().getId(), response.getLocationDetails().getId());
+        assertEquals(testCarListing.getLocation().getDisplayNameEn(), response.getLocationDetails().getDisplayNameEn());
+        // Assert other LocationDetails fields if necessary
+
+        assertEquals(testCarListing.getCreatedAt(), response.getCreatedAt());
+        assertEquals(testCarListing.getApproved(), response.getApproved());
+        assertEquals(testSeller.getId(), response.getSellerId());
+        assertEquals(testSeller.getUsername(), response.getSellerUsername());
+
+        // Assert media collection
+        assertNotNull(response.getMedia());
+        assertEquals(1, response.getMedia().size());
+        ListingMediaResponse mediaResponse = response.getMedia().get(0);
+        assertNotNull(mediaResponse);
+        assertEquals("listings/10/image.jpg", mediaResponse.getFileKey());
+        assertEquals("image.jpg", mediaResponse.getFileName());
+        assertEquals("image/jpeg", mediaResponse.getContentType());
+        assertEquals(1024L, mediaResponse.getSize());
+        assertEquals(0, mediaResponse.getSortOrder());
+        assertTrue(mediaResponse.getIsPrimary());
+        assertEquals("image", mediaResponse.getMediaType());
+        assertEquals("listings/10/image.jpg", mediaResponse.getUrl());
+
+        // No longer using storageService.getSignedUrl - returning file key directly
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WithNoMedia_ShouldHaveEmptyMediaList() {
+        // Arrange - clear all media
+        testCarListing.getMedia().clear();
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getMedia().isEmpty());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WithBlankImageKey_ShouldHaveNullMediaUrl() {
+        // Arrange - set blank file key
+        testCarListing.getMedia().clear();
+        ListingMedia blankKeyMedia = new ListingMedia();
+        blankKeyMedia.setCarListing(testCarListing);
+        blankKeyMedia.setFileKey("   ");
+        blankKeyMedia.setFileName("image.jpg");
+        blankKeyMedia.setContentType("image/jpeg");
+        blankKeyMedia.setSize(1024L);
+        blankKeyMedia.setSortOrder(0);
+        blankKeyMedia.setIsPrimary(true);
+        blankKeyMedia.setMediaType("image");
+        blankKeyMedia.setModerationStatus(ModerationStatus.APPROVED);
+        testCarListing.addMedia(blankKeyMedia);
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1, response.getMedia().size());
+        // Blank file key should return blank string, not null
+        assertEquals("   ", response.getMedia().get(0).getUrl());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WithNullSeller_ShouldHaveNullSellerInfo() {
+        // Arrange
+        testCarListing.setSeller(null);
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertNull(response.getSellerId());
+        assertNull(response.getSellerUsername());
+    }
+
+    @Test
+    void toCarListingResponse_WithNullInput_ShouldReturnNull() {
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(null);
+
+        // Assert
+        assertNull(response);
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WhenGetSignedUrlThrowsUnsupportedOperation_ShouldReturnFileKey() {
+        // Arrange - No longer using storageService, so no need to mock exceptions
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1, response.getMedia().size());
+        // Should return file key directly, not null
+        assertEquals("listings/10/image.jpg", response.getMedia().get(0).getUrl());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WhenGetSignedUrlThrowsGenericException_ShouldReturnFileKey() {
+        // Arrange - No longer using storageService, so no need to mock exceptions
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1, response.getMedia().size());
+        // Should return file key directly, not null
+        assertEquals("listings/10/image.jpg", response.getMedia().get(0).getUrl());
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+
+    @Test
+    void toCarListingResponse_WithMultipleMedia_ShouldMapAllMedia() {
+        // Arrange - add a second media item
+        // No longer using signed URLs - expecting file keys directly
+
+        // Clear existing media and add two new items
+        testCarListing.getMedia().clear();
+
+        ListingMedia primaryImage = new ListingMedia();
+        primaryImage.setId(101L);
+        primaryImage.setCarListing(testCarListing);
+        primaryImage.setFileKey("listings/10/image1.jpg");
+        primaryImage.setFileName("image1.jpg");
+        primaryImage.setContentType("image/jpeg");
+        primaryImage.setSize(1024L);
+        primaryImage.setSortOrder(0);
+        primaryImage.setIsPrimary(true);
+        primaryImage.setMediaType("image");
+        primaryImage.setModerationStatus(ModerationStatus.APPROVED);
+        testCarListing.addMedia(primaryImage);
+
+        ListingMedia secondaryImage = new ListingMedia();
+        secondaryImage.setId(102L);
+        secondaryImage.setCarListing(testCarListing);
+        secondaryImage.setFileKey("listings/10/image2.jpg");
+        secondaryImage.setFileName("image2.jpg");
+        secondaryImage.setContentType("image/jpeg");
+        secondaryImage.setSize(2048L);
+        secondaryImage.setSortOrder(1);
+        secondaryImage.setIsPrimary(false);
+        secondaryImage.setMediaType("image");
+        secondaryImage.setModerationStatus(ModerationStatus.APPROVED);
+        testCarListing.addMedia(secondaryImage);
+
+        // No longer using storageService mocking
+
+        // Act
+        CarListingResponse response = carListingMapper.toCarListingResponse(testCarListing);
+
+        // Assert
+        assertNotNull(response);
+
+        // Check media collection
+        assertNotNull(response.getMedia());
+        assertEquals(2, response.getMedia().size());
+
+        // Check first media item (should be primary)
+        ListingMediaResponse media1 = response.getMedia().get(0);
+        assertEquals(101L, media1.getId());
+        assertEquals("listings/10/image1.jpg", media1.getFileKey());
+        assertEquals("image1.jpg", media1.getFileName());
+        assertEquals("image/jpeg", media1.getContentType());
+        assertEquals(1024L, media1.getSize());
+        assertEquals(0, media1.getSortOrder());
+        assertTrue(media1.getIsPrimary());
+        assertEquals("image", media1.getMediaType());
+        assertEquals("listings/10/image1.jpg", media1.getUrl());
+
+        // Check second media item
+        ListingMediaResponse media2 = response.getMedia().get(1);
+        assertEquals(102L, media2.getId());
+        assertEquals("listings/10/image2.jpg", media2.getFileKey());
+        assertEquals("image2.jpg", media2.getFileName());
+        assertEquals("image/jpeg", media2.getContentType());
+        assertEquals(2048L, media2.getSize());
+        assertEquals(1, media2.getSortOrder());
+        assertFalse(media2.getIsPrimary());
+        assertEquals("image", media2.getMediaType());
+        assertEquals("listings/10/image2.jpg", media2.getUrl());
+
+        // No longer using storageService.getSignedUrl - returning file keys directly
+        verify(storageService, never()).getSignedUrl(anyString(), anyLong());
+    }
+}

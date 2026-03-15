@@ -6,7 +6,7 @@ user-invocable: true
 
 # Run Caryo Locally
 
-**IMPORTANT:** Do NOT execute `autotrader.sh` via the Bash tool. The script produces rich terminal output (colors, progress, service summary, test accounts) that the user needs to see in their own terminal. Instead, check prerequisites, check what's already running, and tell the user the exact commands to run.
+**IMPORTANT:** Do NOT execute `caryo.sh` via the Bash tool. The script produces rich terminal output (colors, progress, service summary, test accounts) that the user needs to see in their own terminal. Instead, check prerequisites, check what's already running, and tell the user the exact commands to run.
 
 ## Step 1: Check Prerequisites
 
@@ -27,7 +27,7 @@ Report any issues:
 
 ```bash
 # Check backend containers
-cd backend/autotrader-backend && ./autotrader.sh dev status 2>&1
+cd backend/caryo-backend && ./caryo.sh dev status 2>&1
 
 # Check if frontend dev server is running
 lsof -i :3000 -sTCP:LISTEN 2>/dev/null | head -5
@@ -41,8 +41,8 @@ Based on what's already running, give the user only the commands they need:
 
 **Terminal 1 (Backend + Infrastructure):**
 ```
-cd backend/autotrader-backend
-./autotrader.sh dev start
+cd backend/caryo-backend
+./caryo.sh dev start
 ```
 
 **Terminal 2 (Frontend — run after backend is ready):**
@@ -68,14 +68,14 @@ Tell the user both backend and frontend are already up, with the URLs:
 - Frontend: http://localhost:3000
 
 ### Useful Variants
-- `./autotrader.sh dev start --rebuild` — clean rebuild with tests
-- `./autotrader.sh dev start --rebuild --skip-tests` — clean rebuild, skip tests
-- `./autotrader.sh dev stop` — stop everything
-- `./autotrader.sh dev status` — check what's running
-- `./autotrader.sh dev health` — health check
-- `./autotrader.sh dev logs` — view logs
+- `./caryo.sh dev start --rebuild` — clean rebuild with tests
+- `./caryo.sh dev start --rebuild --skip-tests` — clean rebuild, skip tests
+- `./caryo.sh dev stop` — stop everything
+- `./caryo.sh dev status` — check what's running
+- `./caryo.sh dev health` — health check
+- `./caryo.sh dev logs` — view logs
 
-## What autotrader.sh Does
+## What caryo.sh Does
 
 The script handles everything in order:
 1. Builds the backend Docker image

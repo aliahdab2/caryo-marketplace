@@ -8,13 +8,13 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: autotrader
-      POSTGRES_PASSWORD: autotrader
-      POSTGRES_DB: autotrader
+      POSTGRES_USER: caryo
+      POSTGRES_PASSWORD: caryo
+      POSTGRES_DB: caryo
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autotrader"]
+      test: ["CMD-SHELL", "pg_isready -U caryo"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -44,8 +44,8 @@ services:
       /bin/sh -c "
       sleep 5;
       /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
-      /usr/bin/mc mb myminio/autotrader;
-      /usr/bin/mc policy set public myminio/autotrader;
+      /usr/bin/mc mb myminio/caryo;
+      /usr/bin/mc policy set public myminio/caryo;
       exit 0;
       "
 

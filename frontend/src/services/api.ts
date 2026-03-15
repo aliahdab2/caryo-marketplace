@@ -165,7 +165,7 @@ export interface PageResponse<T> {
 }
 
 export interface CarListingFilterParams {
-  // Slug-based filtering (Caryo pattern)
+  // Slug-based filtering (AutoTrader pattern)
   brands?: string[]; // Array of brand slugs: ["toyota", "honda", "bmw"]  
   models?: string[]; // Array of model slugs: ["camry", "civic", "x3"]
   

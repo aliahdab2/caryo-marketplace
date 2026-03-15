@@ -46,7 +46,7 @@ app.email.supported-languages=${EMAIL_SUPPORTED_LANGUAGES:en,ar}
 ## 🚀 How to Customize Website Name
 
 ### Option 1: Development Environment
-Edit `backend/autotrader-backend/src/main/resources/application-dev.properties`:
+Edit `backend/caryo-backend/src/main/resources/application-dev.properties`:
 
 ```properties
 # Change these values to your desired website name

@@ -32,7 +32,7 @@ This document explains the **simplified, production-ready MVP** we built for you
 
 #### **1. 🎮 Admin Controllers (3 files)**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/controller/admin/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/controller/admin/
 ├── AdminCarBrandController.java       # Brand CRUD + search/filter
 ├── AdminCarModelController.java       # Model CRUD + search/filter
 └── AdminDataManagementController.java # Simple import triggers
@@ -40,7 +40,7 @@ backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/contro
 
 #### **2. 🔧 Service Layer (Core 7 files)**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/service/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/service/
 ├── CarQueryDataService.java           # Direct CarQuery API integration
 ├── SyrianCarsDataService.java         # Direct SyrianCars scraping
 ├── ArabicTranslationService.java      # OpenAI translations with caching
@@ -52,7 +52,7 @@ backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/servic
 
 #### **3. 📊 Data Models (3 files)**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/model/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/model/
 ├── CarBrand.java                     # Brand entity
 ├── CarModel.java                     # Model entity
 └── Translation.java                  # Translation cache entity
@@ -60,11 +60,11 @@ backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/model/
 
 #### **4. 📝 DTOs & Request Objects (7 files)**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/dto/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/dto/
 ├── CarQueryMakeResponse.java         # CarQuery API response
 └── CarQueryModelResponse.java        # CarQuery model response
 
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/payload/request/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/payload/request/
 ├── CreateCarBrandRequest.java        # Brand creation
 ├── CreateCarModelRequest.java        # Model creation
 ├── UpdateCarBrandRequest.java        # Brand updates
@@ -73,7 +73,7 @@ backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/payloa
 
 #### **5. ⚠️ Custom Exceptions (3 files)**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/exception/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/exception/
 ├── CarQueryException.java            # CarQuery API errors
 ├── CarQueryConnectionException.java  # Connection failures
 └── CarQueryValidationException.java  # Data validation errors
@@ -104,7 +104,7 @@ backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/except
 
 #### **1. Configuration**
 ```
-backend/autotrader-backend/src/main/resources/
+backend/caryo-backend/src/main/resources/
 ├── application.properties            # CarQuery, SyrianCars, OpenAI config
 └── build.gradle                      # Added Jsoup, OpenAI, Jackson deps
 ```

@@ -29,7 +29,7 @@ check_app_status() {
     else
         echo -e "${RED}✗ Application is not running${NC}"
         echo -e "${YELLOW}Please start the application first:${NC}"
-        echo -e "  cd backend/autotrader-backend"
+        echo -e "  cd backend/caryo-backend"
         echo -e "  ./gradlew bootRun --args='--spring.profiles.active=test'"
         return 1
     fi

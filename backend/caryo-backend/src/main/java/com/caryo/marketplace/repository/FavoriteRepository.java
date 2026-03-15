@@ -1,0 +1,19 @@
+package com.caryo.marketplace.repository;
+
+import com.caryo.marketplace.model.Favorite;
+import com.caryo.marketplace.model.User;
+import com.caryo.marketplace.model.CarListing;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
+    List<Favorite> findByUser(User user);
+    List<Favorite> findByUserOrderByCreatedAtDesc(User user);
+    Optional<Favorite> findByUserAndCarListing(User user, CarListing carListing);
+    boolean existsByUserAndCarListing(User user, CarListing carListing);
+    boolean existsByUserUsernameAndCarListingId(String username, Long carListingId);
+    void deleteByUserAndCarListing(User user, CarListing carListing);
+}

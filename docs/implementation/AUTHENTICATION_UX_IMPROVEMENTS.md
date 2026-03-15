@@ -158,4 +158,4 @@ Sign Up → Sign In (with confusing resend options)
 
 These improvements transform the authentication experience from a confusing, disjointed process into a professional, user-friendly flow that follows industry best practices. The changes eliminate the misplaced "resend verification email" functionality from the sign-in page and create a proper, dedicated flow that guides users smoothly from registration to account activation.
 
-The implementation follows patterns used by major platforms like Blocket.se and AutoTrader.co.uk, ensuring users have a familiar and intuitive experience.
+The implementation follows patterns used by major platforms like Blocket.se and autotrader.co.uk, ensuring users have a familiar and intuitive experience.

@@ -1,4 +1,4 @@
-# AutoTrader Marketplace Frontend Development Plan
+# Caryo Marketplace Frontend Development Plan
 
 ## Project Structure
 

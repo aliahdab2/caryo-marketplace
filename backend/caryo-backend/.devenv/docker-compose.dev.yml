@@ -1,0 +1,176 @@
+services:
+  # Spring Boot Application
+  app:
+    build:
+      context: ..
+      dockerfile: .devenv/Dockerfile.dev
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+      - "${JVM_DEBUG_PORT:-5005}:5005"
+    environment:
+      # Database configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-caryo}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # S3 configuration
+      STORAGE_TYPE: s3
+      STORAGE_S3_ENDPOINTURL: http://minio:${MINIO_API_PORT:-9000}
+      STORAGE_S3_ACCESSKEYID: ${MINIO_ROOT_USER:-minioadmin}
+      STORAGE_S3_SECRETACCESSKEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      STORAGE_S3_BUCKETNAME: ${S3_BUCKET_NAME:-caryo-assets}
+      STORAGE_S3_REGION: us-east-1
+      STORAGE_S3_PATHSTYLEACCESSENABLED: "true"
+      # File upload settings
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${MAX_REQUEST_SIZE:-10485760}B
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-10485760}B
+      APP_UPLOAD_MAX_FILE_SIZE: ${MAX_FILE_SIZE:-5242880}
+      APP_UPLOAD_ALLOWED_TYPES: image/jpeg,image/png,image/gif,image/webp
+      # Development settings
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
+      SPRING_DEVTOOLS_RESTART_ENABLED: ${DEV_MODE:-true}
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: ${DEV_MODE:-true}
+      SPRINGDOC_SWAGGER_UI_CSRF_ENABLED: "false"
+      SPRINGDOC_API_DOCS_ENABLED: "true"
+      # Email configuration - uses Mailpit by default for local development
+      # To use Gmail SMTP, set MAIL_USERNAME and MAIL_PASSWORD in a .env file
+      SPRING_MAIL_HOST: ${MAIL_USERNAME:+smtp.gmail.com}
+      SPRING_MAIL_PORT: ${MAIL_USERNAME:+587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "${MAIL_USERNAME:+true}"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${MAIL_USERNAME:+true}"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: "${MAIL_USERNAME:+true}"
+      APP_EMAIL_FROM: ${EMAIL_FROM:-noreply@caryo.local}
+      APP_EMAIL_SUPPORT: ${EMAIL_SUPPORT:-support@caryo.local}
+      # JWT configuration
+      JWT_SECRET: ${JWT_SECRET:-caryoSecretKey123456789012345678901234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-1800000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-2592000000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Debug logging for email
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_MAIL: DEBUG
+      LOGGING_LEVEL_JAKARTA_MAIL: DEBUG
+    depends_on:
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+    networks:
+      - backend-network
+    volumes:
+      - ../src:/app/src:ro # Mount source for hot reloading
+      - ../build/libs:/app/build/libs
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15.3-alpine # Pinned version
+    environment:
+      POSTGRES_DB: ${DB_NAME:-caryo}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Database Admin Tool
+  adminer:
+    image: adminer:latest # Changed to latest
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - backend-network
+
+  # MinIO (S3-compatible storage)
+  minio:
+    container_name: caryo-minio
+    image: minio/minio:latest # Changed to latest
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:9000/minio/health/ready || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Increased start_period
+    networks:
+      - backend-network
+
+  # Service to create the bucket automatically upon startup
+  createbuckets:
+    image: minio/mc:latest # Using latest to unblock, recommend pinning to a specific stable tag later
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Starting bucket creation...';
+      sleep 10;
+      echo 'Configuring MinIO client...';
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} || exit 1;
+      echo 'Creating bucket if it does not exist...';
+      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-caryo-assets} || exit 1;
+      echo 'Setting bucket policy to public...';
+      /usr/bin/mc anonymous set public myminio/${S3_BUCKET_NAME:-caryo-assets} || exit 1;
+      echo 'Bucket ${S3_BUCKET_NAME:-caryo-assets} created and configured successfully';
+      exit 0;
+      "
+    networks:
+      - backend-network
+
+  # Redis (optional)
+  redis:
+    image: redis:latest # Changed to latest
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend-network
+
+  # Mailpit (mail catching service)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - backend-network
+
+volumes:
+  postgres_data:
+  minio_data:
+  redis_data:
+
+networks:
+  backend-network:
+    driver: bridge

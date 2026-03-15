@@ -144,7 +144,7 @@ This repository contains the development plan for the Caryo Marketplace project,
 ## Project Structure
 
 ```
-autotrader-marketplace/
+caryo-marketplace/
 ├── backend/         # Spring Boot backend services
 ├── frontend/        # Frontend application (coming soon)
 └── docs/            # Project documentation
@@ -152,7 +152,7 @@ autotrader-marketplace/
 
 ## Backend Development Roadmap
 
-This section outlines the development plan for the AutoTrader Marketplace backend.
+This section outlines the development plan for the Caryo Marketplace backend.
 
 ### Phase 1: User Authentication ✅
 
@@ -525,7 +525,7 @@ This section outlines the development plan for the AutoTrader Marketplace backen
 
 ## Documentation
 
-- [Backend API Documentation](backend/autotrader-backend/API.md) - Details on API endpoints and usage
+- [Backend API Documentation](backend/caryo-backend/API.md) - Details on API endpoints and usage
 - [Database Schema](docs/architecture/database_schema.md) - Complete database structure and relationships
 - [Frontend Development Plan](docs/development/frontend_development_plan.md) - Detailed frontend implementation roadmap
 - [Translation Guide for Developers](docs/development/translation_guide_for_developers.md) - Internationalization best practices for bilingual support

@@ -13,7 +13,7 @@ Sets up the Gradle environment with proper caching.
 - name: Setup Gradle Environment
   uses: ./.github/actions/gradle-setup
   with:
-    working-directory: "./backend/autotrader-backend"
+    working-directory: "./backend/caryo-backend"
     java-version: "21"
     cache: true
 ```
@@ -27,11 +27,11 @@ Sets up Docker services required for testing.
 - name: Setup Docker Services
   uses: ./.github/actions/docker-services-setup
   with:
-    docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+    docker-compose-file: "./backend/caryo-backend/docker-compose.dev.yml"
     services: "db minio createbuckets redis"
     wait-time: '60'
     db-container-name: "db"
-    db-user: "autotrader"
+    db-user: "caryo"
 ```
 
 ### Spring Boot Setup Action
@@ -44,7 +44,7 @@ Builds and starts a Spring Boot application.
   id: spring-boot
   uses: ./.github/actions/spring-boot-setup
   with:
-    working-directory: "./backend/autotrader-backend"
+    working-directory: "./backend/caryo-backend"
     spring-profiles: "dev"
     debug-mode: 'true'
     wait-retries: '45'

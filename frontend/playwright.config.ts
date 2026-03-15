@@ -77,7 +77,7 @@ export default defineConfig({
 
   // Local dev server configuration
   // Disabled for manual control - start servers manually with:
-  // Backend: cd backend/autotrader-backend && ./autotrader.sh dev start
+  // Backend: cd backend/caryo-backend && ./caryo.sh dev start
   // Frontend: cd frontend && npm run dev
   // webServer: [
   //   {

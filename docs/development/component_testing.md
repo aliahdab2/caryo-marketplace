@@ -118,7 +118,7 @@ interface CarMedia {
 ```
 
 **Features**:
-- AutoTrader-style navigation arrows
+- Caryo-style navigation arrows
 - Media counter (1/5 format)
 - Modal/lightbox view
 - Keyboard navigation

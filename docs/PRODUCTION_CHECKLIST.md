@@ -178,7 +178,7 @@ openssl rand -base64 32  # MinIO secret key
 
 # Test production build locally
 ./gradlew bootJar
-java -jar build/libs/autotrader-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+java -jar build/libs/caryo-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
 
 # Frontend production build
 cd frontend && npm run build && npm start

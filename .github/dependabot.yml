@@ -2,7 +2,7 @@ version: 2
 updates:
   # Backend (Gradle)
   - package-ecosystem: "gradle"
-    directory: "/backend/autotrader-backend"
+    directory: "/backend/caryo-backend"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10

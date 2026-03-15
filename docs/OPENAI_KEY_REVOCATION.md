@@ -126,7 +126,7 @@ az keyvault secret set \
 
 ```bash
 # Start your backend application
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew bootRun
 
 # Check logs for successful startup
@@ -169,7 +169,7 @@ cd /path/to/caryo-marketplace
 cp -r . ../caryo-marketplace-backup
 
 # Remove the key from history
-git filter-repo --invert-paths --path backend/autotrader-backend/src/main/resources/application.properties
+git filter-repo --invert-paths --path backend/caryo-backend/src/main/resources/application.properties
 
 # Or use a callback to replace the key:
 git filter-repo --replace-text <(echo 'sk-proj-krvAH==>')

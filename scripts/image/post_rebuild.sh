@@ -2,7 +2,7 @@
 
 # post_rebuild.sh
 #
-# A helper script to run after ./autotrader.sh dev rebuild
+# A helper script to run after ./caryo.sh dev rebuild
 # This script restores all car images and performs any other necessary post-rebuild tasks
 #
 # Usage: ./post_rebuild.sh

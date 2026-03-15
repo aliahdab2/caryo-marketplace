@@ -69,19 +69,19 @@ private ListingStatus listingStatus;
 ### Docker Development Environment
 ```bash
 # Start all services
-./autotrader.sh dev start
+./caryo.sh dev start
 
 # Rebuild and start
-./autotrader.sh dev rebuild
+./caryo.sh dev rebuild
 
 # Stop all services
-./autotrader.sh dev stop
+./caryo.sh dev stop
 
 # View logs
-./autotrader.sh dev logs
+./caryo.sh dev logs
 
 # Access specific service logs
-./autotrader.sh dev logs <service-name>
+./caryo.sh dev logs <service-name>
 ```
 
 ## Common Tasks
@@ -108,7 +108,7 @@ private ListingStatus listingStatus;
 ## Repository Structure
 ```
 backend/
-  autotrader-backend/
+  caryo-backend/
     src/
       main/
         resources/

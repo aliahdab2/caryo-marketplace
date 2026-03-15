@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${language == 'ar' ? 'مبروك! تمت الموافقة على إعلانك في ' + websiteName : 'Congratulations! Your listing has been approved on ' + websiteName}">Listing Approved</title>
+    <style>
+        body {
+            font-family: 'Tahoma', 'Arial', 'Segoe UI', sans-serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        [dir="rtl"] {
+            font-family: 'Tahoma', 'Arial Unicode MS', 'Lucida Sans Unicode', sans-serif;
+            text-align: right;
+        }
+        
+        .email-wrapper {
+            background-color: #ffffff;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            opacity: 0.5;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .success-badge {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            padding: 15px 30px;
+            display: inline-block;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .success-title {
+            font-size: 28px;
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .success-subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-top: 10px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .congratulations-section {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #27ae60;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .congratulations-section::before {
+            content: '🎉';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .congratulations-text {
+            font-size: 18px;
+            color: #155724;
+            font-weight: 600;
+            margin-bottom: 15px;
+            margin-top: 10px;
+        }
+        
+        .congratulations-subtext {
+            font-size: 15px;
+            color: #0f5132;
+            line-height: 1.6;
+        }
+        
+        .listing-details {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .listing-details-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            flex: 1;
+        }
+        
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+            flex: 2;
+            text-align: left;
+        }
+        
+        [dir="rtl"] .detail-value {
+            text-align: right;
+        }
+        
+        .benefits-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        
+        .benefits-title {
+            font-size: 18px;
+            color: #1565c0;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .benefit-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e1f5fe;
+        }
+        
+        .benefit-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .benefit-text {
+            font-size: 14px;
+            color: #37474f;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 35px;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .cta-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 10px 15px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .cta-button.secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .cta-button.secondary:hover {
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+        }
+        
+        .tips-section {
+            background: #fff8e1;
+            border: 1px solid #ffecb3;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .tips-title {
+            font-size: 18px;
+            color: #e65100;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tips-title::before {
+            content: '💡';
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        [dir="rtl"] .tips-title::before {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+        
+        .tips-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tips-list li {
+            padding: 8px 0;
+            color: #bf360c;
+            font-weight: 500;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        [dir="rtl"] .tips-list li {
+            padding-left: 0;
+            padding-right: 25px;
+        }
+        
+        .tips-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        [dir="rtl"] .tips-list li::before {
+            left: auto;
+            right: 0;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 24px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            transform: scale(1.2);
+        }
+        
+        .copyright {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        
+        /* Mobile responsiveness */
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                margin: 10px;
+            }
+            
+            .header, .content, .footer {
+                padding: 25px 20px;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-button {
+                display: block;
+                margin: 10px 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .success-title {
+                font-size: 22px;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            
+            [dir="rtl"] .detail-item {
+                text-align: right;
+            }
+            
+            .detail-value {
+                margin-top: 5px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Enhanced Arabic typography */
+        [dir="rtl"] .success-title,
+        [dir="rtl"] .greeting,
+        [dir="rtl"] .congratulations-text,
+        [dir="rtl"] .listing-details-title,
+        [dir="rtl"] .benefits-title,
+        [dir="rtl"] .cta-title,
+        [dir="rtl"] .tips-title {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        [dir="rtl"] .congratulations-subtext,
+        [dir="rtl"] .benefit-text,
+        [dir="rtl"] .tips-list li {
+            line-height: 2;
+            word-spacing: 2px;
+        }
+    </style>
+</head>
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}">
+    <div class="email-wrapper">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🚗 <span th:text="${websiteName}">Caryo</span></div>
+            <div class="success-badge">
+                <div class="success-title" th:text="${language == 'ar' ? 'مبروك! ✨' : 'Congratulations! ✨'}">مبروك! ✨</div>
+            </div>
+            <div class="success-subtitle" th:text="${language == 'ar' ? 'تمت الموافقة على إعلانك وأصبح متاحاً للمشترين' : 'Your listing has been approved and is now available to buyers'}">تمت الموافقة على إعلانك وأصبح متاحاً للمشترين</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting" th:text="${language == 'ar' ? 'السلام عليكم ورحمة الله وبركاته، ' + userName : 'Hello ' + userName + ','}">السلام عليكم ورحمة الله وبركاته، أحمد</div>
+            
+            <!-- Congratulations Section -->
+            <div class="congratulations-section">
+                <div class="congratulations-text" th:text="${language == 'ar' ? 'أخبار ممتازة! لقد تمت الموافقة على إعلانك' : 'Excellent news! Your listing has been approved'}">أخبار ممتازة! لقد تمت الموافقة على إعلانك</div>
+                <div class="congratulations-subtext" th:text="${language == 'ar' ? 'بعد مراجعة دقيقة من فريقنا المتخصص، تمت الموافقة على إعلان سيارتك وأصبح الآن مرئياً لآلاف المشترين المحتملين على منصة ' + websiteName + '. نتمنى لك بيعاً ناجحاً وسريعاً!' : 'After careful review by our specialized team, your car listing has been approved and is now visible to thousands of potential buyers on the ' + websiteName + ' platform. We wish you a successful and quick sale!'}">بعد مراجعة دقيقة من فريقنا المتخصص، تمت الموافقة على إعلان سيارتك وأصبح الآن مرئياً لآلاف المشترين المحتملين على منصة أوتو تريدر. نتمنى لك بيعاً ناجحاً وسريعاً!</div>
+            </div>
+            
+            <!-- Listing Details -->
+            <div class="listing-details">
+                <div class="listing-details-title" th:text="${language == 'ar' ? 'تفاصيل إعلانك المعتمد' : 'Your Approved Listing Details'}">تفاصيل إعلانك المعتمد</div>
+                
+                <div class="detail-item">
+                    <div class="detail-label" th:text="${language == 'ar' ? '🚗 السيارة:' : '🚗 Vehicle:'}">🚗 السيارة:</div>
+                    <div class="detail-value" th:text="${listingTitle}">Toyota Camry 2023</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label" th:text="${language == 'ar' ? '🆔 رقم الإعلان:' : '🆔 Listing ID:'}">🆔 رقم الإعلان:</div>
+                    <div class="detail-value" th:text="'#' + ${listingId}">#12345</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label" th:text="${language == 'ar' ? '📅 تاريخ النشر:' : '📅 Publication Date:'}">📅 تاريخ النشر:</div>
+                    <div class="detail-value" th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}">31/07/2024</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label" th:text="${language == 'ar' ? '🌐 حالة الإعلان:' : '🌐 Listing Status:'}">🌐 حالة الإعلان:</div>
+                    <div class="detail-value" style="color: #27ae60; font-weight: 700;" th:text="${language == 'ar' ? '✅ نشط ومعتمد' : '✅ Active & Approved'}">✅ نشط ومعتمد</div>
+                </div>
+            </div>
+            
+            <!-- Benefits Section -->
+            <div class="benefits-section">
+                <div class="benefits-title" th:text="${language == 'ar' ? 'ماذا يعني هذا بالنسبة لك؟' : 'What does this mean for you?'}">ماذا يعني هذا بالنسبة لك؟</div>
+                
+                <div class="benefits-grid">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">👀</div>
+                        <div class="benefit-text" th:text="${language == 'ar' ? 'مرئي لآلاف المشترين المحتملين يومياً' : 'Visible to thousands of potential buyers daily'}">مرئي لآلاف المشترين المحتملين يومياً</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">📞</div>
+                        <div class="benefit-text" th:text="${language == 'ar' ? 'استلام مكالمات واستفسارات من المهتمين' : 'Receive calls and inquiries from interested parties'}">استلام مكالمات واستفسارات من المهتمين</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">📊</div>
+                        <div class="benefit-text" th:text="${language == 'ar' ? 'إحصائيات مفصلة عن المشاهدات والاهتمام' : 'Detailed statistics on views and interest'}">إحصائيات مفصلة عن المشاهدات والاهتمام</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">🔄</div>
+                        <div class="benefit-text" th:text="${language == 'ar' ? 'إمكانية تحديث الإعلان وإدارته بسهولة' : 'Easy listing updates and management'}">إمكانية تحديث الإعلان وإدارته بسهولة</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <div class="cta-title" th:text="${language == 'ar' ? 'اتخذ الخطوة التالية' : 'Take the next step'}">اتخذ الخطوة التالية</div>
+                <a th:href="${listingUrl}" class="cta-button" th:text="${language == 'ar' ? '👁️ شاهد إعلانك المنشور' : '👁️ View Your Published Listing'}">👁️ شاهد إعلانك المنشور</a>
+                <a th:href="${websiteUrl + '/dashboard/listings'}" class="cta-button secondary" th:text="${language == 'ar' ? '📊 إدارة جميع إعلاناتك' : '📊 Manage All Your Listings'}">📊 إدارة جميع إعلاناتك</a>
+            </div>
+            
+            <!-- Tips Section -->
+            <div class="tips-section">
+                <div class="tips-title" th:text="${language == 'ar' ? 'نصائح لزيادة فرص البيع' : 'Tips to increase your selling chances'}">نصائح لزيادة فرص البيع</div>
+                <ul class="tips-list">
+                    <li th:text="${language == 'ar' ? 'أضف صوراً عالية الجودة وواضحة للسيارة من جميع الزوايا' : 'Add high-quality, clear photos of the car from all angles'}">أضف صوراً عالية الجودة وواضحة للسيارة من جميع الزوايا</li>
+                    <li th:text="${language == 'ar' ? 'اكتب وصفاً مفصلاً وصادقاً عن حالة السيارة' : 'Write a detailed and honest description of the car&apos;s condition'}">اكتب وصفاً مفصلاً وصادقاً عن حالة السيارة</li>
+                    <li th:text="${language == 'ar' ? 'حدد سعراً تنافسياً بناءً على السوق الحالي' : 'Set a competitive price based on the current market'}">حدد سعراً تنافسياً بناءً على السوق الحالي</li>
+                    <li th:text="${language == 'ar' ? 'رد بسرعة على استفسارات المشترين المهتمين' : 'Respond quickly to inquiries from interested buyers'}">رد بسرعة على استفسارات المشترين المهتمين</li>
+                    <li th:text="${language == 'ar' ? 'حافظ على تحديث معلومات الاتصال الخاصة بك' : 'Keep your contact information updated'}">حافظ على تحديث معلومات الاتصال الخاصة بك</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-message" th:text="${language == 'ar' ? 'نتمنى لك تجربة بيع ممتازة مع ' + websiteName : 'We wish you an excellent selling experience with ' + websiteName}">نتمنى لك تجربة بيع ممتازة مع أوتو تريدر</div>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="Instagram">📷</a>
+                <a href="#" title="WhatsApp">💬</a>
+            </div>
+            
+            <div class="copyright" th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة. | فريق ' + websiteName + ' يدعمك على مدار الساعة' : '© 2024 ' + websiteName + '. All rights reserved. | ' + websiteName + ' team supports you 24/7'}">© 2024 أوتو تريدر. جميع الحقوق محفوظة. | فريق أوتو تريدر يدعمك على مدار الساعة</div>
+        </div>
+    </div>
+</body>
+</html>

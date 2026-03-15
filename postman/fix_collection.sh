@@ -6,7 +6,7 @@
 
 echo "Fixing API paths in Postman collection..."
 
-COLLECTION_FILE="$(pwd)/../../backend/autotrader-backend/src/test/resources/postman/autotrader-api-collection.json"
+COLLECTION_FILE="$(pwd)/../../backend/caryo-backend/src/test/resources/postman/caryo-api-collection.json"
 
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then

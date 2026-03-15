@@ -64,7 +64,7 @@ sdk install java 21.0.8-zulu
 ```
 caryo-marketplace/
 ├── .sdkmanrc                    # Root Java 21 config
-├── backend/autotrader-backend/
+├── backend/caryo-backend/
 │   ├── .sdkmanrc               # Backend Java 21 config
 │   ├── build.gradle            # Java 21 configured
 │   └── ...
@@ -91,7 +91,7 @@ java -version && echo "✅ Java 21 is active"
 ### **Build Commands**
 ```bash
 # Backend build (requires Java 21)
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew clean build
 
 # Frontend build

@@ -92,7 +92,7 @@ runs:
         
         # Verify dependencies are available
         echo "Checking database connection..."
-        if pg_isready -h localhost -p 5432 -U autotrader > /dev/null 2>&1; then
+        if pg_isready -h localhost -p 5432 -U caryo > /dev/null 2>&1; then
           echo "✅ PostgreSQL database is responding on localhost:5432"
         else
           echo "⚠️ WARNING: Cannot connect to PostgreSQL database on localhost:5432"

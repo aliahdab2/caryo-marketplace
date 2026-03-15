@@ -283,7 +283,7 @@ You can now:
 ### **Quick Start Commands:**
 ```bash
 # Run all messaging tests
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew test --tests "*Test"
 
 # Apply database migration

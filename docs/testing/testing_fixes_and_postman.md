@@ -29,7 +29,7 @@ This document consolidates all testing improvements, Postman test fixes, and tes
 ./scripts/testing/run-postman-tests-with-devenv.sh
 
 # Verify database connection
-./backend/autotrader-backend/scripts/healthcheck.sh
+./backend/caryo-backend/scripts/healthcheck.sh
 
 # Run complete test suite
 ./run-postman-tests.sh
@@ -151,7 +151,7 @@ This document consolidates all testing improvements, Postman test fixes, and tes
 ### Debug Commands
 ```bash
 # Check test environment health
-./backend/autotrader-backend/scripts/healthcheck.sh
+./backend/caryo-backend/scripts/healthcheck.sh
 
 # Run specific test suite
 ./gradlew test --tests "*CarListingServiceTest*"

@@ -1,0 +1,91 @@
+# Production overrides for docker-compose.yml
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME:?DB_NAME environment variable is required}
+      POSTGRES_USER: ${DB_USER:?DB_USER environment variable is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD environment variable is required}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:?DB_USER is required}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  minio:
+    restart: always
+    volumes:
+      - minio_prod_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY environment variable is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY environment variable is required}
+    ports:
+      - "9000:9000"  # MinIO API port
+      - "9001:9001"  # MinIO Console port
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DB_NAME:?DB_NAME is required}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:?DB_USER is required}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
+      - STORAGE_S3_ENABLED=true
+      - STORAGE_S3_ENDPOINT=http://minio:9000
+      - STORAGE_S3_BUCKET_NAME=${S3_BUCKET_NAME:-caryo-assets}
+      - STORAGE_S3_ACCESS_KEY=${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY is required}
+      - STORAGE_S3_SECRET_KEY=${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required}
+      - STORAGE_S3_REGION=${S3_REGION:-us-east-1}
+      - SERVER_PORT=${SERVER_PORT:-8080}
+      - CARYO_APP_JWTSECRET=${JWT_SECRET:?JWT_SECRET environment variable is required}
+      - JAVA_OPTS=${JAVA_OPTS:--Xms512m -Xmx1g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"  # Backend API port
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  minio_prod_data:
+    driver: local

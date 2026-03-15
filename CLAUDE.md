@@ -13,7 +13,7 @@ Car buying/selling platform for Syria.
 ## Key Directories
 
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/
+backend/caryo-backend/src/main/java/com/caryo/caryobackend/
   config/        controller/    converter/     dto/
   events/        exception/     health/        listeners/
   mapper/        model/         payload/       payment/

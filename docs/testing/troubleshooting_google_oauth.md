@@ -131,7 +131,7 @@ Run the provided test script to check your backend API:
 
 ```bash
 # Navigate to the backend directory
-cd backend/autotrader-backend
+cd backend/caryo-backend
 
 # Run the Google auth test script
 ./test_google_auth.sh

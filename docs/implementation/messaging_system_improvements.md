@@ -43,7 +43,7 @@ console.error(t('fileTooLarge', { fileName: file.name, maxSize: maxFileSize / 10
 ### ✅ Backend Translation Improvements
 
 #### 1. Enhanced Conversation Service
-**File**: `backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/service/ConversationService.java`
+**File**: `backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/service/ConversationService.java`
 
 **Improvements:**
 - Added `MessageSource` dependency injection
@@ -62,7 +62,7 @@ private String getMessage(String key, Locale locale) {
 ```
 
 #### 2. Enhanced Conversation Controller
-**File**: `backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/controller/ConversationController.java`
+**File**: `backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/controller/ConversationController.java`
 
 **Improvements:**
 - Added comprehensive validation for message content and file uploads
@@ -169,7 +169,7 @@ const extractErrorMessage = (error: any): string => {
 ```
 
 #### 3. Backend Message Properties
-**File**: `backend/autotrader-backend/src/main/resources/messages.properties`
+**File**: `backend/caryo-backend/src/main/resources/messages.properties`
 
 ```properties
 error.message.content.required=Message content or files are required
@@ -234,7 +234,7 @@ error.file.type.unsupported=Unsupported file type
 ### ✅ Test Files Updated
 - `frontend/src/components/messaging/__tests__/MessageInput.test.tsx`
 - `frontend/src/components/messaging/__tests__/AccessibleMessageInput.test.tsx`
-- `backend/autotrader-backend/src/test/java/.../ConversationServiceTest.java`
+- `backend/caryo-backend/src/test/java/.../ConversationServiceTest.java`
 
 ## Migration Impact
 

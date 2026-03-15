@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # Manual trigger
   pull_request:
     paths:
-      - 'backend/autotrader-backend/**'
+      - 'backend/caryo-backend/**'
       - '.github/workflows/unit-tests.yml'
       - '.github/actions/gradle-setup/**'
     branches: [ 'main', 'develop' ]  # Run on PRs to both main and develop
@@ -24,13 +24,13 @@ jobs:
     - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
-        working-directory: "./backend/autotrader-backend"
+        working-directory: "./backend/caryo-backend"
         java-version: "21"
         cache: true
 
     # Run unit tests using Gradle
     - name: Run Unit Tests
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       env:
         SPRING_PROFILES_ACTIVE: test
         GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
@@ -81,15 +81,15 @@ jobs:
       with:
         name: unit-test-results
         path: |
-          backend/autotrader-backend/build/reports/tests/test/
-          backend/autotrader-backend/build/test-results/test/
+          backend/caryo-backend/build/reports/tests/test/
+          backend/caryo-backend/build/test-results/test/
 
     - name: Upload test coverage
       if: success() || failure()
       uses: codecov/codecov-action@v4
       with:
-        files: ./backend/autotrader-backend/build/reports/jacoco/test/jacocoTestReport.xml
-        directory: ./backend/autotrader-backend/build/reports/
+        files: ./backend/caryo-backend/build/reports/jacoco/test/jacocoTestReport.xml
+        directory: ./backend/caryo-backend/build/reports/
         flags: unit-tests
         fail_ci_if_error: false
         verbose: true

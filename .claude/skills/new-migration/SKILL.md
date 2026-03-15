@@ -9,7 +9,7 @@ user-invocable: true
 ## Migration Location
 
 ```
-backend/autotrader-backend/src/main/resources/db/migration/
+backend/caryo-backend/src/main/resources/db/migration/
 ```
 
 ## Naming Convention
@@ -26,7 +26,7 @@ V{next_number}__{Description_with_underscores}.sql
 
 1. **Find the latest version number**:
    ```bash
-   ls backend/autotrader-backend/src/main/resources/db/migration/ | sort -V | tail -1
+   ls backend/caryo-backend/src/main/resources/db/migration/ | sort -V | tail -1
    ```
 
 2. **Increment by 1** for the new migration
@@ -70,11 +70,11 @@ ALTER TABLE table_name ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE' NOT NULL;
 - Use `BIGSERIAL` for primary keys
 - Use `TIMESTAMP` (not `DATETIME`) for date columns
 - Add indexes for columns used in WHERE clauses or JOINs
-- Test with: `cd backend/autotrader-backend && SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon`
+- Test with: `cd backend/caryo-backend && SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon`
 
 ## Entity Mapping
 
 After creating the migration, update or create the corresponding JPA entity in:
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/model/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/model/
 ```

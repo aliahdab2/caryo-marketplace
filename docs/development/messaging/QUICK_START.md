@@ -25,7 +25,7 @@
 
 ### **1. Run All Tests (Verify Foundation)**
 ```bash
-cd backend/autotrader-backend
+cd backend/caryo-backend
 
 # Run all messaging tests
 ./gradlew test --tests "*Test"
@@ -120,8 +120,8 @@ AND table_name IN ('conversations', 'messages', 'message_attachments', 'conversa
 ## **📁 Project Structure**
 
 ```
-backend/autotrader-backend/
-├── src/main/java/com/autotrader/autotraderbackend/
+backend/caryo-backend/
+├── src/main/java/com/caryo/caryomarketplace/
 │   ├── model/
 │   │   ├── Conversation.java ✅
 │   │   ├── Message.java ✅
@@ -140,7 +140,7 @@ backend/autotrader-backend/
 │   └── repository/
 │       ├── ConversationRepository.java ✅
 │       └── MessageRepository.java ✅
-├── src/test/java/com/autotrader/autotraderbackend/
+├── src/test/java/com/caryo/caryomarketplace/
 │   ├── model/ (7 test classes) ✅
 │   ├── payload/request/ (2 test classes) ✅
 │   └── repository/ (2 test classes) ✅

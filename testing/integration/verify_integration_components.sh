@@ -10,14 +10,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-cd /Users/aliahdab/Documents/caryo-marketplace/backend/autotrader-backend
+cd /Users/aliahdab/Documents/caryo-marketplace/backend/caryo-backend
 
 echo -e "\n${BLUE}1. Checking CarQuery API Client${NC}"
 echo "-----------------------------------"
 
 # Check if CarQueryApiClient compiles
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E '(carquery|jackson|spring)' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/service/CarQueryApiClient.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/service/CarQueryApiClient.java 2>/dev/null; then
     echo -e "${GREEN}✅ CarQueryApiClient compiles successfully${NC}"
 else
     echo -e "${RED}❌ CarQueryApiClient compilation failed${NC}"
@@ -28,7 +28,7 @@ echo "---------------------------------------"
 
 # Check if SyrianCarsDataService compiles
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E '(jsoup|jackson|spring)' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/service/SyrianCarsDataService.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/service/SyrianCarsDataService.java 2>/dev/null; then
     echo -e "${GREEN}✅ SyrianCarsDataService compiles successfully${NC}"
 else
     echo -e "${RED}❌ SyrianCarsDataService compilation failed${NC}"
@@ -39,7 +39,7 @@ echo "------------------------------------------"
 
 # Check if ArabicTranslationService compiles
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E '(openai|jackson|spring)' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/service/ArabicTranslationService.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/service/ArabicTranslationService.java 2>/dev/null; then
     echo -e "${GREEN}✅ ArabicTranslationService compiles successfully${NC}"
 else
     echo -e "${RED}❌ ArabicTranslationService compilation failed${NC}"
@@ -50,7 +50,7 @@ echo "------------------------------------------------"
 
 # Check if AdminDataManagementController compiles
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E '(spring|jackson)' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/controller/admin/AdminDataManagementController.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/controller/admin/AdminDataManagementController.java 2>/dev/null; then
     echo -e "${GREEN}✅ AdminDataManagementController compiles successfully${NC}"
 else
     echo -e "${RED}❌ AdminDataManagementController compilation failed${NC}"
@@ -61,7 +61,7 @@ echo "-------------------------------------"
 
 # Check CarQueryConfiguration
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E 'spring' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/config/CarQueryConfiguration.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/config/CarQueryConfiguration.java 2>/dev/null; then
     echo -e "${GREEN}✅ CarQueryConfiguration compiles successfully${NC}"
 else
     echo -e "${RED}❌ CarQueryConfiguration compilation failed${NC}"
@@ -69,7 +69,7 @@ fi
 
 # Check RestTemplateConfig
 if javac -cp "$(./gradlew -q dependencies --configuration runtimeClasspath | grep -E 'spring' | tr '\n' ':')" \
-    src/main/java/com/autotrader/autotraderbackend/config/RestTemplateConfig.java 2>/dev/null; then
+    src/main/java/com/caryo/caryobackend/config/RestTemplateConfig.java 2>/dev/null; then
     echo -e "${GREEN}✅ RestTemplateConfig compiles successfully${NC}"
 else
     echo -e "${RED}❌ RestTemplateConfig compilation failed${NC}"

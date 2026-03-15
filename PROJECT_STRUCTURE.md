@@ -15,7 +15,7 @@ caryo-marketplace/
 │   └── .cursorrules             # Cursor/Co-pilot instructions
 │
 ├── 📁 backend/                  # Backend Application
-│   └── autotrader-backend/     # Spring Boot application
+│   └── caryo-backend/     # Spring Boot application
 │       ├── src/                 # Java source code
 │       ├── build.gradle         # Build configuration
 │       ├── docker-compose.*.yml # Docker configurations
@@ -94,7 +94,7 @@ caryo-marketplace/
 | Need | Go To |
 |------|-------|
 | **Start Development** | `setup/JAVA_SETUP_INSTRUCTIONS.md` |
-| **API Documentation** | `backend/autotrader-backend/API.md` |
+| **API Documentation** | `backend/caryo-backend/API.md` |
 | **Frontend Guide** | `docs/development/frontend_development_plan.md` |
 | **System Architecture** | `docs/architecture/` |
 | **Testing** | `docs/testing/` + `testing/` |

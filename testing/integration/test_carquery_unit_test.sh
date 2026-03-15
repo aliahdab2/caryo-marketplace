@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Step 1: Running CarQuery API Unit Tests${NC}"
 echo "--------------------------------------------"
 
-cd /Users/aliahdab/Documents/caryo-marketplace/backend/autotrader-backend
+cd /Users/aliahdab/Documents/caryo-marketplace/backend/caryo-backend
 
 # Run just the CarQuery related tests
 echo "Running CarQueryApiClient tests..."

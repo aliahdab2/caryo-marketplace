@@ -25,7 +25,7 @@ Admin Experience:
   ✅ Take action on bad users
 ```
 
-**Result:** Better than AutoTrader, Blocket, and Cars.com! 🎉
+**Result:** Better than Caryo, Blocket, and Cars.com! 🎉
 
 ---
 
@@ -91,7 +91,7 @@ Admin Experience:
 ## Phase 4: AI-Powered Fraud Detection (3-6 months)
 
 ### Priority: MEDIUM 🟡
-**Why:** Prevent scams before they happen (like AutoTrader)
+**Why:** Prevent scams before they happen (like Caryo)
 
 ### Level 1: Basic AI (Start Here)
 
@@ -361,13 +361,13 @@ ROI: Pays for itself if you value your time
 - False positives: <5%
 - Scams prevented: 95%
 - User trust: +80%
-- Platform reputation: AutoTrader level
+- Platform reputation: Caryo level
 
 ---
 
 ## Comparison: You vs Competitors
 
-| Feature | AutoTrader | Blocket | Cars.com | Caryo Now | Caryo Future |
+| Feature | Caryo | Blocket | Cars.com | Caryo Now | Caryo Future |
 |---------|-----------|---------|----------|-----------|--------------|
 | User Reports | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Admin Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -399,7 +399,7 @@ Legend:
 **Future (6 months):**
 - ✅ AI-powered fraud detection
 - ✅ Proactive scam prevention
-- ✅ AutoTrader-level safety
+- ✅ Caryo-level safety
 - ✅ Best-in-class user experience
 
 **Future (12 months):**
@@ -434,7 +434,7 @@ Legend:
 
 ---
 
-**Remember:** AutoTrader started small too. They built safety features over 10+ years. You're already ahead with user blocking! 🚀
+**Remember:** Caryo started small too. They built safety features over 10+ years. You're already ahead with user blocking! 🚀
 
 Built with ❤️ for Caryo Safety
 Last Updated: January 2025

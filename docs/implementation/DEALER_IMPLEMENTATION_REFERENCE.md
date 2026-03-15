@@ -1407,9 +1407,9 @@ payment.stripe.webhook_secret=${STRIPE_WEBHOOK_SECRET}
 
 ---
 
-## 🏁 **AUTOTRADER.CO.UK PARITY ROADMAP** (Phases 3-5)
+## 🏁 **CARYO.CO.UK PARITY ROADMAP** (Phases 3-5)
 
-This roadmap aligns Caryo with the mature dealer experience of autotrader.co.uk. It builds on Phase 1 (trial, payments, dashboard) to reach near-parity across dealer operations, marketing/monetization, and buyer experience.
+This roadmap aligns Caryo with the mature dealer experience of PLACEHOLDER_CARYO_UK. It builds on Phase 1 (trial, payments, dashboard) to reach near-parity across dealer operations, marketing/monetization, and buyer experience.
 
 ### 📌 Parity Checklist (Status Today)
 
@@ -1543,7 +1543,7 @@ Response: jobId, totals (processed/success/failed), errorReportUrl
 
 ---
 
-### 📐 SLAs & Scale (Targeting AutoTrader-grade Reliability)
+### 📐 SLAs & Scale (Targeting Caryo-grade Reliability)
 
 - Availability: 99.9% (12-month target)
 - Caching: CDN for images, Redis for hot queries

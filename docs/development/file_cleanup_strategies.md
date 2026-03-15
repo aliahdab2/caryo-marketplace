@@ -1,4 +1,4 @@
-# File Cleanup Strategies for AutoTrader Marketplace
+# File Cleanup Strategies for Caryo Marketplace
 
 This document outlines the possible strategies for cleaning up old or unreferenced files in the S3 storage system. Each approach has its own trade-offs in terms of complexity, safety, and automation.
 

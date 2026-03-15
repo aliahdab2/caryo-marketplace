@@ -25,7 +25,7 @@ java -version
 sdk use java 21.0.8-zulu
 
 # Navigate and build
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew clean build
 
 # Run tests
@@ -51,8 +51,8 @@ npm run dev
 | Task | Command |
 |------|---------|
 | Switch to Java 21 | `sdk use java 21.0.8-zulu` |
-| Backend build | `cd backend/autotrader-backend && ./gradlew build` |
-| Backend tests | `cd backend/autotrader-backend && ./gradlew test` |
+| Backend build | `cd backend/caryo-backend && ./gradlew build` |
+| Backend tests | `cd backend/caryo-backend && ./gradlew test` |
 | Frontend dev | `cd frontend && npm run dev` |
 | Frontend build | `cd frontend && npm run build` |
 

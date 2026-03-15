@@ -111,7 +111,7 @@ ON CONFLICT (listing_id, file_key) DO NOTHING;
 "
 
   # Execute SQL via docker
-  if docker exec -i autotrader_dev-postgres-1 psql -U postgres -d autotrader_dev -c "$sql" > /dev/null 2>&1; then
+  if docker exec -i caryo_dev-postgres-1 psql -U postgres -d caryo_dev -c "$sql" > /dev/null 2>&1; then
     echo -e "${GREEN}Successfully added images to database via SQL${NC}"
     return 0
   else

@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/autotrader-backend/**'
+      - 'backend/caryo-backend/**'
   # schedule:
   #   - cron: '0 0 * * 1'  # Disabled to save GitHub Actions minutes
 
@@ -30,13 +30,13 @@ jobs:
       - name: Setup Gradle Environment
         uses: ./.github/actions/gradle-setup
         with:
-          working-directory: "./backend/autotrader-backend"
+          working-directory: "./backend/caryo-backend"
           java-version: "21"
           gradle-version: "8.5"
           cache: true
         
       - name: Ensure Gradle Wrapper
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           if [ ! -f "./gradlew" ]; then
             echo "gradlew script not found! Generating a new one..."
@@ -52,13 +52,13 @@ jobs:
       - name: Setup Docker Services
         uses: ./.github/actions/docker-services-setup
         with:
-          docker-compose-file: "./backend/autotrader-backend/docker-compose.dev.yml"
+          docker-compose-file: "./backend/caryo-backend/docker-compose.dev.yml"
           services: "db minio createbuckets redis"
           wait-time: '15' # Reduced from 60
-          db-container-name: "autotrader-backend-db-1"
-          db-user: "autotrader"
-          minio-container-name: "autotrader-backend-minio-1"
-          createbuckets-container-name: "autotrader-backend-createbuckets-1"
+          db-container-name: "caryo-backend-db-1"
+          db-user: "caryo"
+          minio-container-name: "caryo-backend-minio-1"
+          createbuckets-container-name: "caryo-backend-createbuckets-1"
           post-minio-ready-wait-seconds: '10'
           # Using the default MinIO credentials that are in docker-compose.dev.yml
           minio-root-user: "minioadmin"
@@ -90,7 +90,7 @@ jobs:
           ./mc ls myminio
 
       - name: Prepare Configuration
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           # Create application-test.yml with MinIO and initialization configs
           # Datasource is handled by env vars and application-test.properties
@@ -118,14 +118,14 @@ jobs:
 
           logging:
             level:
-              com.autotrader.autotraderbackend.config.DataInitializer: DEBUG
+              com.caryo.caryobackend.config.DataInitializer: DEBUG
           EOF
 
       - name: Start Spring Boot Application
         id: spring-boot-start
         uses: ./.github/actions/spring-boot-setup
         with:
-          working-directory: "./backend/autotrader-backend"
+          working-directory: "./backend/caryo-backend"
           spring-profiles: "test"
           debug-mode: "false"
           wait-retries: "30"
@@ -133,13 +133,13 @@ jobs:
           skip-build: "false"
           server-port: "8080"
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/autotrader
-          SPRING_DATASOURCE_USERNAME: autotrader
-          SPRING_DATASOURCE_PASSWORD: autotrader
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/caryo
+          SPRING_DATASOURCE_USERNAME: caryo
+          SPRING_DATASOURCE_PASSWORD: caryo
           TEST_DB_DRIVER: org.postgresql.Driver
           
       - name: Wait for data initialization and extract tokens
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           # Wait for DataInitializer to complete
           LOG_FILE="spring-boot.log"
@@ -178,7 +178,7 @@ jobs:
 
       - name: Prepare Authentication Token
         id: prepare-auth
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           # Verify the API is running correctly
           echo "Checking API endpoints..."
@@ -246,7 +246,7 @@ jobs:
           
           # Find the collection file
           echo "Locating Postman collection file..."
-          COLLECTION_FILES=$(find ./src/test/resources -name "autotrader-api-collection.json" 2>/dev/null || find ./src/test/resources -name "*.json" -not -path "*/node_modules/*" | head -1)
+          COLLECTION_FILES=$(find ./src/test/resources -name "caryo-api-collection.json" 2>/dev/null || find ./src/test/resources -name "*.json" -not -path "*/node_modules/*" | head -1)
           
           if [ -z "$COLLECTION_FILES" ]; then
             echo "No JSON files found in test resources!"
@@ -322,7 +322,7 @@ jobs:
         with:
           collection-path: "${{ steps.prepare-auth.outputs.COLLECTION_PATH }}"
           environment-file: '../../postman/test_environment.json' # Path relative to the action's working-directory
-          working-directory: './backend/autotrader-backend'      # Action's working-directory
+          working-directory: './backend/caryo-backend'      # Action's working-directory
           results-directory: './results'                         # Path relative to the action's working-directory for output
           auto-detect-collection: 'true'
           extra-options: '--bail --export-environment ./results/updated_environment.json --reporters cli,htmlextra,junit' # Path relative to action's working-directory
@@ -332,12 +332,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: postman-test-results
-          path: backend/autotrader-backend/results/
+          path: backend/caryo-backend/results/
           retention-days: 14
           
       - name: Display test summary
         if: always()
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           echo "Postman Test Summary:"
           if [ -f "results/junit-report.xml" ]; then
@@ -350,7 +350,7 @@ jobs:
 
       - name: Run diagnostic scripts if tests fail
         if: steps.postman-tests.outputs.test-status == 'failure'
-        working-directory: ./backend/autotrader-backend
+        working-directory: ./backend/caryo-backend
         run: |
           echo "Running user authentication diagnostics..."
           bash ../../scripts/diagnose-user-auth.sh http://localhost:8080

@@ -5,7 +5,7 @@ echo "====== Caryo Marketplace API Testing ======"
 echo "Starting backend services with Docker..."
 
 # Navigate to backend directory
-cd backend/autotrader-backend || { echo "Error: Backend directory not found"; exit 1; }
+cd backend/caryo-backend || { echo "Error: Backend directory not found"; exit 1; }
 
 # Start Docker services
 echo "Starting Docker services..."
@@ -22,7 +22,7 @@ COUNT=0
 DB_READY=false
 
 while [ $COUNT -lt $RETRIES ] && [ "$DB_READY" = false ]; do
-  if docker exec $(docker ps -q -f name=db) pg_isready -U autotrader -t 5 2>/dev/null; then
+  if docker exec $(docker ps -q -f name=db) pg_isready -U caryo -t 5 2>/dev/null; then
     echo "Database is ready!"
     DB_READY=true
   else
@@ -67,7 +67,7 @@ if [ "$SPRING_READY" = false ]; then
   echo "Checking logs for errors..."
   ./gradlew --stop
   echo "Cleaning up Docker services..."
-  cd backend/autotrader-backend || true
+  cd backend/caryo-backend || true
   docker compose -f docker-compose.dev.yml down -v
   cd ../.. || true
   kill $SPRING_PID 2>/dev/null
@@ -87,7 +87,7 @@ TEST_RESULT=$?
 # Cleanup
 echo "Cleaning up resources..."
 kill $SPRING_PID 2>/dev/null
-cd backend/autotrader-backend
+cd backend/caryo-backend
 docker compose -f docker-compose.dev.yml down -v
 cd ../..
 

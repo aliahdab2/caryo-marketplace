@@ -1,0 +1,79 @@
+# Caryo Backend Testing
+
+This directory contains the unified test infrastructure for the Caryo backend application.
+
+## Overview
+
+The testing infrastructure has been simplified and improved to provide:
+1. Consistent API endpoints across all tests
+2. Better authentication handling
+4. Removal of redundant script files
+5. Clear documentation and usage information
+
+## Directory Structure
+
+- `postman/` - Postman collections and environment files
+  - `collections/` - Test collections organized by functional area
+    - `auth-tests.json` - Authentication tests
+    - `reference-data-tests.json` - Reference data API tests
+    - `endpoints-tests.json` - General API endpoint tests
+  - `environment.json` - Environment variables for testing
+
+## Using the Test Runner
+
+
+> **Note:** The centralized test runner script has been removed. Please use Gradle tasks or other available testing mechanisms for running tests.
+
+~~```bash
+# Run all tests
+./run-tests.sh all
+
+# Run specific Postman collections
+./run-tests.sh postman auth
+./run-tests.sh postman reference-data
+
+# Run with environment management
+./run-tests.sh postman --start-env --stop-env
+
+# Run unit and integration tests
+./run-tests.sh unit
+./run-tests.sh integration
+
+# Check environment health
+./run-tests.sh health
+```~~
+
+## Postman Tests
+
+The Postman collections have been improved:
+
+1. All API paths now consistently follow `/api/...` pattern
+2. Auth token management is handled automatically
+3. Pre-request scripts check for and refresh tokens when needed
+4. Better error reporting and logging
+5. Cleaner test organization and structure
+
+## Authentication Flow
+
+The authentication flow now works correctly:
+
+1. Register a new user (with dynamic credentials)
+2. Login with the registered user
+3. Store the authentication token
+4. Use the token for authenticated endpoints
+5. Token refresh happens automatically when needed
+
+## Reports & Results
+
+Test results are saved in `build/test-reports/postman/` with HTML output for easy review.
+
+## Integration with Main CLI
+
+The test infrastructure is fully integrated with the main `caryo.sh` CLI:
+
+```bash
+# Run from project root
+./caryo.sh test all
+./caryo.sh test auth
+./caryo.sh test reference-data
+```

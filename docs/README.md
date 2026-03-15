@@ -56,7 +56,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 
 **Documentation of completed features and improvements**
 
-- [Hover Image Navigation Implementation](implementation/hover_image_navigation_implementation.md) - AutoTrader.co.uk style hover navigation
+- [Hover Image Navigation Implementation](implementation/hover_image_navigation_implementation.md) - autotrader.co.uk style hover navigation
 - [Messaging System Improvements](implementation/messaging_system_improvements.md) - Translation and validation fixes
 - [CarMediaGallery RTL Improvements](implementation/carmediagallery_rtl_improvements.md) - RTL support and spacing fixes
 - [Email Service Implementation Plan](implementation/EMAIL_SERVICE_IMPLEMENTATION_PLAN.md) - Email system architecture
@@ -77,7 +77,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 
 **Complete API reference and examples**
 
-- [Complete API Documentation](../backend/autotrader-backend/API.md) - Comprehensive API reference including filtering, testing, and examples
+- [Complete API Documentation](../backend/caryo-backend/API.md) - Comprehensive API reference including filtering, testing, and examples
 
 ## 🚀 Quick Start Guide
 
@@ -91,7 +91,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 2. **Understanding the System**:
    - [System Design](architecture/system_design.md)
    - [Folder Structure](architecture/folder_structure.md)
-   - [Complete API Documentation](../backend/autotrader-backend/API.md)
+   - [Complete API Documentation](../backend/caryo-backend/API.md)
 
 3. **Development Guidelines**:
    - [Translation Guide for Developers](development/translation_guide_for_developers.md)
@@ -100,7 +100,7 @@ This directory contains comprehensive documentation for the Caryo Marketplace pr
 
 ### For API Integration
 
-- [Complete API Documentation](../backend/autotrader-backend/API.md) - Full endpoint reference with filtering, testing, and examples
+- [Complete API Documentation](../backend/caryo-backend/API.md) - Full endpoint reference with filtering, testing, and examples
 - [Frontend Development Plan](development/frontend_development_plan.md) - Client-side implementation examples
 
 ### For Testing & Debugging

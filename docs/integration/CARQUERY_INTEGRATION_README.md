@@ -456,8 +456,8 @@ VALUES ((SELECT id FROM car_brands WHERE slug = 'toyota'), 'Camry', 'camry', 'Ca
 Enable debug logging:
 
 ```properties
-logging.level.com.autotrader.autotraderbackend.service.CarQueryApiClient=DEBUG
-logging.level.com.autotrader.autotraderbackend.service.CarDataLoaderService=DEBUG
+logging.level.com.caryo.caryomarketplace.service.CarQueryApiClient=DEBUG
+logging.level.com.caryo.caryomarketplace.service.CarDataLoaderService=DEBUG
 ```
 
 ### Fallback Strategy

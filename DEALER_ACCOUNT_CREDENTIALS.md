@@ -114,7 +114,7 @@ Dashboard loads → Trial banner appears → Full dealer experience
 
 ## 🔧 Development Environment Access
 
-When backend is running (`./autotrader.sh dev start`), you'll see:
+When backend is running (`./caryo.sh dev start`), you'll see:
 
 ```
 Development Environment Started Successfully!
@@ -187,8 +187,8 @@ Available Services:
 **Solution:**
 ```bash
 # Start backend
-cd backend/autotrader-backend
-./autotrader.sh dev start
+cd backend/caryo-backend
+./caryo.sh dev start
 
 # Wait for initialization
 # Dealer account created automatically

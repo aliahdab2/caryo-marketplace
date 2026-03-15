@@ -64,7 +64,7 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ## 📁 Key Directories
 
 ```
-backend/autotrader-backend/
+backend/caryo-backend/
 ├── src/main/java/.../
 │   ├── controller/     # REST controllers
 │   ├── service/        # Business logic
@@ -91,8 +91,8 @@ frontend/src/
 
 | Task | Command |
 |------|---------|
-| Backend build | `cd backend/autotrader-backend && ./gradlew build` |
-| Backend tests | `cd backend/autotrader-backend && ./gradlew test` |
+| Backend build | `cd backend/caryo-backend && ./gradlew build` |
+| Backend tests | `cd backend/caryo-backend && ./gradlew test` |
 | Frontend dev | `cd frontend && npm run dev` |
 | Frontend build | `cd frontend && npm run build` |
 | Frontend tests | `cd frontend && npm test` |

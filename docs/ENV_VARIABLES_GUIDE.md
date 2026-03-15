@@ -87,15 +87,15 @@ JWT_EXPIRATION_MS=1800000
 JWT_REFRESH_EXPIRATION_MS=2592000000
 
 # Database (local PostgreSQL)
-DATABASE_URL=jdbc:postgresql://localhost:5432/autotrader_db
-DATABASE_USERNAME=autotrader_user
+DATABASE_URL=jdbc:postgresql://localhost:5432/caryo_db
+DATABASE_USERNAME=caryo_user
 DATABASE_PASSWORD=<paste generated password>
 
 # MinIO (local S3-compatible storage)
 MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=<paste generated key>
 MINIO_SECRET_KEY=<paste generated secret>
-MINIO_BUCKET_NAME=autotrader-uploads
+MINIO_BUCKET_NAME=caryo-uploads
 MINIO_REGION=us-east-1
 
 # OpenAI (get from https://platform.openai.com/api-keys)
@@ -125,7 +125,7 @@ NEWSLETTER_CONFIRMATION_URL=http://localhost:3000/newsletter/confirm
 
 ```bash
 # Test database connection
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew bootRun
 
 # Should see in logs:
@@ -418,7 +418,7 @@ Type=simple
 User=caryo
 WorkingDirectory=/opt/caryo/backend
 EnvironmentFile=/opt/caryo/.env.production
-ExecStart=/opt/caryo/backend/bin/autotrader-backend
+ExecStart=/opt/caryo/backend/bin/caryo-backend
 Restart=always
 RestartSec=10
 
@@ -472,17 +472,17 @@ echo $CORS_ALLOWED_ORIGINS
 **Solution:**
 ```bash
 # Test database connection
-psql -h localhost -U autotrader_user -d autotrader_db
+psql -h localhost -U caryo_user -d caryo_db
 
 # If connection fails, check:
 # 1. PostgreSQL is running
 sudo systemctl status postgresql
 
 # 2. Database exists
-sudo -u postgres psql -c "\l" | grep autotrader
+sudo -u postgres psql -c "\l" | grep caryo
 
 # 3. User has permissions
-sudo -u postgres psql -c "\du" | grep autotrader_user
+sudo -u postgres psql -c "\du" | grep caryo_user
 
 # 4. Environment variables are correct
 echo $DATABASE_URL

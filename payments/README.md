@@ -25,7 +25,7 @@
 
 ### **Backend (Industry-Standard Architecture):**
 ```
-backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/
+backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/
 ├── payment/
 │   ├── PaymentService.java                 # Main payment orchestrator
 │   ├── PaymentProvider.java                # Interface (like Stripe's pattern)

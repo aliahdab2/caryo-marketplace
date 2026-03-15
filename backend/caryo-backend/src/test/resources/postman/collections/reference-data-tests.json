@@ -1,0 +1,102 @@
+{
+  "info": {
+    "_postman_id": "reference-data-tests-collection",
+    "name": "Caryo Reference Data Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Reference Data",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Check if auth token exists, if not login first",
+              "if (!pm.environment.get('auth_token')) {",
+              "    console.log('No auth token found, logging in first');",
+              "    ",
+              "    const loginRequest = {",
+              "        url: pm.environment.get('baseUrl') + '/api/auth/signin',",
+              "        method: 'POST',",
+              "        header: 'Content-Type:application/json',",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify({",
+              "                username: pm.environment.get('admin_username'),",
+              "                password: pm.environment.get('admin_password')",
+              "            })",
+              "        }",
+              "    };",
+              "    ",
+              "    pm.sendRequest(loginRequest, function (err, res) {",
+              "        if (err) {",
+              "            console.error('Error logging in:', err);",
+              "        } else {",
+              "            if (res.code === 200 && res.json().token) {",
+              "                const token = res.json().token;",
+              "                pm.environment.set('auth_token', token);",
+              "                console.log('Auth token retrieved and set successfully');",
+              "            } else {",
+              "                console.error('Failed to retrieve auth token:', res.text());",
+              "            }",
+              "        }",
+              "    });",
+              "}",
+              "",
+              "console.log('Using auth token:', pm.environment.get('auth_token') ? ",
+              "    (pm.environment.get('auth_token').substring(0,10) + '...') : 'none');"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains all reference data categories\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('carConditions');",
+              "    pm.expect(jsonData).to.have.property('driveTypes');",
+              "    pm.expect(jsonData).to.have.property('bodyStyles');",
+              "    pm.expect(jsonData).to.have.property('fuelTypes');",
+              "    pm.expect(jsonData).to.have.property('transmissions');",
+              "    pm.expect(jsonData).to.have.property('sellerTypes');",
+              "});",
+              "",
+              "pm.test(\"Each category contains data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.carConditions).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.driveTypes).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.bodyStyles).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.fuelTypes).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.transmissions).to.be.an('array').and.not.to.be.empty;",
+              "    pm.expect(jsonData.sellerTypes).to.be.an('array').and.not.to.be.empty;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/reference-data",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "reference-data"]
+        }
+      }
+    }
+  ]
+}

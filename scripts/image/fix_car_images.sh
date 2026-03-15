@@ -13,7 +13,7 @@
 set -e
 
 # Configuration
-MINIO_ALIAS="autotrader-local"
+MINIO_ALIAS="caryo-local"
 BUCKET_NAME="caryo-assets"
 TEMP_DIR="temp_car_images"
 DEFAULT_LISTINGS=(6 7 8 9 10)  # Default listings to add primary images

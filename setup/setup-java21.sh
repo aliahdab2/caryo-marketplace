@@ -76,7 +76,7 @@ fi
 
 # Test backend build
 print_status "Testing backend build..."
-cd ../backend/autotrader-backend
+cd ../backend/caryo-backend
 if ./gradlew compileJava --no-daemon -q; then
     print_success "Backend compiles successfully with Java 21!"
 else
@@ -91,7 +91,7 @@ print_success "🎉 Java 21 setup completed successfully!"
 echo ""
 echo "📋 Next steps:"
 echo "   1. Run 'sdk env' when entering the project directory"
-echo "   2. Use './gradlew build' in backend/autotrader-backend"
+echo "   2. Use './gradlew build' in backend/caryo-backend"
 echo "   3. Use 'npm run build' in frontend"
 echo ""
 echo "💡 Pro tip: The .sdkmanrc files will auto-activate Java 21 when you enter project directories!"

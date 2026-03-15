@@ -24,7 +24,7 @@ print_status() {
 
 # Test 1: Backend Unit Tests
 echo -e "${YELLOW}📋 Testing Backend Unit Tests...${NC}"
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew test --info > /dev/null 2>&1
 print_status $? "Backend unit tests"
 cd ../..
@@ -48,7 +48,7 @@ cd ..
 
 # Test 5: Gradle Wrapper Check
 echo -e "${YELLOW}📋 Testing Gradle Wrapper...${NC}"
-cd backend/autotrader-backend
+cd backend/caryo-backend
 if [ -f "./gradlew" ] && [ -x "./gradlew" ]; then
     ./gradlew --version > /dev/null 2>&1
     print_status $? "Gradle wrapper"

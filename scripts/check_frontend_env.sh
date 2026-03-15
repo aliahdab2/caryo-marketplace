@@ -183,7 +183,7 @@ check_minio_connection() {
                 if [ "$CONNECTION_SUCCESS" = false ]; then
                     echo -e "${RED}✗ Failed to connect to MinIO server${NC}"
                     echo -e "${YELLOW}  Make sure MinIO is running and accessible at $MINIO_URL${NC}"
-                    echo -e "${YELLOW}  You may need to start the development environment: ./backend/autotrader-backend/autotrader.sh dev start${NC}"
+                    echo -e "${YELLOW}  You may need to start the development environment: ./backend/caryo-backend/caryo.sh dev start${NC}"
                     
                     # Try to ping the host to see if network connectivity is an issue
                     MINIO_HOST=$(echo "$MINIO_URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||' -e 's|:.*$||')

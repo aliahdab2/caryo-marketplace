@@ -48,7 +48,7 @@ npm run test:e2e:report
 
 2. Start backend:
    ```bash
-   cd backend/autotrader-backend
+   cd backend/caryo-backend
    ./gradlew bootRun
    ```
 

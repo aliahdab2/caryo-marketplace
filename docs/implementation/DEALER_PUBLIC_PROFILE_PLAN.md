@@ -357,4 +357,4 @@ After this implementation, we can add:
 
 - [MOBILE_APP_STRATEGY.md](./MOBILE_APP_STRATEGY.md)
 - [WEB_APP_IMPROVEMENTS.md](./WEB_APP_IMPROVEMENTS.md)
-- [API.md](../../backend/autotrader-backend/API.md)
+- [API.md](../../backend/caryo-backend/API.md)

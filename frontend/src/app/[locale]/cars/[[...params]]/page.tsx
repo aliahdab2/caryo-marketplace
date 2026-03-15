@@ -94,7 +94,7 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
 
   // For SEO URLs, generate dynamic metadata
   return {
-    title: `Search Cars - ${segments.join(' ')} | AutoTrader Syria`,
+    title: `Search Cars - ${segments.join(' ')} | Caryo`,
     description: `Search cars matching ${segments.join(', ')} in Syria. Browse listings from verified sellers.`,
     openGraph: {
       title: `Search Cars - ${segments.join(' ')}`,

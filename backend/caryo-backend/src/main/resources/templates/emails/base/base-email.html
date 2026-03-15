@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title th:text="${emailTitle}">Email Title</title>
+    
+    <!-- CSS Styles -->
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
+        
+        /* Base styles */
+        body {
+            background-color: #f4f4f4;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        /* Arabic font support */
+        .arabic-text {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .logo:hover {
+            color: #f0f0f0;
+        }
+        
+        /* Content */
+        .email-content {
+            padding: 40px 30px;
+        }
+        
+        .content-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .content-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #555555;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            color: #ffffff;
+        }
+        
+        /* Info boxes */
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .email-footer a {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #ffffff;
+            font-size: 18px;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            
+            .email-header,
+            .email-content,
+            .email-footer {
+                padding: 20px !important;
+            }
+            
+            .content-title {
+                font-size: 20px !important;
+            }
+            
+            .btn-primary {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .email-container {
+                background-color: #1a1a1a !important;
+            }
+            
+            .email-content {
+                background-color: #1a1a1a !important;
+                color: #ffffff !important;
+            }
+            
+            .content-title {
+                color: #ffffff !important;
+            }
+            
+            .content-text {
+                color: #cccccc !important;
+            }
+        }
+    </style>
+</head>
+
+<body th:dir="${language == 'ar' ? 'rtl' : 'ltr'}" th:class="${language == 'ar' ? 'arabic-text' : ''}">
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <a th:href="${websiteUrl}" class="logo">
+                🚗 <span th:text="${websiteName}">Caryo</span>
+            </a>
+        </div>
+        
+        <!-- Content -->
+        <div class="email-content">
+            <!-- Dynamic content block -->
+            <div th:replace="${contentTemplate}">
+                <!-- Fallback content -->
+                <h1 class="content-title" th:text="${emailTitle}">Email Title</h1>
+                <p class="content-text" th:text="${emailMessage}">Email message content goes here.</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p th:text="${language == 'ar' ? 'هذا البريد الإلكتروني تم إرساله من ' + websiteName : 'This email was sent from ' + websiteName}">
+                This email was sent from Caryo
+            </p>
+            
+            <p>
+                <a th:href="${websiteUrl}" th:text="${language == 'ar' ? 'زيارة الموقع' : 'Visit Website'}">Visit Website</a> |
+                <a th:href="'mailto:' + ${supportEmail}" th:text="${language == 'ar' ? 'تواصل معنا' : 'Contact Support'}">Contact Support</a> |
+                <a th:href="${websiteUrl + '/unsubscribe'}" th:text="${language == 'ar' ? 'إلغاء الاشتراك' : 'Unsubscribe'}">Unsubscribe</a>
+            </p>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="LinkedIn">💼</a>
+                <a href="#" title="Instagram">📷</a>
+            </div>
+            
+            <p th:text="${language == 'ar' ? '© 2024 ' + websiteName + '. جميع الحقوق محفوظة.' : '© 2024 ' + websiteName + '. All rights reserved.'}">
+                © 2024 Caryo. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

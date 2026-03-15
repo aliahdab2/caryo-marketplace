@@ -53,7 +53,7 @@ npx playwright install
 
 ```bash
 # Terminal 1: Start backend
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew bootRun
 
 # Terminal 2: Start frontend
@@ -542,7 +542,7 @@ jobs:
           distribution: 'zulu'
       
       - name: Start Backend
-        working-directory: backend/autotrader-backend
+        working-directory: backend/caryo-backend
         run: |
           ./gradlew bootRun &
           sleep 30  # Wait for backend to start

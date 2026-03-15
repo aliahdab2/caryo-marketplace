@@ -1,5 +1,5 @@
 #!/bin/bash
 # Script to start the frontend development server
 
-echo "Starting AutoTrader Marketplace Frontend..."
+echo "Starting Caryo Marketplace Frontend..."
 npm run dev

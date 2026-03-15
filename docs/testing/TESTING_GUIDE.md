@@ -4,7 +4,7 @@
 
 1. **Start the Backend Server**
    ```bash
-   cd backend/autotrader-backend
+   cd backend/caryo-backend
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home
    ./gradlew bootRun
    ```
@@ -21,7 +21,7 @@
 
 ### Run Unit Tests
 ```bash
-cd backend/autotrader-backend
+cd backend/caryo-backend
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home
 ./gradlew test --tests CarDataExcelServiceTest
 ```

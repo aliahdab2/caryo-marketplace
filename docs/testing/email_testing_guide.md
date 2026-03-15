@@ -1,6 +1,6 @@
 # Email Testing Guide
 
-This guide explains how email functionality is tested in the AutoTrader Marketplace application using a comprehensive unit and integration test strategy.
+This guide explains how email functionality is tested in the Caryo Marketplace application using a comprehensive unit and integration test strategy.
 
 ## Overview
 
@@ -161,7 +161,7 @@ spring.thymeleaf.suffix=.html
 - **Coverage**: HTTP endpoint testing, validation, error handling
 
 ### 3. Application Context Tests
-- **Location**: `AutotraderBackendApplicationTests.java`
+- **Location**: `CaryoMarketplaceApplicationTests.java`
 - **Strategy**: Full Spring Boot context with `@Import(TestEmailConfig.class)`
 - **Coverage**: Spring context loading, dependency injection, real template resolution
 
@@ -182,7 +182,7 @@ spring.thymeleaf.suffix=.html
 ./gradlew test --tests=ContactControllerTest
 
 # Application context tests
-./gradlew test --tests=AutotraderBackendApplicationTests
+./gradlew test --tests=CaryoMarketplaceApplicationTests
 ```
 
 ## Test Scenarios Covered

@@ -35,7 +35,7 @@ This document summarizes the security improvements implemented for the Caryo Mar
   - `**/secrets.properties`
 
 #### application.properties Hardening
-- **File:** [backend/autotrader-backend/src/main/resources/application.properties](../backend/autotrader-backend/src/main/resources/application.properties)
+- **File:** [backend/caryo-backend/src/main/resources/application.properties](../backend/caryo-backend/src/main/resources/application.properties)
 - **Changes:**
   - Added security warnings for all sensitive configurations
   - Documented secret generation commands
@@ -83,7 +83,7 @@ This document summarizes the security improvements implemented for the Caryo Mar
 ### ✅ Backend Security
 
 #### Security Headers
-- **File:** [SecurityConfig.java:105-138](../backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/config/SecurityConfig.java#L105-L138)
+- **File:** [SecurityConfig.java:105-138](../backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/config/SecurityConfig.java#L105-L138)
 - **Implemented:**
   - XSS Protection (X-XSS-Protection)
   - Content Type Options (prevents MIME sniffing)
@@ -93,7 +93,7 @@ This document summarizes the security improvements implemented for the Caryo Mar
   - Permissions Policy
 
 #### Rate Limiting
-- **File:** [RateLimitAspect.java](../backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/security/ratelimit/RateLimitAspect.java)
+- **File:** [RateLimitAspect.java](../backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/security/ratelimit/RateLimitAspect.java)
 - **Endpoints Protected:**
   - Login: 5 requests/60 seconds
   - Signup: 3 requests/hour
@@ -101,7 +101,7 @@ This document summarizes the security improvements implemented for the Caryo Mar
   - Messaging: 20 requests/60 seconds
 
 #### XSS Prevention
-- **File:** [MessageSanitizationService.java](../backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/service/MessageSanitizationService.java)
+- **File:** [MessageSanitizationService.java](../backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/service/MessageSanitizationService.java)
 - **Features:**
   - Removes dangerous HTML tags (script, iframe, object, etc.)
   - Removes event handlers (onclick, onerror, etc.)
@@ -109,7 +109,7 @@ This document summarizes the security improvements implemented for the Caryo Mar
   - Logs potential attack attempts
 
 #### CORS Configuration
-- **File:** [CorsConfig.java](../backend/autotrader-backend/src/main/java/com/autotrader/autotraderbackend/config/CorsConfig.java)
+- **File:** [CorsConfig.java](../backend/caryo-backend/src/main/java/com/caryo/caryomarketplace/config/CorsConfig.java)
 - **Features:**
   - Configurable via environment variable
   - No wildcards allowed
@@ -237,8 +237,8 @@ caryo-marketplace/
 ├── .env.example                    # ✅ Template for environment variables
 ├── .gitignore                      # ✅ Protects .env files
 │
-├── backend/autotrader-backend/src/main/
-│   ├── java/com/autotrader/autotraderbackend/
+├── backend/caryo-backend/src/main/
+│   ├── java/com/caryo/caryomarketplace/
 │   │   ├── config/
 │   │   │   ├── SecurityConfig.java           # ✅ Security headers
 │   │   │   └── CorsConfig.java               # ✅ CORS configuration

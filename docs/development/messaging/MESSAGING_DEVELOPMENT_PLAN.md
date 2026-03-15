@@ -294,7 +294,7 @@ You can now:
 
 ### **Quick Test Run:**
 ```bash
-cd backend/autotrader-backend
+cd backend/caryo-backend
 ./gradlew test --tests "*Test"
 ```
 

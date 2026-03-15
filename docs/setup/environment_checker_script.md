@@ -47,7 +47,7 @@ If the script reports issues:
    - Ensure all required variables are set with appropriate values
 
 2. **MinIO Connection Issues**
-   - Make sure the MinIO server is running: `./autotrader.sh dev start`
+   - Make sure the MinIO server is running: `./caryo.sh dev start`
    - Verify that the MinIO URL is correct in your `.env` file
    - Check for network issues or firewall settings that might block the connection
 

@@ -33,12 +33,12 @@ jobs:
     - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
-        working-directory: "./backend/autotrader-backend"
+        working-directory: "./backend/caryo-backend"
         java-version: "21"
         cache: true
 
     - name: Ensure Gradle Wrapper
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       run: |
         if [ ! -f "./gradlew" ]; then
           echo "gradlew script not found! Generating a new one..."
@@ -72,7 +72,7 @@ jobs:
         ls -la ./gradlew || echo "gradlew still not found!"
 
     - name: Build with Gradle
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       run: |
         echo "DEBUG: Current directory: $(pwd)"
         echo "DEBUG: Listing ./gradle/wrapper/ before build command:"
@@ -90,7 +90,7 @@ jobs:
         ./gradlew build --info
 
     - name: Run Unit Tests (excluding integration tests)
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       env:
         SPRING_PROFILES_ACTIVE: test
         GRADLE_OPTS: "-Xmx2g -Dfile.encoding=UTF-8"
@@ -118,8 +118,8 @@ jobs:
       with:
         name: backend-test-results
         path: |
-          backend/autotrader-backend/build/reports/tests/test/
-          backend/autotrader-backend/build/test-results/test/
+          backend/caryo-backend/build/reports/tests/test/
+          backend/caryo-backend/build/test-results/test/
 
   frontend-build-and-test:
     runs-on: ubuntu-latest
@@ -154,13 +154,13 @@ jobs:
     - name: Setup Gradle Environment
       uses: ./.github/actions/gradle-setup
       with:
-        working-directory: "./backend/autotrader-backend"
+        working-directory: "./backend/caryo-backend"
         java-version: "21"
         cache: true
     
     # Run basic backend sanity check
     - name: Quick Backend Test
-      working-directory: ./backend/autotrader-backend
+      working-directory: ./backend/caryo-backend
       run: |
         echo "Running quick sanity check for the backend code..."
         ./gradlew assemble --info
@@ -198,8 +198,8 @@ jobs:
   #   - name: Build and push backend image
   #     uses: docker/build-push-action@v5
   #     with:
-  #       context: ./backend/autotrader-backend
-  #       file: ./backend/autotrader-backend/Dockerfile
+  #       context: ./backend/caryo-backend
+  #       file: ./backend/caryo-backend/Dockerfile
   #       push: true
   #       tags: ${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/caryo-backend:${{ github.sha }}
 

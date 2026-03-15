@@ -48,7 +48,7 @@ If secrets were committed, remove them from git history:
 ```bash
 # WARNING: This rewrites git history. Coordinate with your team.
 git filter-branch --force --index-filter \
-  "git rm --cached --ignore-unmatch backend/autotrader-backend/src/main/resources/application.properties" \
+  "git rm --cached --ignore-unmatch backend/caryo-backend/src/main/resources/application.properties" \
   --prune-empty --tag-name-filter cat -- --all
 
 # Force push (only if repository is private and coordinated)

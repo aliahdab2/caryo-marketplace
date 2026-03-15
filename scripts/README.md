@@ -22,7 +22,7 @@ After running a rebuild of your development environment, you should restore the 
 
 ```bash
 # First rebuild the environment
-./backend/autotrader-backend/autotrader.sh dev rebuild
+./backend/caryo-backend/caryo.sh dev rebuild
 
 # Then restore the images (automatically waits for services to be available)
 ./scripts/post_rebuild.sh

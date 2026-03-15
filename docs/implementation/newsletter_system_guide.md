@@ -188,7 +188,7 @@ WHERE active = TRUE AND confirmed_at IS NOT NULL AND unsubscribed_at IS NULL;
 
 ### **Backend**
 ```
-src/main/java/com/autotrader/autotraderbackend/
+src/main/java/com/caryo/caryomarketplace/
 ├── model/NewsletterSubscription.java
 ├── service/NewsletterService.java
 ├── controller/NewsletterController.java

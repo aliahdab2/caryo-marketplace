@@ -5,7 +5,7 @@
         integration services services-up services-down \
         translation seo e2e clean
 
-BACKEND_DIR  := backend/autotrader-backend
+BACKEND_DIR  := backend/caryo-backend
 FRONTEND_DIR := frontend
 
 # ──────────────────────────────────────────────
