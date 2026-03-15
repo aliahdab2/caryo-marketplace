@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
 /**
- * Test class for ConversationService file validation functionality
- * Tests the improvements made to file type validation and error handling
+ * Test class for MessageAttachmentService file validation functionality.
+ * Tests the improvements made to file type validation and error handling.
  */
 @ExtendWith(MockitoExtension.class)
 public class ConversationServiceFileValidationTest {
@@ -31,13 +31,7 @@ public class ConversationServiceFileValidationTest {
     private ConversationRepository conversationRepository;
 
     @Mock
-    private MessageRepository messageRepository;
-
-    @Mock
     private MessageAttachmentRepository messageAttachmentRepository;
-
-    @Mock
-    private CarListingRepository carListingRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -49,7 +43,7 @@ public class ConversationServiceFileValidationTest {
     private MessageSource messageSource;
 
     @InjectMocks
-    private ConversationService conversationService;
+    private MessageAttachmentService messageAttachmentService;
 
     private MessageAttachment mockAttachment;
     private Conversation testConversation;
@@ -98,7 +92,7 @@ public class ConversationServiceFileValidationTest {
 
         // When & Then: Should reject due to file size before checking file type
         assertThrows(BadRequestException.class, () -> {
-            conversationService.uploadMessageAttachment(1L, largeFile, 1L);
+            messageAttachmentService.uploadMessageAttachment(1L, largeFile, 1L);
         });
     }
 
@@ -119,7 +113,7 @@ public class ConversationServiceFileValidationTest {
 
         // When & Then: Should handle null attachment gracefully
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            conversationService.uploadMessageAttachment(1L, validFile, 1L);
+            messageAttachmentService.uploadMessageAttachment(1L, validFile, 1L);
         });
 
         assertEquals("Failed to save attachment", exception.getMessage());
@@ -132,7 +126,7 @@ public class ConversationServiceFileValidationTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         assertThrows(BadRequestException.class, () -> {
-            conversationService.uploadMessageAttachment(1L, null, 1L);
+            messageAttachmentService.uploadMessageAttachment(1L, null, 1L);
         });
 
         // Test empty file
@@ -144,7 +138,7 @@ public class ConversationServiceFileValidationTest {
         );
 
         assertThrows(BadRequestException.class, () -> {
-            conversationService.uploadMessageAttachment(1L, emptyFile, 1L);
+            messageAttachmentService.uploadMessageAttachment(1L, emptyFile, 1L);
         });
     }
 
@@ -171,7 +165,7 @@ public class ConversationServiceFileValidationTest {
 
             // Should not throw exception for valid image types
             assertDoesNotThrow(() -> {
-                conversationService.uploadMessageAttachment(1L, imageFile, 1L);
+                messageAttachmentService.uploadMessageAttachment(1L, imageFile, 1L);
             }, "Failed for content type: " + contentType);
         }
     }
@@ -203,7 +197,7 @@ public class ConversationServiceFileValidationTest {
 
             // Should not throw exception for valid document types
             assertDoesNotThrow(() -> {
-                conversationService.uploadMessageAttachment(1L, docFile, 1L);
+                messageAttachmentService.uploadMessageAttachment(1L, docFile, 1L);
             }, "Failed for content type: " + contentType);
         }
     }

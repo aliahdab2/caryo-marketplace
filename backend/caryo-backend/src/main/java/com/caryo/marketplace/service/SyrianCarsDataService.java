@@ -1,6 +1,7 @@
 package com.caryo.marketplace.service;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,9 +9,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,15 +29,33 @@ import com.caryo.marketplace.model.CarModel;
  * Supplements CarQuery API with Syrian-specific brands and models
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @ConditionalOnProperty(name = "syriacars.enabled", havingValue = "true", matchIfMissing = false)
 public class SyrianCarsDataService implements CarDataProvider {
+
+    private static final String BRANDS_RESOURCE_PATH = "data/syrian-fallback-brands.json";
+    private static final String MODELS_RESOURCE_PATH = "data/syrian-fallback-models.json";
 
     private final CarBrandService carBrandService;
     private final CarModelService carModelService;
     private final ArabicTranslationService arabicTranslationService;
     private final SyncStatusService syncStatusService;
+    private final ObjectMapper objectMapper;
+
+    private volatile List<SyrianBrand> cachedFallbackBrands;
+    private volatile List<SyrianModel> cachedFallbackModels;
+
+    public SyrianCarsDataService(CarBrandService carBrandService,
+                                  CarModelService carModelService,
+                                  ArabicTranslationService arabicTranslationService,
+                                  SyncStatusService syncStatusService,
+                                  ObjectMapper objectMapper) {
+        this.carBrandService = carBrandService;
+        this.carModelService = carModelService;
+        this.arabicTranslationService = arabicTranslationService;
+        this.syncStatusService = syncStatusService;
+        this.objectMapper = objectMapper;
+    }
 
     @Value("${syriacars.enabled:true}")
     private boolean enabled;
@@ -500,108 +521,49 @@ public class SyrianCarsDataService implements CarDataProvider {
     }
 
     /**
-     * Fallback local brand data
+     * Fallback local brand data loaded from classpath JSON resource.
      */
     private List<SyrianBrand> getFallbackBrands() {
-        List<SyrianBrand> brands = new ArrayList<>();
+        if (cachedFallbackBrands != null) {
+            return cachedFallbackBrands;
+        }
 
-        // Syrian market specific brands that might be missing from CarQuery
-        brands.add(new SyrianBrand("Al-Waha", "الواحة", "al-waha"));
-        brands.add(new SyrianBrand("Cham Wings", "تشرين", "cham-wings"));
-        brands.add(new SyrianBrand("Tishreen", "تشرين", "tishreen"));
-        brands.add(new SyrianBrand("Syrian Car Assembly", "الشركة السورية لتجميع السيارات", "syrian-assembly"));
-
-        // Brands popular in Syrian market with better Arabic translations
-        brands.add(new SyrianBrand("Hyundai", "هيونداي", "hyundai"));
-        brands.add(new SyrianBrand("Kia", "كيا", "kia"));
-        brands.add(new SyrianBrand("Renault", "رينو", "renault"));
-        brands.add(new SyrianBrand("Peugeot", "بيجو", "peugeot"));
-        brands.add(new SyrianBrand("Toyota", "تويوتا", "toyota"));
-        brands.add(new SyrianBrand("Nissan", "نيسان", "nissan"));
-        brands.add(new SyrianBrand("Mercedes-Benz", "مرسيدس بنز", "mercedes-benz"));
-        brands.add(new SyrianBrand("BMW", "بي إم دبليو", "bmw"));
-        brands.add(new SyrianBrand("Volkswagen", "فولكس واجن", "volkswagen"));
-        brands.add(new SyrianBrand("Audi", "أودي", "audi"));
-        brands.add(new SyrianBrand("Ford", "فورد", "ford"));
-        brands.add(new SyrianBrand("Chevrolet", "شفروليه", "chevrolet"));
-        brands.add(new SyrianBrand("Mitsubishi", "ميتسوبيشي", "mitsubishi"));
-        brands.add(new SyrianBrand("Suzuki", "سوزوكي", "suzuki"));
-        brands.add(new SyrianBrand("Honda", "هوندا", "honda"));
-        brands.add(new SyrianBrand("Mazda", "مازدا", "mazda"));
-        brands.add(new SyrianBrand("Subaru", "سوبارو", "subaru"));
-        brands.add(new SyrianBrand("SsangYong", "سانغ يونغ", "ssangyong"));
-
-        return brands;
+        try {
+            ClassPathResource resource = new ClassPathResource(BRANDS_RESOURCE_PATH);
+            try (InputStream inputStream = resource.getInputStream()) {
+                List<SyrianBrand> brands = objectMapper.readValue(
+                        inputStream, new TypeReference<List<SyrianBrand>>() {});
+                cachedFallbackBrands = Collections.unmodifiableList(brands);
+                log.info("Loaded {} fallback brands from {}", brands.size(), BRANDS_RESOURCE_PATH);
+                return cachedFallbackBrands;
+            }
+        } catch (IOException e) {
+            log.error("Failed to load fallback brands from {}: {}", BRANDS_RESOURCE_PATH, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     /**
-     * Load Syrian market models from local data
+     * Load Syrian market models from classpath JSON resource.
      */
     private List<SyrianModel> loadSyrianMarketModels() {
-        List<SyrianModel> models = new ArrayList<>();
+        if (cachedFallbackModels != null) {
+            return cachedFallbackModels;
+        }
 
-        // Syrian market specific models
-        models.add(new SyrianModel("al-waha", "City Van", "سيارة المدينة"));
-        models.add(new SyrianModel("cham-wings", "Family", "عائلية"));
-        models.add(new SyrianModel("tishreen", "Pickup", "بيك أب"));
-
-        // Popular models in Syrian market with Arabic translations
-        // Hyundai
-        models.add(new SyrianModel("hyundai", "Accent", "أكسنت"));
-        models.add(new SyrianModel("hyundai", "Elantra", "إلانترا"));
-        models.add(new SyrianModel("hyundai", "Tucson", "توكسون"));
-        models.add(new SyrianModel("hyundai", "Santa Fe", "سانتا في"));
-        models.add(new SyrianModel("hyundai", "i10", "آي 10"));
-        models.add(new SyrianModel("hyundai", "i20", "آي 20"));
-
-        // Kia
-        models.add(new SyrianModel("kia", "Rio", "ريو"));
-        models.add(new SyrianModel("kia", "Cerato", "سيراتو"));
-        models.add(new SyrianModel("kia", "Sportage", "سبورتاج"));
-        models.add(new SyrianModel("kia", "Sorento", "سورينتو"));
-        models.add(new SyrianModel("kia", "Picanto", "بيكانتو"));
-
-        // Renault
-        models.add(new SyrianModel("renault", "Symbol", "سيمان"));
-        models.add(new SyrianModel("renault", "Logan", "لوغان"));
-        models.add(new SyrianModel("renault", "Duster", "داستر"));
-        models.add(new SyrianModel("renault", "Clio", "كليو"));
-        models.add(new SyrianModel("renault", "Megane", "ميغان"));
-
-        // Peugeot
-        models.add(new SyrianModel("peugeot", "206", "206"));
-        models.add(new SyrianModel("peugeot", "207", "207"));
-        models.add(new SyrianModel("peugeot", "208", "208"));
-        models.add(new SyrianModel("peugeot", "301", "301"));
-        models.add(new SyrianModel("peugeot", "3008", "3008"));
-
-        // Toyota
-        models.add(new SyrianModel("toyota", "Corolla", "كورولا"));
-        models.add(new SyrianModel("toyota", "Camry", "كامري"));
-        models.add(new SyrianModel("toyota", "Yaris", "يارس"));
-        models.add(new SyrianModel("toyota", "RAV4", "راف 4"));
-        models.add(new SyrianModel("toyota", "Land Cruiser", "لاند كروزر"));
-
-        // Nissan
-        models.add(new SyrianModel("nissan", "Sunny", "ساني"));
-        models.add(new SyrianModel("nissan", "Qashqai", "قشقاي"));
-        models.add(new SyrianModel("nissan", "Patrol", "باترول"));
-        models.add(new SyrianModel("nissan", "Altima", "ألتيما"));
-
-        // Mercedes-Benz
-        models.add(new SyrianModel("mercedes-benz", "C-Class", "سي كلاس"));
-        models.add(new SyrianModel("mercedes-benz", "E-Class", "إي كلاس"));
-        models.add(new SyrianModel("mercedes-benz", "S-Class", "أس كلاس"));
-        models.add(new SyrianModel("mercedes-benz", "ML-Class", "أم أل كلاس"));
-
-        // BMW
-        models.add(new SyrianModel("bmw", "3 Series", "سلسلة 3"));
-        models.add(new SyrianModel("bmw", "5 Series", "سلسلة 5"));
-        models.add(new SyrianModel("bmw", "7 Series", "سلسلة 7"));
-        models.add(new SyrianModel("bmw", "X3", "إكس 3"));
-        models.add(new SyrianModel("bmw", "X5", "إكس 5"));
-
-        return models;
+        try {
+            ClassPathResource resource = new ClassPathResource(MODELS_RESOURCE_PATH);
+            try (InputStream inputStream = resource.getInputStream()) {
+                List<SyrianModel> models = objectMapper.readValue(
+                        inputStream, new TypeReference<List<SyrianModel>>() {});
+                cachedFallbackModels = Collections.unmodifiableList(models);
+                log.info("Loaded {} fallback models from {}", models.size(), MODELS_RESOURCE_PATH);
+                return cachedFallbackModels;
+            }
+        } catch (IOException e) {
+            log.error("Failed to load fallback models from {}: {}", MODELS_RESOURCE_PATH, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
 
@@ -936,7 +898,11 @@ public class SyrianCarsDataService implements CarDataProvider {
         private final String arabicName;
         private final String slug;
 
-        public SyrianBrand(String name, String arabicName, String slug) {
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public SyrianBrand(
+                @com.fasterxml.jackson.annotation.JsonProperty("name") String name,
+                @com.fasterxml.jackson.annotation.JsonProperty("arabicName") String arabicName,
+                @com.fasterxml.jackson.annotation.JsonProperty("slug") String slug) {
             this.name = name;
             this.arabicName = arabicName;
             this.slug = slug;
@@ -955,7 +921,11 @@ public class SyrianCarsDataService implements CarDataProvider {
         private final String name;
         private final String arabicName;
 
-        public SyrianModel(String brandSlug, String name, String arabicName) {
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public SyrianModel(
+                @com.fasterxml.jackson.annotation.JsonProperty("brandSlug") String brandSlug,
+                @com.fasterxml.jackson.annotation.JsonProperty("name") String name,
+                @com.fasterxml.jackson.annotation.JsonProperty("arabicName") String arabicName) {
             this.brandSlug = brandSlug;
             this.name = name;
             this.arabicName = arabicName;

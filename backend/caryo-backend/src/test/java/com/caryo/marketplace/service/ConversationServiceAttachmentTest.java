@@ -26,24 +26,18 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
 /**
- * Unit tests for ConversationService attachment functionality.
+ * Unit tests for MessageAttachmentService attachment functionality.
  * Tests file upload and attachment management without full Spring context.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ConversationService Attachment Tests")
+@DisplayName("MessageAttachmentService Tests")
 public class ConversationServiceAttachmentTest {
 
     @Mock
     private ConversationRepository conversationRepository;
 
     @Mock
-    private MessageRepository messageRepository;
-
-    @Mock
     private MessageAttachmentRepository messageAttachmentRepository;
-
-    @Mock
-    private CarListingRepository carListingRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -55,7 +49,7 @@ public class ConversationServiceAttachmentTest {
     private MessageSource messageSource;
 
     @InjectMocks
-    private ConversationService conversationService;
+    private MessageAttachmentService messageAttachmentService;
 
     private User testUser;
     private User otherUser;
@@ -113,7 +107,7 @@ public class ConversationServiceAttachmentTest {
                 });
 
         // Act
-        Map<String, Object> result = conversationService.uploadMessageAttachment(1L, file, 1L);
+        Map<String, Object> result = messageAttachmentService.uploadMessageAttachment(1L, file, 1L);
 
         // Assert
         assertThat(result).isNotNull();
@@ -138,7 +132,7 @@ public class ConversationServiceAttachmentTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         // Act & Assert
-        assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, emptyFile, 1L))
+        assertThatThrownBy(() -> messageAttachmentService.uploadMessageAttachment(1L, emptyFile, 1L))
                 .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
@@ -157,7 +151,7 @@ public class ConversationServiceAttachmentTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         // Act & Assert
-        assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, unsupportedFile, 1L))
+        assertThatThrownBy(() -> messageAttachmentService.uploadMessageAttachment(1L, unsupportedFile, 1L))
                 .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
@@ -177,7 +171,7 @@ public class ConversationServiceAttachmentTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
         // Act & Assert
-        assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, largeFile, 1L))
+        assertThatThrownBy(() -> messageAttachmentService.uploadMessageAttachment(1L, largeFile, 1L))
                 .isInstanceOf(BadRequestException.class);
 
         verify(storageService, never()).store(any(), anyString());
@@ -200,7 +194,7 @@ public class ConversationServiceAttachmentTest {
         when(userRepository.findById(999L)).thenReturn(Optional.of(unauthorizedUser));
 
         // Act & Assert
-        assertThatThrownBy(() -> conversationService.uploadMessageAttachment(1L, file, 999L))
+        assertThatThrownBy(() -> messageAttachmentService.uploadMessageAttachment(1L, file, 999L))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("User is not a participant in this conversation");
 

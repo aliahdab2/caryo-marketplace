@@ -24,10 +24,10 @@ public class OpenAIUsage {
      * In reality, you'd want more sophisticated pricing logic
      */
     public double calculateEstimatedCost() {
-        // GPT-4 pricing (approximate as of 2024)
-        // $0.03 per 1K input tokens, $0.06 per 1K output tokens
-        double inputCost = (promptTokens / 1000.0) * 0.03;
-        double outputCost = (completionTokens / 1000.0) * 0.06;
+        // GPT-4o-mini pricing (as of 2025)
+        // $0.00015 per 1K input tokens, $0.0006 per 1K output tokens
+        double inputCost = (promptTokens / 1000.0) * 0.00015;
+        double outputCost = (completionTokens / 1000.0) * 0.0006;
         return inputCost + outputCost;
     }
 
