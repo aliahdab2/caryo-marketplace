@@ -146,7 +146,7 @@ jobs:
         npm run translation:validate > validation-report.txt
 
     - name: Upload translation reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: translation-validation-reports
@@ -159,7 +159,7 @@ jobs:
         retention-days: 30
 
     - name: Upload validation summary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: translation-summary
