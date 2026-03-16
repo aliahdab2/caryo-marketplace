@@ -118,12 +118,12 @@ run_curl_tests() {
   local failures=0
   
   # Test various reference data endpoints
-  test_reference_endpoint "/api/reference-data/makes" "car makes" || ((failures++))
-  test_reference_endpoint "/api/reference-data/models" "car models" || ((failures++))
-  test_reference_endpoint "/api/reference-data/colors" "car colors" || ((failures++))
-  test_reference_endpoint "/api/reference-data/body-types" "body types" || ((failures++))
-  test_reference_endpoint "/api/reference-data/fuel-types" "fuel types" || ((failures++))
-  test_reference_endpoint "/api/reference-data/transmission-types" "transmission types" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/makes" "car makes" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/models" "car models" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/colors" "car colors" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/body-types" "body types" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/fuel-types" "fuel types" || ((failures++))
+  test_reference_endpoint "/api/v1/reference-data/transmission-types" "transmission types" || ((failures++))
   
   # Summary
   if [[ $failures -eq 0 ]]; then

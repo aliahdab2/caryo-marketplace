@@ -166,7 +166,7 @@ export default function DealerStorefrontPage() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle file upload to MinIO/S3 via /api/files/upload
+  // Handle file upload to MinIO/S3 via /api/v1/files/upload
   const handleImageUpload = async (
     file: File,
     type: 'logo' | 'banner'
@@ -192,15 +192,15 @@ export default function DealerStorefrontPage() {
       // Use dealer folder for organization in MinIO bucket
       formData.append('folder', `dealers/${type}s`);
 
-      // Use /api/files/upload which stores to MinIO/S3 (requires auth)
+      // Use /api/v1/files/upload which stores to MinIO/S3 (requires auth)
       const response = await api.post<{ url: string; key: string }>(
-        '/api/files/upload',
+        '/api/v1/files/upload',
         formData
       );
 
       // Return the file key which can be used to construct the URL
       // The backend returns both url and key - prefer key for storage
-      return response.key ? `/api/files/${response.key}` : response.url;
+      return response.key ? `/api/v1/files/${response.key}` : response.url;
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError(t('uploadFailed', { defaultValue: 'Failed to upload image. Please try again.' }));

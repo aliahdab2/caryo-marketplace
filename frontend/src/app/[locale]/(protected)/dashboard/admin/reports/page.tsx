@@ -104,7 +104,7 @@ export default function AdminReportsPage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin/reports?${params}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/reports?${params}`,
         {
           headers: {
             'Authorization': `Bearer ${session?.accessToken}`,
@@ -149,7 +149,7 @@ export default function AdminReportsPage() {
     try {
       setIsSubmitting(true);
 
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin/reports/${selectedReport.id}/${actionType}`;
+      const endpoint = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/reports/${selectedReport.id}/${actionType}`;
       
       const response = await fetch(endpoint, {
         method: 'PATCH',

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/fuel-types")
+@RequestMapping("/api/v1/fuel-types")
 
 @RequiredArgsConstructor
 @Slf4j

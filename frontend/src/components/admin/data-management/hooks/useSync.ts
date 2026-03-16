@@ -21,7 +21,7 @@ export const useSync = (onSyncComplete?: () => void) => {
       setSyncingCarQuery(true);
       const headers = await getAuthHeaders();
       
-      const response = await fetch(`${getApiUrl()}/api/admin/data/load-carquery`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/admin/data/load-carquery`, {
         method: 'POST',
         headers
       });
@@ -51,7 +51,7 @@ export const useSync = (onSyncComplete?: () => void) => {
       setSyncingSyrianCars(true);
       const headers = await getAuthHeaders();
       
-      const response = await fetch(`${getApiUrl()}/api/admin/data/load-syriacars`, {
+      const response = await fetch(`${getApiUrl()}/api/v1/admin/data/load-syriacars`, {
         method: 'POST',
         headers
       });

@@ -279,15 +279,15 @@ public class StorageKeyGenerator {
         }
 
         // Pattern 1: URL or path containing /api/files/
-        int apiFilesIdx = cleaned.indexOf("/api/files/");
+        int apiFilesIdx = cleaned.indexOf("/api/v1/files/");
         if (apiFilesIdx >= 0) {
-            return cleaned.substring(apiFilesIdx + "/api/files/".length());
+            return cleaned.substring(apiFilesIdx + "/api/v1/files/".length());
         }
 
         // Pattern 2: URL or path containing /api/images/
-        int apiImagesIdx = cleaned.indexOf("/api/images/");
+        int apiImagesIdx = cleaned.indexOf("/api/v1/images/");
         if (apiImagesIdx >= 0) {
-            return cleaned.substring(apiImagesIdx + "/api/images/".length());
+            return cleaned.substring(apiImagesIdx + "/api/v1/images/".length());
         }
 
         // Otherwise assume it is already a bare key

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * Requires ADMIN role to prevent unauthorized access to data import operations.
  */
 @RestController
-@RequestMapping("/api/public")
+@RequestMapping("/api/v1/public")
 @Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Public Test", description = "Admin-only endpoints for testing (development only)")

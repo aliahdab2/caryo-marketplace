@@ -17,7 +17,7 @@
               "    console.log('No auth token found, logging in first');",
               "    ",
               "    const loginRequest = {",
-              "        url: pm.environment.get('baseUrl') + '/api/auth/signin',",
+              "        url: pm.environment.get('baseUrl') + '/api/v1/auth/signin',",
               "        method: 'POST',",
               "        header: 'Content-Type:application/json',",
               "        body: {",
@@ -92,7 +92,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/reference-data",
+          "raw": "{{baseUrl}}/api/v1/reference-data",
           "host": ["{{baseUrl}}"],
           "path": ["api", "reference-data"]
         }

@@ -16,7 +16,7 @@ import java.util.Map;
  * Admin REST controller for newsletter management.
  */
 @RestController
-@RequestMapping("/api/admin/newsletter")
+@RequestMapping("/api/v1/admin/newsletter")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Admin Newsletter", description = "Admin newsletter management")

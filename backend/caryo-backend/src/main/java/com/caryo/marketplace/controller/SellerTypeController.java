@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/seller-types")
+@RequestMapping("/api/v1/seller-types")
 
 @RequiredArgsConstructor
 @Slf4j

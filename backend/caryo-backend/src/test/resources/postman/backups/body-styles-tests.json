@@ -89,7 +89,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles",
+          "raw": "{{baseUrl}}/api/v1/body-styles",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles"]
         }
@@ -132,7 +132,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles/1",
+          "raw": "{{baseUrl}}/api/v1/body-styles/1",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles", "1"]
         }
@@ -176,7 +176,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles/name/sedan",
+          "raw": "{{baseUrl}}/api/v1/body-styles/name/sedan",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles", "name", "sedan"]
         }
@@ -222,7 +222,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles/search?q=sedan",
+          "raw": "{{baseUrl}}/api/v1/body-styles/search?q=sedan",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles", "search"],
           "query": [
@@ -280,7 +280,7 @@
           "raw": "{\n    \"name\": \"test-body-style\",\n    \"displayNameEn\": \"Test Body Style\",\n    \"displayNameAr\": \"اختبار نوع الهيكل\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles",
+          "raw": "{{baseUrl}}/api/v1/body-styles",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles"]
         }
@@ -331,7 +331,7 @@
           "raw": "{\n    \"name\": \"test-body-style\",\n    \"displayNameEn\": \"Updated Body Style\",\n    \"displayNameAr\": \"اختبار نوع الهيكل محدث\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles/{{body_style_id}}",
+          "raw": "{{baseUrl}}/api/v1/body-styles/{{body_style_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles", "{{body_style_id}}"]
         }
@@ -366,7 +366,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/body-styles/{{body_style_id}}",
+          "raw": "{{baseUrl}}/api/v1/body-styles/{{body_style_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "body-styles", "{{body_style_id}}"]
         }

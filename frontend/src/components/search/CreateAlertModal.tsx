@@ -33,7 +33,7 @@ export default function CreateAlertModal({
     data: referenceData
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
-    '/api/reference-data',
+    '/api/v1/reference-data',
     [],
     undefined,
     t('errorLoadingData', 'Error loading data. Please try again.')

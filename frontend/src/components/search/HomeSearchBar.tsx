@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash-es/debounce';
 
 import { CarMake, CarModel } from '@/types/car';
 import {
@@ -40,7 +40,7 @@ const HomeSearchBar = React.memo<HomeSearchBarProps>(({ initialBrands, initialGo
   // Note: Don't include `t` in dependencies - it changes when translations load and causes duplicate fetches
   const brandsApi = useApiData<CarMake[]>(
     fetchCarBrands,
-    '/api/reference-data/brands',
+    '/api/v1/reference-data/brands',
     [], // Empty deps - fetch once on mount
     undefined,
     'Error loading data. Please try again.', // Static error message
@@ -54,7 +54,7 @@ const HomeSearchBar = React.memo<HomeSearchBarProps>(({ initialBrands, initialGo
 
   const governoratesApi = useApiData<Governorate[]>(
     fetchGovernorates,
-    '/api/reference-data/governorates',
+    '/api/v1/reference-data/governorates',
     [], // Empty deps - fetch once on mount
     undefined,
     'Error loading data. Please try again.',
@@ -68,7 +68,7 @@ const HomeSearchBar = React.memo<HomeSearchBarProps>(({ initialBrands, initialGo
 
   const modelsApi = useApiData<CarModel[]>(
     () => selectedMake ? fetchCarModels(selectedMake) : Promise.resolve([]),
-    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
+    selectedMake ? `/api/v1/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake], // Only re-fetch when make changes, not on translation changes
     selectedMake ? { makeId: selectedMake } : undefined,
     'Error loading data. Please try again.'

@@ -40,7 +40,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count",
+              "raw": "{{baseUrl}}/api/v1/listings/count",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count"]
             }
@@ -80,7 +80,7 @@
               "raw": "{\n  \"brandSlugs\": [\"toyota\"],\n  \"minYear\": 2020,\n  \"maxYear\": 2024\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count",
+              "raw": "{{baseUrl}}/api/v1/listings/count",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count"]
             }
@@ -111,7 +111,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count/filter?brandSlugs=toyota&minYear=2020&maxYear=2024",
+              "raw": "{{baseUrl}}/api/v1/listings/count/filter?brandSlugs=toyota&minYear=2020&maxYear=2024",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count", "filter"],
               "query": [
@@ -162,7 +162,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/breakdown",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/breakdown",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "breakdown"]
             }
@@ -201,7 +201,7 @@
               "raw": "{\n  \"brandSlugs\": [\"toyota\"],\n  \"minYear\": 2020\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/breakdown",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/breakdown",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "breakdown"]
             }
@@ -236,7 +236,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/years",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/years",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "years"]
             }
@@ -266,7 +266,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/brands",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/brands",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "brands"]
             }
@@ -296,7 +296,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/models",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/models",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "models"]
             }
@@ -326,7 +326,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/seller-types",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/seller-types",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "seller-types"]
             }
@@ -356,7 +356,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/fuel-types",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/fuel-types",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "fuel-types"]
             }
@@ -386,7 +386,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/body-styles",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/body-styles",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "body-styles"]
             }
@@ -416,7 +416,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/body-styles?brandSlugs=toyota&minYear=2020&maxYear=2024",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/body-styles?brandSlugs=toyota&minYear=2020&maxYear=2024",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "body-styles"],
               "query": [
@@ -460,7 +460,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/transmissions",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/transmissions",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "transmissions"]
             }

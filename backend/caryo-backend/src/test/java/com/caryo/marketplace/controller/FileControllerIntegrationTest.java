@@ -34,7 +34,7 @@ class FileControllerIntegrationTest {
     void uploadFile_valid() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
         when(storageService.store(any(), anyString())).thenReturn("http://url");
-        mockMvc.perform(multipart("/api/files/upload")
+        mockMvc.perform(multipart("/api/v1/files/upload")
                 .file(file)
                 .param("listingId", "1"))
                 .andExpect(status().isOk())
@@ -46,7 +46,7 @@ class FileControllerIntegrationTest {
     @WithMockUser(roles = "USER")
     void uploadFile_invalidType() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "test.txt", "text/plain", "data".getBytes());
-        mockMvc.perform(multipart("/api/files/upload")
+        mockMvc.perform(multipart("/api/v1/files/upload")
                 .file(file))
                 .andExpect(status().is4xxClientError());
     }
@@ -55,7 +55,7 @@ class FileControllerIntegrationTest {
     @WithMockUser(roles = "USER")
     void uploadFile_empty() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[0]);
-        mockMvc.perform(multipart("/api/files/upload")
+        mockMvc.perform(multipart("/api/v1/files/upload")
                 .file(file))
                 .andExpect(status().is4xxClientError());
     }
@@ -65,7 +65,7 @@ class FileControllerIntegrationTest {
         when(storageService.loadAsResource(anyString())).thenReturn(new org.springframework.core.io.ByteArrayResource("data".getBytes()) {
             @Override public String getFilename() { return "file.jpg"; }
         });
-        mockMvc.perform(get("/api/files/key1"))
+        mockMvc.perform(get("/api/v1/files/key1"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", containsString("file.jpg")))
                 .andExpect(content().contentType("image/jpeg;charset=UTF-8"));
@@ -75,7 +75,7 @@ class FileControllerIntegrationTest {
     @WithMockUser(roles = "USER")
     void getSignedUrl_valid() throws Exception {
         when(storageService.getSignedUrl(anyString(), anyLong())).thenReturn("http://signed");
-        mockMvc.perform(get("/api/files/signed")
+        mockMvc.perform(get("/api/v1/files/signed")
                 .param("key", "key1")
                 .param("expiration", "100"))
                 .andExpect(status().isOk())
@@ -86,7 +86,7 @@ class FileControllerIntegrationTest {
     @WithMockUser(roles = "ADMIN")
     void deleteFile_admin() throws Exception {
         when(storageService.delete(anyString())).thenReturn(true);
-        mockMvc.perform(delete("/api/files/key1"))
+        mockMvc.perform(delete("/api/v1/files/key1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value(containsString("successfully")));
     }
@@ -94,7 +94,7 @@ class FileControllerIntegrationTest {
     @Test
     @WithMockUser(roles = "USER")
     void deleteFile_forbiddenForUser() throws Exception {
-        mockMvc.perform(delete("/api/files/key1"))
+        mockMvc.perform(delete("/api/v1/files/key1"))
                 .andExpect(status().isForbidden());
     }
 }

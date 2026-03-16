@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * Provides endpoints for getting various counts and breakdowns of car listings.
  */
 @RestController
-@RequestMapping("/api/listings")
+@RequestMapping("/api/v1/listings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Listing Analytics", description = "Analytics and counting endpoints for car listings")

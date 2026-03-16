@@ -246,7 +246,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         // updateRequest.setModelId(testCarModel.getId()); // Assuming model is not changed in this test, but if it were, this is how
 
         // Act
-        ResultActions result = mockMvc.perform(put("/api/listings/" + listingId)
+        ResultActions result = mockMvc.perform(put("/api/v1/listings/" + listingId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + userToken)
                 .content(objectMapper.writeValueAsString(updateRequest)));
@@ -275,7 +275,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
         updateRequest.setTitle("Admin Updated Title");
 
         // Act
-        ResultActions result = mockMvc.perform(put("/api/listings/" + listingId)
+        ResultActions result = mockMvc.perform(put("/api/v1/listings/" + listingId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + adminToken) // Admin can update any listing
                 .content(objectMapper.writeValueAsString(updateRequest)));
@@ -292,7 +292,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     @Test
     public void deleteListing_asOwner_shouldSucceed() throws Exception {
         // Act
-        ResultActions result = mockMvc.perform(delete("/api/listings/" + listingId)
+        ResultActions result = mockMvc.perform(delete("/api/v1/listings/" + listingId)
                 .header("Authorization", "Bearer " + userToken));
 
         // Assert
@@ -306,7 +306,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     @Test
     public void deleteListing_asDifferentUser_shouldFail() throws Exception {
         // Act
-        ResultActions result = mockMvc.perform(delete("/api/listings/" + listingId)
+        ResultActions result = mockMvc.perform(delete("/api/v1/listings/" + listingId)
                 .header("Authorization", "Bearer " + adminToken)); // Using admin as different user
 
         // Assert
@@ -320,7 +320,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     @Test
     public void deleteListingAsAdmin_shouldSucceed() throws Exception {
         // Act
-        ResultActions result = mockMvc.perform(delete("/api/listings/admin/" + listingId)
+        ResultActions result = mockMvc.perform(delete("/api/v1/listings/admin/" + listingId)
                 .header("Authorization", "Bearer " + adminToken));
 
         // Assert
@@ -334,7 +334,7 @@ public class CarListingCrudIntegrationTest extends IntegrationTestWithS3 {
     @Test
     public void deleteListingAsAdmin_asNonAdmin_shouldFail() throws Exception {
         // Act
-        ResultActions result = mockMvc.perform(delete("/api/listings/admin/" + listingId)
+        ResultActions result = mockMvc.perform(delete("/api/v1/listings/admin/" + listingId)
                 .header("Authorization", "Bearer " + userToken));
 
         // Assert

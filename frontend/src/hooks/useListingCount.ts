@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash-es/debounce';
 import { getCarListingCountsPublic } from '@/services/publicApi';
 
 export type ListingCountFilters = {

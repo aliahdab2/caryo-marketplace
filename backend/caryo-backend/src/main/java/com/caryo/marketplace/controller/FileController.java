@@ -28,7 +28,7 @@ import java.util.UUID;
  * Images are uploaded with PENDING status and require admin approval before becoming visible.
  */
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/v1/files")
 @Tag(name = "Files", description = "File upload and management")
 public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);

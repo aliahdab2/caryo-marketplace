@@ -111,7 +111,7 @@ public class MessagingSystemIntegrationTest {
         createRequest.setInitialMessage("Hi, I'm interested in your car!");
         createRequest.setMessageType("TEXT");
 
-        MvcResult createResult = mockMvc.perform(post("/api/conversations")
+        MvcResult createResult = mockMvc.perform(post("/api/v1/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
                 .header("Accept-Language", "en"))
@@ -136,7 +136,7 @@ public class MessagingSystemIntegrationTest {
         sendRequest.setContent("What's the best price you can offer?");
         sendRequest.setMessageType("TEXT");
 
-        mockMvc.perform(post("/api/conversations/{id}/messages", conversationId)
+        mockMvc.perform(post("/api/v1/conversations/{id}/messages", conversationId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(sendRequest))
                 .header("Accept-Language", "en"))
@@ -149,19 +149,19 @@ public class MessagingSystemIntegrationTest {
         assertThat(messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, Pageable.unpaged()).getContent()).hasSize(2);
 
         // 3. Get user's conversations
-        mockMvc.perform(get("/api/conversations/my-conversations"))
+        mockMvc.perform(get("/api/v1/conversations/my-conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id").value(conversationId));
 
         // 4. Get conversation messages
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversationId))
+        mockMvc.perform(get("/api/v1/conversations/{id}/messages", conversationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content").isNotEmpty());
 
         // 5. Archive conversation
-        mockMvc.perform(patch("/api/conversations/{id}/archive", conversationId)
+        mockMvc.perform(patch("/api/v1/conversations/{id}/archive", conversationId)
                 .header("Accept-Language", "en"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -172,7 +172,7 @@ public class MessagingSystemIntegrationTest {
         assertThat(archivedConversation.getStatus()).isEqualTo(ConversationStatus.ARCHIVED);
 
         // 6. Verify archived conversation doesn't appear in active conversations
-        mockMvc.perform(get("/api/conversations/my-conversations"))
+        mockMvc.perform(get("/api/v1/conversations/my-conversations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content").isEmpty()); // Should be empty since conversation is archived
@@ -188,7 +188,7 @@ public class MessagingSystemIntegrationTest {
         createRequest.setInitialMessage("مرحبا، أنا مهتم بسيارتك!");
         createRequest.setMessageType("TEXT");
 
-        mockMvc.perform(post("/api/conversations")
+        mockMvc.perform(post("/api/v1/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
                 .header("Accept-Language", "ar"))
@@ -213,7 +213,7 @@ public class MessagingSystemIntegrationTest {
         authenticateUser(unauthorizedUser);
 
         // Try to access conversation as unauthorized user
-        mockMvc.perform(get("/api/conversations/{id}/messages", conversation.getId()))
+        mockMvc.perform(get("/api/v1/conversations/{id}/messages", conversation.getId()))
                 .andExpect(status().isBadRequest());
     }
 
@@ -225,7 +225,7 @@ public class MessagingSystemIntegrationTest {
         CreateConversationRequest invalidRequest = new CreateConversationRequest();
         // Missing listingId and message
 
-        mockMvc.perform(post("/api/conversations")
+        mockMvc.perform(post("/api/v1/conversations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());

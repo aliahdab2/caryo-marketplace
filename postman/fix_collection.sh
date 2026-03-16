@@ -26,7 +26,7 @@ BASE_URL=$(jq -r '.item[0].item[0].request.url.host[0]' "$COLLECTION_FILE")
 echo "Base URL placeholder: $BASE_URL"
 
 # Improve the path handling - fix inconsistent paths
-# This addresses the issue where some paths use /api/auth/signup while
+# This addresses the issue where some paths use /api/v1/auth/signup while
 # the Spring Boot controller might be mapped to just /auth/signup
 TMP_FILE=$(mktemp)
 jq '

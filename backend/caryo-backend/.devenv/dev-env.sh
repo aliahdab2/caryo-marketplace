@@ -357,7 +357,7 @@ health_check() {
     fi
 
     # Check Email Service
-    if curl -s --max-time 5 "http://localhost:${SERVER_PORT:-8080}/api/debug/email/health" | grep -q '"healthy":true'; then
+    if curl -s --max-time 5 "http://localhost:${SERVER_PORT:-8080}/api/v1/debug/email/health" | grep -q '"healthy":true'; then
         echo -e "${GREEN}✓ Email service is healthy${NC}"
     else
         echo -e "${RED}✗ Email service is not healthy${NC}"

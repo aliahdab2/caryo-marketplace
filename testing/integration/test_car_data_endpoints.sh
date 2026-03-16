@@ -40,7 +40,7 @@ get_jwt_token() {
     echo -e "${YELLOW}Authenticating as admin...${NC}"
 
     # First, login to get JWT token
-    LOGIN_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/auth/signin" \
+    LOGIN_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/v1/auth/signin" \
         -H "Content-Type: application/json" \
         -d "{\"username\":\"${ADMIN_USERNAME}\",\"password\":\"${ADMIN_PASSWORD}\"}")
 
@@ -117,29 +117,29 @@ run_tests() {
 
     # Test 1: Load CarQuery data directly to database
     echo -e "${YELLOW}⚠️  Note: CarQuery API requires internet connection${NC}"
-    test_endpoint "POST" "/api/admin/data/load-carquery" "" "Load CarQuery Data (Direct to DB)" "$TOKEN"
+    test_endpoint "POST" "/api/v1/admin/data/load-carquery" "" "Load CarQuery Data (Direct to DB)" "$TOKEN"
 
     # Test 2: Load SyrianCars data directly to database
     echo -e "${YELLOW}⚠️  Note: SyrianCars scraping requires internet connection${NC}"
-    test_endpoint "POST" "/api/admin/data/load-syrian-cars" "" "Load SyrianCars Data (Direct to DB)" "$TOKEN"
+    test_endpoint "POST" "/api/v1/admin/data/load-syrian-cars" "" "Load SyrianCars Data (Direct to DB)" "$TOKEN"
 
     # Test 3: Get all brands
-    test_endpoint "GET" "/api/admin/car-brands" "" "Get All Car Brands" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-brands" "" "Get All Car Brands" "$TOKEN"
 
     # Test 4: Search brands
-    test_endpoint "GET" "/api/admin/car-brands/search?query=toyota" "" "Search Car Brands" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-brands/search?query=toyota" "" "Search Car Brands" "$TOKEN"
 
     # Test 5: Get brands by status
-    test_endpoint "GET" "/api/admin/car-brands/status/true" "" "Get Active Brands" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-brands/status/true" "" "Get Active Brands" "$TOKEN"
 
     # Test 6: Get all models
-    test_endpoint "GET" "/api/admin/car-models" "" "Get All Car Models" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-models" "" "Get All Car Models" "$TOKEN"
 
     # Test 7: Search models
-    test_endpoint "GET" "/api/admin/car-models/search?query=corolla" "" "Search Car Models" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-models/search?query=corolla" "" "Search Car Models" "$TOKEN"
 
     # Test 8: Get models by brand
-    test_endpoint "GET" "/api/admin/car-models/brand/1" "" "Get Models by Brand" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-models/brand/1" "" "Get Models by Brand" "$TOKEN"
 
     # Test 10: Test admin car brand endpoints
     echo -e "${GREEN}Testing Admin Car Brand endpoints...${NC}"
@@ -152,10 +152,10 @@ run_tests() {
         "slug": "test-brand",
         "active": true
     }'
-    test_endpoint "POST" "/api/admin/car-brands" "$CREATE_BRAND_DATA" "Create Car Brand" "$TOKEN"
+    test_endpoint "POST" "/api/v1/admin/car-brands" "$CREATE_BRAND_DATA" "Create Car Brand" "$TOKEN"
 
     # Get all brands
-    test_endpoint "GET" "/api/admin/car-brands?page=0&size=10" "" "Get Car Brands" "$TOKEN"
+    test_endpoint "GET" "/api/v1/admin/car-brands?page=0&size=10" "" "Get Car Brands" "$TOKEN"
 
     echo -e "${GREEN}All tests completed!${NC}"
 }
@@ -172,10 +172,10 @@ test_provider() {
 
     case $provider in
         "CarQuery")
-            test_endpoint "POST" "/api/admin/data/load-carquery" "" "Load CarQuery Data (Direct)" "$TOKEN"
+            test_endpoint "POST" "/api/v1/admin/data/load-carquery" "" "Load CarQuery Data (Direct)" "$TOKEN"
             ;;
         "SyrianCars")
-            test_endpoint "POST" "/api/admin/data/load-syrian-cars" "" "Load SyrianCars Data (Direct)" "$TOKEN"
+            test_endpoint "POST" "/api/v1/admin/data/load-syrian-cars" "" "Load SyrianCars Data (Direct)" "$TOKEN"
             ;;
         *)
             echo -e "${RED}Unknown provider: $provider${NC}"
@@ -233,8 +233,8 @@ main() {
                 TOKEN=$(get_jwt_token)
                 if [ $? -eq 0 ]; then
                     # Test admin endpoints
-                    test_endpoint "GET" "/api/admin/car-brands?page=0&size=10" "" "Get Car Brands" "$TOKEN"
-                    test_endpoint "GET" "/api/admin/car-models?page=0&size=10" "" "Get Car Models" "$TOKEN"
+                    test_endpoint "GET" "/api/v1/admin/car-brands?page=0&size=10" "" "Get Car Brands" "$TOKEN"
+                    test_endpoint "GET" "/api/v1/admin/car-models?page=0&size=10" "" "Get Car Models" "$TOKEN"
                 fi
             fi
             ;;

@@ -93,7 +93,7 @@ export default function Step3DealerBusinessInfo({
     const loadGovernorates = async () => {
       try {
         setLoadingGovernorates(true);
-        const data = await api.get<Governorate[]>('/api/reference-data/governorates');
+        const data = await api.get<Governorate[]>('/api/v1/reference-data/governorates');
         setGovernorates(data || []);
       } catch (error) {
         console.error('Failed to load governorates:', error);

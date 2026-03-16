@@ -88,7 +88,7 @@ function isNonDealerResponse(status: number): boolean {
  */
 export async function getDealerTrialStatus(): Promise<TrialStatus> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/dealer/trial-status`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/dealer/trial-status`, {
       method: 'GET',
     });
 
@@ -125,7 +125,7 @@ export async function getDealerTrialStatus(): Promise<TrialStatus> {
  */
 export async function canCreateListing(): Promise<CanCreateListingResponse> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/dealer/can-create-listing`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/dealer/can-create-listing`, {
       method: 'GET',
     });
 
@@ -155,7 +155,7 @@ export async function canCreateListing(): Promise<CanCreateListingResponse> {
  */
 export async function getDealerProfile(): Promise<DealerProfile> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/dealer/profile`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/dealer/profile`, {
       method: 'GET',
     });
 
@@ -185,7 +185,7 @@ export async function updateDealerProfile(
   updateRequest: DealerProfileUpdateRequest
 ): Promise<DealerProfile> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/dealer/profile`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/dealer/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -209,7 +209,7 @@ export async function updateDealerProfile(
  */
 export async function extendTrial(dealerId: number, extensionDays: number): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/dealer/extend-trial/${dealerId}`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/dealer/extend-trial/${dealerId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -234,7 +234,7 @@ export async function extendTrial(dealerId: number, extensionDays: number): Prom
  */
 export async function createSubscription(tier: string): Promise<{ success: boolean; paymentInstructions?: string; transactionId?: string }> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/payments/subscription`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/payments/subscription`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -267,7 +267,7 @@ export async function createSubscription(tier: string): Promise<{ success: boole
  */
 export async function getPaymentHistory(): Promise<unknown[]> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/payments/history`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/payments/history`, {
       method: 'GET',
     });
 
@@ -289,7 +289,7 @@ export async function getPaymentHistory(): Promise<unknown[]> {
  */
 export async function getPaymentStatus(transactionId: string): Promise<unknown> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/payments/status/${transactionId}`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/payments/status/${transactionId}`, {
       method: 'GET',
     });
 
@@ -310,7 +310,7 @@ export async function getPaymentStatus(transactionId: string): Promise<unknown> 
  */
 export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
-    const response = await apiRequest(`${API_BASE_URL}/api/pricing/tiers`, {
+    const response = await apiRequest(`${API_BASE_URL}/api/v1/pricing/tiers`, {
       method: 'GET',
     });
 

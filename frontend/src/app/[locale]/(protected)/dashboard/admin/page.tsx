@@ -300,7 +300,7 @@ export default function AdminPanel() {
 
       const promises = pendingSelectedItems.map(async (id) => {
         const endpoint = bulkActionType === 'approve' ? 'approve' : 'reject';
-        const response = await fetch(`http://localhost:8080/api/listings/admin/${id}/${endpoint}`, {
+        const response = await fetch(`http://localhost:8080/api/v1/listings/admin/${id}/${endpoint}`, {
           method: 'PUT',
           headers
         });
@@ -361,7 +361,7 @@ export default function AdminPanel() {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`http://localhost:8080/api/listings/admin/${listingId}/approve`, {
+      const response = await fetch(`http://localhost:8080/api/v1/listings/admin/${listingId}/approve`, {
         method: 'PUT',
         headers
       });
@@ -396,7 +396,7 @@ export default function AdminPanel() {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`http://localhost:8080/api/listings/admin/${listingId}/reject`, {
+      const response = await fetch(`http://localhost:8080/api/v1/listings/admin/${listingId}/reject`, {
         method: 'PUT',
         headers
       });
@@ -431,7 +431,7 @@ export default function AdminPanel() {
       }
 
       // Fetch all listings to show admin status
-      const response = await fetch('http://localhost:8080/api/listings/admin/all', {
+      const response = await fetch('http://localhost:8080/api/v1/listings/admin/all', {
         headers
       });
 

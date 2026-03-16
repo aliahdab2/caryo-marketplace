@@ -169,7 +169,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       if (!fetchPromise) {
         const { apiRequest } = await import('@/services/auth/session-manager');
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        const checkUrl = `${API_URL}/api/favorites/check/${listingId}`;
+        const checkUrl = `${API_URL}/api/v1/favorites/check/${listingId}`;
         fetchPromise = (async () => {
           const response = await apiRequest(checkUrl, { method: 'GET' });
           if (!response.ok) {
@@ -309,7 +309,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
               // Import apiRequest for direct API calls
               const { apiRequest } = await import('@/services/auth/session-manager');
               const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-              const url = `${API_URL}/api/favorites/${listingId}`;
+              const url = `${API_URL}/api/v1/favorites/${listingId}`;
 
               if (pendingAction.action === 'add') {
                 setIsFavorite(true); // Optimistic update
@@ -402,7 +402,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       // Import apiRequest for direct API calls
       const { apiRequest } = await import('@/services/auth/session-manager');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const url = `${API_URL}/api/favorites/${listingId}`;
+      const url = `${API_URL}/api/v1/favorites/${listingId}`;
 
       setIsLoading(true);
       startAnimation();

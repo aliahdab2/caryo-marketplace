@@ -71,7 +71,7 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("en");
         request.setSource("homepage");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -99,7 +99,7 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("ar");
         request.setSource("homepage");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -119,7 +119,7 @@ class NewsletterControllerTest {
         request.setEmail("invalid-email");
         request.setPreferredLanguage("en");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -132,7 +132,7 @@ class NewsletterControllerTest {
         NewsletterSubscriptionRequest request = new NewsletterSubscriptionRequest();
         request.setPreferredLanguage("en");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -146,7 +146,7 @@ class NewsletterControllerTest {
         request.setEmail("");
         request.setPreferredLanguage("en");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -161,13 +161,13 @@ class NewsletterControllerTest {
         request.setEmail("duplicate@example.com");
         request.setPreferredLanguage("en");
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         // Second subscription with same email
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -189,7 +189,7 @@ class NewsletterControllerTest {
         subscription.setActive(true);
         newsletterRepository.save(subscription);
 
-        mockMvc.perform(get("/api/public/newsletter/confirm")
+        mockMvc.perform(get("/api/v1/public/newsletter/confirm")
                 .param("token", subscription.getConfirmationToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/plain;charset=UTF-8"))
@@ -208,7 +208,7 @@ class NewsletterControllerTest {
     void confirmSubscription_WithInvalidToken_ShouldReturnErrorPage() throws Exception {
         String invalidToken = UUID.randomUUID().toString();
 
-        mockMvc.perform(get("/api/public/newsletter/confirm")
+        mockMvc.perform(get("/api/v1/public/newsletter/confirm")
                 .param("token", invalidToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("text/plain;charset=UTF-8"))
@@ -229,7 +229,7 @@ class NewsletterControllerTest {
         subscription.setActive(true);
         newsletterRepository.save(subscription);
 
-        mockMvc.perform(get("/api/public/newsletter/unsubscribe")
+        mockMvc.perform(get("/api/v1/public/newsletter/unsubscribe")
                 .param("token", subscription.getUnsubscribeToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/plain;charset=UTF-8"))
@@ -248,7 +248,7 @@ class NewsletterControllerTest {
     void unsubscribe_WithInvalidToken_ShouldReturnErrorPage() throws Exception {
         String invalidToken = UUID.randomUUID().toString();
 
-        mockMvc.perform(get("/api/public/newsletter/unsubscribe")
+        mockMvc.perform(get("/api/v1/public/newsletter/unsubscribe")
                 .param("token", invalidToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Invalid or Expired Token")));
@@ -261,7 +261,7 @@ class NewsletterControllerTest {
         request.setEmail("default@example.com");
         // No language specified
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -281,7 +281,7 @@ class NewsletterControllerTest {
         request.setPreferredLanguage("en");
         // No source specified
 
-        mockMvc.perform(post("/api/public/newsletter/subscribe")
+        mockMvc.perform(post("/api/v1/public/newsletter/subscribe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());

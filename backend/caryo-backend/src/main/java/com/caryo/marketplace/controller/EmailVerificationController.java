@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * Provides endpoints for verifying email addresses and resending verification emails.
  */
 @RestController
-@RequestMapping("/api/auth/verify-email")
+@RequestMapping("/api/v1/auth/verify-email")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Email Verification", description = "Email verification management")

@@ -33,7 +33,7 @@ import java.util.UUID;
  * - File size validation (5MB max)
  */
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/api/v1/images")
 @Tag(name = "Images", description = "Public image upload and retrieval (rate-limited)")
 public class ImageController {
 
@@ -130,7 +130,7 @@ public class ImageController {
 
         // Build the download URI
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/files/")
+                .path("/api/v1/files/")
                 .path(key)
                 .toUriString();
 

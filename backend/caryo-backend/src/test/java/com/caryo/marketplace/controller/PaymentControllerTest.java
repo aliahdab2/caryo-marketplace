@@ -170,7 +170,7 @@ class PaymentControllerTest {
         )).thenReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -202,7 +202,7 @@ class PaymentControllerTest {
         when(dealerService.getDealerByUserId(1L)).thenReturn(Optional.empty());
 
         // When & Then — ResourceNotFoundException is handled by GlobalExceptionHandler → 404
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -228,13 +228,13 @@ class PaymentControllerTest {
             .thenThrow(new com.caryo.marketplace.payment.PaymentException("SUBSCRIPTION_CREATION_FAILED", "Payment provider unavailable"));
 
         // When & Then — PaymentException is handled by GlobalExceptionHandler → 400
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value("error"))
-                .andExpect(jsonPath("$.message").value("Payment provider unavailable"));
+                .andExpect(jsonPath("$.message").value("A payment error occurred"));
     }
 
     @Test
@@ -248,7 +248,7 @@ class PaymentControllerTest {
         // tier is null
 
         // When & Then
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -268,7 +268,7 @@ class PaymentControllerTest {
         request.setPaymentMethod("BANK_TRANSFER");
 
         // When & Then
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -305,7 +305,7 @@ class PaymentControllerTest {
         )).thenReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -353,7 +353,7 @@ class PaymentControllerTest {
         )).thenReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/payments/one-time")
+        mockMvc.perform(post("/api/v1/payments/one-time")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -384,7 +384,7 @@ class PaymentControllerTest {
         request.setPaymentMethod("BANK_TRANSFER");
 
         // When & Then
-        mockMvc.perform(post("/api/payments/one-time")
+        mockMvc.perform(post("/api/v1/payments/one-time")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -409,7 +409,7 @@ class PaymentControllerTest {
         when(paymentService.getPaymentStatus(transactionId)).thenReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/payments/status/{transactionId}", transactionId))
+        mockMvc.perform(get("/api/v1/payments/status/{transactionId}", transactionId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.transactionId").value(transactionId));
@@ -445,7 +445,7 @@ class PaymentControllerTest {
         when(paymentService.getPaymentHistory(testDealer)).thenReturn(mockHistory);
 
         // When & Then
-        mockMvc.perform(get("/api/payments/history"))
+        mockMvc.perform(get("/api/v1/payments/history"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.transactions").isArray())
@@ -471,7 +471,7 @@ class PaymentControllerTest {
         when(paymentService.getAvailableProviders()).thenReturn(mockProviders);
 
         // When & Then
-        mockMvc.perform(get("/api/payments/providers"))
+        mockMvc.perform(get("/api/v1/payments/providers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.manual_transfer").value("Manual Bank Transfer"))
@@ -493,7 +493,7 @@ class PaymentControllerTest {
         when(paymentService.getSupportedCurrencies(providerId)).thenReturn(currencies);
 
         // When & Then
-        mockMvc.perform(get("/api/payments/providers/{providerId}/methods", providerId))
+        mockMvc.perform(get("/api/v1/payments/providers/{providerId}/methods", providerId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data.providerId").value(providerId))
@@ -528,7 +528,7 @@ class PaymentControllerTest {
         )).thenReturn(mockResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/payments/cancel-subscription")
+        mockMvc.perform(post("/api/v1/payments/cancel-subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -550,7 +550,7 @@ class PaymentControllerTest {
         request.setPaymentMethod("BANK_TRANSFER");
 
         // When & Then
-        mockMvc.perform(post("/api/payments/subscription")
+        mockMvc.perform(post("/api/v1/payments/subscription")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))

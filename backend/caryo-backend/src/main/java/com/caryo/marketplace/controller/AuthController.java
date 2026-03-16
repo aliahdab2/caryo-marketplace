@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "Authentication", description = "Endpoints for user login and registration")
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 

@@ -67,7 +67,7 @@ export const useBodyStyleCounts = (filters?: CarListingFilterParams) => {
             if (countFilters.sellerTypeIds) countFilters.sellerTypeIds.forEach((id: number) => params.append('sellerTypeIds', id.toString()));
             if (countFilters.searchQuery) params.append('searchQuery', countFilters.searchQuery);
 
-            const response = await fetch(`http://localhost:8080/api/listings/count/filter?${params.toString()}`);
+            const response = await fetch(`http://localhost:8080/api/v1/listings/count/filter?${params.toString()}`);
             const data = await response.json();
             
             const bodyStyleCount = data.count || 0;

@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/reference-data")
+@RequestMapping("/api/v1/reference-data")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Car Reference Data", description = "Combined endpoint for all car-related reference data")

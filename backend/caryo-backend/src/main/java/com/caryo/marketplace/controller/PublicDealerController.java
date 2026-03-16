@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * These endpoints are accessible without authentication.
  */
 @RestController
-@RequestMapping("/api/dealers")
+@RequestMapping("/api/v1/dealers")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Public Dealers", description = "Public dealer profiles and listings (no authentication required)")

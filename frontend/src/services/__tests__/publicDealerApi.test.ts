@@ -36,7 +36,7 @@ describe('Public Dealer API', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/dealers/1/public`,
+        `${API_BASE_URL}/api/v1/dealers/1/public`,
         {
           method: 'GET',
           headers: {
@@ -95,7 +95,7 @@ describe('Public Dealer API', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/dealers/1/listings?page=0&size=12&sort=createdAt&direction=desc`,
+        `${API_BASE_URL}/api/v1/dealers/1/listings?page=0&size=12&sort=createdAt&direction=desc`,
         {
           method: 'GET',
           headers: {
@@ -128,7 +128,7 @@ describe('Public Dealer API', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/dealers/1/listings?page=2&size=24&sort=createdAt&direction=desc`,
+        `${API_BASE_URL}/api/v1/dealers/1/listings?page=2&size=24&sort=createdAt&direction=desc`,
         expect.any(Object)
       );
       expect(result.page).toBe(2);

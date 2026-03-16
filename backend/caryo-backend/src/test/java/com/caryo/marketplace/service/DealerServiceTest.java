@@ -144,12 +144,12 @@ class DealerServiceTest {
     void updatePublicProfile_logoChanged_shouldDeleteOldFile() {
         // Arrange
         Dealer dealer = createDealer();
-        dealer.setLogoUrl("/api/files/dealers/logos/old-logo.jpg");
+        dealer.setLogoUrl("/api/v1/files/dealers/logos/old-logo.jpg");
 
         DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
-        updateRequest.setLogoUrl("/api/files/dealers/logos/new-logo.jpg");
+        updateRequest.setLogoUrl("/api/v1/files/dealers/logos/new-logo.jpg");
 
-        when(storageKeyGenerator.extractKeyFromUrl("/api/files/dealers/logos/old-logo.jpg"))
+        when(storageKeyGenerator.extractKeyFromUrl("/api/v1/files/dealers/logos/old-logo.jpg"))
                 .thenReturn("dealers/logos/old-logo.jpg");
         when(storageService.delete("dealers/logos/old-logo.jpg")).thenReturn(true);
         when(dealerRepository.save(any(Dealer.class))).thenReturn(dealer);
@@ -159,14 +159,14 @@ class DealerServiceTest {
 
         // Assert
         verify(storageService).delete("dealers/logos/old-logo.jpg");
-        assertThat(result.getLogoUrl()).isEqualTo("/api/files/dealers/logos/new-logo.jpg");
+        assertThat(result.getLogoUrl()).isEqualTo("/api/v1/files/dealers/logos/new-logo.jpg");
     }
 
     @Test
     void updatePublicProfile_logoUnchanged_shouldNotDelete() {
         // Arrange
         Dealer dealer = createDealer();
-        String sameUrl = "/api/files/dealers/logos/same-logo.jpg";
+        String sameUrl = "/api/v1/files/dealers/logos/same-logo.jpg";
         dealer.setLogoUrl(sameUrl);
 
         DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
@@ -185,12 +185,12 @@ class DealerServiceTest {
     void updatePublicProfile_logoSetToNull_shouldDeleteOldFile() {
         // Arrange
         Dealer dealer = createDealer();
-        dealer.setLogoUrl("/api/files/dealers/logos/old-logo.jpg");
+        dealer.setLogoUrl("/api/v1/files/dealers/logos/old-logo.jpg");
 
         DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
         updateRequest.setLogoUrl(""); // Empty string means set to null
 
-        when(storageKeyGenerator.extractKeyFromUrl("/api/files/dealers/logos/old-logo.jpg"))
+        when(storageKeyGenerator.extractKeyFromUrl("/api/v1/files/dealers/logos/old-logo.jpg"))
                 .thenReturn("dealers/logos/old-logo.jpg");
         when(storageService.delete("dealers/logos/old-logo.jpg")).thenReturn(true);
         when(dealerRepository.save(any(Dealer.class))).thenReturn(dealer);
@@ -207,12 +207,12 @@ class DealerServiceTest {
     void updatePublicProfile_deleteOldFileFails_shouldStillUpdate() {
         // Arrange
         Dealer dealer = createDealer();
-        dealer.setLogoUrl("/api/files/dealers/logos/old-logo.jpg");
+        dealer.setLogoUrl("/api/v1/files/dealers/logos/old-logo.jpg");
 
         DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
-        updateRequest.setLogoUrl("/api/files/dealers/logos/new-logo.jpg");
+        updateRequest.setLogoUrl("/api/v1/files/dealers/logos/new-logo.jpg");
 
-        when(storageKeyGenerator.extractKeyFromUrl("/api/files/dealers/logos/old-logo.jpg"))
+        when(storageKeyGenerator.extractKeyFromUrl("/api/v1/files/dealers/logos/old-logo.jpg"))
                 .thenReturn("dealers/logos/old-logo.jpg");
         when(storageService.delete("dealers/logos/old-logo.jpg"))
                 .thenThrow(new RuntimeException("Delete failed"));
@@ -222,7 +222,7 @@ class DealerServiceTest {
         Dealer result = dealerService.updatePublicProfile(dealer, updateRequest);
 
         // Assert - update should succeed despite delete failure
-        assertThat(result.getLogoUrl()).isEqualTo("/api/files/dealers/logos/new-logo.jpg");
+        assertThat(result.getLogoUrl()).isEqualTo("/api/v1/files/dealers/logos/new-logo.jpg");
     }
 
     @Test
@@ -230,7 +230,7 @@ class DealerServiceTest {
         // Arrange
         Dealer dealer = createDealer();
         DealerProfileUpdateRequest updateRequest = new DealerProfileUpdateRequest();
-        updateRequest.setLogoUrl("/api/files/dealers/logos/logo.jpg");
+        updateRequest.setLogoUrl("/api/v1/files/dealers/logos/logo.jpg");
 
         when(dealerRepository.save(any(Dealer.class))).thenReturn(dealer);
 
@@ -238,7 +238,7 @@ class DealerServiceTest {
         Dealer result = dealerService.updatePublicProfile(dealer, updateRequest);
 
         // Assert - should not throw (relative /api/ paths are valid)
-        assertThat(result.getLogoUrl()).isEqualTo("/api/files/dealers/logos/logo.jpg");
+        assertThat(result.getLogoUrl()).isEqualTo("/api/v1/files/dealers/logos/logo.jpg");
     }
 
     @Test

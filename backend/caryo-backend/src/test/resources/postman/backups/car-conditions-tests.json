@@ -89,7 +89,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions",
+          "raw": "{{baseUrl}}/api/v1/car-conditions",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions"]
         }
@@ -132,7 +132,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions/1",
+          "raw": "{{baseUrl}}/api/v1/car-conditions/1",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions", "1"]
         }
@@ -175,7 +175,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions/name/new",
+          "raw": "{{baseUrl}}/api/v1/car-conditions/name/new",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions", "name", "new"]
         }
@@ -221,7 +221,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions/search?q=new",
+          "raw": "{{baseUrl}}/api/v1/car-conditions/search?q=new",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions", "search"],
           "query": [
@@ -282,7 +282,7 @@
           "raw": "{\n    \"name\": \"custom-condition\",\n    \"displayNameEn\": \"Custom Condition\",\n    \"displayNameAr\": \"حالة مخصصة\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions",
+          "raw": "{{baseUrl}}/api/v1/car-conditions",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions"]
         }
@@ -332,7 +332,7 @@
           "raw": "{\n    \"name\": \"custom-condition\",\n    \"displayNameEn\": \"Updated Condition\",\n    \"displayNameAr\": \"حالة مخصصة محدثة\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions/{{condition_id}}",
+          "raw": "{{baseUrl}}/api/v1/car-conditions/{{condition_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions", "{{condition_id}}"]
         }
@@ -367,7 +367,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/car-conditions/{{condition_id}}",
+          "raw": "{{baseUrl}}/api/v1/car-conditions/{{condition_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "car-conditions", "{{condition_id}}"]
         }

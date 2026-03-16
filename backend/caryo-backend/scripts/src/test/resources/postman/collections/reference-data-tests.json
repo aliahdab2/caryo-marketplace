@@ -21,7 +21,7 @@
               "    // Use the known-working credentials for direct login",
               "    // Set up login request",
               "    const loginRequest = {",
-              "        url: pm.environment.get('baseUrl') + '/api/auth/signin',",
+              "        url: pm.environment.get('baseUrl') + '/api/v1/auth/signin',",
               "        method: 'POST',",
               "        header: {",
               "            'Content-Type': 'application/json'",
@@ -107,7 +107,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/reference-data",
+          "raw": "{{baseUrl}}/api/v1/reference-data",
           "host": ["{{baseUrl}}"],
           "path": ["api", "reference-data"]
         }

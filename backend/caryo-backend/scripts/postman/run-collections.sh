@@ -117,7 +117,7 @@ if [ ! -d "$COLLECTIONS_DIR" ] || [ -z "$(ls -A "$COLLECTIONS_DIR"/*.json 2>/dev
           "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/register",
+          "raw": "{{baseUrl}}/api/v1/auth/register",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "register"]
         }
@@ -138,7 +138,7 @@ if [ ! -d "$COLLECTIONS_DIR" ] || [ -z "$(ls -A "$COLLECTIONS_DIR"/*.json 2>/dev
           "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Password123!\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/login",
+          "raw": "{{baseUrl}}/api/v1/auth/login",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "login"]
         }
@@ -168,7 +168,7 @@ EOF
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/reference-data",
+          "raw": "{{baseUrl}}/api/v1/reference-data",
           "host": ["{{baseUrl}}"],
           "path": ["api", "reference-data"]
         }

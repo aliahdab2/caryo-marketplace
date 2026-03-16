@@ -107,7 +107,7 @@ class LocationControllerTests {
     void getAllLocations_shouldReturnListOfLocations() throws Exception {
         given(locationService.getAllActiveLocations()).willReturn(List.of(locationResponse1, locationResponse2));
 
-        mockMvc.perform(get("/api/locations"))
+        mockMvc.perform(get("/api/v1/locations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].displayNameEn", is("City A")))
@@ -119,7 +119,7 @@ class LocationControllerTests {
     void getLocationsByCountry_shouldReturnLocationsForCountry() throws Exception {
         given(locationService.getLocationsByCountry("SY")).willReturn(List.of(locationResponse1));
 
-        mockMvc.perform(get("/api/locations/country/SY"))
+        mockMvc.perform(get("/api/v1/locations/country/SY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].countryCode", is("SY")));
@@ -130,7 +130,7 @@ class LocationControllerTests {
     void getLocationById_shouldReturnLocation_whenFound() throws Exception {
         given(locationService.getLocationById(1L)).willReturn(locationResponse1);
 
-        mockMvc.perform(get("/api/locations/1"))
+        mockMvc.perform(get("/api/v1/locations/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.displayNameEn", is("City A")));
@@ -141,7 +141,7 @@ class LocationControllerTests {
     void getLocationById_shouldReturnNotFound_whenLocationDoesNotExist() throws Exception {
         given(locationService.getLocationById(1L)).willThrow(new ResourceNotFoundException("Location", "id", 1L));
 
-        mockMvc.perform(get("/api/locations/1"))
+        mockMvc.perform(get("/api/v1/locations/1"))
                 .andExpect(status().isNotFound());
     }
 
@@ -150,7 +150,7 @@ class LocationControllerTests {
     void getLocationBySlug_shouldReturnLocation_whenFound() throws Exception {
         given(locationService.getLocationBySlug("city-a")).willReturn(locationResponse1);
 
-        mockMvc.perform(get("/api/locations/slug/city-a"))
+        mockMvc.perform(get("/api/v1/locations/slug/city-a"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug", is("city-a")))
                 .andExpect(jsonPath("$.displayNameEn", is("City A")));
@@ -161,7 +161,7 @@ class LocationControllerTests {
     void getLocationBySlug_shouldReturnNotFound_whenLocationDoesNotExist() throws Exception {
         given(locationService.getLocationBySlug("non-existent-slug")).willThrow(new ResourceNotFoundException("Location", "slug", "non-existent-slug"));
 
-        mockMvc.perform(get("/api/locations/slug/non-existent-slug"))
+        mockMvc.perform(get("/api/v1/locations/slug/non-existent-slug"))
                 .andExpect(status().isNotFound());
     }
 
@@ -174,7 +174,7 @@ class LocationControllerTests {
 
         given(locationService.searchLocations(anyString(), any(Pageable.class))).willReturn(page);
 
-        mockMvc.perform(get("/api/locations/search").param("q", "City").param("page", "0").param("size", "1"))
+        mockMvc.perform(get("/api/v1/locations/search").param("q", "City").param("page", "0").param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].displayNameEn", is("City A")))
@@ -190,7 +190,7 @@ class LocationControllerTests {
     void createLocation_asAdmin_shouldCreateLocation() throws Exception {
         given(locationService.createLocation(any(LocationRequest.class))).willReturn(locationResponse1);
 
-        mockMvc.perform(post("/api/locations")
+        mockMvc.perform(post("/api/v1/locations")
                         .with(csrf()) // Add CSRF token
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(locationRequest)))
@@ -201,7 +201,7 @@ class LocationControllerTests {
     @Test
     @WithMockUser(roles = "USER") // Test with non-admin user
     void createLocation_asUser_shouldReturnForbidden() throws Exception {
-        mockMvc.perform(post("/api/locations")
+        mockMvc.perform(post("/api/v1/locations")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(locationRequest)))
@@ -214,7 +214,7 @@ class LocationControllerTests {
         LocationRequest invalidRequest = new LocationRequest(); // Missing required fields
         // No need to mock service as validation should fail before service call
 
-        mockMvc.perform(post("/api/locations")
+        mockMvc.perform(post("/api/v1/locations")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -227,7 +227,7 @@ class LocationControllerTests {
     void updateLocation_asAdmin_shouldUpdateLocation() throws Exception {
         given(locationService.updateLocation(anyLong(), any(LocationRequest.class))).willReturn(locationResponse1);
 
-        mockMvc.perform(put("/api/locations/1")
+        mockMvc.perform(put("/api/v1/locations/1")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(locationRequest)))
@@ -241,7 +241,7 @@ class LocationControllerTests {
         given(locationService.updateLocation(anyLong(), any(LocationRequest.class)))
             .willThrow(new ResourceNotFoundException("Location", "id", 1L));
 
-        mockMvc.perform(put("/api/locations/1")
+        mockMvc.perform(put("/api/v1/locations/1")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(locationRequest)))
@@ -253,7 +253,7 @@ class LocationControllerTests {
     void deleteLocation_asAdmin_shouldDeleteLocation() throws Exception {
         doNothing().when(locationService).deleteLocation(1L);
 
-        mockMvc.perform(delete("/api/locations/1").with(csrf()))
+        mockMvc.perform(delete("/api/v1/locations/1").with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
@@ -262,7 +262,7 @@ class LocationControllerTests {
     void deleteLocation_asAdmin_whenNotFound_shouldReturnNotFound() throws Exception {
         doThrow(new ResourceNotFoundException("Location", "id", 1L)).when(locationService).deleteLocation(1L);
 
-        mockMvc.perform(delete("/api/locations/1").with(csrf()))
+        mockMvc.perform(delete("/api/v1/locations/1").with(csrf()))
                 .andExpect(status().isNotFound());
     }
 
@@ -289,7 +289,7 @@ class LocationControllerTests {
 
         Map<String, Boolean> statusUpdate = Map.of("active", false);
 
-        mockMvc.perform(patch("/api/locations/1/status")
+        mockMvc.perform(patch("/api/v1/locations/1/status")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(statusUpdate)))
@@ -305,7 +305,7 @@ class LocationControllerTests {
 
         Map<String, Boolean> statusUpdate = Map.of("active", false);
 
-        mockMvc.perform(patch("/api/locations/1/status")
+        mockMvc.perform(patch("/api/v1/locations/1/status")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(statusUpdate)))
@@ -317,7 +317,7 @@ class LocationControllerTests {
     void updateLocationStatus_asAdmin_withInvalidPayload_shouldReturnBadRequest() throws Exception {
         Map<String, Boolean> invalidPayload = Map.of("some_other_key", false); // Changed payload
 
-        mockMvc.perform(patch("/api/locations/1/status")
+        mockMvc.perform(patch("/api/v1/locations/1/status")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidPayload)))

@@ -29,7 +29,7 @@ export const useFuelTypeCounts = (filters?: CarListingFilterParams) => {
         if (filters?.locations) filters.locations.forEach((location: string) => params.append('location', location));
 
         const queryString = params.toString();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/counts/fuel-types${queryString ? '?' + queryString : ''}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/counts/fuel-types${queryString ? '?' + queryString : ''}`);
         const data = await response.json();
         
         // The API returns a map of fuel type names to counts

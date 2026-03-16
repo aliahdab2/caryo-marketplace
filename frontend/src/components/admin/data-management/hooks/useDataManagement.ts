@@ -50,8 +50,8 @@ export const useDataManagement = () => {
   const fetchAndSetSyncStatus = useCallback(async () => {
     try {
       const [syrianCarsRes, carQueryRes] = await Promise.all([
-        makeAuthenticatedRequest('/api/admin/data/sync-status/SyrianCars'),
-        makeAuthenticatedRequest('/api/admin/data/sync-status/CarQueryAPI'),
+        makeAuthenticatedRequest('/api/v1/admin/data/sync-status/SyrianCars'),
+        makeAuthenticatedRequest('/api/v1/admin/data/sync-status/CarQueryAPI'),
       ]);
 
       const newSyncStatus: SyncStatus = {};
@@ -90,7 +90,7 @@ export const useDataManagement = () => {
   const fetchAllModels = useCallback(async () => {
     try {
       // First, get the total count to determine how many pages we need
-      const countResponse = await makeAuthenticatedRequest('/api/admin/car-models?page=0&size=1&sortBy=name');
+      const countResponse = await makeAuthenticatedRequest('/api/v1/admin/car-models?page=0&size=1&sortBy=name');
       if (!countResponse.ok) {
         console.error('Failed to get model count:', countResponse.status, countResponse.statusText);
         return;
@@ -112,7 +112,7 @@ export const useDataManagement = () => {
 
       // Fetch all pages
       for (let page = 0; page < totalPages; page++) {
-        const response = await makeAuthenticatedRequest(`/api/admin/car-models?page=${page}&size=${pageSize}&sortBy=name`);
+        const response = await makeAuthenticatedRequest(`/api/v1/admin/car-models?page=${page}&size=${pageSize}&sortBy=name`);
         if (response.ok) {
           const data = await response.json();
           const pageModels = data.data?.content || [];
@@ -134,8 +134,8 @@ export const useDataManagement = () => {
       setLoading(true);
 
       const [brandsRes, statsRes, _syncStatusData] = await Promise.all([
-        makeAuthenticatedRequest('/api/admin/car-brands?size=1000'),
-        makeAuthenticatedRequest('/api/admin/data/statistics'),
+        makeAuthenticatedRequest('/api/v1/admin/car-brands?size=1000'),
+        makeAuthenticatedRequest('/api/v1/admin/data/statistics'),
         fetchAndSetSyncStatus(), // Load sync status on page refresh
       ]);
 
@@ -195,7 +195,7 @@ export const useDataManagement = () => {
   // Sync SyrianCars data
   const syncSyrianCarsData = useCallback(async () => {
     try {
-      const response = await makeAuthenticatedRequest('/api/admin/data/load-syriacars', 'POST');
+      const response = await makeAuthenticatedRequest('/api/v1/admin/data/load-syriacars', 'POST');
 
       if (response.ok) {
         const result = await response.json();
@@ -222,7 +222,7 @@ export const useDataManagement = () => {
   // Sync CarQuery API data
   const syncCarQueryData = useCallback(async () => {
     try {
-      const response = await makeAuthenticatedRequest('/api/admin/data/load-carquery', 'POST');
+      const response = await makeAuthenticatedRequest('/api/v1/admin/data/load-carquery', 'POST');
 
       if (response.ok) {
         const result = await response.json();
@@ -249,7 +249,7 @@ export const useDataManagement = () => {
   // Export functionality
   const exportExcel = useCallback(async () => {
     try {
-      const response = await makeAuthenticatedRequest('/api/admin/data/export-excel', 'GET', undefined, {
+      const response = await makeAuthenticatedRequest('/api/v1/admin/data/export-excel', 'GET', undefined, {
         'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
@@ -283,7 +283,7 @@ export const useDataManagement = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await makeAuthenticatedRequest('/api/admin/data/import-excel', 'POST', formData);
+      const response = await makeAuthenticatedRequest('/api/v1/admin/data/import-excel', 'POST', formData);
 
       const result: ImportResult = await response.json();
       
@@ -306,7 +306,7 @@ export const useDataManagement = () => {
   const updateBrand = useCallback(async (brandId: number, data: UpdateBrandData) => {
     try {
       const response = await makeAuthenticatedRequest(
-        `/api/reference-data/brands/${brandId}`,
+        `/api/v1/reference-data/brands/${brandId}`,
         'PUT',
         data
       );
@@ -315,7 +315,7 @@ export const useDataManagement = () => {
         showSuccess(t('datamanagement:updateSuccess'));
         
         // Clear frontend cache for brands to ensure search page reflects changes immediately
-        clearApiCache('/api/reference-data/brands');
+        clearApiCache('/api/v1/reference-data/brands');
         
         await loadData();
         return true;
@@ -335,7 +335,7 @@ export const useDataManagement = () => {
   const updateModel = useCallback(async (modelId: number, data: UpdateModelData) => {
     try {
       const response = await makeAuthenticatedRequest(
-        `/api/reference-data/models/${modelId}`,
+        `/api/v1/reference-data/models/${modelId}`,
         'PUT',
         data
       );
@@ -364,13 +364,13 @@ export const useDataManagement = () => {
         model: modelData
       };
 
-      const response = await makeAuthenticatedRequest('/api/reference-data/brands-with-model', 'POST', requestData);
+      const response = await makeAuthenticatedRequest('/api/v1/reference-data/brands-with-model', 'POST', requestData);
 
       if (response.ok) {
         showSuccess(t('datamanagement:createSuccess'));
         
         // Clear frontend cache for brands to ensure search page reflects new brands immediately
-        clearApiCache('/api/reference-data/brands');
+        clearApiCache('/api/v1/reference-data/brands');
         
         await loadData();
         return true;
@@ -390,7 +390,7 @@ export const useDataManagement = () => {
   // Create model
   const createModel = useCallback(async (data: CreateModelData) => {
     try {
-      const response = await makeAuthenticatedRequest('/api/reference-data/models', 'POST', data);
+      const response = await makeAuthenticatedRequest('/api/v1/reference-data/models', 'POST', data);
 
       if (response.ok) {
         showSuccess(t('datamanagement:createSuccess'));

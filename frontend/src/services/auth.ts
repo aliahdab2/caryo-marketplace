@@ -34,7 +34,7 @@ export const authService = {
     try {
       // Use type assertion to handle the API's expected input type
       return await api.post<AuthResponse>(
-        '/api/auth/signin', 
+        '/api/v1/auth/signin', 
         credentials as unknown as Record<string, unknown>
       );
     } catch (error) {
@@ -62,7 +62,7 @@ export const authService = {
     try {
       // Use type assertion to handle the API's expected input type
       return await api.post<MessageResponse | AuthResponse>(
-        '/api/auth/signup', 
+        '/api/v1/auth/signup', 
         userData as unknown as Record<string, unknown>
       );
     } catch (error) {
@@ -92,7 +92,7 @@ export const authService = {
     };
 
     try {
-      return await api.get<Record<string, unknown>>('/api/users/me', headers);
+      return await api.get<Record<string, unknown>>('/api/v1/users/me', headers);
     } catch (error) {
       logError('Failed to get user profile:', error);
       

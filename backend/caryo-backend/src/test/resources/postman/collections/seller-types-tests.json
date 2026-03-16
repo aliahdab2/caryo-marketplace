@@ -74,7 +74,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types",
+          "raw": "{{baseUrl}}/api/v1/seller-types",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types"]
         }
@@ -117,7 +117,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types/1",
+          "raw": "{{baseUrl}}/api/v1/seller-types/1",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types", "1"]
         }
@@ -160,7 +160,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types/name/dealer",
+          "raw": "{{baseUrl}}/api/v1/seller-types/name/dealer",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types", "name", "dealer"]
         }
@@ -206,7 +206,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types/search?q=private",
+          "raw": "{{baseUrl}}/api/v1/seller-types/search?q=private",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types", "search"],
           "query": [
@@ -267,7 +267,7 @@
           "raw": "{\n    \"name\": \"custom-seller-type\",\n    \"displayNameEn\": \"Custom Seller Type\",\n    \"displayNameAr\": \"نوع بائع مخصص\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types",
+          "raw": "{{baseUrl}}/api/v1/seller-types",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types"]
         }
@@ -317,7 +317,7 @@
           "raw": "{\n    \"name\": \"custom-seller-type\",\n    \"displayNameEn\": \"Updated Seller Type\",\n    \"displayNameAr\": \"نوع بائع محدث\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types/{{seller_type_id}}",
+          "raw": "{{baseUrl}}/api/v1/seller-types/{{seller_type_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types", "{{seller_type_id}}"]
         }
@@ -352,7 +352,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/seller-types/{{seller_type_id}}",
+          "raw": "{{baseUrl}}/api/v1/seller-types/{{seller_type_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "seller-types", "{{seller_type_id}}"]
         }

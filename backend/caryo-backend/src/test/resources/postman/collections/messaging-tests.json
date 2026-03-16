@@ -60,7 +60,7 @@
           "raw": "{\n  \"listingId\": 1,\n  \"initialMessage\": \"I'm interested in this car\",\n  \"subject\": \"Car Inquiry\",\n  \"messageType\": \"text\"\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations",
+          "raw": "{{base_url}}/api/v1/conversations",
           "host": [
             "{{base_url}}"
           ],
@@ -117,7 +117,7 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/conversations/my-conversations?page=0&size=10&sort=lastMessageAt&direction=desc",
+          "raw": "{{base_url}}/api/v1/conversations/my-conversations?page=0&size=10&sort=lastMessageAt&direction=desc",
           "host": [
             "{{base_url}}"
           ],
@@ -184,7 +184,7 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}",
           "host": [
             "{{base_url}}"
           ],
@@ -253,7 +253,7 @@
           "raw": "{\n  \"content\": \"Thank you for your interest! The car is available.\",\n  \"messageType\": \"text\"\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/messages",
           "host": [
             "{{base_url}}"
           ],
@@ -312,7 +312,7 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages?page=0&size=20&sort=createdAt&direction=asc",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/messages?page=0&size=20&sort=createdAt&direction=asc",
           "host": [
             "{{base_url}}"
           ],
@@ -382,7 +382,7 @@
           "raw": "{}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/messages/{{message_id}}/read",
+          "raw": "{{base_url}}/api/v1/conversations/messages/{{message_id}}/read",
           "host": [
             "{{base_url}}"
           ],
@@ -435,7 +435,7 @@
           "raw": "{}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/read-all",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/messages/read-all",
           "host": [
             "{{base_url}}"
           ],
@@ -501,7 +501,7 @@
           ]
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/attachments",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/messages/attachments",
           "host": [
             "{{base_url}}"
           ],
@@ -582,7 +582,7 @@
           ]
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/messages/with-attachments",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/messages/with-attachments",
           "host": [
             "{{base_url}}"
           ],
@@ -635,7 +635,7 @@
           "raw": "{}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/archive",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/archive",
           "host": [
             "{{base_url}}"
           ],
@@ -687,7 +687,7 @@
           "raw": "{}"
         },
         "url": {
-          "raw": "{{base_url}}/api/conversations/{{conversation_id}}/status?status=active",
+          "raw": "{{base_url}}/api/v1/conversations/{{conversation_id}}/status?status=active",
           "host": [
             "{{base_url}}"
           ],

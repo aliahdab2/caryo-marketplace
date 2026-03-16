@@ -30,7 +30,7 @@ export class UserBlockService {
    * Block a user
    */
   static async blockUser(userId: number): Promise<{ message: string }> {
-    const response = await api.post<{ message: string }>(`/api/users/block/${userId}`, {});
+    const response = await api.post<{ message: string }>(`/api/v1/users/block/${userId}`, {});
     return { message: response.message || 'User has been blocked successfully' };
   }
 
@@ -38,7 +38,7 @@ export class UserBlockService {
    * Unblock a user
    */
   static async unblockUser(userId: number): Promise<{ message: string }> {
-    const response = await api.delete<{ message: string }>(`/api/users/block/${userId}`);
+    const response = await api.delete<{ message: string }>(`/api/v1/users/block/${userId}`);
     return { message: response.message || 'User has been unblocked successfully' };
   }
 
@@ -46,7 +46,7 @@ export class UserBlockService {
    * Get list of blocked users
    */
   static async getBlockedUsers(): Promise<UserBlockResponse[]> {
-    const response = await api.get<UserBlockResponse[]>('/api/users/block');
+    const response = await api.get<UserBlockResponse[]>('/api/v1/users/block');
     return response || [];
   }
 
@@ -54,7 +54,7 @@ export class UserBlockService {
    * Check if a user is blocked
    */
   static async isBlocked(userId: number): Promise<boolean> {
-    const response = await api.get<{ status: string; data: boolean }>(`/api/users/block/${userId}/status`);
+    const response = await api.get<{ status: string; data: boolean }>(`/api/v1/users/block/${userId}/status`);
     return response.data || false;
   }
 }

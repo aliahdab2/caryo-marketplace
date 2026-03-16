@@ -9,7 +9,7 @@ import { CarBrand, CarModel } from '@/types/referenceData';
  */
 export async function getCarReferenceData(): Promise<ReferenceData> {
   try {
-    return await api.get<ReferenceData>('/api/reference-data');
+    return await api.get<ReferenceData>('/api/v1/reference-data');
   } catch (error) {
     console.error('Error fetching reference data:', error);
     // Return empty data on error
@@ -30,7 +30,7 @@ export async function getCarReferenceData(): Promise<ReferenceData> {
 export async function getVehicleMakes(): Promise<CarBrand[]> {
   try {
     const headers = await getAuthHeaders();
-    const response = await api.get<CarBrand[]>('/api/reference-data/brands', headers);
+    const response = await api.get<CarBrand[]>('/api/v1/reference-data/brands', headers);
     return response || [];
   } catch (error) {
     console.error('Error fetching vehicle makes:', error);
@@ -59,7 +59,7 @@ export async function getVehicleModels(brandId: number): Promise<CarModel[]> {
   try {
     const headers = await getAuthHeaders();
     const response = await api.get<CarModel[]>(
-      `/api/reference-data/brands/${brandId}/models`,
+      `/api/v1/reference-data/brands/${brandId}/models`,
       headers
     );
     return response || [];

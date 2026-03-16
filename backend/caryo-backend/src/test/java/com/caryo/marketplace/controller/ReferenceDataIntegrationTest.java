@@ -50,7 +50,7 @@ class ReferenceDataIntegrationTest {
     void testGetAllReferenceData_ReturnsCorrectStructure() throws Exception {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        mockMvc.perform(get("/api/reference-data")
+        mockMvc.perform(get("/api/v1/reference-data")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -66,7 +66,7 @@ class ReferenceDataIntegrationTest {
     void testGetAllReferenceData_EachItemHasRequiredFields() throws Exception {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        mockMvc.perform(get("/api/reference-data")
+        mockMvc.perform(get("/api/v1/reference-data")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.carConditions[0].id").exists())
@@ -100,7 +100,7 @@ class ReferenceDataIntegrationTest {
     void testGetAllReferenceData_SlugFieldsAreNotEmpty() throws Exception {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        mockMvc.perform(get("/api/reference-data")
+        mockMvc.perform(get("/api/v1/reference-data")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.carConditions[0].slug").isNotEmpty())
@@ -114,7 +114,7 @@ class ReferenceDataIntegrationTest {
     void testGetAllReferenceData_DataIsNotEmpty() throws Exception {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        mockMvc.perform(get("/api/reference-data")
+        mockMvc.perform(get("/api/v1/reference-data")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.carConditions").isArray())
@@ -136,7 +136,7 @@ class ReferenceDataIntegrationTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
         // Test car conditions endpoint
-        mockMvc.perform(get("/api/car-conditions")
+        mockMvc.perform(get("/api/v1/car-conditions")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
@@ -146,7 +146,7 @@ class ReferenceDataIntegrationTest {
                 .andExpect(jsonPath("$[0].slug").exists());
 
         // Test drive types endpoint
-        mockMvc.perform(get("/api/drive-types")
+        mockMvc.perform(get("/api/v1/drive-types")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
@@ -156,7 +156,7 @@ class ReferenceDataIntegrationTest {
                 .andExpect(jsonPath("$[0].slug").exists());
 
         // Test body styles endpoint
-        mockMvc.perform(get("/api/body-styles")
+        mockMvc.perform(get("/api/v1/body-styles")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
@@ -166,7 +166,7 @@ class ReferenceDataIntegrationTest {
                 .andExpect(jsonPath("$[0].slug").exists());
 
         // Test fuel types endpoint
-        mockMvc.perform(get("/api/fuel-types")
+        mockMvc.perform(get("/api/v1/fuel-types")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
@@ -176,7 +176,7 @@ class ReferenceDataIntegrationTest {
                 .andExpect(jsonPath("$[0].slug").exists());
 
         // Test transmissions endpoint
-        mockMvc.perform(get("/api/transmissions")
+        mockMvc.perform(get("/api/v1/transmissions")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())

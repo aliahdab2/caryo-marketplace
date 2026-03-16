@@ -162,7 +162,7 @@ public class ContactFieldsIntegrationTest {
             request.setContactPreference("both");
 
             // Act & Assert
-            mockMvc.perform(post("/api/listings")
+            mockMvc.perform(post("/api/v1/listings")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -190,7 +190,7 @@ public class ContactFieldsIntegrationTest {
             // No contact fields set - should fallback to seller info
 
             // Act & Assert
-            mockMvc.perform(post("/api/listings")
+            mockMvc.perform(post("/api/v1/listings")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -221,7 +221,7 @@ public class ContactFieldsIntegrationTest {
             // contactEmail and contactPreference not set - should fallback
 
             // Act & Assert
-            mockMvc.perform(post("/api/listings")
+            mockMvc.perform(post("/api/v1/listings")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -278,7 +278,7 @@ public class ContactFieldsIntegrationTest {
             request.setContactPreference("phone");
 
             // Act & Assert
-            mockMvc.perform(put("/api/listings/" + listingId)
+            mockMvc.perform(put("/api/v1/listings/" + listingId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -300,7 +300,7 @@ public class ContactFieldsIntegrationTest {
             request.setContactPreference(null);
 
             // Act & Assert
-            mockMvc.perform(put("/api/listings/" + listingId)
+            mockMvc.perform(put("/api/v1/listings/" + listingId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -344,7 +344,7 @@ public class ContactFieldsIntegrationTest {
             listing = carListingRepository.save(listing);
 
             // Act & Assert - Use my-listings endpoint to get unapproved listings
-            mockMvc.perform(get("/api/listings/my-listings"))
+            mockMvc.perform(get("/api/v1/listings/my-listings"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].contactName").value("Luxury Cars Division"))
                     .andExpect(jsonPath("$[0].contactEmail").value("luxury@premiumdealer.com"))

@@ -24,7 +24,7 @@ import java.util.Map;
 import static com.caryo.marketplace.payload.response.ApiResponse.success;
 
 @RestController
-@RequestMapping("/api/listings")
+@RequestMapping("/api/v1/listings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Listing Images", description = "Manage car listing images")

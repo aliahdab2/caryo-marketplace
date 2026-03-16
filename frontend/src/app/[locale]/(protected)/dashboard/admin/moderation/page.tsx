@@ -45,7 +45,7 @@ export default function ImageModerationPage() {
   const { data: mediaData, isLoading } = useQuery<PageResponse>({
     queryKey: ['admin-pending-media', page],
     queryFn: async () => {
-      return api.get<PageResponse>(`/api/admin/media-moderation/pending?page=${page}&size=20`);
+      return api.get<PageResponse>(`/api/v1/admin/media-moderation/pending?page=${page}&size=20`);
     },
   });
 
@@ -53,13 +53,13 @@ export default function ImageModerationPage() {
   const { data: stats } = useQuery<ModerationStats>({
     queryKey: ['admin-moderation-stats'],
     queryFn: async () => {
-      return api.get<ModerationStats>('/api/admin/media-moderation/stats');
+      return api.get<ModerationStats>('/api/v1/admin/media-moderation/stats');
     },
   });
 
   // Approve mutation
   const approveMutation = useMutation({
-    mutationFn: (id: number) => api.post(`/api/admin/media-moderation/${id}/approve`, {}),
+    mutationFn: (id: number) => api.post(`/api/v1/admin/media-moderation/${id}/approve`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-media'] });
       queryClient.invalidateQueries({ queryKey: ['admin-moderation-stats'] });
@@ -69,7 +69,7 @@ export default function ImageModerationPage() {
   // Reject mutation
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: number; reason?: string }) =>
-      api.post(`/api/admin/media-moderation/${id}/reject`, { reason }),
+      api.post(`/api/v1/admin/media-moderation/${id}/reject`, { reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-media'] });
       queryClient.invalidateQueries({ queryKey: ['admin-moderation-stats'] });
@@ -78,7 +78,7 @@ export default function ImageModerationPage() {
 
   // Bulk approve mutation
   const bulkApproveMutation = useMutation({
-    mutationFn: (ids: number[]) => api.post('/api/admin/media-moderation/bulk-approve', { ids }),
+    mutationFn: (ids: number[]) => api.post('/api/v1/admin/media-moderation/bulk-approve', { ids }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-media'] });
       queryClient.invalidateQueries({ queryKey: ['admin-moderation-stats'] });
@@ -89,7 +89,7 @@ export default function ImageModerationPage() {
   // Bulk reject mutation
   const bulkRejectMutation = useMutation({
     mutationFn: ({ ids, reason }: { ids: number[]; reason?: string }) =>
-      api.post('/api/admin/media-moderation/bulk-reject', { ids, reason }),
+      api.post('/api/v1/admin/media-moderation/bulk-reject', { ids, reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-pending-media'] });
       queryClient.invalidateQueries({ queryKey: ['admin-moderation-stats'] });

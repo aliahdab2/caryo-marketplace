@@ -120,7 +120,7 @@ export default function AccountPage() {
       if (!user?.email) return;
 
       try {
-        const response = await fetch('http://localhost:8080/api/auth/social-login', {
+        const response = await fetch('http://localhost:8080/api/v1/auth/social-login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

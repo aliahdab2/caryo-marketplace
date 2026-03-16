@@ -31,7 +31,7 @@ import java.util.Map;
  * backward compatibility with existing API endpoints.
  */
 @RestController
-@RequestMapping("/api/listings")
+@RequestMapping("/api/v1/listings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Listing Creation", description = "Create new car listings with or without images")

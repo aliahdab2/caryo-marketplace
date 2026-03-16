@@ -136,10 +136,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(
             IllegalStateException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.conflict", locale);
+
         log.warn("Illegal state: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -227,10 +230,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDuplicatePaymentException(
             DuplicatePaymentException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.payment.duplicate", locale);
+
         log.warn("Duplicate payment detected: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -240,10 +246,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleInvalidPaymentMethodException(
             InvalidPaymentMethodException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.payment.method.invalid", locale);
+
         log.warn("Invalid payment method: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -253,10 +262,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handlePaymentProcessingException(
             PaymentProcessingException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.payment.processing", locale);
+
         log.error("Payment processing failed: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -266,10 +278,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handlePaymentException(
             PaymentException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.payment.general", locale);
+
         log.error("Payment error: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**
@@ -279,11 +294,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
 
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.invalid.argument", locale);
+
         log.warn("Illegal argument: {}", ex.getMessage());
 
-        // Return the specific error message directly for better user experience
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**

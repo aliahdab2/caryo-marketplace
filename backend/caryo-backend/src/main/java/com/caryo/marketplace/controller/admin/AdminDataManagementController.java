@@ -33,7 +33,7 @@ import java.util.Optional;
  * Direct import endpoints without complex approval workflows
  */
 @RestController
-@RequestMapping("/api/admin/data")
+@RequestMapping("/api/v1/admin/data")
 @Slf4j
 @Tag(name = "Admin Data Management", description = "Admin endpoints for data imports")
 public class AdminDataManagementController {

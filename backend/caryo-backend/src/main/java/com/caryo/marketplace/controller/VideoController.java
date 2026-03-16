@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * Follows AutoTrader patterns for YouTube integration and external video URLs.
  */
 @RestController
-@RequestMapping("/api/listings/{listingId}/videos")
+@RequestMapping("/api/v1/listings/{listingId}/videos")
 @Tag(name = "Video Management", description = "Video management operations for car listings")
 @Slf4j
 public class VideoController {

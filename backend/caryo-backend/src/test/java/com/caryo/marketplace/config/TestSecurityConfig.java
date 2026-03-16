@@ -25,15 +25,15 @@ public class TestSecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll() // Ensure this covers /api/auth/signup and /api/auth/signin
-                .requestMatchers("/api/test/public").permitAll()
-                .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/test/admin").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/locations").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll() // Ensure this covers /api/auth/signup and /api/auth/signin
+                .requestMatchers("/api/v1/test/public").permitAll()
+                .requestMatchers("/api/v1/test/user").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/v1/test/admin").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/locations").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/locations/**").permitAll()
                 .anyRequest().authenticated()
             )
             // Handle security exceptions properly in tests

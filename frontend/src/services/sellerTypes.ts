@@ -35,7 +35,7 @@ export async function getSellerTypeCounts(filters: ListingFilters = {}): Promise
     }
     
     const queryString = params.toString();
-    const url = `/api/listings/counts/seller-types${queryString ? `?${queryString}` : ''}`;
+    const url = `/api/v1/listings/counts/seller-types${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get<SellerTypeCounts>(url);
     return response;
@@ -70,7 +70,7 @@ export async function getSellerTypeCounts(filters: ListingFilters = {}): Promise
  */
 export async function getSellerTypes(): Promise<SellerType[]> {
   try {
-    const response = await api.get<SellerType[]>('/api/seller-types');
+    const response = await api.get<SellerType[]>('/api/v1/seller-types');
     return response;
   } catch (error) {
     if (error instanceof ApiError) {

@@ -48,7 +48,7 @@ export class UserReportService {
    * Get current user's reports
    */
   static async getMyReports(page: number = 0, size: number = 20): Promise<PaginatedReportsResponse> {
-    const response = await api.get<PaginatedReportsResponse>(`/api/reports/my-reports?page=${page}&size=${size}&sortBy=createdAt&sortDir=desc`);
+    const response = await api.get<PaginatedReportsResponse>(`/api/v1/reports/my-reports?page=${page}&size=${size}&sortBy=createdAt&sortDir=desc`);
     return response;
   }
 }

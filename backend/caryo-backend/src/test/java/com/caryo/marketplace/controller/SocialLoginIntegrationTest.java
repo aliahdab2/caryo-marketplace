@@ -93,7 +93,7 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
 
         // Call the social login endpoint
         ResponseEntity<JwtResponse> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/social-login",
+                baseUrl + "/api/v1/auth/social-login",
                 request,
                 JwtResponse.class
         );
@@ -155,7 +155,7 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
 
         // Call the social login endpoint
         ResponseEntity<JwtResponse> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/social-login",
+                baseUrl + "/api/v1/auth/social-login",
                 request,
                 JwtResponse.class
         );
@@ -187,7 +187,7 @@ public class SocialLoginIntegrationTest extends IntegrationTestWithS3 {
 
         // Call the social login endpoint
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/social-login",
+                baseUrl + "/api/v1/auth/social-login",
                 request,
                 String.class
         );

@@ -43,7 +43,7 @@ export const serverAuth = {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     
     try {
-      const response = await fetch(`${API_URL}/api/auth/signin`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/signin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export const serverAuth = {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     
     try {
-      const response = await fetch(`${API_URL}/api/auth/signup`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export const serverAuth = {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     
     try {
-      const response = await fetch(`${API_URL}/api/auth/social-login`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/social-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

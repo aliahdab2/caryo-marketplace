@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing user reports.
  */
 @RestController
-@RequestMapping("/api/reports")
+@RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Slf4j
 public class UserReportController {

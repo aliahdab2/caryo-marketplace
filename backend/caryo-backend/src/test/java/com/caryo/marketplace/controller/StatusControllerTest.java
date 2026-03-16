@@ -32,7 +32,7 @@ class StatusControllerTest {
 
     @Test
     void apiStatus_returnsApiWorkingMessage() throws Exception {
-        mockMvc.perform(get("/api/status"))
+        mockMvc.perform(get("/api/v1/status"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("API is working!"));
     }

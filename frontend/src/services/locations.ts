@@ -21,7 +21,7 @@ export interface Location {
  */
 export async function getLocations(): Promise<Location[]> {
   try {
-    return await api.get<Location[]>('/api/locations');
+    return await api.get<Location[]>('/api/v1/locations');
   } catch (error) {
     console.error('Error fetching locations:', error);
     return [];
@@ -34,7 +34,7 @@ export async function getLocations(): Promise<Location[]> {
  */
 export async function getLocationsByCountry(countryCode: string): Promise<Location[]> {
   try {
-    return await api.get<Location[]>(`/api/locations/country/${countryCode}`);
+    return await api.get<Location[]>(`/api/v1/locations/country/${countryCode}`);
   } catch (error) {
     console.error(`Error fetching locations for country ${countryCode}:`, error);
     return [];
@@ -47,7 +47,7 @@ export async function getLocationsByCountry(countryCode: string): Promise<Locati
  */
 export async function getLocationsByGovernorate(governorateId: number): Promise<Location[]> {
   try {
-    return await api.get<Location[]>(`/api/locations/governorate/${governorateId}`);
+    return await api.get<Location[]>(`/api/v1/locations/governorate/${governorateId}`);
   } catch (error) {
     console.error(`Error fetching locations for governorate ${governorateId}:`, error);
     return [];
@@ -60,7 +60,7 @@ export async function getLocationsByGovernorate(governorateId: number): Promise<
  */
 export async function getLocationsByGovernorateSlug(governorateSlug: string): Promise<Location[]> {
   try {
-    return await api.get<Location[]>(`/api/locations/governorate/slug/${governorateSlug}`);
+    return await api.get<Location[]>(`/api/v1/locations/governorate/slug/${governorateSlug}`);
   } catch (error) {
     console.error(`Error fetching locations for governorate slug ${governorateSlug}:`, error);
     return [];

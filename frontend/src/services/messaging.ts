@@ -175,7 +175,7 @@ export class MessagingService {
    * Create a new conversation
    */
   static async createConversation(request: CreateConversationRequest): Promise<ConversationResponse> {
-    const response = await api.post<ApiResponse<ConversationResponse>>('/api/conversations', request as unknown as Record<string, unknown>);
+    const response = await api.post<ApiResponse<ConversationResponse>>('/api/v1/conversations', request as unknown as Record<string, unknown>);
     return response.data;
   }
 
@@ -194,7 +194,7 @@ export class MessagingService {
       sortBy,
       sortDir
     });
-    const response = await api.get<PaginatedResponse<ConversationResponse>>(`/api/conversations/my-conversations?${params}`);
+    const response = await api.get<PaginatedResponse<ConversationResponse>>(`/api/v1/conversations/my-conversations?${params}`);
     return response;
   }
 
@@ -202,7 +202,7 @@ export class MessagingService {
    * Get a specific conversation by ID
    */
   static async getConversation(id: number): Promise<ConversationResponse> {
-    const response = await api.get<ConversationResponse>(`/api/conversations/${id}`);
+    const response = await api.get<ConversationResponse>(`/api/v1/conversations/${id}`);
     return response;
   }
 
@@ -222,7 +222,7 @@ export class MessagingService {
       sortBy,
       sortDir
     });
-    const response = await api.get<PaginatedResponse<MessageResponse>>(`/api/conversations/${conversationId}/messages?${params}`);
+    const response = await api.get<PaginatedResponse<MessageResponse>>(`/api/v1/conversations/${conversationId}/messages?${params}`);
     return response;
   }
 
@@ -230,7 +230,7 @@ export class MessagingService {
    * Send a message in a conversation
    */
   static async sendMessage(conversationId: number, request: SendMessageRequest): Promise<MessageResponse> {
-    const response = await api.post<{data: MessageResponse}>(`/api/conversations/${conversationId}/messages`, request as unknown as Record<string, unknown>);
+    const response = await api.post<{data: MessageResponse}>(`/api/v1/conversations/${conversationId}/messages`, request as unknown as Record<string, unknown>);
     return response.data;
   }
 
@@ -238,7 +238,7 @@ export class MessagingService {
    * Mark a message as read
    */
   static async markMessageAsRead(messageId: number): Promise<{ message: string }> {
-    const response = await api.patch<{ message: string }>(`/api/conversations/messages/${messageId}/read`);
+    const response = await api.patch<{ message: string }>(`/api/v1/conversations/messages/${messageId}/read`);
     return response;
   }
 
@@ -246,7 +246,7 @@ export class MessagingService {
    * Mark all messages in a conversation as read
    */
   static async markAllMessagesAsRead(conversationId: number): Promise<{ message: string }> {
-    const response = await api.patch<{ message: string }>(`/api/conversations/${conversationId}/messages/read-all`);
+    const response = await api.patch<{ message: string }>(`/api/v1/conversations/${conversationId}/messages/read-all`);
     return response;
   }
 
@@ -254,7 +254,7 @@ export class MessagingService {
    * Archive a conversation
    */
   static async archiveConversation(conversationId: number): Promise<{ message: string }> {
-    const response = await api.patch<{ message: string }>(`/api/conversations/${conversationId}/archive`);
+    const response = await api.patch<{ message: string }>(`/api/v1/conversations/${conversationId}/archive`);
     return response;
   }
 
@@ -266,7 +266,7 @@ export class MessagingService {
     status: string
   ): Promise<{ message: string }> {
     const params = new URLSearchParams({ status });
-    const response = await api.patch<{ message: string }>(`/api/conversations/${conversationId}/status?${params}`);
+    const response = await api.patch<{ message: string }>(`/api/v1/conversations/${conversationId}/status?${params}`);
     return response;
   }
 
@@ -274,7 +274,7 @@ export class MessagingService {
    * Edit a message (within 5 minutes of creation)
    */
   static async editMessage(messageId: number, content: string): Promise<MessageResponse> {
-    const response = await api.put<MessageResponse>(`/api/messages/${messageId}`, { content } as unknown as Record<string, unknown>);
+    const response = await api.put<MessageResponse>(`/api/v1/messages/${messageId}`, { content } as unknown as Record<string, unknown>);
     return response;
   }
 
@@ -282,7 +282,7 @@ export class MessagingService {
    * Delete a message (within 1 hour of creation)
    */
   static async deleteMessage(messageId: number): Promise<{ message: string }> {
-    const response = await api.delete<{ message: string }>(`/api/messages/${messageId}`);
+    const response = await api.delete<{ message: string }>(`/api/v1/messages/${messageId}`);
     return response;
   }
 
@@ -296,7 +296,7 @@ export class MessagingService {
     mutedUntil?: string
   ): Promise<{ message: string }> {
     const response = await api.patch<{ message: string }>(
-      `/api/conversations/${conversationId}/participants/${participantId}/mute`,
+      `/api/v1/conversations/${conversationId}/participants/${participantId}/mute`,
       { muted, mutedUntil } as unknown as Record<string, unknown>
     );
     return response;
@@ -312,7 +312,7 @@ export class MessagingService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post<ApiResponse<{ id: number; fileName: string; fileUrl: string; contentType: string; size: number; isImage: boolean }>>(`/api/conversations/${conversationId}/messages/attachments`, formData);
+    const response = await api.post<ApiResponse<{ id: number; fileName: string; fileUrl: string; contentType: string; size: number; isImage: boolean }>>(`/api/v1/conversations/${conversationId}/messages/attachments`, formData);
     return response.data;
   }
 
@@ -323,7 +323,7 @@ export class MessagingService {
     conversationId: number, 
     formData: FormData
   ): Promise<MessageResponse> {
-    const response = await api.post<{data: MessageResponse}>(`/api/conversations/${conversationId}/messages/with-attachments`, formData);
+    const response = await api.post<{data: MessageResponse}>(`/api/v1/conversations/${conversationId}/messages/with-attachments`, formData);
     return response.data;
   }
 
@@ -341,7 +341,7 @@ export class MessagingService {
       activeConversations: number;
       unreadMessages: number;
       archivedConversations: number;
-    }>('/api/conversations/stats');
+    }>('/api/v1/conversations/stats');
     return response;
   }
 
@@ -358,7 +358,7 @@ export class MessagingService {
       page: page.toString(),
       size: size.toString()
     });
-    const response = await api.get<PaginatedResponse<ConversationResponse>>(`/api/conversations/search?${params}`);
+    const response = await api.get<PaginatedResponse<ConversationResponse>>(`/api/v1/conversations/search?${params}`);
     return response;
   }
 
@@ -366,7 +366,7 @@ export class MessagingService {
    * Get unread message count for all conversations
    */
   static async getUnreadMessageCount(): Promise<{ count: number }> {
-    const response = await api.get<{ count: number }>('/api/conversations/unread-count');
+    const response = await api.get<{ count: number }>('/api/v1/conversations/unread-count');
     return response;
   }
 
@@ -374,7 +374,7 @@ export class MessagingService {
    * Block a user in a conversation
    */
   static async blockUser(conversationId: number): Promise<{ message: string }> {
-    const response = await api.patch<{ data?: unknown; message: string }>(`/api/conversations/${conversationId}/block`);
+    const response = await api.patch<{ data?: unknown; message: string }>(`/api/v1/conversations/${conversationId}/block`);
     return { message: response.message || 'User has been blocked successfully' };
   }
 
@@ -387,7 +387,7 @@ export class MessagingService {
     reportType: string;
     reason: string;
   }): Promise<{ id: number; message: string }> {
-    const response = await api.post<{ data?: { id: number }; message: string }>('/api/reports', request as unknown as Record<string, unknown>);
+    const response = await api.post<{ data?: { id: number }; message: string }>('/api/v1/reports', request as unknown as Record<string, unknown>);
     return {
       id: response.data?.id || 0,
       message: response.message || 'User has been reported successfully'

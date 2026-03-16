@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
   const validateToken = useCallback(async (tokenToValidate: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${API_URL}/api/auth/reset-password/validate?token=${encodeURIComponent(tokenToValidate)}`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/reset-password/validate?token=${encodeURIComponent(tokenToValidate)}`, {
         method: 'GET',
       });
 
@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

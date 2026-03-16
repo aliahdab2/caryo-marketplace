@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/listings-status")
+@RequestMapping("/api/v1/listings-status")
 
 @RequiredArgsConstructor
 @Slf4j

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to test both /auth/* and /api/auth/* endpoints to determine which one is configured correctly
+# Script to test both /auth/* and /api/v1/auth/* endpoints to determine which one is configured correctly
 # Usage: ./test-auth-paths.sh [baseUrl]
 
 BASE_URL=${1:-"http://localhost:8080"}
@@ -27,8 +27,8 @@ SIGNUP_STATUS_OLD=$?
 echo "      Status: $SIGNUP_STATUS_OLD"
 echo "      Response: $SIGNUP_RESPONSE_OLD"
 
-echo -e "\n   b) Testing /api/auth/signup:"
-SIGNUP_RESPONSE_NEW=$(curl -s -X POST $BASE_URL/api/auth/signup \
+echo -e "\n   b) Testing /api/v1/auth/signup:"
+SIGNUP_RESPONSE_NEW=$(curl -s -X POST $BASE_URL/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"test_user2\",\"email\":\"test_user2@example.com\",\"password\":\"Password123!\",\"role\":[\"user\"]}")
 SIGNUP_STATUS_NEW=$?
@@ -48,8 +48,8 @@ SIGNIN_STATUS_OLD=$?
 echo "      Status: $SIGNIN_STATUS_OLD"
 echo "      Response: $SIGNIN_RESPONSE_OLD"
 
-echo -e "\n   b) Testing /api/auth/signin:"
-SIGNIN_RESPONSE_NEW=$(curl -s -X POST $BASE_URL/api/auth/signin \
+echo -e "\n   b) Testing /api/v1/auth/signin:"
+SIGNIN_RESPONSE_NEW=$(curl -s -X POST $BASE_URL/api/v1/auth/signin \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$TEST_USERNAME\",\"password\":\"$TEST_PASSWORD\"}")
 SIGNIN_STATUS_NEW=$?
@@ -59,14 +59,14 @@ echo "      Response: $SIGNIN_RESPONSE_NEW"
 
 # Extract and test token if successful
 if [[ "$SIGNIN_RESPONSE_NEW" == *"token"* ]]; then
-  echo -e "\n[3] Extracting token from /api/auth/signin response"
+  echo -e "\n[3] Extracting token from /api/v1/auth/signin response"
   TOKEN=$(echo "$SIGNIN_RESPONSE_NEW" | grep -o '"token":"[^"]*"' | cut -d':' -f2 | tr -d '"' || echo "")
   
   if [ ! -z "$TOKEN" ]; then
     echo "      Token: ${TOKEN:0:20}..."
     
     echo -e "\n[4] Testing protected endpoint with token"
-    AUTH_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" $BASE_URL/api/test/user)
+    AUTH_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" $BASE_URL/api/v1/test/user)
     echo "      Protected endpoint response: $AUTH_RESPONSE"
   fi
 fi
@@ -75,13 +75,13 @@ echo -e "\n=================================================="
 echo "Test Results Summary:"
 echo "=================================================="
 echo -e "• /auth/signup: $(if [[ "$SIGNUP_RESPONSE_OLD" == *"successful"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
-echo -e "• /api/auth/signup: $(if [[ "$SIGNUP_RESPONSE_NEW" == *"successful"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
+echo -e "• /api/v1/auth/signup: $(if [[ "$SIGNUP_RESPONSE_NEW" == *"successful"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
 echo -e "• /auth/signin: $(if [[ "$SIGNIN_RESPONSE_OLD" == *"token"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
-echo -e "• /api/auth/signin: $(if [[ "$SIGNIN_RESPONSE_NEW" == *"token"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
+echo -e "• /api/v1/auth/signin: $(if [[ "$SIGNIN_RESPONSE_NEW" == *"token"* ]]; then echo "✅ WORKS"; else echo "❌ FAILS"; fi)"
 
 echo -e "\nRecommendation:"
 if [[ "$SIGNUP_RESPONSE_NEW" == *"successful"* ]] || [[ "$SIGNIN_RESPONSE_NEW" == *"token"* ]]; then
-  echo "✅ Use /api/auth/* paths in your Postman tests - these match your Spring Security configuration."
+  echo "✅ Use /api/v1/auth/* paths in your Postman tests - these match your Spring Security configuration."
 else
   echo "⚠️ Neither path seems to work correctly. Check your Spring Security configuration."
 fi

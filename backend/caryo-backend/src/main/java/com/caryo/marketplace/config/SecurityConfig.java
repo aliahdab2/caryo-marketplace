@@ -39,24 +39,24 @@ public class SecurityConfig {
             // Don't authenticate these specific requests
             .authorizeHttpRequests(auth -> auth
                 // Public pricing endpoint (must be first to avoid auth checks)
-                .requestMatchers("/api/pricing/**").permitAll()
+                .requestMatchers("/api/v1/pricing/**").permitAll()
                 // Admin endpoints require admin role
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 // Test endpoint security configuration
-                .requestMatchers("/api/test/admin").hasRole("ADMIN")
-                .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/test/public").permitAll()
-                .requestMatchers("/api/test/update-sample-images").permitAll() // For testing sample images
+                .requestMatchers("/api/v1/test/admin").hasRole("ADMIN")
+                .requestMatchers("/api/v1/test/user").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/v1/test/public").permitAll()
+                .requestMatchers("/api/v1/test/update-sample-images").permitAll() // For testing sample images
                 // Publicly accessible GET requests
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/locations/**").permitAll()
                 // Allow authentication endpoints without authentication
                 .requestMatchers("/").permitAll()
                 // Legacy /auth endpoints removed; only /api/auth/* is supported
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/auth/login").permitAll() // Retained for now, but likely unused
-                .requestMatchers("/api/auth/register").permitAll() // Retained for now, but likely unused
-                .requestMatchers("/api/contact").permitAll() // Allow public access to contact form
-                .requestMatchers("/api/public/**").permitAll() // Allow public access to all public endpoints
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/login").permitAll() // Retained for now, but likely unused
+                .requestMatchers("/api/v1/auth/register").permitAll() // Retained for now, but likely unused
+                .requestMatchers("/api/v1/contact").permitAll() // Allow public access to contact form
+                .requestMatchers("/api/v1/public/**").permitAll() // Allow public access to all public endpoints
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/service-status").permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()
@@ -68,14 +68,14 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/images/upload").permitAll() // Allow logo upload during signup
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/images/**").permitAll() // Allow viewing uploaded images
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reference-data/**").permitAll()  // This covers all reference data including governorates
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/seller-types").permitAll()  // Allow public access to seller types for signup form
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/dealers/*/public").permitAll()  // Public dealer profile
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/dealers/*/listings").permitAll()  // Public dealer listings
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/files/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/images/upload").permitAll() // Allow logo upload during signup
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/images/**").permitAll() // Allow viewing uploaded images
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/listings/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/reference-data/**").permitAll()  // This covers all reference data including governorates
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/seller-types").permitAll()  // Allow public access to seller types for signup form
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/dealers/*/public").permitAll()  // Public dealer profile
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/dealers/*/listings").permitAll()  // Public dealer listings
                 .anyRequest().authenticated()
             )
             // Handle access denied exceptions properly

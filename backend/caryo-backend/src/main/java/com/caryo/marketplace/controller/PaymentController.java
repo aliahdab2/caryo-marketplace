@@ -38,7 +38,7 @@ import java.util.Map;
  * - Getting payment history
  */
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/v1/payments")
 @Tag(name = "Payments", description = "Payment processing and subscription management")
 public class PaymentController {
 

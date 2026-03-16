@@ -32,7 +32,7 @@ import java.util.Map;
  * - Rate limiting applied to prevent abuse
  */
 @RestController
-@RequestMapping("/api/webhooks/payments")
+@RequestMapping("/api/v1/webhooks/payments")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Payment Webhooks", description = "Webhook endpoints for payment provider notifications")
@@ -298,10 +298,10 @@ public class PaymentWebhookController {
             "status", "active",
             "supportedProviders", supportedProviders,
             "endpoints", Map.of(
-                "paypal", "/api/webhooks/payments/paypal",
-                "stripe", "/api/webhooks/payments/stripe",
-                "manual", "/api/webhooks/payments/manual-transfer",
-                "test", "/api/webhooks/payments/test"
+                "paypal", "/api/v1/webhooks/payments/paypal",
+                "stripe", "/api/v1/webhooks/payments/stripe",
+                "manual", "/api/v1/webhooks/payments/manual-transfer",
+                "test", "/api/v1/webhooks/payments/test"
             ),
             "timestamp", System.currentTimeMillis()
         ));

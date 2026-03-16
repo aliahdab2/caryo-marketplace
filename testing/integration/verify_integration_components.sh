@@ -129,7 +129,7 @@ echo "   - ArabicTranslationService: OpenAI integration ready"
 echo "   - AdminDataManagementController: API endpoints ready"
 
 echo -e "\n${BLUE}✅ Configuration:${NC}"
-echo "   - CarQuery API: https://www.carqueryapi.com/api/0.3/"
+echo "   - CarQuery API: https://www.carqueryapi.com/api/v1/0.3/"
 echo "   - Timeout: 30 seconds"
 echo "   - Retry: 3 attempts with 2s delay"
 echo "   - Cache: 60 minutes TTL"

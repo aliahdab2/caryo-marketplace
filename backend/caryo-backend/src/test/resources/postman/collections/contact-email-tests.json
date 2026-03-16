@@ -44,7 +44,7 @@
 					"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"message\": \"I am interested in learning more about your car marketplace.\",\n    \"language\": \"en\"\n}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/contact",
+					"raw": "{{baseUrl}}/api/v1/contact",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -94,7 +94,7 @@
 					"raw": "{\n    \"name\": \"أحمد محمد\",\n    \"email\": \"ahmed@example.com\",\n    \"message\": \"أود معرفة المزيد عن سوق السيارات الخاص بكم.\",\n    \"language\": \"ar\"\n}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/contact",
+					"raw": "{{baseUrl}}/api/v1/contact",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -134,7 +134,7 @@
 					"raw": "{\n    \"name\": \"\",\n    \"email\": \"invalid-email\",\n    \"message\": \"\"\n}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/contact",
+					"raw": "{{baseUrl}}/api/v1/contact",
 					"host": [
 						"{{baseUrl}}"
 					],

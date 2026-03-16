@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Tag(name = "Email Debug", description = "Debug endpoints for email encoding issues")
 @RestController
-@RequestMapping("/api/debug/email")
+@RequestMapping("/api/v1/debug/email")
 @PreAuthorize("hasRole('ADMIN')")
 @Slf4j
 public class EmailDebugController {

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for newsletter subscription management.
  */
 @RestController
-@RequestMapping("/api/public/newsletter")
+@RequestMapping("/api/v1/public/newsletter")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Newsletter", description = "Newsletter subscription management")

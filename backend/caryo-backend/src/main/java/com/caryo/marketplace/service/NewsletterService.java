@@ -250,14 +250,14 @@ public class NewsletterService {
      * Build confirmation URL.
      */
     private String buildConfirmationUrl(String token) {
-        return websiteUrl + "/api/public/newsletter/confirm?token=" + token;
+        return websiteUrl + "/api/v1/public/newsletter/confirm?token=" + token;
     }
 
     /**
      * Build unsubscribe URL.
      */
     private String buildUnsubscribeUrl(String token) {
-        return websiteUrl + "/api/public/newsletter/unsubscribe?token=" + token;
+        return websiteUrl + "/api/v1/public/newsletter/unsubscribe?token=" + token;
     }
 
     /**

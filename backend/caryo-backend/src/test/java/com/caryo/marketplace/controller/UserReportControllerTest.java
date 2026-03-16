@@ -173,7 +173,7 @@ class UserReportControllerTest {
                 .thenReturn(userReport);
 
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Accept-Language", "en")
@@ -199,7 +199,7 @@ class UserReportControllerTest {
                 .thenReturn("تم الإبلاغ عن المستخدم بنجاح");
 
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Accept-Language", "ar")
@@ -220,7 +220,7 @@ class UserReportControllerTest {
         invalidRequest.setReportType(""); // Empty report type
 
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -238,7 +238,7 @@ class UserReportControllerTest {
                 .thenThrow(new BadRequestException("Cannot report yourself"));
 
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reportRequest)))
@@ -256,7 +256,7 @@ class UserReportControllerTest {
                 .thenThrow(new ResourceNotFoundException("User", "id", 2L));
 
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reportRequest)))
@@ -269,7 +269,7 @@ class UserReportControllerTest {
     @DisplayName("Should return 401 when not authenticated")
     void shouldReturn401WhenNotAuthenticated() throws Exception {
         // Act & Assert
-        mockMvc.perform(post("/api/reports")
+        mockMvc.perform(post("/api/v1/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reportRequest)))
@@ -289,7 +289,7 @@ class UserReportControllerTest {
                 .thenReturn(reportPage);
 
         // Act & Assert
-        mockMvc.perform(get("/api/reports/my-reports")
+        mockMvc.perform(get("/api/v1/reports/my-reports")
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())
@@ -312,7 +312,7 @@ class UserReportControllerTest {
                 .thenReturn(reportPage);
 
         // Act & Assert
-        mockMvc.perform(get("/api/reports/my-reports")
+        mockMvc.perform(get("/api/v1/reports/my-reports")
                         .param("page", "1")
                         .param("size", "10")
                         .param("sortBy", "createdAt")
@@ -328,7 +328,7 @@ class UserReportControllerTest {
     @DisplayName("Should return 401 when getting reports without authentication")
     void shouldReturn401WhenGettingReportsWithoutAuthentication() throws Exception {
         // Act & Assert
-        mockMvc.perform(get("/api/reports/my-reports"))
+        mockMvc.perform(get("/api/v1/reports/my-reports"))
                 .andExpect(status().isUnauthorized());
 
         verify(userReportService, never()).getReportsByReporter(any(), any());

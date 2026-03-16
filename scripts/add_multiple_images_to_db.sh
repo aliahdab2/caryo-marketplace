@@ -63,7 +63,7 @@ add_image_to_listing() {
       -X POST \
       -H "Authorization: Bearer $(get_auth_token)" \
       -F "file=@${temp_file};filename=${file_name};type=image/jpeg" \
-      "$API_BASE/api/listings/${listing_id}/upload-image" \
+      "$API_BASE/api/v1/listings/${listing_id}/upload-image" \
       -o /tmp/upload_response.json)
     
     if [ "$response" = "200" ]; then
@@ -86,7 +86,7 @@ get_auth_token() {
   local response=$(curl -s -X POST \
     -H "Content-Type: application/json" \
     -d '{"username":"admin","password":"admin123"}' \
-    "$API_BASE/api/auth/signin" 2>/dev/null)
+    "$API_BASE/api/v1/auth/signin" 2>/dev/null)
   
   if [ $? -eq 0 ]; then
     echo "$response" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4 2>/dev/null
@@ -154,7 +154,7 @@ main() {
   
   # Verify the results
   echo -e "${YELLOW}Checking listing 6 media count...${NC}"
-  media_count=$(curl -s "$API_BASE/api/listings/6" | grep -o '"media":\[' | wc -l 2>/dev/null || echo "0")
+  media_count=$(curl -s "$API_BASE/api/v1/listings/6" | grep -o '"media":\[' | wc -l 2>/dev/null || echo "0")
   
   if [ "$media_count" -gt 0 ]; then
     echo -e "${GREEN}Success! Listing 6 now has multiple images.${NC}"

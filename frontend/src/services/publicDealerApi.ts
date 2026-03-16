@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
  * @throws {ApiError} With appropriate status for other errors
  */
 export async function getPublicDealerProfile(dealerId: number): Promise<PublicDealerProfile> {
-  const response = await fetch(`${API_BASE_URL}/api/dealers/${dealerId}/public`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/dealers/${dealerId}/public`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export async function getPublicDealerListings(
   size = 12
 ): Promise<DealerListingsResponse<Listing>> {
   const response = await fetch(
-    `${API_BASE_URL}/api/dealers/${dealerId}/listings?page=${page}&size=${size}&sort=createdAt&direction=desc`,
+    `${API_BASE_URL}/api/v1/dealers/${dealerId}/listings?page=${page}&size=${size}&sort=createdAt&direction=desc`,
     {
       method: 'GET',
       headers: {

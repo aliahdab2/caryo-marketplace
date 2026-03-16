@@ -165,32 +165,32 @@ fi
 # Check authentication endpoints
 print_header "Authentication Endpoints Check"
 
-echo "Testing /api/auth/* endpoints (correct path pattern):"
-API_SIGNUP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL/api/auth/signup)
-echo "- /api/auth/signup: $API_SIGNUP_STATUS"
+echo "Testing /api/v1/auth/* endpoints (correct path pattern):"
+API_SIGNUP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL/api/v1/auth/signup)
+echo "- /api/v1/auth/signup: $API_SIGNUP_STATUS"
 if [ "$API_SIGNUP_STATUS" = "401" ]; then
-  print_error "Signup endpoint at /api/auth/signup requires authentication! Should be public."
+  print_error "Signup endpoint at /api/v1/auth/signup requires authentication! Should be public."
 elif [ "$API_SIGNUP_STATUS" = "404" ]; then
-  print_error "Signup endpoint at /api/auth/signup not found (404)."
+  print_error "Signup endpoint at /api/v1/auth/signup not found (404)."
 else
-  print_success "Signup endpoint at /api/auth/signup is accessible"
+  print_success "Signup endpoint at /api/v1/auth/signup is accessible"
 fi
 
-API_SIGNIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL/api/auth/signin)
-echo "- /api/auth/signin: $API_SIGNIN_STATUS"
+API_SIGNIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL/api/v1/auth/signin)
+echo "- /api/v1/auth/signin: $API_SIGNIN_STATUS"
 if [ "$API_SIGNIN_STATUS" = "401" ]; then
-  print_error "Signin endpoint at /api/auth/signin requires authentication! Should be public."
+  print_error "Signin endpoint at /api/v1/auth/signin requires authentication! Should be public."
 elif [ "$API_SIGNIN_STATUS" = "404" ]; then
-  print_error "Signin endpoint at /api/auth/signin not found (404)."
+  print_error "Signin endpoint at /api/v1/auth/signin not found (404)."
 else
-  print_success "Signin endpoint at /api/auth/signin is accessible"
+  print_success "Signin endpoint at /api/v1/auth/signin is accessible"
 fi
 
 # Test authentication
 print_header "Authentication Test"
 
 echo "Testing signup with valid payload..."
-SIGNUP_RESPONSE=$(curl -s -X POST $BASE_URL/api/auth/signup \
+SIGNUP_RESPONSE=$(curl -s -X POST $BASE_URL/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{"username":"diagtest","email":"diagtest@example.com","password":"password123"}')
 
@@ -198,7 +198,7 @@ echo "Signup response:"
 echo "$SIGNUP_RESPONSE" | grep -v password | grep -v secret
 
 echo "Testing signin with test credentials..."
-SIGNIN_RESPONSE=$(curl -s -X POST $BASE_URL/api/auth/signin \
+SIGNIN_RESPONSE=$(curl -s -X POST $BASE_URL/api/v1/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"Admin123!"}')
 
@@ -212,7 +212,7 @@ if [ ! -z "$TOKEN" ]; then
   
   # Test a protected endpoint with token
   echo "Testing protected endpoint with token..."
-  AUTH_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" $BASE_URL/api/test/user)
+  AUTH_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" $BASE_URL/api/v1/test/user)
   echo "Protected endpoint response:"
   echo "$AUTH_RESPONSE" | grep -v password | grep -v secret
 else
@@ -253,20 +253,20 @@ if command -v jq &> /dev/null; then
     AUTH_COUNT=$(echo "$AUTH_ENDPOINTS" | jq -r '.request.url.raw' 2>/dev/null | wc -l | xargs)
     echo "Found $AUTH_COUNT auth-related endpoints"
     
-    # Check if all raw URLs use /api/auth/ pattern
-    RAW_API_AUTH_COUNT=$(echo "$AUTH_ENDPOINTS" | jq -r 'select(.request.url.raw | contains("/api/auth/")) | .request.url.raw' 2>/dev/null | wc -l | xargs)
+    # Check if all raw URLs use /api/v1/auth/ pattern
+    RAW_API_AUTH_COUNT=$(echo "$AUTH_ENDPOINTS" | jq -r 'select(.request.url.raw | contains("/api/v1/auth/")) | .request.url.raw' 2>/dev/null | wc -l | xargs)
     if [ "$RAW_API_AUTH_COUNT" -eq "$AUTH_COUNT" ]; then
-      print_success "All auth endpoints use /api/auth/* pattern ✓"
+      print_success "All auth endpoints use /api/v1/auth/* pattern ✓"
     else
-      print_warning "Not all auth endpoints use /api/auth/* pattern"
+      print_warning "Not all auth endpoints use /api/v1/auth/* pattern"
     fi
   else
     print_warning "No auth endpoints found in collection"
   fi
 else
   echo "jq not installed. Using basic checks..."
-  if grep -q '"/api/auth/' "$COLLECTION_PATH"; then
-    print_success "Collection uses /api/auth/ pattern ✓"
+  if grep -q '"/api/v1/auth/' "$COLLECTION_PATH"; then
+    print_success "Collection uses /api/v1/auth/ pattern ✓"
   elif grep -q '"/auth/' "$COLLECTION_PATH"; then
     print_warning "Collection uses /auth/ pattern without '/api' prefix"
   fi

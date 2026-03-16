@@ -127,7 +127,7 @@ export async function addToFavorites(
     );
   }
 
-  const url = `${API_URL}/api/favorites/${numericId}`;
+  const url = `${API_URL}/api/v1/favorites/${numericId}`;
   
   await retryOperation(
     async () => {
@@ -173,7 +173,7 @@ export async function removeFromFavorites(
     );
   }
 
-  const url = `${API_URL}/api/favorites/${numericId}`;
+  const url = `${API_URL}/api/v1/favorites/${numericId}`;
   
   await retryOperation(
     async () => {
@@ -214,7 +214,7 @@ export async function checkFavoriteStatus(
     return { isFavorite: false, listingId: numericId.toString() };
   }
 
-  const url = `${API_URL}/api/favorites/${numericId}/status`;
+  const url = `${API_URL}/api/v1/favorites/${numericId}/status`;
   
   return await retryOperation(
     async () => {
@@ -275,7 +275,7 @@ export async function getUserFavorites(
     );
   }
 
-  const url = `${API_URL}/api/favorites`;
+  const url = `${API_URL}/api/v1/favorites`;
   
   return await retryOperation(
     async () => {

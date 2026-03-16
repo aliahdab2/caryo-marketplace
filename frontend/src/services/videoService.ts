@@ -50,7 +50,7 @@ export async function addExternalVideoToListing(
     throw error;
   }
 
-  const url = `${API_BASE_URL}/api/listings/${listingId}/videos/external`;
+  const url = `${API_BASE_URL}/api/v1/listings/${listingId}/videos/external`;
   
   try {
     const response = await fetch(url, {

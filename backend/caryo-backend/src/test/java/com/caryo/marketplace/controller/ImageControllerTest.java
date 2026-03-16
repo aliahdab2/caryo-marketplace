@@ -43,7 +43,7 @@ class ImageControllerTest {
         // Mock the HTTP request context needed by ServletUriComponentsBuilder
         request = new MockHttpServletRequest();
         request.setContextPath("");
-        request.setRequestURI("/api/images/upload");
+        request.setRequestURI("/api/v1/images/upload");
         request.setServerName("localhost");
         request.setServerPort(8080);
         request.setScheme("http");

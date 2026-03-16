@@ -155,7 +155,7 @@ export async function getListings(filters: ListingFilters = {}): Promise<{ listi
       params.set('model', filters.model);
     }
 
-    const url = `/api/listings/filter?${params.toString()}`;
+    const url = `/api/v1/listings/filter?${params.toString()}`;
     const response = await api.get<ListingApiResponse>(url);
     const result = mapApiResponseToListings(response);
     return result;
@@ -190,7 +190,7 @@ export async function getListings(filters: ListingFilters = {}): Promise<{ listi
 export async function getFeaturedListings(): Promise<Listing[]> {
   try {
     // Use the simple listings endpoint directly
-    const response = await api.get<ListingApiResponse>(`/api/listings?size=3&page=0`);
+    const response = await api.get<ListingApiResponse>(`/api/v1/listings?size=3&page=0`);
     const { listings } = mapApiResponseToListings(response);
     return listings;
   } catch (error) {
@@ -201,7 +201,7 @@ export async function getFeaturedListings(): Promise<Listing[]> {
 
 export async function getListingById(id: string | number): Promise<Listing> {
   try {
-    const response = await api.get<ApiListingItem>(`/api/listings/${id}`);
+    const response = await api.get<ApiListingItem>(`/api/v1/listings/${id}`);
     
     // Transform the single API listing item to our frontend Listing type
     const { mainImageUrl, mediaItems } = getMediaUrls(response.media || []);
@@ -329,7 +329,7 @@ export async function updateListing(id: string | number, data: UpdateListingData
     };
     
     const response = await api.put<ApiListingItem>(
-      `/api/listings/${id}`, 
+      `/api/v1/listings/${id}`, 
       data as Record<string, unknown>,
       headers
     );
@@ -470,7 +470,7 @@ export async function getMyListings(forceRefresh = false): Promise<Listing[]> {
 
     const headers = await getAuthHeaders();
     
-    const response = await api.get<ApiListingItem[]>('/api/listings/my-listings', headers);
+    const response = await api.get<ApiListingItem[]>('/api/v1/listings/my-listings', headers);
     
     const mappedListings = response.map(item => {
       const { mainImageUrl, mediaItems } = getMediaUrls(item.media || []);
@@ -710,7 +710,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
     
     // Choose endpoint based on whether we have images
     const endpoint = hasImages ? '/with-image' : '';
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings${endpoint}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings${endpoint}`;
     
     // Prepare request options
     let requestOptions: RequestInit;
@@ -759,7 +759,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           uploadFormData.append('file', additionalImage, additionalImage.name);
           
           const uploadResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}/upload-image`,
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/${response.id}/upload-image`,
             {
               method: 'POST',
               headers: {
@@ -781,7 +781,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
       // Fetch the updated listing to get all media after image uploads
       try {
         const updatedResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/${response.id}`,
           {
             method: 'GET',
             headers: {
@@ -810,7 +810,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           uploadFormData.append('listingId', response.id.toString());
           
           const uploadResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/files/upload`,
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/files/upload`,
             {
               method: 'POST',
               headers: {
@@ -842,7 +842,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
           };
           
           const videoResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}/videos/external`,
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/${response.id}/videos/external`,
             {
               method: 'POST',
               headers: {
@@ -869,7 +869,7 @@ export async function createListing(formData: ListingFormData): Promise<Listing>
         (formData.videoUrls && formData.videoUrls.length > 0)) {
       try {
         const finalResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${response.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/${response.id}`,
           {
             method: 'GET',
             headers: {
@@ -1006,7 +1006,7 @@ export async function uploadListingImage(listingId: string | number, imageFile: 
     formData.append('file', imageFile, imageFile.name);
     
     // Use fetch directly for file upload
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/${listingId}/upload-image`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/${listingId}/upload-image`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -1050,7 +1050,7 @@ export async function uploadListingImage(listingId: string | number, imageFile: 
 export async function deleteListingById(id: string): Promise<void> {
   try {
     const headers = await getAuthHeaders();
-    await api.delete(`/api/listings/${id}`, headers);
+    await api.delete(`/api/v1/listings/${id}`, headers);
     // Clear cache since listings have changed
     clearMyListingsCache();
   } catch (error) {
@@ -1064,10 +1064,10 @@ export async function deleteMultipleListings(ids: string[]): Promise<void> {
   try {
     const headers = await getAuthHeaders();
     // If the backend supports bulk delete, use it
-    // await api.delete('/api/listings/bulk', { ...headers, body: JSON.stringify({ ids }) });
+    // await api.delete('/api/v1/listings/bulk', { ...headers, body: JSON.stringify({ ids }) });
     
     // Otherwise, delete one by one
-    await Promise.all(ids.map(id => api.delete(`/api/listings/${id}`, headers)));
+    await Promise.all(ids.map(id => api.delete(`/api/v1/listings/${id}`, headers)));
     // Clear cache since listings have changed
     clearMyListingsCache();
   } catch (error) {

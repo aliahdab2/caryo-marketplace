@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/favorites")
+@RequestMapping("/api/v1/favorites")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Favorites", description = "Endpoints for managing user favorites/watchlist for car listings")

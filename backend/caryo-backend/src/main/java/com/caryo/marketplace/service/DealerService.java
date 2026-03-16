@@ -296,7 +296,7 @@ public class DealerService {
      * Check if a URL is valid for file storage (HTTP/HTTPS URL or /api/ relative path).
      */
     private boolean isValidFileUrl(String url) {
-        return url.matches("^https?://.*") || url.startsWith("/api/");
+        return url.matches("^https?://.*") || url.startsWith("/api/v1/");
     }
 
     /**

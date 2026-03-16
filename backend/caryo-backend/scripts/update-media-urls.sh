@@ -5,7 +5,7 @@
 echo "Updating media file keys to use uploaded sample images..."
 
 # First, let's check if the backend is running
-if ! curl -s http://localhost:8080/api/listings > /dev/null; then
+if ! curl -s http://localhost:8080/api/v1/listings > /dev/null; then
     echo "Backend is not running. Please start it first."
     exit 1
 fi

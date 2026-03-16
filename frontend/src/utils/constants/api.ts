@@ -11,20 +11,20 @@ export const API_CONFIG = {
   // API endpoints
   ENDPOINTS: {
     AUTH: {
-      SIGNIN: '/api/auth/signin',
-      SIGNUP: '/api/auth/signup',
-      VERIFY_EMAIL: '/api/auth/verify-email',
-      RESEND_VERIFICATION: '/api/auth/verify-email/resend',
-      GOOGLE_OAUTH: '/api/auth/google',
+      SIGNIN: '/api/v1/auth/signin',
+      SIGNUP: '/api/v1/auth/signup',
+      VERIFY_EMAIL: '/api/v1/auth/verify-email',
+      RESEND_VERIFICATION: '/api/v1/auth/verify-email/resend',
+      GOOGLE_OAUTH: '/api/v1/auth/google',
     },
     USER: {
-      PROFILE: '/api/user/profile',
-      PREFERENCES: '/api/user/preferences',
+      PROFILE: '/api/v1/user/profile',
+      PREFERENCES: '/api/v1/user/preferences',
     },
     LISTINGS: {
-      BASE: '/api/listings',
-      SEARCH: '/api/listings/search',
-      FAVORITES: '/api/listings/favorites',
+      BASE: '/api/v1/listings',
+      SEARCH: '/api/v1/listings/search',
+      FAVORITES: '/api/v1/listings/favorites',
     },
   },
 } as const;

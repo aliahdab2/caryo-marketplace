@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Provides CRUD operations for car models with proper validation and pagination
  */
 @RestController
-@RequestMapping("/api/admin/car-models")
+@RequestMapping("/api/v1/admin/car-models")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j

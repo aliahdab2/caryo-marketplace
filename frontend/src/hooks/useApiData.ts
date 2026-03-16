@@ -23,13 +23,13 @@ import { fetchWithCache } from '@/services/api';
  * ### Example:
  * ```typescript
  * // ✅ GOOD: Empty deps for static data
- * useApiData(fetchBrands, '/api/brands', []);
+ * useApiData(fetchBrands, '/api/v1/brands', []);
  * 
  * // ✅ GOOD: Only primitive dep that should trigger re-fetch
- * useApiData(fetchModels, `/api/brands/${makeId}/models`, [makeId]);
+ * useApiData(fetchModels, `/api/v1/brands/${makeId}/models`, [makeId]);
  * 
  * // ❌ BAD: Including translation function
- * useApiData(fetchBrands, '/api/brands', [t]); // Causes duplicate fetches!
+ * useApiData(fetchBrands, '/api/v1/brands', [t]); // Causes duplicate fetches!
  * ```
  * 
  * @param fetchFunction The function to call for fetching data

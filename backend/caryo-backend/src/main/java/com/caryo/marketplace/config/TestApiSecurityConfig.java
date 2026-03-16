@@ -54,17 +54,17 @@ public class TestApiSecurityConfig {
             // For regular tests, use normal security rules
             http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/api/test/public").permitAll()
-                .requestMatchers("/api/test/user").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/api/test/admin").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/locations").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/locations/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pricing/**").permitAll()  // Allow public access to pricing tiers
+                .requestMatchers("/api/v1/test/public").permitAll()
+                .requestMatchers("/api/v1/test/user").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/v1/test/admin").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/locations").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/locations/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/locations/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/pricing/**").permitAll()  // Allow public access to pricing tiers
                 .anyRequest().authenticated()
             );
         }

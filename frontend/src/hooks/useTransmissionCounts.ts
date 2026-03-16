@@ -30,7 +30,7 @@ export const useTransmissionCounts = (filters?: CarListingFilterParams) => {
         if (filters?.fuelTypeSlugs) filters.fuelTypeSlugs.forEach((slug: string) => params.append('fuelTypeSlugs', slug));
         if (filters?.bodyStyleIds) filters.bodyStyleIds.forEach((id: number) => params.append('bodyStyleIds', id.toString()));
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/listings/counts/transmissions?${params.toString()}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/listings/counts/transmissions?${params.toString()}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

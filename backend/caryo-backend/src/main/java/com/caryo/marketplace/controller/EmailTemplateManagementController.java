@@ -17,7 +17,7 @@ import java.util.Optional;
  * Provides endpoints for template validation, listing, and configuration.
  */
 @RestController
-@RequestMapping("/api/admin/email-templates")
+@RequestMapping("/api/v1/admin/email-templates")
 @PreAuthorize("hasRole('ADMIN')")
 public class EmailTemplateManagementController {
 

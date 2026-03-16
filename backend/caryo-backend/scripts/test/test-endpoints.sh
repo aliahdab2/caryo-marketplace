@@ -97,19 +97,19 @@ run_endpoint_tests() {
   
   # Public endpoints (should be accessible without authentication)
   test_endpoint "/actuator/health" "GET" 200 "Health check endpoint" || ((failures++))
-  test_endpoint "/api/public" "GET" 200 "Public endpoint (testing with admin token)" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
+  test_endpoint "/api/v1/public" "GET" 200 "Public endpoint (testing with admin token)" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
   
   # Authentication required endpoints
-  test_endpoint "/api/user" "GET" 401 "User endpoint without auth (should fail with 401)" || ((failures++))
-  test_endpoint "/api/admin" "GET" 401 "Admin endpoint without auth (should fail with 401)" || ((failures++))
+  test_endpoint "/api/v1/user" "GET" 401 "User endpoint without auth (should fail with 401)" || ((failures++))
+  test_endpoint "/api/v1/admin" "GET" 401 "Admin endpoint without auth (should fail with 401)" || ((failures++))
   
   # User endpoint with admin token
-  test_endpoint "/api/user" "GET" 200 "User endpoint with admin token" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
-  test_endpoint "/api/admin" "GET" 200 "Admin endpoint with admin token" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
+  test_endpoint "/api/v1/user" "GET" 200 "User endpoint with admin token" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
+  test_endpoint "/api/v1/admin" "GET" 200 "Admin endpoint with admin token" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
   
   # Reference data endpoints with authentication
-  test_endpoint "/api/reference-data/makes" "GET" 200 "Car makes reference data" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
-  test_endpoint "/api/reference-data/models" "GET" 200 "Car models reference data" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
+  test_endpoint "/api/v1/reference-data/makes" "GET" 200 "Car makes reference data" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
+  test_endpoint "/api/v1/reference-data/models" "GET" 200 "Car models reference data" "Authorization: Bearer $ADMIN_TOKEN" || ((failures++))
   
   # API documentation
   test_endpoint "/swagger-ui/index.html" "GET" 200 "Swagger UI" || ((failures++))

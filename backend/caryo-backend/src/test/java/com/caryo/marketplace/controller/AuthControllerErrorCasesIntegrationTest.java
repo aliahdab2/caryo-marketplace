@@ -65,7 +65,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         loginRequest.setPassword("wrong_password");
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 String.class
         );
@@ -90,7 +90,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
 
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 String.class
         );
@@ -106,7 +106,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateUserRequest.setSellerTypeId(1);
 
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 duplicateUserRequest,
                 String.class
         );
@@ -131,7 +131,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
 
         // First registration should be successful
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 String.class
         );
@@ -147,7 +147,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         duplicateEmailRequest.setSellerTypeId(1);
 
         ResponseEntity<String> duplicateResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 duplicateEmailRequest,
                 String.class
         );
@@ -164,7 +164,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         loginRequest.setPassword("some_password");
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 String.class
         );
@@ -180,7 +180,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
         // Leave all fields empty to trigger validation errors
 
         ResponseEntity<String> invalidResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 invalidRequest,
                 String.class
         );
@@ -193,7 +193,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
     public void testUnauthorizedResourceAccess() {
         // Try to access protected resource without authentication
         ResponseEntity<String> unauthorizedResponse = restTemplate.getForEntity(
-                baseUrl + "/api/test/user",
+                baseUrl + "/api/v1/test/user",
                 String.class
         );
 
@@ -218,7 +218,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             signupRequest.setPassword(password);
 
             ResponseEntity<String> signupResponse = restTemplate.postForEntity(
-                    baseUrl + "/api/auth/signup",
+                    baseUrl + "/api/v1/auth/signup",
                     signupRequest,
                     String.class
             );
@@ -238,7 +238,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
             loginRequest.setPassword(password);
 
             ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                    baseUrl + "/api/auth/signin",
+                    baseUrl + "/api/v1/auth/signin",
                     loginRequest,
                     JwtResponse.class
             );
@@ -259,7 +259,7 @@ public class AuthControllerErrorCasesIntegrationTest extends IntegrationTestWith
 
             // Try to access admin resource as regular user
             ResponseEntity<String> forbiddenResponse = restTemplate.exchange(
-                    baseUrl + "/api/test/admin",
+                    baseUrl + "/api/v1/test/admin",
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
                     String.class

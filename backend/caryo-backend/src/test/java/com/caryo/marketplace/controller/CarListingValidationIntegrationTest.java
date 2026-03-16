@@ -135,7 +135,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -151,7 +151,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         loginRequest.setPassword("password123");
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );
@@ -184,7 +184,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings",
+                baseUrl + "/api/v1/listings",
                 HttpMethod.POST,
                 entity,
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body
@@ -207,7 +207,7 @@ public class CarListingValidationIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<CreateListingRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings",
+                baseUrl + "/api/v1/listings",
                 HttpMethod.POST,
                 entity,
                 new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {} // Expecting error response body

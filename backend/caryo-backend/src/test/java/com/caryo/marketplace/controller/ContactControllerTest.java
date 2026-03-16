@@ -64,7 +64,7 @@ class ContactControllerTest {
         request.setLanguage("en");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -86,7 +86,7 @@ class ContactControllerTest {
         request.setLanguage("ar");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ class ContactControllerTest {
         // No language specified - should default to English
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -130,7 +130,7 @@ class ContactControllerTest {
         request.setLanguage("AR"); // Upper case should be normalized
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -153,7 +153,7 @@ class ContactControllerTest {
         request.setMessage("Test message");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -168,7 +168,7 @@ class ContactControllerTest {
         request.setMessage("Test message");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -183,7 +183,7 @@ class ContactControllerTest {
         request.setMessage("Test message");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -198,7 +198,7 @@ class ContactControllerTest {
         request.setMessage("");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -213,7 +213,7 @@ class ContactControllerTest {
         request.setMessage("Hi"); // Too short
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -228,7 +228,7 @@ class ContactControllerTest {
         request.setMessage("a".repeat(2001)); // Too long
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -250,7 +250,7 @@ class ContactControllerTest {
                 .when(emailService).sendContactFormEmail(anyString(), anyString(), anyString(), anyString());
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
@@ -272,7 +272,7 @@ class ContactControllerTest {
                 .when(emailService).sendContactFormEmail(anyString(), anyString(), anyString(), anyString());
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
@@ -292,7 +292,7 @@ class ContactControllerTest {
         request.setLanguage("fr"); // Unsupported language
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -314,7 +314,7 @@ class ContactControllerTest {
         request.setLanguage("   "); // Whitespace
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -336,7 +336,7 @@ class ContactControllerTest {
         request.setLanguage("en");
 
         // Act & Assert
-        mockMvc.perform(post("/api/contact")
+        mockMvc.perform(post("/api/v1/contact")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

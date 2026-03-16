@@ -40,7 +40,7 @@
           "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signin",
+          "raw": "{{baseUrl}}/api/v1/auth/signin",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "signin"]
         },
@@ -86,7 +86,7 @@
           "raw": "{\n    \"title\": \"Test Pause Resume Listing\",\n    \"brand\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"modelYear\": 2023,\n    \"price\": 28500,\n    \"mileage\": 15000,\n    \"locationId\": 1,\n    \"description\": \"Test listing for pause/resume functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/listings",
+          "raw": "{{baseUrl}}/api/v1/listings",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings"]
         },
@@ -127,7 +127,7 @@
           "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signin",
+          "raw": "{{baseUrl}}/api/v1/auth/signin",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "signin"]
         },
@@ -173,7 +173,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/admin/listings/{{test_listing_id}}/approve",
+          "raw": "{{baseUrl}}/api/v1/admin/listings/{{test_listing_id}}/approve",
           "host": ["{{baseUrl}}"],
           "path": ["api", "admin", "listings", "{{test_listing_id}}", "approve"]
         },
@@ -210,7 +210,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "pause"]
         },
@@ -247,7 +247,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "pause"]
         },
@@ -284,7 +284,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "resume"]
         },
@@ -321,7 +321,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "resume"]
         },
@@ -347,7 +347,7 @@
         "method": "PUT",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "pause"]
         },
@@ -373,7 +373,7 @@
         "method": "PUT",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "resume"]
         },
@@ -411,7 +411,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/mark-sold",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/mark-sold",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "mark-sold"]
         },
@@ -448,7 +448,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "pause"]
         },
@@ -485,7 +485,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}", "resume"]
         },
@@ -531,7 +531,7 @@
           "raw": "{\n    \"title\": \"Test Archive Listing\",\n    \"brand\": \"Honda\",\n    \"model\": \"Accord\",\n    \"modelYear\": 2023,\n    \"price\": 29800,\n    \"mileage\": 12000,\n    \"locationId\": 1,\n    \"description\": \"Test listing for archive functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/listings",
+          "raw": "{{baseUrl}}/api/v1/listings",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings"]
         },
@@ -567,7 +567,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/admin/listings/{{archive_listing_id}}/approve",
+          "raw": "{{baseUrl}}/api/v1/admin/listings/{{archive_listing_id}}/approve",
           "host": ["{{baseUrl}}"],
           "path": ["api", "admin", "listings", "{{archive_listing_id}}", "approve"]
         },
@@ -604,7 +604,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/archive",
+          "raw": "{{baseUrl}}/api/v1/listings/{{archive_listing_id}}/archive",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{archive_listing_id}}", "archive"]
         },
@@ -641,7 +641,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{archive_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{archive_listing_id}}", "pause"]
         },
@@ -678,7 +678,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/{{archive_listing_id}}/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{archive_listing_id}}", "resume"]
         },
@@ -724,7 +724,7 @@
           "raw": "{\n    \"title\": \"Test Unapproved Listing\",\n    \"brand\": \"Ford\",\n    \"model\": \"Explorer\",\n    \"modelYear\": 2023,\n    \"price\": 35500,\n    \"mileage\": 8000,\n    \"locationId\": 1,\n    \"description\": \"Test unapproved listing for pause functionality\",\n    \"transmission\": \"AUTOMATIC\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/listings",
+          "raw": "{{baseUrl}}/api/v1/listings",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings"]
         },
@@ -761,7 +761,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{unapproved_listing_id}}/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/{{unapproved_listing_id}}/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{unapproved_listing_id}}", "pause"]
         },
@@ -798,7 +798,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/99999/pause",
+          "raw": "{{baseUrl}}/api/v1/listings/99999/pause",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "99999", "pause"]
         },
@@ -835,7 +835,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/99999/resume",
+          "raw": "{{baseUrl}}/api/v1/listings/99999/resume",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "99999", "resume"]
         },
@@ -866,7 +866,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{test_listing_id}}",
+          "raw": "{{baseUrl}}/api/v1/listings/{{test_listing_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{test_listing_id}}"]
         },
@@ -897,7 +897,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{archive_listing_id}}",
+          "raw": "{{baseUrl}}/api/v1/listings/{{archive_listing_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{archive_listing_id}}"]
         },
@@ -928,7 +928,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/{{unapproved_listing_id}}",
+          "raw": "{{baseUrl}}/api/v1/listings/{{unapproved_listing_id}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "{{unapproved_listing_id}}"]
         },

@@ -51,7 +51,7 @@ public class CarListingCrudController {
 
     // READ OPERATIONS
 
-    @GetMapping("/api/listings")
+    @GetMapping("/api/v1/listings")
     @Operation(
         summary = "Get all approved, unsold, and unarchived car listings",
         description = "Returns a paginated list of all approved, unsold, and unarchived car listings (approved=true, sold=false, archived=false). Each listing includes an array of its associated media items (images/videos).",
@@ -75,7 +75,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/api/listings/filter")
+    @PostMapping("/api/v1/listings/filter")
     @Operation(
         summary = "Filter car listings (POST)",
         description = "Returns a paginated list of car listings matching the provided filter criteria in the request body. By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
@@ -100,7 +100,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/api/listings/filter")
+    @GetMapping("/api/v1/listings/filter")
     @Operation(
         summary = "Filter car listings by query parameters (GET)",
         description = "Returns a paginated list of car listings matching the provided filter criteria as query parameters. Supports slug-based filtering (brandSlugs, modelSlugs). By default, only listings with approved=true, sold=false, and archived=false are returned unless explicitly overridden in the request. Each listing includes an array of its associated media items.",
@@ -193,7 +193,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/api/listings/{id:[0-9]+}")
+    @GetMapping("/api/v1/listings/{id:[0-9]+}")
     @Operation(
         summary = "Get car listing by ID",
         description = "Returns the details of a car listing by its ID, including an array of its associated media items. Only approved listings (approved=true) can be accessed through this endpoint.",
@@ -210,7 +210,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(listing);
     }
 
-    @GetMapping("/api/listings/my-listings")
+    @GetMapping("/api/v1/listings/my-listings")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Get listings for the current user",
@@ -230,7 +230,7 @@ public class CarListingCrudController {
 
     // UPDATE OPERATION
 
-    @PutMapping("/api/listings/{id}")
+    @PutMapping("/api/v1/listings/{id}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Update an existing car listing",
@@ -258,7 +258,7 @@ public class CarListingCrudController {
 
     // DELETE OPERATIONS
 
-    @DeleteMapping("/api/listings/{id}")
+    @DeleteMapping("/api/v1/listings/{id}")
     @PreAuthorize("isAuthenticated()")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
@@ -286,7 +286,7 @@ public class CarListingCrudController {
 
     // STATUS OPERATIONS
 
-    @PostMapping("/api/listings/{id}/mark-sold")
+    @PostMapping("/api/v1/listings/{id}/mark-sold")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Mark a car listing as sold",
@@ -310,7 +310,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/api/listings/{id}/archive")
+    @PostMapping("/api/v1/listings/{id}/archive")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Archive a car listing",
@@ -334,7 +334,7 @@ public class CarListingCrudController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/api/listings/{id}/unarchive")
+    @PostMapping("/api/v1/listings/{id}/unarchive")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Unarchive a car listing",

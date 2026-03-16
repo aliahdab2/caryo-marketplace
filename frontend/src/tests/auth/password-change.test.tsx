@@ -67,7 +67,7 @@ describe('Password Change Functionality', () => {
 
     // Setup default fetch mock for the roles API call that happens on mount
     mockFetch.mockImplementation((url: string) => {
-      if (typeof url === 'string' && url.includes('/api/auth/social-login')) {
+      if (typeof url === 'string' && url.includes('/api/v1/auth/social-login')) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -197,7 +197,7 @@ describe('Password Change Functionality', () => {
   it('should successfully change password with valid inputs', async () => {
     // Setup fetch mock for both role refresh and password change
     mockFetch.mockImplementation((url: string) => {
-      if (typeof url === 'string' && url.includes('/api/auth/social-login')) {
+      if (typeof url === 'string' && url.includes('/api/v1/auth/social-login')) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -267,7 +267,7 @@ describe('Password Change Functionality', () => {
   it('should handle API errors correctly', async () => {
     // Setup fetch mock for role refresh (success) and password change (error)
     mockFetch.mockImplementation((url: string) => {
-      if (typeof url === 'string' && url.includes('/api/auth/social-login')) {
+      if (typeof url === 'string' && url.includes('/api/v1/auth/social-login')) {
         return Promise.resolve({
           ok: true,
           status: 200,

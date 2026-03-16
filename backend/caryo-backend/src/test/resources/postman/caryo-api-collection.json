@@ -59,7 +59,7 @@
               "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"role\": [\"user\"]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/signup",
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "signup"]
             }
@@ -104,7 +104,7 @@
               "raw": "{\n    \"username\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/signin",
+              "raw": "{{baseUrl}}/api/v1/auth/signin",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "signin"]
             }
@@ -139,7 +139,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/brands/{{dynamicBrandId}}/models",
+              "raw": "{{baseUrl}}/api/v1/reference-data/brands/{{dynamicBrandId}}/models",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "brands", "{{dynamicBrandId}}", "models"]
             }
@@ -165,7 +165,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/brands/999999999/models",
+              "raw": "{{baseUrl}}/api/v1/reference-data/brands/999999999/models",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "brands", "999999999", "models"]
             }
@@ -213,7 +213,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates"]
             }
@@ -249,7 +249,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/{{governorateSlug}}",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/{{governorateSlug}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", "{{governorateSlug}}"]
             }
@@ -279,7 +279,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/invalid-slug",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/invalid-slug",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", "invalid-slug"]
             }
@@ -309,7 +309,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", ""]
             }
@@ -353,7 +353,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/country/{{countryCode}}",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/country/{{countryCode}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", "country", "{{countryCode}}"]
             }
@@ -388,7 +388,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/country/XXX",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/country/XXX",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", "country", "XXX"]
             }
@@ -423,7 +423,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/reference-data/governorates/country/",
+              "raw": "{{baseUrl}}/api/v1/reference-data/governorates/country/",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reference-data", "governorates", "country", ""]
             }
@@ -462,7 +462,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count",
+              "raw": "{{baseUrl}}/api/v1/listings/count",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count"]
             }
@@ -496,7 +496,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count/filter?brandSlugs=toyota&minPrice=10000&maxPrice=50000",
+              "raw": "{{baseUrl}}/api/v1/listings/count/filter?brandSlugs=toyota&minPrice=10000&maxPrice=50000",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count", "filter"],
               "query": [
@@ -553,7 +553,7 @@
               "raw": "{\n  \"brandSlugs\": [\"toyota\", \"honda\"],\n  \"minYear\": 2018,\n  \"maxYear\": 2023,\n  \"minPrice\": 15000,\n  \"maxPrice\": 45000,\n  \"locations\": [\"damascus\"]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/listings/count",
+              "raw": "{{baseUrl}}/api/v1/listings/count",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "count"]
             }
@@ -597,7 +597,7 @@
               "raw": "{\n  \"brandSlugs\": [\"toyota\"],\n  \"minYear\": 2020\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/breakdown",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/breakdown",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "breakdown"]
             }
@@ -634,7 +634,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/years?brandSlugs=toyota",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/years?brandSlugs=toyota",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "years"],
               "query": [
@@ -677,7 +677,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/brands?minYear=2020",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/brands?minYear=2020",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "brands"],
               "query": [
@@ -720,7 +720,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/models?brandSlugs=toyota",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/models?brandSlugs=toyota",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "models"],
               "query": [
@@ -770,7 +770,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/seller-types?brandSlugs=toyota&minYear=2020",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/seller-types?brandSlugs=toyota&minYear=2020",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "seller-types"],
               "query": [
@@ -818,7 +818,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/listings/counts/seller-types",
+              "raw": "{{baseUrl}}/api/v1/listings/counts/seller-types",
               "host": ["{{baseUrl}}"],
               "path": ["api", "listings", "counts", "seller-types"]
             }
@@ -855,7 +855,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?transmissionIds=5&transmissionIds=4",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?transmissionIds=5&transmissionIds=4",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -901,7 +901,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?fuelTypeIds=1&fuelTypeIds=2",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?fuelTypeIds=1&fuelTypeIds=2",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -947,7 +947,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?bodyStyleIds=1&bodyStyleIds=2",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?bodyStyleIds=1&bodyStyleIds=2",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -1002,7 +1002,7 @@
                   "raw": "{\n  \"brandSlugs\": [\"toyota\", \"honda\"],\n  \"transmissionIds\": [5, 4],\n  \"fuelTypeIds\": [1, 2],\n  \"bodyStyleIds\": [1, 2],\n  \"minYear\": 2020,\n  \"maxPrice\": 50000\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count",
+                  "raw": "{{baseUrl}}/api/v1/listings/count",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count"]
                 }
@@ -1036,7 +1036,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?transmissionIds=5",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?transmissionIds=5",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -1077,7 +1077,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?fuelTypeIds=1",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?fuelTypeIds=1",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -1118,7 +1118,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count/filter?bodyStyleIds=1",
+                  "raw": "{{baseUrl}}/api/v1/listings/count/filter?bodyStyleIds=1",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count", "filter"],
                   "query": [
@@ -1168,7 +1168,7 @@
                   "raw": "{\n  \"transmissionIds\": [],\n  \"fuelTypeIds\": [],\n  \"bodyStyleIds\": []\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/api/listings/count",
+                  "raw": "{{baseUrl}}/api/v1/listings/count",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "listings", "count"]
                 }
@@ -1232,7 +1232,7 @@
               "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"email\": \"{{saved_search_test_email}}\",\n    \"password\": \"{{saved_search_test_password}}\",\n    \"role\": [\"user\"]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/signup",
+              "raw": "{{baseUrl}}/api/v1/auth/signup",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "signup"]
             }
@@ -1277,7 +1277,7 @@
               "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"password\": \"{{saved_search_test_password}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/signin",
+              "raw": "{{baseUrl}}/api/v1/auth/signin",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "signin"]
             }
@@ -1328,7 +1328,7 @@
               "raw": "{\n    \"name\": \"Test Toyota Search\",\n    \"description\": \"Looking for Toyota cars\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"maxPrice\": 30000\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": true\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches",
+              "raw": "{{baseUrl}}/api/v1/saved-searches",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches"]
             }
@@ -1366,7 +1366,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches",
+              "raw": "{{baseUrl}}/api/v1/saved-searches",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches"]
             }
@@ -1404,7 +1404,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "raw": "{{baseUrl}}/api/v1/saved-searches/{{test_saved_search_id}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
             }
@@ -1450,7 +1450,7 @@
               "raw": "{\n    \"name\": \"Updated Toyota Search\",\n    \"description\": \"Looking for Toyota cars (updated)\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"maxPrice\": 35000,\n        \"minYear\": 2018\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": false\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "raw": "{{baseUrl}}/api/v1/saved-searches/{{test_saved_search_id}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
             }
@@ -1488,7 +1488,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches/count",
+              "raw": "{{baseUrl}}/api/v1/saved-searches/count",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches", "count"]
             }
@@ -1520,7 +1520,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches/{{test_saved_search_id}}",
+              "raw": "{{baseUrl}}/api/v1/saved-searches/{{test_saved_search_id}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches", "{{test_saved_search_id}}"]
             }
@@ -1547,7 +1547,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/saved-searches",
+              "raw": "{{baseUrl}}/api/v1/saved-searches",
               "host": ["{{baseUrl}}"],
               "path": ["api", "saved-searches"]
             }

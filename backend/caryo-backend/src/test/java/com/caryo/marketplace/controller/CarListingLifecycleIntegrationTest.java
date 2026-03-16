@@ -157,7 +157,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -173,7 +173,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         loginRequest.setPassword("password123");
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );
@@ -265,7 +265,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<CreateListingRequest> createEntity = new HttpEntity<>(createRequest, headers);
 
         ResponseEntity<Map<String, Object>> createResponse = restTemplate.exchange(
-                baseUrl + "/api/listings",
+                baseUrl + "/api/v1/listings",
                 HttpMethod.POST,
                 createEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -283,7 +283,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> getEntity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> getResponse = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
+                baseUrl + "/api/v1/listings/" + listingId.longValue(), // Use longValue for path
                 HttpMethod.GET,
                 getEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -303,7 +303,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
 
         // 4. Attempt to access without authentication (should fail - expect 404 Not Found because it's unapproved)
         ResponseEntity<Map<String, Object>> unauthorizedResponse = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId.longValue(), // Use longValue for path
+                baseUrl + "/api/v1/listings/" + listingId.longValue(), // Use longValue for path
                 HttpMethod.GET,
                 null, // No body or headers needed for unauthorized GET
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -335,7 +335,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?location=test-governorate", // Use governorate slug, not location slug
+                baseUrl + "/api/v1/listings/filter?location=test-governorate", // Use governorate slug, not location slug
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -365,7 +365,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?location=invalid-nonexistent-slug",
+                baseUrl + "/api/v1/listings/filter?location=invalid-nonexistent-slug",
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -403,7 +403,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter", // No location query param
+                baseUrl + "/api/v1/listings/filter", // No location query param
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -440,7 +440,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?locationId=" + testGovernorateId, // Filter by the ID of testGovernorate
+                baseUrl + "/api/v1/listings/filter?locationId=" + testGovernorateId, // Filter by the ID of testGovernorate
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -473,7 +473,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         long nonExistentLocationId = 99999L; // An ID that is unlikely to exist
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?locationId=" + nonExistentLocationId,
+                baseUrl + "/api/v1/listings/filter?locationId=" + nonExistentLocationId,
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -514,7 +514,7 @@ public class CarListingLifecycleIntegrationTest extends IntegrationTestWithS3 {
         // Provide both locationId (for testGovernorate) and location slug (for savedAnotherLocation)
         // Expecting locationId to take precedence
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                baseUrl + "/api/listings/filter?locationId=" + testGovernorateId + "&location=" + savedAnotherLocation.getSlug(),
+                baseUrl + "/api/v1/listings/filter?locationId=" + testGovernorateId + "&location=" + savedAnotherLocation.getSlug(),
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}

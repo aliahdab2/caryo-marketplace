@@ -45,7 +45,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?brandSlugs=toyota",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [
@@ -93,7 +93,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?brandSlugs=toyota&brandSlugs=honda",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [
@@ -145,7 +145,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?modelSlugs=camry&modelSlugs=civic",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?modelSlugs=camry&modelSlugs=civic",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [
@@ -201,7 +201,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&modelSlugs=accord",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?brandSlugs=toyota&brandSlugs=honda&modelSlugs=camry&modelSlugs=civic&modelSlugs=accord",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [
@@ -268,7 +268,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&minPrice=20000&maxPrice=40000",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?brandSlugs=toyota&minPrice=20000&maxPrice=40000",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [
@@ -342,7 +342,7 @@
           "raw": "{\n    \"brandSlugs\": [\"toyota\", \"honda\"],\n    \"modelSlugs\": [\"camry\", \"civic\"],\n    \"minPrice\": 15000,\n    \"maxPrice\": 35000\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter",
+          "raw": "{{baseUrl}}/api/v1/listings/filter",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"]
         }
@@ -374,7 +374,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/listings/filter?brandSlugs=toyota&brandSlugs=honda&brandSlugs=bmw&brandSlugs=mercedes&brandSlugs=audi&brandSlugs=lexus&brandSlugs=infiniti&brandSlugs=acura&brandSlugs=mazda&brandSlugs=nissan&brandSlugs=ford",
+          "raw": "{{baseUrl}}/api/v1/listings/filter?brandSlugs=toyota&brandSlugs=honda&brandSlugs=bmw&brandSlugs=mercedes&brandSlugs=audi&brandSlugs=lexus&brandSlugs=infiniti&brandSlugs=acura&brandSlugs=mazda&brandSlugs=nissan&brandSlugs=ford",
           "host": ["{{baseUrl}}"],
           "path": ["api", "listings", "filter"],
           "query": [

@@ -431,14 +431,14 @@ export const api = {
  * Fetches all car brands
  */
 export async function fetchCarBrands(): Promise<CarBrand[]> {
-  return api.get<CarBrand[]>('/api/reference-data/brands');
+  return api.get<CarBrand[]>('/api/v1/reference-data/brands');
 }
 
 /**
  * Fetches models for a specific brand
  */
 export async function fetchCarModels(brandId: number): Promise<CarModel[]> {
-  return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models`);
+  return api.get<CarModel[]>(`/api/v1/reference-data/brands/${brandId}/models`);
 }
 
 
@@ -452,56 +452,56 @@ export async function searchCarModelsByBrand(brandId: number, query: string): Pr
   if (!query || query.trim().length === 0) {
     return fetchCarModels(brandId); // Return all models for brand if no query
   }
-  return api.get<CarModel[]>(`/api/reference-data/brands/${brandId}/models/search?q=${encodeURIComponent(query.trim())}`);
+  return api.get<CarModel[]>(`/api/v1/reference-data/brands/${brandId}/models/search?q=${encodeURIComponent(query.trim())}`);
 }
 
 /**
  * Fetches trims for a specific model
  */
 export async function fetchCarTrims(brandId: number, modelId: number): Promise<CarTrim[]> {
-  return api.get<CarTrim[]>(`/api/reference-data/brands/${brandId}/models/${modelId}/trims`);
+  return api.get<CarTrim[]>(`/api/v1/reference-data/brands/${brandId}/models/${modelId}/trims`);
 }
 
 /**
  * Fetches all car reference data (conditions, transmissions, fuel types, etc.)
  */
 export async function fetchCarReferenceData(): Promise<CarReferenceData> {
-  return api.get<CarReferenceData>('/api/reference-data');
+  return api.get<CarReferenceData>('/api/v1/reference-data');
 }
 
 /**
  * Fetches car conditions only
  */
 export async function fetchCarConditions(): Promise<CarCondition[]> {
-  return api.get<CarCondition[]>('/api/car-conditions');
+  return api.get<CarCondition[]>('/api/v1/car-conditions');
 }
 
 /**
  * Fetches transmissions only
  */
 export async function fetchTransmissions(): Promise<Transmission[]> {
-  return api.get<Transmission[]>('/api/transmissions');
+  return api.get<Transmission[]>('/api/v1/transmissions');
 }
 
 /**
  * Fetches fuel types only
  */
 export async function fetchFuelTypes(): Promise<FuelType[]> {
-  return api.get<FuelType[]>('/api/fuel-types');
+  return api.get<FuelType[]>('/api/v1/fuel-types');
 }
 
 /**
  * Fetches body styles only
  */
 export async function fetchBodyStyles(): Promise<BodyStyle[]> {
-  return api.get<BodyStyle[]>('/api/body-styles');
+  return api.get<BodyStyle[]>('/api/v1/body-styles');
 }
 
 /**
  * Fetches drive types only
  */
 export async function fetchDriveTypes(): Promise<DriveType[]> {
-  return api.get<DriveType[]>('/api/drive-types');
+  return api.get<DriveType[]>('/api/v1/drive-types');
 }
 
 /**
@@ -509,7 +509,7 @@ export async function fetchDriveTypes(): Promise<DriveType[]> {
  * @returns Promise with array of governorates
  */
 export async function fetchGovernorates(): Promise<Governorate[]> {
-  return api.get<Governorate[]>('/api/reference-data/governorates');
+  return api.get<Governorate[]>('/api/v1/reference-data/governorates');
 }
 
 /**
@@ -589,7 +589,7 @@ export async function fetchCarListings(filters?: CarListingFilterParams): Promis
     if (filters.sort) queryParams.append('sort', filters.sort);
   }
   
-  const endpoint = `/api/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const endpoint = `/api/v1/listings/filter${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   
   try {
     const result = await api.get<PageResponse<CarListing>>(endpoint);
@@ -622,7 +622,7 @@ export async function fetchBrandCounts(filters?: Partial<CarListingFilterParams>
     if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
     
     const queryString = params.toString();
-    const url = `/api/listings/counts/brands${queryString ? `?${queryString}` : ''}`;
+    const url = `/api/v1/listings/counts/brands${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get<Record<string, number>>(url);
     return response || {};
@@ -654,7 +654,7 @@ export async function fetchModelCounts(filters?: Partial<CarListingFilterParams>
     if (filters?.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
     
     const queryString = params.toString();
-    const url = `/api/listings/counts/models${queryString ? `?${queryString}` : ''}`;
+    const url = `/api/v1/listings/counts/models${queryString ? `?${queryString}` : ''}`;
     
     const response = await api.get<Record<string, number>>(url);
     return response || {};
@@ -704,14 +704,14 @@ const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
 
 // Keys that should be persisted to LocalStorage (long-lived reference data)
 const PERSISTENT_ENDPOINTS = [
-  '/api/reference-data/brands',
-  '/api/reference-data/governorates',
-  '/api/reference-data',
-  '/api/car-conditions',
-  '/api/transmissions',
-  '/api/fuel-types',
-  '/api/body-styles',
-  '/api/drive-types'
+  '/api/v1/reference-data/brands',
+  '/api/v1/reference-data/governorates',
+  '/api/v1/reference-data',
+  '/api/v1/car-conditions',
+  '/api/v1/transmissions',
+  '/api/v1/fuel-types',
+  '/api/v1/body-styles',
+  '/api/v1/drive-types'
 ];
 
 /**
@@ -842,7 +842,7 @@ export function clearApiCache(endpoint?: string): void {
 
 /**
  * Fetch car listings publicly (no authentication required)
- * Uses the public /api/listings/filter endpoint
+ * Uses the public /api/v1/listings/filter endpoint
  */
 export async function fetchCarListingsPublic(filters?: CarListingFilterParams): Promise<PageResponse<CarListing>> {
   try {
@@ -925,7 +925,7 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
     }
 
     // Make PUBLIC API call (no authentication headers)
-    const url = `${API_BASE_URL}/api/listings/filter?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings/filter?${queryParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -954,7 +954,7 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
  */
 export async function fetchCarListingPublic(id: string | number): Promise<CarListing> {
   try {
-    const url = `${API_BASE_URL}/api/listings/${id}`;
+    const url = `${API_BASE_URL}/api/v1/listings/${id}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -1007,7 +1007,7 @@ export async function getCarListingCountsPublic(filters?: CarListingFilterParams
       });
     }
 
-    const url = `${API_BASE_URL}/api/listings/count?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings/count?${queryParams.toString()}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -1039,7 +1039,7 @@ export async function fetchFeaturedListingsPublic(limit: number = 12): Promise<C
     queryParams.append('size', limit.toString());
     queryParams.append('sort', 'createdAt,desc'); // Latest first
     
-    const url = `${API_BASE_URL}/api/listings?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings?${queryParams.toString()}`;
     
     const response = await fetch(url, {
       method: 'GET',

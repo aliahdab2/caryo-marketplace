@@ -38,11 +38,11 @@ NEW_LAST_NAME="User"
 register_user() {
   print_info "Registering new user: $NEW_USER"
   
-  print_info "Executing: curl -X POST 'http://localhost:8080/api/auth/signup' with JSON payload"
+  print_info "Executing: curl -X POST 'http://localhost:8080/api/v1/auth/signup' with JSON payload"
   
   # Use the exact curl command format that works from manual testing
   local register_response
-  register_response=$(curl -s -X POST "http://localhost:8080/api/auth/signup" \
+  register_response=$(curl -s -X POST "http://localhost:8080/api/v1/auth/signup" \
     -H "Content-Type: application/json" \
     -d '{"username":"'$NEW_USER'","password":"'$NEW_PASS'","email":"'$NEW_EMAIL'","firstName":"'$NEW_FIRST_NAME'","lastName":"'$NEW_LAST_NAME'"}')
     
@@ -65,11 +65,11 @@ register_user() {
 login_user() {
   print_info "Logging in as: $TEST_USER"
   
-  print_info "Executing: curl -X POST 'http://localhost:8080/api/auth/signin' with JSON payload"
+  print_info "Executing: curl -X POST 'http://localhost:8080/api/v1/auth/signin' with JSON payload"
   
   # Use the exact curl command format that works from manual testing
   local login_response
-  login_response=$(curl -s -X POST "http://localhost:8080/api/auth/signin" \
+  login_response=$(curl -s -X POST "http://localhost:8080/api/v1/auth/signin" \
     -H "Content-Type: application/json" \
     -d '{"username":"'$TEST_USER'","password":"'$TEST_PASS'"}')
   

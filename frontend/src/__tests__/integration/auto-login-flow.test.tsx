@@ -96,7 +96,7 @@ describe('Auto-Login Integration Flow', () => {
     (useSearchParams as jest.Mock).mockReturnValue({ get: mockGet });
     (useTranslation as jest.Mock).mockReturnValue({ t: mockT });
     (useLazyTranslation as jest.Mock).mockReturnValue({ t: mockT, ready: true });
-    (getAuthUrl as jest.Mock).mockReturnValue('http://localhost:8080/api/auth/verify-email');
+    (getAuthUrl as jest.Mock).mockReturnValue('http://localhost:8080/api/v1/auth/verify-email');
 
     // Reset location
     mockLocation.href = '';
@@ -153,7 +153,7 @@ describe('Auto-Login Integration Flow', () => {
 
       // Verify backend was called correctly
       expect(mockBackendVerification).toHaveBeenCalledWith(
-        'http://localhost:8080/api/auth/verify-email?token=valid-verification-token-123'
+        'http://localhost:8080/api/v1/auth/verify-email?token=valid-verification-token-123'
       );
 
       // Verify temporary auth data was stored

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory; // Added for logging
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reference-data/governorates")
+@RequestMapping("/api/v1/reference-data/governorates")
 public class GovernorateController {
 
     private final GovernorateService governorateService;

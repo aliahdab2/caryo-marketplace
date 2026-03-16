@@ -129,7 +129,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -141,7 +141,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         loginRequest.setPassword(password);
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );
@@ -173,7 +173,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         HttpEntity<Map<String, Object>> createEntity = new HttpEntity<>(createPayload, userHeaders);
 
         ResponseEntity<Map<String, Object>> createResponse = restTemplate.exchange(
-                baseUrl + "/api/listings",
+                baseUrl + "/api/v1/listings",
                 HttpMethod.POST,
                 createEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -189,7 +189,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
 
         HttpEntity<String> getEntityPublic = new HttpEntity<>(new HttpHeaders());
         ResponseEntity<Map<String, Object>> getResponseUnapproved = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId,
+                baseUrl + "/api/v1/listings/" + listingId,
                 HttpMethod.GET,
                 getEntityPublic,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -202,7 +202,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         HttpEntity<String> approveEntity = new HttpEntity<>(adminHeaders);
 
         ResponseEntity<Map<String, Object>> approveResponse = restTemplate.exchange(
-                baseUrl + "/api/admin/listings/" + listingId + "/approve",
+                baseUrl + "/api/v1/admin/listings/" + listingId + "/approve",
                 HttpMethod.PUT,
                 approveEntity,
                 new ParameterizedTypeReference<Map<String, Object>>() {}
@@ -215,7 +215,7 @@ public class CarListingIntegrationTestWithS3 extends IntegrationTestWithS3 {
         assertEquals(Boolean.TRUE, approveResponseBody.get("approved"), "Response body should indicate approved: true");
 
         ResponseEntity<Map<String, Object>> getResponseApproved = restTemplate.exchange(
-                baseUrl + "/api/listings/" + listingId,
+                baseUrl + "/api/v1/listings/" + listingId,
                 HttpMethod.GET,
                 getEntityPublic,
                 new ParameterizedTypeReference<Map<String, Object>>() {}

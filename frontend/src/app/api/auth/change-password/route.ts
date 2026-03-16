@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     // Call the backend API to change password
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const response = await fetch(`${backendUrl}/api/auth/change-password`, {
+    const response = await fetch(`${backendUrl}/api/v1/auth/change-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -38,7 +38,7 @@ describe('useFuelTypeCounts', () => {
 
     expect(result.current.fuelTypeCounts).toEqual(mockCounts);
     expect(result.current.error).toBeNull();
-    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/listings/counts/fuel-types');
+    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/v1/listings/counts/fuel-types');
   });
 
   it('should fetch fuel type counts with filters', async () => {
@@ -72,7 +72,7 @@ describe('useFuelTypeCounts', () => {
 
     expect(result.current.fuelTypeCounts).toEqual(mockCounts);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('http://localhost:8080/api/listings/counts/fuel-types')
+      expect.stringContaining('http://localhost:8080/api/v1/listings/counts/fuel-types')
     );
   });
 
@@ -188,7 +188,7 @@ describe('useFuelTypeCounts', () => {
     });
 
     expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/listings/counts/fuel-types');
+    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/v1/listings/counts/fuel-types');
   });
 
   it('should handle null and undefined filter values', async () => {
@@ -218,6 +218,6 @@ describe('useFuelTypeCounts', () => {
     });
 
     expect(result.current.fuelTypeCounts).toEqual(mockCounts);
-    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/listings/counts/fuel-types');
+    expect(global.fetch).toHaveBeenCalledWith('http://localhost:8080/api/v1/listings/counts/fuel-types');
   });
 }); 

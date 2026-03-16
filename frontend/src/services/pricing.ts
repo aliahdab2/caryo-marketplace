@@ -22,7 +22,7 @@ export interface SubscriptionTier {
  */
 export async function getSubscriptionTiers(): Promise<SubscriptionTier[]> {
   try {
-    const response = await api.get<{ data: SubscriptionTier[] }>('/api/pricing/tiers');
+    const response = await api.get<{ data: SubscriptionTier[] }>('/api/v1/pricing/tiers');
     return response.data || [];
   } catch (error) {
     console.error('Failed to fetch subscription tiers:', error);

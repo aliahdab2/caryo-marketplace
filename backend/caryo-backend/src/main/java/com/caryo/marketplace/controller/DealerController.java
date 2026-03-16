@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.*;
  * - GET /api/dealer/can-create-listing - Check if can create listing
  */
 @RestController
-@RequestMapping("/api/dealer")
+@RequestMapping("/api/v1/dealer")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Dealer", description = "Dealer profile management, trial status, and subscription operations")

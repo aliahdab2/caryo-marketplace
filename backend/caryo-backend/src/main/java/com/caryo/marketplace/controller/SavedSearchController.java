@@ -27,7 +27,7 @@ import java.util.UUID;
  * REST controller for managing saved searches
  */
 @RestController
-@RequestMapping("/api/saved-searches")
+@RequestMapping("/api/v1/saved-searches")
 
 @RequiredArgsConstructor
 @Slf4j

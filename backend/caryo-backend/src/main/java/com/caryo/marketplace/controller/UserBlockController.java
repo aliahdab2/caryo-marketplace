@@ -21,7 +21,7 @@ import java.util.List;
  * REST controller for managing user-level blocking.
  */
 @RestController
-@RequestMapping("/api/users/block")
+@RequestMapping("/api/v1/users/block")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "User Blocking", description = "User-level blocking endpoints")

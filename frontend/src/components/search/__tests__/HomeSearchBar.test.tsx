@@ -35,7 +35,7 @@ jest.mock('@/hooks/useApiData', () => ({
 }));
 
 // Mock lodash debounce
-jest.mock('lodash/debounce', () => {
+jest.mock('lodash-es/debounce', () => {
   return jest.fn((fn) => {
     const debouncedFn = (...args: unknown[]) => fn(...args);
     debouncedFn.cancel = jest.fn();

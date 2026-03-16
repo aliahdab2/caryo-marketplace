@@ -145,7 +145,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         loginRequest.setUsername(username);
         loginRequest.setPassword(password);
 
-        MvcResult result = mockMvc.perform(post("/api/auth/signin")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -168,7 +168,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         assertFalse(initialListing.get().getSold());
 
         // Admin marks listing as sold
-        mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -184,7 +184,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
     @Test
     @Transactional
     public void regularUserCannotAccessAdminMarkAsSold() throws Exception {
-        mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + userToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -203,7 +203,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         assertFalse(initialListing.get().getArchived());
 
         // Admin archives listing
-        mockMvc.perform(post("/api/admin/listings/{id}/archive", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/archive", listingId)
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -225,7 +225,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.save(listing);
 
         // Admin unarchives listing
-        mockMvc.perform(post("/api/admin/listings/{id}/unarchive", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/unarchive", listingId)
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -248,7 +248,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.save(listing);
 
         // Try to mark archived listing as sold
-        mockMvc.perform(post("/api/admin/listings/{id}/mark-sold", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/mark-sold", listingId)
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())
@@ -265,7 +265,7 @@ public class AdminListingStatusIntegrationTest extends IntegrationTestWithS3 {
         carListingRepository.save(listing);
 
         // Try to unarchive a non-archived listing
-        mockMvc.perform(post("/api/admin/listings/{id}/unarchive", listingId)
+        mockMvc.perform(post("/api/v1/admin/listings/{id}/unarchive", listingId)
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())

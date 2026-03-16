@@ -34,7 +34,7 @@ describe('Dealer Payment API', () => {
 
       // Assert
       expect(mockedApiRequest).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/payments/subscription`,
+        `${API_BASE_URL}/api/v1/payments/subscription`,
         {
           method: 'POST',
           headers: {
@@ -141,7 +141,7 @@ describe('Dealer Payment API', () => {
 
       // Assert
       expect(mockedApiRequest).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/payments/history`,
+        `${API_BASE_URL}/api/v1/payments/history`,
         {
           method: 'GET',
         }
@@ -231,7 +231,7 @@ describe('Dealer Payment API', () => {
 
       // Assert
       expect(mockedApiRequest).toHaveBeenCalledWith(
-        `${API_BASE_URL}/api/payments/status/${transactionId}`,
+        `${API_BASE_URL}/api/v1/payments/status/${transactionId}`,
         {
           method: 'GET',
         }
@@ -289,7 +289,7 @@ describe('Dealer Payment API', () => {
         await getPaymentStatus(txnId);
         
         expect(mockedApiRequest).toHaveBeenCalledWith(
-          `${API_BASE_URL}/api/payments/status/${txnId}`,
+          `${API_BASE_URL}/api/v1/payments/status/${txnId}`,
           expect.any(Object)
         );
       }

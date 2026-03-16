@@ -39,7 +39,7 @@ export interface SavedSearchResponse {
 export async function createSavedSearch(request: SavedSearchRequest, token?: string): Promise<SavedSearchResponse> {
   try {
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
-    const response = await api.post<SavedSearchResponse>('/api/saved-searches', request as unknown as Record<string, unknown>, customHeaders);
+    const response = await api.post<SavedSearchResponse>('/api/v1/saved-searches', request as unknown as Record<string, unknown>, customHeaders);
     return response;
   } catch (error: unknown) {
     console.error('Error creating saved search:', error);
@@ -64,7 +64,7 @@ export async function createSavedSearch(request: SavedSearchRequest, token?: str
 export async function getUserSavedSearches(token?: string): Promise<SavedSearchResponse[]> {
   try {
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
-    const response = await api.get<SavedSearchResponse[]>('/api/saved-searches', customHeaders);
+    const response = await api.get<SavedSearchResponse[]>('/api/v1/saved-searches', customHeaders);
     return response;
   } catch (error) {
     console.error('Error fetching saved searches:', error);
@@ -79,7 +79,7 @@ export async function getUserSavedSearches(token?: string): Promise<SavedSearchR
  */
 export async function getSavedSearchById(id: string): Promise<SavedSearchResponse> {
   try {
-    const response = await api.get<SavedSearchResponse>(`/api/saved-searches/${id}`);
+    const response = await api.get<SavedSearchResponse>(`/api/v1/saved-searches/${id}`);
     return response;
   } catch (error) {
     console.error('Error fetching saved search:', error);
@@ -93,7 +93,7 @@ export async function getSavedSearchById(id: string): Promise<SavedSearchRespons
 export async function updateSavedSearch(id: string, request: SavedSearchRequest, token?: string): Promise<SavedSearchResponse> {
   try {
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
-    const response = await api.put<SavedSearchResponse>(`/api/saved-searches/${id}`, request as unknown as Record<string, unknown>, customHeaders);
+    const response = await api.put<SavedSearchResponse>(`/api/v1/saved-searches/${id}`, request as unknown as Record<string, unknown>, customHeaders);
     return response;
   } catch (error) {
     console.error('Error updating saved search:', error);
@@ -107,7 +107,7 @@ export async function updateSavedSearch(id: string, request: SavedSearchRequest,
 export async function deleteSavedSearch(id: string, token?: string): Promise<void> {
   try {
     const customHeaders = token ? { 'Authorization': `Bearer ${token}` } : undefined;
-    await api.delete(`/api/saved-searches/${id}`, customHeaders);
+    await api.delete(`/api/v1/saved-searches/${id}`, customHeaders);
   } catch (error) {
     console.error('Error deleting saved search:', error);
     throw error;

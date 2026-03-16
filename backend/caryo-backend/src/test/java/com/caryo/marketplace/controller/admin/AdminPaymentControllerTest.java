@@ -131,7 +131,7 @@ class AdminPaymentControllerTest {
             when(paymentService.getPendingVerifications())
                 .thenReturn(List.of(testTransaction));
 
-            mockMvc.perform(get("/api/admin/payments/pending"))
+            mockMvc.perform(get("/api/v1/admin/payments/pending"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.count").value(1))
@@ -142,7 +142,7 @@ class AdminPaymentControllerTest {
         @WithMockUser(roles = "USER")
         @DisplayName("Should deny access without admin role")
         void shouldDenyNonAdmin() throws Exception {
-            mockMvc.perform(get("/api/admin/payments/pending"))
+            mockMvc.perform(get("/api/v1/admin/payments/pending"))
                 .andExpect(status().isForbidden());
         }
     }
@@ -170,7 +170,7 @@ class AdminPaymentControllerTest {
             AdminPaymentController.RejectPaymentRequest request = new AdminPaymentController.RejectPaymentRequest();
             request.setReason("Insufficient proof of transfer");
 
-            mockMvc.perform(post("/api/admin/payments/reject/TXN-001")
+            mockMvc.perform(post("/api/v1/admin/payments/reject/TXN-001")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
@@ -199,7 +199,7 @@ class AdminPaymentControllerTest {
             AdminPaymentController.RejectPaymentRequest request = new AdminPaymentController.RejectPaymentRequest();
             request.setReason("Invalid transfer");
 
-            mockMvc.perform(post("/api/admin/payments/reject/TXN-002")
+            mockMvc.perform(post("/api/v1/admin/payments/reject/TXN-002")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
@@ -214,7 +214,7 @@ class AdminPaymentControllerTest {
             AdminPaymentController.RejectPaymentRequest request = new AdminPaymentController.RejectPaymentRequest();
             // reason is null — @NotBlank should fail
 
-            mockMvc.perform(post("/api/admin/payments/reject/TXN-001")
+            mockMvc.perform(post("/api/v1/admin/payments/reject/TXN-001")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
@@ -230,7 +230,7 @@ class AdminPaymentControllerTest {
             AdminPaymentController.RejectPaymentRequest request = new AdminPaymentController.RejectPaymentRequest();
             request.setReason("test");
 
-            mockMvc.perform(post("/api/admin/payments/reject/TXN-001")
+            mockMvc.perform(post("/api/v1/admin/payments/reject/TXN-001")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
@@ -249,7 +249,7 @@ class AdminPaymentControllerTest {
             when(paymentService.searchPayments(eq("TXN-001"), any(), any(), any(), any()))
                 .thenReturn(List.of(testTransaction));
 
-            mockMvc.perform(get("/api/admin/payments/search")
+            mockMvc.perform(get("/api/v1/admin/payments/search")
                     .param("transactionId", "TXN-001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -264,7 +264,7 @@ class AdminPaymentControllerTest {
             when(paymentService.searchPayments(any(), eq("PENDING_VERIFICATION"), any(), any(), any()))
                 .thenReturn(List.of(testTransaction));
 
-            mockMvc.perform(get("/api/admin/payments/search")
+            mockMvc.perform(get("/api/v1/admin/payments/search")
                     .param("status", "PENDING_VERIFICATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -278,7 +278,7 @@ class AdminPaymentControllerTest {
             when(paymentService.searchPayments(any(), any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-            mockMvc.perform(get("/api/admin/payments/search")
+            mockMvc.perform(get("/api/v1/admin/payments/search")
                     .param("dealerEmail", "nobody@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -293,7 +293,7 @@ class AdminPaymentControllerTest {
             when(paymentService.searchPayments(any(), any(), any(), any(), any()))
                 .thenReturn(List.of(testTransaction));
 
-            mockMvc.perform(get("/api/admin/payments/search"))
+            mockMvc.perform(get("/api/v1/admin/payments/search"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.count").value(1));
@@ -303,7 +303,7 @@ class AdminPaymentControllerTest {
         @WithMockAdmin
         @DisplayName("Should return error for invalid date format")
         void shouldReturnErrorForInvalidDate() throws Exception {
-            mockMvc.perform(get("/api/admin/payments/search")
+            mockMvc.perform(get("/api/v1/admin/payments/search")
                     .param("dateFrom", "not-a-date"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_DATE_FORMAT"));
@@ -316,7 +316,7 @@ class AdminPaymentControllerTest {
             when(paymentService.searchPayments(any(), eq("INVALID_STATUS"), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("No enum constant PaymentStatus.INVALID_STATUS"));
 
-            mockMvc.perform(get("/api/admin/payments/search")
+            mockMvc.perform(get("/api/v1/admin/payments/search")
                     .param("status", "INVALID_STATUS"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("INVALID_STATUS"));
@@ -326,7 +326,7 @@ class AdminPaymentControllerTest {
         @WithMockUser(roles = "USER")
         @DisplayName("Should deny non-admin search")
         void shouldDenyNonAdmin() throws Exception {
-            mockMvc.perform(get("/api/admin/payments/search"))
+            mockMvc.perform(get("/api/v1/admin/payments/search"))
                 .andExpect(status().isForbidden());
         }
     }

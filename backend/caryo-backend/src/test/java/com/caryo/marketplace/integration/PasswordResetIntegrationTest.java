@@ -74,7 +74,7 @@ class PasswordResetIntegrationTest {
         request.setEmail("test@example.com");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/forgot-password")
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -94,7 +94,7 @@ class PasswordResetIntegrationTest {
         request.setEmail("nonexistent@example.com");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/forgot-password")
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -111,7 +111,7 @@ class PasswordResetIntegrationTest {
         request.setEmail("invalid-email");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/forgot-password")
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -125,14 +125,14 @@ class PasswordResetIntegrationTest {
 
         // Act - Make multiple requests to exceed rate limit (MAX_ATTEMPTS_PER_EMAIL = 3)
         for (int i = 0; i < 3; i++) {
-            mockMvc.perform(post("/api/auth/forgot-password")
+            mockMvc.perform(post("/api/v1/auth/forgot-password")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk());
         }
 
         // 4th request should be rate limited
-        mockMvc.perform(post("/api/auth/forgot-password")
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isTooManyRequests())
@@ -146,7 +146,7 @@ class PasswordResetIntegrationTest {
         tokenRepository.save(token);
 
         // Act & Assert
-        mockMvc.perform(get("/api/auth/reset-password/validate")
+        mockMvc.perform(get("/api/v1/auth/reset-password/validate")
                 .param("token", "valid-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Token is valid"));
@@ -155,7 +155,7 @@ class PasswordResetIntegrationTest {
     @Test
     void validateResetToken_WithInvalidToken_ShouldReturn400() throws Exception {
         // Act & Assert
-        mockMvc.perform(get("/api/auth/reset-password/validate")
+        mockMvc.perform(get("/api/v1/auth/reset-password/validate")
                 .param("token", "invalid-token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Error: Invalid or expired reset token"));
@@ -168,7 +168,7 @@ class PasswordResetIntegrationTest {
         tokenRepository.save(expiredToken);
 
         // Act & Assert
-        mockMvc.perform(get("/api/auth/reset-password/validate")
+        mockMvc.perform(get("/api/v1/auth/reset-password/validate")
                 .param("token", "expired-token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Error: Invalid or expired reset token"));
@@ -187,7 +187,7 @@ class PasswordResetIntegrationTest {
         String oldPasswordHash = testUser.getPassword();
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -211,7 +211,7 @@ class PasswordResetIntegrationTest {
         request.setNewPassword("NewSecureP@ssw0rd!");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -229,7 +229,7 @@ class PasswordResetIntegrationTest {
         request.setNewPassword("weak");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -247,7 +247,7 @@ class PasswordResetIntegrationTest {
         request.setNewPassword("OldSecureP@ssw0rd!"); // Same as current password
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -266,7 +266,7 @@ class PasswordResetIntegrationTest {
         request.setNewPassword("NewSecureP@ssw0rd!");
 
         // Act & Assert
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -279,7 +279,7 @@ class PasswordResetIntegrationTest {
         ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
         forgotRequest.setEmail("test@example.com");
 
-        mockMvc.perform(post("/api/auth/forgot-password")
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(forgotRequest)))
                 .andExpect(status().isOk());
@@ -288,7 +288,7 @@ class PasswordResetIntegrationTest {
         PasswordResetToken token = tokenRepository.findValidTokenByUser(testUser, LocalDateTime.now()).orElseThrow();
 
         // Step 3: Validate the token
-        mockMvc.perform(get("/api/auth/reset-password/validate")
+        mockMvc.perform(get("/api/v1/auth/reset-password/validate")
                 .param("token", token.getToken()))
                 .andExpect(status().isOk());
 
@@ -299,7 +299,7 @@ class PasswordResetIntegrationTest {
 
         String oldPasswordHash = testUser.getPassword();
 
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(resetRequest)))
                 .andExpect(status().isOk());
@@ -317,7 +317,7 @@ class PasswordResetIntegrationTest {
         secondResetRequest.setToken(token.getToken());
         secondResetRequest.setNewPassword("AnotherSecureP@ssw0rd!");
 
-        mockMvc.perform(post("/api/auth/reset-password")
+        mockMvc.perform(post("/api/v1/auth/reset-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(secondResetRequest)))
                 .andExpect(status().isBadRequest())

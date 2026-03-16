@@ -61,7 +61,7 @@ public class AuthControllerIntegrationTestWithS3 extends IntegrationTestWithS3 {
         signupRequest.setRole(roles);
 
         ResponseEntity<?> registerResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signup",
+                baseUrl + "/api/v1/auth/signup",
                 signupRequest,
                 Object.class
         );
@@ -73,7 +73,7 @@ public class AuthControllerIntegrationTestWithS3 extends IntegrationTestWithS3 {
         loginRequest.setPassword("password123");
 
         ResponseEntity<JwtResponse> loginResponse = restTemplate.postForEntity(
-                baseUrl + "/api/auth/signin",
+                baseUrl + "/api/v1/auth/signin",
                 loginRequest,
                 JwtResponse.class
         );

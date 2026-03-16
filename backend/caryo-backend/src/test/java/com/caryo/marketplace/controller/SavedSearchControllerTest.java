@@ -89,7 +89,7 @@ class SavedSearchControllerTest {
                 .thenReturn(testResponse);
 
         // When & Then
-        mockMvc.perform(post("/api/saved-searches")
+        mockMvc.perform(post("/api/v1/saved-searches")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testRequest)))
@@ -109,7 +109,7 @@ class SavedSearchControllerTest {
         when(savedSearchService.getUserSavedSearches("testuser")).thenReturn(searches);
 
         // When & Then
-        mockMvc.perform(get("/api/saved-searches"))
+        mockMvc.perform(get("/api/v1/saved-searches"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].nameEn").value("My Toyota Search"));
@@ -125,7 +125,7 @@ class SavedSearchControllerTest {
         when(savedSearchService.getSavedSearchById(searchId, "testuser")).thenReturn(testResponse);
 
         // When & Then
-        mockMvc.perform(get("/api/saved-searches/{id}", searchId))
+        mockMvc.perform(get("/api/v1/saved-searches/{id}", searchId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nameEn").value("My Toyota Search"))
                 .andExpect(jsonPath("$.id").value(searchId.toString()));
@@ -142,7 +142,7 @@ class SavedSearchControllerTest {
                 .thenReturn(testResponse);
 
         // When & Then
-        mockMvc.perform(put("/api/saved-searches/{id}", searchId)
+        mockMvc.perform(put("/api/v1/saved-searches/{id}", searchId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testRequest)))
@@ -160,7 +160,7 @@ class SavedSearchControllerTest {
         doNothing().when(savedSearchService).deleteSavedSearch(searchId, "testuser");
 
         // When & Then
-        mockMvc.perform(delete("/api/saved-searches/{id}", searchId)
+        mockMvc.perform(delete("/api/v1/saved-searches/{id}", searchId)
                         .with(csrf()))
                 .andExpect(status().isNoContent());
 
@@ -170,7 +170,7 @@ class SavedSearchControllerTest {
     @Test
     void createSavedSearch_Unauthorized() throws Exception {
         // When & Then
-        mockMvc.perform(post("/api/saved-searches")
+        mockMvc.perform(post("/api/v1/saved-searches")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testRequest)))
@@ -187,7 +187,7 @@ class SavedSearchControllerTest {
         invalidRequest.setNameEn(""); // Invalid: blank name
 
         // When & Then
-        mockMvc.perform(post("/api/saved-searches")
+        mockMvc.perform(post("/api/v1/saved-searches")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))

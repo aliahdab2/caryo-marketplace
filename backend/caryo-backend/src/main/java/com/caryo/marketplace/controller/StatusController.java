@@ -23,7 +23,7 @@ public class StatusController {
         return ResponseEntity.ok("Service is up!");
     }
 
-    @GetMapping("/api/status")
+    @GetMapping("/api/v1/status")
     @Operation(
         summary = "API status",
         description = "Returns a simple message indicating the API is working.",

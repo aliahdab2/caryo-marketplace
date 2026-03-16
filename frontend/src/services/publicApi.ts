@@ -190,7 +190,7 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
     }
 
     // Make PUBLIC API call (no authentication headers)
-    const url = `${API_BASE_URL}/api/listings/filter?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings/filter?${queryParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -218,7 +218,7 @@ export async function fetchCarListingsPublic(filters?: CarListingFilterParams): 
  */
 export async function fetchCarListingPublic(id: string | number): Promise<CarListing> {
   try {
-    const url = `${API_BASE_URL}/api/listings/${id}`;
+    const url = `${API_BASE_URL}/api/v1/listings/${id}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -254,7 +254,7 @@ export async function fetchLatestListingsPublic(limit: number = 12): Promise<Car
     queryParams.append('size', limit.toString());
     queryParams.append('sort', 'createdAt,desc'); // Latest first
     
-    const url = `${API_BASE_URL}/api/listings?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings?${queryParams.toString()}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -294,7 +294,7 @@ export async function fetchLatestListingsPage(params: { page?: number; size?: nu
     queryParams.append('size', String(size));
     queryParams.append('sort', 'createdAt,desc');
 
-    const url = `${API_BASE_URL}/api/listings?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings?${queryParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -355,7 +355,7 @@ export async function getCarListingCountsPublic(filters?: CarListingFilterParams
     }
 
     // Use the filtered count endpoint which honors query params
-    const url = `${API_BASE_URL}/api/listings/count/filter?${queryParams.toString()}`;
+    const url = `${API_BASE_URL}/api/v1/listings/count/filter?${queryParams.toString()}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -441,7 +441,7 @@ export async function getBodyStyleCounts(filters?: CarListingFilterParams): Prom
       queryParams.append('transmissionIds', filters.transmissionId.toString());
     }
 
-    const url = `${API_BASE_URL}/api/listings/counts/body-styles${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `${API_BASE_URL}/api/v1/listings/counts/body-styles${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -488,7 +488,7 @@ export interface NewsletterSubscriptionResponse {
  */
 export async function subscribeToNewsletter(request: NewsletterSubscriptionRequest): Promise<NewsletterSubscriptionResponse> {
   try {
-    const url = `${API_BASE_URL}/api/public/newsletter/subscribe`;
+    const url = `${API_BASE_URL}/api/v1/public/newsletter/subscribe`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -555,7 +555,7 @@ interface BrandApiResponse {
  */
 export async function fetchCarBrandsPublic(): Promise<CarMake[]> {
   try {
-    const url = `${API_BASE_URL}/api/reference-data/brands`;
+    const url = `${API_BASE_URL}/api/v1/reference-data/brands`;
     const response = await fetch(url, {
       headers: {
         'Accept': 'application/json',
@@ -591,7 +591,7 @@ export async function fetchCarBrandsPublic(): Promise<CarMake[]> {
  */
 export async function fetchGovernoratesPublic(): Promise<Governorate[]> {
   try {
-    const url = `${API_BASE_URL}/api/reference-data/governorates`;
+    const url = `${API_BASE_URL}/api/v1/reference-data/governorates`;
     const response = await fetch(url, {
       headers: {
         'Accept': 'application/json',

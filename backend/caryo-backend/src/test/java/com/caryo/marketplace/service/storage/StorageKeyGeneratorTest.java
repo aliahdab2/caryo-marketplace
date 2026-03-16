@@ -414,7 +414,7 @@ void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
     @Test
     void extractKeyFromUrl_WithFullUrlContainingApiFiles_ShouldExtractKey() {
         // Arrange
-        String url = "http://localhost:8080/api/files/temp/uuid-123.jpg";
+        String url = "http://localhost:8080/api/v1/files/temp/uuid-123.jpg";
 
         // Act
         String result = storageKeyGenerator.extractKeyFromUrl(url);
@@ -426,7 +426,7 @@ void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
     @Test
     void extractKeyFromUrl_WithRelativePathContainingApiFiles_ShouldExtractKey() {
         // Arrange
-        String path = "/api/files/dealers/logos/uuid-456.png";
+        String path = "/api/v1/files/dealers/logos/uuid-456.png";
 
         // Act
         String result = storageKeyGenerator.extractKeyFromUrl(path);
@@ -438,7 +438,7 @@ void generateListingMediaKey_WithUnsafeFilename_ShouldSanitize() {
     @Test
     void extractKeyFromUrl_WithApiImagesPath_ShouldExtractKey() {
         // Arrange
-        String url = "http://localhost:8080/api/images/public/images/uuid.jpg";
+        String url = "http://localhost:8080/api/v1/images/public/images/uuid.jpg";
 
         // Act
         String result = storageKeyGenerator.extractKeyFromUrl(url);

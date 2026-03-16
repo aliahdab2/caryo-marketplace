@@ -23,7 +23,7 @@ import java.util.Map;
  * Supports multi-language contact forms with configurable website names.
  */
 @RestController
-@RequestMapping("/api/contact")
+@RequestMapping("/api/v1/contact")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Contact", description = "Contact form endpoints with multi-language support")

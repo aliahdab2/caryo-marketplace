@@ -160,7 +160,7 @@ describe('Listings Service - Data Conversion Integration', () => {
 
       // V2: No lookups are performed since IDs are provided directly
       // Verify NO location lookup is called
-      expect(mockApi.get).not.toHaveBeenCalledWith('/api/locations/slug/damascus-center');
+      expect(mockApi.get).not.toHaveBeenCalledWith('/api/v1/locations/slug/damascus-center');
 
       // Verify NO brand/model lookups are called 
       expect(mockGetVehicleMakes).not.toHaveBeenCalled();
@@ -171,7 +171,7 @@ describe('Listings Service - Data Conversion Integration', () => {
 
       // Verify the fetch call was made (createListing uses fetch directly)
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings'),
+        expect.stringContaining('/api/v1/listings'),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
@@ -211,7 +211,7 @@ describe('Listings Service - Data Conversion Integration', () => {
 
       // Verify the fetch call was made (createListing uses fetch directly)
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/listings'),
+        expect.stringContaining('/api/v1/listings'),
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({

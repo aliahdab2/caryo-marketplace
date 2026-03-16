@@ -22,7 +22,7 @@ import java.util.Map;
  * as specified in the API documentation.
  */
 @RestController
-@RequestMapping("/api/admin/listings")
+@RequestMapping("/api/v1/admin/listings")
 
 @RequiredArgsConstructor
 @Slf4j

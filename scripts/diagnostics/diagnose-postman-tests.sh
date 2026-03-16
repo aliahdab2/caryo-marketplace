@@ -160,7 +160,7 @@ if [ ! -z "$AUTH_RESPONSE" ]; then
     
     # Test a protected endpoint with token
     log_info "Testing protected endpoint with token..."
-    REF_DATA_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "${API_BASE_URL}/api/reference-data")
+    REF_DATA_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" "${API_BASE_URL}/api/v1/reference-data")
     
     if [ "$REF_DATA_RESPONSE" == "200" ] || [ "$REF_DATA_RESPONSE" == "201" ]; then
       log_success "✅ Protected endpoint access successful"
@@ -181,7 +181,7 @@ log_info "===== Additional Diagnostics ====="
 
 # Check security settings
 log_info "[5] Checking API security settings..."
-ENDPOINTS=("/api/public" "/actuator/health" "/auth/signup" "/auth/signin" "/api/test/all" "/api/test/user")
+ENDPOINTS=("/api/v1/public" "/actuator/health" "/auth/signup" "/auth/signin" "/api/v1/test/all" "/api/v1/test/user")
 
 for endpoint in "${ENDPOINTS[@]}"; do
   STATUS=$(curl -s -o /dev/null -w "%{http_code}" $API_BASE_URL$endpoint)

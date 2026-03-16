@@ -26,7 +26,7 @@ import java.util.List;
  * - Follows SaaS industry standards (Stripe, PayPal pattern)
  */
 @RestController
-@RequestMapping("/api/pricing")
+@RequestMapping("/api/v1/pricing")
 public class PricingController {
 
     @Value("${subscription.basic.price}")

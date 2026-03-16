@@ -27,7 +27,7 @@ import java.util.Map;
  * Allows admins to approve or reject uploaded images before they become visible.
  */
 @RestController
-@RequestMapping("/api/admin/media-moderation")
+@RequestMapping("/api/v1/admin/media-moderation")
 @Tag(name = "Admin Media Moderation", description = "Admin endpoints for image approval workflow")
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ADMIN')")

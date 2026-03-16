@@ -43,7 +43,7 @@ import java.util.Map;
  * Provides endpoints for the messaging system.
  */
 @RestController
-@RequestMapping("/api/conversations")
+@RequestMapping("/api/v1/conversations")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Conversations", description = "Messaging system for buyer-seller communication")

@@ -68,7 +68,7 @@ class AdminNewsletterControllerTest {
         // No confirmedAt - still pending
         newsletterRepository.save(unconfirmedSubscription);
 
-        mockMvc.perform(get("/api/admin/newsletter/stats"))
+        mockMvc.perform(get("/api/v1/admin/newsletter/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activeSubscriptions").value(1)) // Only confirmed and active
                 .andExpect(jsonPath("$.timestamp").isNotEmpty());
@@ -78,14 +78,14 @@ class AdminNewsletterControllerTest {
     @DisplayName("Should deny access to stats endpoint without admin role")
     @WithMockUser(roles = "USER")
     void getStats_ShouldDenyAccessWithoutAdminRole() throws Exception {
-        mockMvc.perform(get("/api/admin/newsletter/stats"))
+        mockMvc.perform(get("/api/v1/admin/newsletter/stats"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("Should deny access to stats endpoint without authentication")
     void getStats_ShouldDenyAccessWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/api/admin/newsletter/stats"))
+        mockMvc.perform(get("/api/v1/admin/newsletter/stats"))
                 .andExpect(status().isUnauthorized()); // No authentication at all returns 401
     }
 }

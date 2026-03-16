@@ -41,7 +41,7 @@ echo -e "\n${BLUE}Step 2: Testing CarQuery API Client${NC}"
 echo "----------------------------------------"
 
 echo "Testing CarQuery API directly..."
-CARQUERY_DIRECT=$(curl -s "https://www.carqueryapi.com/api/0.3/?cmd=getMakes" | head -c 200)
+CARQUERY_DIRECT=$(curl -s "https://www.carqueryapi.com/api/v1/0.3/?cmd=getMakes" | head -c 200)
 
 if echo "$CARQUERY_DIRECT" | grep -q '"Makes":'; then
     echo -e "${GREEN}✅ CarQuery API is accessible${NC}"
@@ -55,7 +55,7 @@ echo -e "\n${BLUE}Step 3: Testing Admin Authentication${NC}"
 echo "----------------------------------------"
 
 echo "Testing admin login..."
-AUTH_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/auth/signin" \
+AUTH_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/v1/auth/signin" \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"${ADMIN_USERNAME}\",\"password\":\"${ADMIN_PASSWORD}\"}")
 
@@ -75,7 +75,7 @@ echo -e "\n${BLUE}Step 4: Testing CarQuery Integration Endpoint${NC}"
 echo "-------------------------------------------------"
 
 echo "Testing CarQuery data import..."
-CARQUERY_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/admin/data/load-carquery" \
+CARQUERY_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/v1/admin/data/load-carquery" \
   -H "$AUTH_HEADER" \
   -H "Content-Type: application/json")
 
@@ -92,7 +92,7 @@ echo -e "\n${BLUE}Step 5: Testing SyrianCars Integration Endpoint${NC}"
 echo "---------------------------------------------------"
 
 echo "Testing SyrianCars data import..."
-SYRIANCARS_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/admin/data/load-syrian-cars" \
+SYRIANCARS_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/v1/admin/data/load-syrian-cars" \
   -H "$AUTH_HEADER" \
   -H "Content-Type: application/json")
 
@@ -109,7 +109,7 @@ echo -e "\n${BLUE}Step 6: Checking Data Import Results${NC}"
 echo "----------------------------------------"
 
 echo "Checking makes count..."
-MAKES_RESPONSE=$(curl -s "${BASE_URL}/api/admin/brands?page=0&size=1" \
+MAKES_RESPONSE=$(curl -s "${BASE_URL}/api/v1/admin/brands?page=0&size=1" \
   -H "$AUTH_HEADER")
 
 if echo "$MAKES_RESPONSE" | grep -q '"totalElements"'; then
@@ -120,7 +120,7 @@ else
 fi
 
 echo "Checking models count..."
-MODELS_RESPONSE=$(curl -s "${BASE_URL}/api/admin/models?page=0&size=1" \
+MODELS_RESPONSE=$(curl -s "${BASE_URL}/api/v1/admin/models?page=0&size=1" \
   -H "$AUTH_HEADER")
 
 if echo "$MODELS_RESPONSE" | grep -q '"totalElements"'; then
@@ -134,7 +134,7 @@ echo -e "\n${BLUE}Step 7: Testing Admin CRUD Operations${NC}"
 echo "-----------------------------------------"
 
 echo "Testing brand search..."
-SEARCH_RESPONSE=$(curl -s "${BASE_URL}/api/admin/brands/search?query=toyota" \
+SEARCH_RESPONSE=$(curl -s "${BASE_URL}/api/v1/admin/brands/search?query=toyota" \
   -H "$AUTH_HEADER")
 
 if echo "$SEARCH_RESPONSE" | grep -q '"content":'; then

@@ -111,7 +111,7 @@ describe('ForgotPasswordPage', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/auth/forgot-password'),
+      expect.stringContaining('/api/v1/auth/forgot-password'),
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ email: 'test@example.com' }),

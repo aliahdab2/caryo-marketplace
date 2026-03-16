@@ -132,7 +132,7 @@ public class UserBlockControllerTest {
         when(userBlockService.blockUser(1L, 2L)).thenReturn(userBlock);
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/block/2")
+        mockMvc.perform(post("/api/v1/users/block/2")
                         .with(csrf())
                         .header("Accept-Language", "en"))
                 .andExpect(status().isCreated())
@@ -150,7 +150,7 @@ public class UserBlockControllerTest {
         doNothing().when(userBlockService).unblockUser(1L, 2L);
 
         // Act & Assert
-        mockMvc.perform(delete("/api/users/block/2")
+        mockMvc.perform(delete("/api/v1/users/block/2")
                         .with(csrf())
                         .header("Accept-Language", "en"))
                 .andExpect(status().isOk())
@@ -190,7 +190,7 @@ public class UserBlockControllerTest {
         when(userBlockService.getBlockedUsers(1L)).thenReturn(List.of(block1, block2));
 
         // Act & Assert
-        mockMvc.perform(get("/api/users/block")
+        mockMvc.perform(get("/api/v1/users/block")
                         .header("Accept-Language", "en"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -207,7 +207,7 @@ public class UserBlockControllerTest {
         when(userBlockService.isBlocked(1L, 2L)).thenReturn(true);
 
         // Act & Assert
-        mockMvc.perform(get("/api/users/block/2/status")
+        mockMvc.perform(get("/api/v1/users/block/2/status")
                         .header("Accept-Language", "en"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"))
@@ -219,7 +219,7 @@ public class UserBlockControllerTest {
     @Test
     @DisplayName("Should return 401 when unauthenticated - block user")
     void shouldReturn401WhenUnauthenticatedBlockUser() throws Exception {
-        mockMvc.perform(post("/api/users/block/2")
+        mockMvc.perform(post("/api/v1/users/block/2")
                         .with(csrf()))
                 .andExpect(status().isUnauthorized());
 
@@ -229,7 +229,7 @@ public class UserBlockControllerTest {
     @Test
     @DisplayName("Should return 401 when unauthenticated - get blocked users")
     void shouldReturn401WhenUnauthenticatedGetBlockedUsers() throws Exception {
-        mockMvc.perform(get("/api/users/block"))
+        mockMvc.perform(get("/api/v1/users/block"))
                 .andExpect(status().isUnauthorized());
 
         verify(userBlockService, never()).getBlockedUsers(anyLong());
@@ -245,7 +245,7 @@ public class UserBlockControllerTest {
                 .thenReturn("تم حظر المستخدم بنجاح");
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/block/2")
+        mockMvc.perform(post("/api/v1/users/block/2")
                         .with(csrf())
                         .header("Accept-Language", "ar"))
                 .andExpect(status().isCreated())

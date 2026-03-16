@@ -56,7 +56,7 @@
           "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"email\": \"{{saved_search_test_email}}\",\n    \"password\": \"{{saved_search_test_password}}\",\n    \"role\": [\"user\"]\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signup",
+          "raw": "{{baseUrl}}/api/v1/auth/signup",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "signup"]
         }
@@ -101,7 +101,7 @@
           "raw": "{\n    \"username\": \"{{saved_search_test_username}}\",\n    \"password\": \"{{saved_search_test_password}}\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/auth/signin",
+          "raw": "{{baseUrl}}/api/v1/auth/signin",
           "host": ["{{baseUrl}}"],
           "path": ["api", "auth", "signin"]
         }
@@ -139,7 +139,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -176,7 +176,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/count",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/count",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "count"]
         }
@@ -242,7 +242,7 @@
           "raw": "{\n    \"name\": \"Toyota Under 30k\",\n    \"description\": \"Looking for Toyota cars under $30,000\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"maxPrice\": 30000,\n        \"minYear\": 2015\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": true\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -297,7 +297,7 @@
           "raw": "{\n    \"name\": \"SUVs in Damascus\",\n    \"description\": \"Looking for SUVs in Damascus area\",\n    \"filters\": {\n        \"bodyStyleIds\": [2],\n        \"locations\": [\"damascus\"],\n        \"minPrice\": 15000,\n        \"maxPrice\": 50000\n    },\n    \"notificationsEnabled\": false,\n    \"emailNotifications\": false\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -342,7 +342,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -379,7 +379,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/count",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/count",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "count"]
         }
@@ -418,7 +418,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id_1}}",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/{{saved_search_id_1}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "{{saved_search_id_1}}"]
         }
@@ -473,7 +473,7 @@
           "raw": "{\n    \"name\": \"Updated Toyota Search\",\n    \"description\": \"Looking for newer Toyota cars\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"],\n        \"minPrice\": 15000,\n        \"maxPrice\": 35000,\n        \"minYear\": 2018\n    },\n    \"notificationsEnabled\": true,\n    \"emailNotifications\": false\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id_1}}",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/{{saved_search_id_1}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "{{saved_search_id_1}}"]
         }
@@ -518,7 +518,7 @@
           "raw": "{\n    \"description\": \"Invalid search without name\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"]\n    },\n    \"notificationsEnabled\": true\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -550,7 +550,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/550e8400-e29b-41d4-a716-446655440000",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/550e8400-e29b-41d4-a716-446655440000",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "550e8400-e29b-41d4-a716-446655440000"]
         }
@@ -590,7 +590,7 @@
           "raw": "{\n    \"name\": \"This should fail\",\n    \"filters\": {\n        \"brandSlugs\": [\"toyota\"]\n    }\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/550e8400-e29b-41d4-a716-446655440000",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/550e8400-e29b-41d4-a716-446655440000",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "550e8400-e29b-41d4-a716-446655440000"]
         }
@@ -622,7 +622,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id_2}}/deactivate",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/{{saved_search_id_2}}/deactivate",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "{{saved_search_id_2}}", "deactivate"]
         }
@@ -654,7 +654,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/{{saved_search_id_1}}",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/{{saved_search_id_1}}",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "{{saved_search_id_1}}"]
         }
@@ -693,7 +693,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -720,7 +720,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches",
+          "raw": "{{baseUrl}}/api/v1/saved-searches",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches"]
         }
@@ -752,7 +752,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/550e8400-e29b-41d4-a716-446655440000",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/550e8400-e29b-41d4-a716-446655440000",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "550e8400-e29b-41d4-a716-446655440000"]
         }
@@ -784,7 +784,7 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/saved-searches/550e8400-e29b-41d4-a716-446655440000/deactivate",
+          "raw": "{{baseUrl}}/api/v1/saved-searches/550e8400-e29b-41d4-a716-446655440000/deactivate",
           "host": ["{{baseUrl}}"],
           "path": ["api", "saved-searches", "550e8400-e29b-41d4-a716-446655440000", "deactivate"]
         }

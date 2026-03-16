@@ -60,7 +60,7 @@ verify_results() {
   # Check via API
   echo -e "${YELLOW}Checking listing ${listing_id} media via API...${NC}"
   
-  local api_response=$(curl -s "http://localhost:8080/api/listings/${listing_id}" 2>/dev/null)
+  local api_response=$(curl -s "http://localhost:8080/api/v1/listings/${listing_id}" 2>/dev/null)
   local media_count=$(echo "$api_response" | grep -o '"id":[0-9]*' | wc -l 2>/dev/null || echo "0")
   
   if [ "$media_count" -gt 1 ]; then

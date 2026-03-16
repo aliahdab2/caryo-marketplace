@@ -6,7 +6,7 @@ export async function GET() {
   
   try {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const response = await fetch(`${backendUrl}/api/listings/filter`, {
+    const response = await fetch(`${backendUrl}/api/v1/listings/filter`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

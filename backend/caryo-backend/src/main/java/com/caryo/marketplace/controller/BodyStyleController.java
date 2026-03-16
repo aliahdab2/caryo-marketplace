@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/body-styles")
+@RequestMapping("/api/v1/body-styles")
 
 @RequiredArgsConstructor
 @Slf4j

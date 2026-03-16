@@ -41,7 +41,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnAllTiers() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -58,7 +58,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnBasicTierWithCorrectPrice() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.id == 'basic')]").exists())
@@ -71,7 +71,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnAdvancedTierWithCorrectPrice() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.id == 'advanced')]").exists())
@@ -86,7 +86,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnProfessionalTierWithCorrectPrice() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.id == 'professional')]").exists())
@@ -100,7 +100,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnTiersInCorrectOrder() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value("basic"))
@@ -110,7 +110,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnApiResponseFormat() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").exists())
@@ -121,7 +121,7 @@ class PricingControllerTest {
 
     @Test
     void getSubscriptionTiers_ShouldReturnTiersWithFeatures() throws Exception {
-        mockMvc.perform(get("/api/pricing/tiers")
+        mockMvc.perform(get("/api/v1/pricing/tiers")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].features[0]").exists())

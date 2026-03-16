@@ -175,7 +175,7 @@ export default function Step4DealerContactInfo({
       // Upload to MinIO via unauthenticated endpoint (user has no account yet during signup)
       // Files go to temp/ folder and are moved to dealers/logos/ after account creation
       const response = await api.post<{ fileName: string; fileDownloadUri: string }>(
-        '/api/images/upload?folder=temp',
+        '/api/v1/images/upload?folder=temp',
         formData
       );
 

@@ -35,7 +35,7 @@ describe('Auth Service', () => {
 
       const result = await authService.login(mockCredentials);
 
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signin', mockCredentials);
+      expect(api.post).toHaveBeenCalledWith('/api/v1/auth/signin', mockCredentials);
       expect(result).toEqual(mockResponse);
     });
 
@@ -44,7 +44,7 @@ describe('Auth Service', () => {
       (api.post as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
       await expect(authService.login(mockCredentials)).rejects.toThrow();
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signin', mockCredentials);
+      expect(api.post).toHaveBeenCalledWith('/api/v1/auth/signin', mockCredentials);
     });
 
     test('converts regular errors to ApiErrors', async () => {
@@ -79,7 +79,7 @@ describe('Auth Service', () => {
 
       const result = await authService.signup(mockUserData);
 
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signup', mockUserData);
+      expect(api.post).toHaveBeenCalledWith('/api/v1/auth/signup', mockUserData);
       expect(result).toEqual(mockResponse);
     });
 
@@ -88,7 +88,7 @@ describe('Auth Service', () => {
       (api.post as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
       await expect(authService.signup(mockUserData)).rejects.toThrow();
-      expect(api.post).toHaveBeenCalledWith('/api/auth/signup', mockUserData);
+      expect(api.post).toHaveBeenCalledWith('/api/v1/auth/signup', mockUserData);
     });
     
     test('converts regular errors to ApiErrors', async () => {
@@ -121,7 +121,7 @@ describe('Auth Service', () => {
 
       const result = await authService.getProfile(mockToken);
 
-      expect(api.get).toHaveBeenCalledWith('/api/users/me', {
+      expect(api.get).toHaveBeenCalledWith('/api/v1/users/me', {
         'Authorization': `Bearer ${mockToken}`
       });
       expect(result).toEqual(mockUserProfile);
@@ -132,7 +132,7 @@ describe('Auth Service', () => {
       (api.get as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
       await expect(authService.getProfile(mockToken)).rejects.toThrow(errorMessage);
-      expect(api.get).toHaveBeenCalledWith('/api/users/me', {
+      expect(api.get).toHaveBeenCalledWith('/api/v1/users/me', {
         'Authorization': `Bearer ${mockToken}`
       });
     });

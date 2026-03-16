@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     // Call the backend API to resend verification email
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-    const response = await fetch(`${backendUrl}/api/auth/verify-email/resend`, {
+    const response = await fetch(`${backendUrl}/api/v1/auth/verify-email/resend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

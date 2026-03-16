@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
  * Requires ADMIN or MODERATOR role.
  */
 @RestController
-@RequestMapping("/api/admin/reports")
+@RequestMapping("/api/v1/admin/reports")
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")

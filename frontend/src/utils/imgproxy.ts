@@ -34,7 +34,7 @@ export type ImageSize = keyof typeof ImageSizes;
  * @returns Imgproxy URL or original URL if Imgproxy is disabled
  * 
  * @example
- * getResizedImageUrl('/api/files/listings/123/car.jpg', 800, 600)
+ * getResizedImageUrl('/api/v1/files/listings/123/car.jpg', 800, 600)
  * // Returns: http://localhost:8081/insecure/rs:fit:800:600/plain/http://...
  */
 export function getResizedImageUrl(
@@ -140,7 +140,7 @@ function toAbsoluteUrl(url: string): string {
   }
   
   // For API URLs, prepend the API base URL
-  if (url.startsWith('/api/')) {
+  if (url.startsWith('/api/v1/')) {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     return `${apiBaseUrl}${url}`;
   }

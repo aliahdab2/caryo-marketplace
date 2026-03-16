@@ -220,7 +220,7 @@ export default function AdvancedSearchPage() {
     error: brandsError
   } = useApiData<CarMake[]>(
     fetchCarBrands,
-    '/api/reference-data/brands',
+    '/api/v1/reference-data/brands',
     [], // No dependencies needed - brands don't change
     undefined,
     t('errorLoadingData', 'Error loading data. Please try again.')
@@ -257,7 +257,7 @@ export default function AdvancedSearchPage() {
 
   // Stable dependency for models to prevent loops
   const modelsFetchKey = useMemo(() =>
-    selectedMake ? `/api/reference-data/brands/${selectedMake}/models` : '',
+    selectedMake ? `/api/v1/reference-data/brands/${selectedMake}/models` : '',
     [selectedMake]
   );
 
@@ -285,7 +285,7 @@ export default function AdvancedSearchPage() {
     error: referenceDataError
   } = useApiData<CarReferenceData>(
     fetchCarReferenceData,
-    '/api/reference-data',
+    '/api/v1/reference-data',
     [], // No dependencies needed - reference data doesn't change
     undefined,
     t('errorLoadingData', 'Error loading data. Please try again.')
@@ -297,7 +297,7 @@ export default function AdvancedSearchPage() {
     error: _governoratesError
   } = useApiData<Governorate[]>(
     fetchGovernorates,
-    '/api/reference-data/governorates',
+    '/api/v1/reference-data/governorates',
     [], // No dependencies needed - governorates don't change
     undefined,
     t('errorLoadingData', 'Error loading data. Please try again.')

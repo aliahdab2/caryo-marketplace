@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/car-conditions")
+@RequestMapping("/api/v1/car-conditions")
 
 @RequiredArgsConstructor
 @Slf4j
