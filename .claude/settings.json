@@ -1,5 +1,19 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/guard-secrets.sh", "timeout": 5 },
+          { "type": "command", "command": ".claude/hooks/guard-destructive.sh", "timeout": 5 }
+        ]
+      }
+    ]
+  },
   "permissions": {
+    "deny": [
+      "Bash(git push --force:*)"
+    ],
     "allow": [
       "Bash(npm audit fix)",
       "Read(//Users/aliahdab/.claude/plugins/**)",
