@@ -37,7 +37,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       'lucide-react',
       'react-icons',
-      '@heroicons/react',
       'lodash-es'
     ]
   },

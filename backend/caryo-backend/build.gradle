@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'  // Added for caching
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.retry:spring-retry:2.0.12'       // Added for retry support
     implementation 'org.springframework.boot:spring-boot-starter-aop'    // Required for retry aspects
 
