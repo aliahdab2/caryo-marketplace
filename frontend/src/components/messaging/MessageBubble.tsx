@@ -6,7 +6,7 @@ import { Check, CheckCheck, Download } from 'lucide-react';
 import { MessageResponse } from '@/services/messaging';
 import { transformMinioUrl, getDefaultImageUrl } from '@/utils/mediaUtils';
 import Image from 'next/image';
-import CarMediaGallery from '@/components/CarMediaGallery';
+import CarMediaGallery from '@/components/common/CarMediaGallery';
 
 interface AttachmentType {
   id: number;

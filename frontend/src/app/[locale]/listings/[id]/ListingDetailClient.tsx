@@ -12,8 +12,8 @@ import { Listing } from '@/types/listings';
 
 // Component imports for the new enhanced layout
 import BreadcrumbNavigation from './components/BreadcrumbNavigation';
-import CarMediaGallery from '@/components/CarMediaGallery/CarMediaGallery';
-import { CarMedia } from '@/components/CarMediaGallery/types';
+import CarMediaGallery from '@/components/common/CarMediaGallery/CarMediaGallery';
+import { CarMedia } from '@/components/common/CarMediaGallery/types';
 import CarFacts from './components/CarFacts';
 import CarFeatures from './components/CarFeatures';
 import SellerInfo from './components/SellerInfo';
