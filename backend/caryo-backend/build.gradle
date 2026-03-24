@@ -74,7 +74,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // File type detection
-    implementation 'org.apache.tika:tika-core:3.2.3'
+    implementation 'org.apache.tika:tika-core:3.3.0'
 
     // AWS SDK (S3-compatible storage - works with MinIO)
     implementation platform('software.amazon.awssdk:bom:2.41.20')
