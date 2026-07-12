@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLanguageSwitching } from '@/hooks/useLanguageSwitching';
+import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/queries/useUserPreferences';
 
 import Breadcrumb, { createDashboardBreadcrumb } from '@/components/ui/Breadcrumb';
 export default function SettingsPage() {
   const { t } = useTranslation('dashboard');
   const { currentLang, switchLanguage } = useLanguageSwitching();
+  const { data: storedPreferences } = useUserPreferences();
+  const { mutate: savePreferences, isPending: isSaving } = useUpdateUserPreferences();
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
 
   const [accountSettings, setAccountSettings] = useState({
     language: currentLang, // Initialize with current language from URL
@@ -40,6 +44,24 @@ export default function SettingsPage() {
     showPhone: false,
     showEmail: false,
   });
+
+  // Populate the toggles from the stored preferences once loaded
+  useEffect(() => {
+    if (!storedPreferences) return;
+    setNotificationSettings({
+      emailNotifications: storedPreferences.emailNotifications,
+      pushNotifications: storedPreferences.pushNotifications,
+      newMessages: storedPreferences.newMessages,
+      listingExpiry: storedPreferences.listingExpiry,
+      priceDrops: storedPreferences.priceDrops,
+      newsletter: storedPreferences.newsletter,
+      marketing: storedPreferences.marketing,
+    });
+    setPrivacySettings({
+      showPhone: storedPreferences.showPhone,
+      showEmail: storedPreferences.showEmail,
+    });
+  }, [storedPreferences]);
 
   // Handle account settings changes
   const handleAccountChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -82,10 +104,14 @@ export default function SettingsPage() {
 
   // Handle save settings
   const handleSaveSettings = () => {
-    // TODO: make API calls to save the settings
-    // TODO: If a global notification system exists and is preferred for "Settings Saved",
-    // trigger it here. For now, this component will not show its own toast for this action.
-    // alert(t('settings.savedSuccessfully')); // Example of a simple browser alert if needed
+    setSaveStatus('idle');
+    savePreferences(
+      { ...notificationSettings, ...privacySettings },
+      {
+        onSuccess: () => setSaveStatus('saved'),
+        onError: () => setSaveStatus('error'),
+      }
+    );
   };
 
   return (
@@ -281,12 +307,23 @@ export default function SettingsPage() {
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-4">
+        {saveStatus === 'saved' && (
+          <span role="status" className="text-sm text-green-600 dark:text-green-400">
+            {t('settings.saved')}
+          </span>
+        )}
+        {saveStatus === 'error' && (
+          <span role="alert" className="text-sm text-red-600 dark:text-red-400">
+            {t('settings.saveFailed')}
+          </span>
+        )}
         <button
           onClick={handleSaveSettings}
-          className="py-2 px-6 bg-primary text-white rounded-lg hover:bg-primary/90"
+          disabled={isSaving}
+          className="py-2 px-6 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
         >
-          {t('saveChanges')}
+          {isSaving ? t('settings.saving') : t('saveChanges')}
         </button>
       </div>
 
