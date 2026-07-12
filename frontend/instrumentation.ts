@@ -8,8 +8,8 @@ export async function register() {
 
     dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-    // Adjust this value in production, or use tracesSampler for greater control
-    tracesSampleRate: 1,
+    // Sample 10% of transactions to keep quota/noise manageable; errors are always captured
+    tracesSampleRate: 0.1,
 
     // Setting this option to true will print useful information to the console while you're setting up Sentry.
     debug: false,
