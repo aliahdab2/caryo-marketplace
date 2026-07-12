@@ -3,11 +3,13 @@ package com.caryo.marketplace.controller;
 import com.caryo.marketplace.model.Role;
 import com.caryo.marketplace.model.SellerType;
 import com.caryo.marketplace.model.User;
+import com.caryo.marketplace.exception.jwt.CustomJwtException;
 import com.caryo.marketplace.payload.request.LoginRequest;
 import com.caryo.marketplace.payload.request.SignupRequest;
 import com.caryo.marketplace.payload.request.ChangePasswordRequest;
 import com.caryo.marketplace.payload.request.ForgotPasswordRequest;
 import com.caryo.marketplace.payload.request.ResetPasswordRequest;
+import com.caryo.marketplace.payload.request.TokenRefreshRequest;
 import com.caryo.marketplace.payload.response.JwtResponse;
 import com.caryo.marketplace.payload.response.MessageResponse;
 import com.caryo.marketplace.repository.SellerTypeRepository;
@@ -29,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -106,7 +109,11 @@ public class AuthController {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
 
+            String refreshToken = jwtUtils.generateRefreshToken(
+                    userDetails.getUsername(), userDetails.getTokenVersion());
+
             return ResponseEntity.ok(new JwtResponse(jwt,
+                                                    refreshToken,
                                                     userDetails.getId(),
                                                     userDetails.getUsername(),
                                                     userDetails.getEmail(),
@@ -123,7 +130,11 @@ public class AuthController {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
 
+            String refreshToken = jwtUtils.generateRefreshToken(user.getUsername(),
+                    user.getTokenVersion() != null ? user.getTokenVersion() : 0);
+
             return ResponseEntity.ok(new JwtResponse(jwt,
+                                                    refreshToken,
                                                     user.getId(),
                                                     user.getUsername(),
                                                     user.getEmail(),
@@ -351,8 +362,10 @@ public class AuthController {
             }
         }
 
-        // Generate token
+        // Generate tokens
         String jwt = jwtUtils.generateJwtTokenForUser(user);
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername(),
+                user.getTokenVersion() != null ? user.getTokenVersion() : 0);
 
         // Return response with token and user details
         List<String> roles = user.getRoles().stream()
@@ -361,11 +374,73 @@ public class AuthController {
 
         return ResponseEntity.ok(new JwtResponse(
             jwt,
+            refreshToken,
             user.getId(),
             user.getUsername(),
             user.getEmail(),
             roles
         ));
+    }
+
+    @Operation(
+        summary = "Refresh access token",
+        description = "Exchange a valid refresh token for a new access/refresh token pair. "
+            + "Refresh tokens are invalidated by logout (token version bump)."
+    )
+    @RateLimit(maxRequests = 30, windowSeconds = 60, keyType = RateLimitKeyType.IP,
+        message = "Too many token refresh attempts. Please try again later.")
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        try {
+            jwtUtils.validateJwtToken(refreshToken);
+        } catch (CustomJwtException e) {
+            log.warn("Refresh rejected: {}", e.getMessage());
+            return unauthorizedRefresh();
+        }
+
+        if (!jwtUtils.isRefreshToken(refreshToken)) {
+            log.warn("Refresh rejected: presented token is not a refresh token");
+            return unauthorizedRefresh();
+        }
+
+        String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            log.warn("Refresh rejected: user '{}' not found", username);
+            return unauthorizedRefresh();
+        }
+
+        int tokenVersion = jwtUtils.getTokenVersionFromJwtToken(refreshToken);
+        int currentVersion = user.getTokenVersion() != null ? user.getTokenVersion() : 0;
+        if (tokenVersion != currentVersion) {
+            log.warn("Refresh rejected for user '{}': revoked token (token v{}, current v{})",
+                    username, tokenVersion, currentVersion);
+            return unauthorizedRefresh();
+        }
+
+        String newAccessToken = jwtUtils.generateJwtTokenForUser(user);
+        String newRefreshToken = jwtUtils.generateRefreshToken(user.getUsername(), currentVersion);
+
+        List<String> roles = user.getRoles().stream()
+            .map(role -> role.getName())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new JwtResponse(
+            newAccessToken,
+            newRefreshToken,
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            roles
+        ));
+    }
+
+    // Deliberately uniform response so callers can't probe which check failed
+    private ResponseEntity<MessageResponse> unauthorizedRefresh() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new MessageResponse("Error: Invalid or expired refresh token."));
     }
 
 

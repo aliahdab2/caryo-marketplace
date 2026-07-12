@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { encode } from 'next-auth/jwt';
 import { AutoLoginRequest, AutoLoginResponse, isTempAuthUser } from '@/types/auto-login';
 
+/** Read the exp claim (as epoch ms) from the backend JWT so the session can refresh on time */
+function getBackendJwtExpiryMs(token: string): number | undefined {
+  try {
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return undefined;
+    const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8'));
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Auto-login API endpoint for email verification
  * Creates a NextAuth session directly from JWT token
@@ -9,7 +21,7 @@ import { AutoLoginRequest, AutoLoginResponse, isTempAuthUser } from '@/types/aut
 export async function POST(request: NextRequest): Promise<NextResponse<AutoLoginResponse>> {
   try {
     const body: AutoLoginRequest = await request.json();
-    const { token, user } = body;
+    const { token, refreshToken, user } = body;
     
     // Validate required fields using type guard
     if (!token || !isTempAuthUser(user)) {
@@ -52,6 +64,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<AutoLogin
       id: user.id.toString(),
       roles: user.roles || ['ROLE_USER'],
       accessToken: token,
+      refreshToken: refreshToken,
+      accessTokenExpires: getBackendJwtExpiryMs(token),
       provider: 'credentials'
     };
     

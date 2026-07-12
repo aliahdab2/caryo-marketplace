@@ -36,6 +36,7 @@ public class JwtUtilsTest {
         // Set up the required fields using ReflectionTestUtils
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", testSecret);
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", 60000); // 1 minute
+        ReflectionTestUtils.setField(jwtUtils, "jwtRefreshExpirationMs", 3600000L); // 1 hour
 
         // Set up the UserDetails
         userDetails = org.springframework.security.core.userdetails.User.builder()
@@ -55,6 +56,32 @@ public class JwtUtilsTest {
         // Assert
         assertNotNull(token);
         assertFalse(token.isEmpty());
+    }
+
+    @Test
+    void generateRefreshToken_ShouldProduceValidRefreshToken() {
+        // Act
+        String refreshToken = jwtUtils.generateRefreshToken("testuser", 3);
+
+        // Assert
+        assertTrue(jwtUtils.validateJwtToken(refreshToken));
+        assertTrue(jwtUtils.isRefreshToken(refreshToken));
+        assertEquals("testuser", jwtUtils.getUserNameFromJwtToken(refreshToken));
+        assertEquals(3, jwtUtils.getTokenVersionFromJwtToken(refreshToken));
+    }
+
+    @Test
+    void isRefreshToken_WithAccessToken_ShouldReturnFalse() {
+        // Access tokens carry no type claim and must never be treated as refresh tokens
+        String accessToken = jwtUtils.generateJwtToken(authentication);
+
+        assertFalse(jwtUtils.isRefreshToken(accessToken));
+    }
+
+    @Test
+    void isRefreshToken_WithBlankToken_ShouldReturnFalse() {
+        assertFalse(jwtUtils.isRefreshToken(null));
+        assertFalse(jwtUtils.isRefreshToken(""));
     }
 
     @Test

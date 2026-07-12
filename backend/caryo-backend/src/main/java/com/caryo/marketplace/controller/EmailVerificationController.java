@@ -52,9 +52,11 @@ public class EmailVerificationController {
 
         if (result.isSuccess() && result.getUser() != null) {
             try {
-                // Auto-login: Generate JWT token for the verified user
+                // Auto-login: Generate JWT tokens for the verified user
                 User user = result.getUser();
                 String jwt = jwtUtils.generateJwtTokenForUser(user);
+                String refreshToken = jwtUtils.generateRefreshToken(user.getUsername(),
+                        user.getTokenVersion() != null ? user.getTokenVersion() : 0);
 
                 // Get user roles with null safety
                 List<String> roles = user.getRoles() != null ?
@@ -68,6 +70,7 @@ public class EmailVerificationController {
                 // Return JWT response for auto-login
                 return ResponseEntity.ok(new JwtResponse(
                     jwt,
+                    refreshToken,
                     user.getId(),
                     user.getUsername(),
                     user.getEmail(),
@@ -87,8 +90,10 @@ public class EmailVerificationController {
             try {
                 User user = emailVerificationService.getUserByVerificationToken(token);
                 if (user != null && user.isEmailVerified()) {
-                    // Generate JWT token for already verified user
+                    // Generate JWT tokens for already verified user
                     String jwt = jwtUtils.generateJwtTokenForUser(user);
+                    String refreshToken = jwtUtils.generateRefreshToken(user.getUsername(),
+                            user.getTokenVersion() != null ? user.getTokenVersion() : 0);
 
                     // Get user roles with null safety
                     List<String> roles = user.getRoles() != null ?
@@ -102,6 +107,7 @@ public class EmailVerificationController {
                     // Return JWT response for auto-login (same as new verification)
                     return ResponseEntity.ok(new JwtResponse(
                         jwt,
+                        refreshToken,
                         user.getId(),
                         user.getUsername(),
                         user.getEmail(),

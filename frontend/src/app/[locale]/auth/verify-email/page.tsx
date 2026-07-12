@@ -29,7 +29,7 @@ const VerifyEmailPage: React.FC = () => {
   const [message, setMessage] = useState("");
 
 
-  const handleAutoLogin = useCallback(async (jwtData: { token: string; id: number; username: string; email: string; roles: string[] }) => {
+  const handleAutoLogin = useCallback(async (jwtData: { token: string; refreshToken?: string; id: number; username: string; email: string; roles: string[] }) => {
       // Validate JWT token format (should have 3 parts separated by dots)
       const jwtParts = jwtData.token.split('.');
       if (jwtParts.length !== 3) {
@@ -64,6 +64,7 @@ const VerifyEmailPage: React.FC = () => {
           try {
               const autoLoginBody = {
                   token: jwtData.token,
+                  refreshToken: jwtData.refreshToken,
                   user: {
                       id: jwtData.id,
                       username: jwtData.username,

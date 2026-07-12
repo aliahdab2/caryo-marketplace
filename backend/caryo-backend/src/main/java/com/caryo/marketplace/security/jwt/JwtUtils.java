@@ -25,11 +25,18 @@ import java.util.Objects;
 @Component
 public class JwtUtils {
 
+    /** Claim marking a token as a refresh token; absent on access tokens (incl. all pre-existing ones) */
+    public static final String TOKEN_TYPE_CLAIM = "type";
+    public static final String TOKEN_TYPE_REFRESH = "refresh";
+
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
     @Value("${app.jwtExpirationInMs}")
     private int jwtExpirationMs;
+
+    @Value("${app.jwtRefreshExpirationInMs}")
+    private long jwtRefreshExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
         Objects.requireNonNull(authentication, "Authentication cannot be null");
@@ -67,6 +74,39 @@ public class JwtUtils {
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
                 .compact();
+    }
+
+    /**
+     * Generate a long-lived refresh token for the given user. Refresh tokens carry a
+     * "type":"refresh" claim so they can never be used as access tokens (AuthTokenFilter
+     * rejects them) and the user's token version so logout invalidates them.
+     */
+    public String generateRefreshToken(String username, int tokenVersion) {
+        Objects.requireNonNull(username, "Username cannot be null");
+        if (StringUtils.isBlank(username)) {
+            throw new IllegalArgumentException("Username cannot be blank");
+        }
+        return Jwts.builder()
+                .subject(username)
+                .claim("tv", tokenVersion)
+                .claim(TOKEN_TYPE_CLAIM, TOKEN_TYPE_REFRESH)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs))
+                .signWith(key())
+                .compact();
+    }
+
+    /**
+     * True when the (already signature-valid) token carries the refresh-token type claim.
+     * Access tokens have no type claim, so they return false.
+     */
+    public boolean isRefreshToken(String token) {
+        if (StringUtils.isBlank(token)) {
+            return false;
+        }
+        Claims claims = Jwts.parser().verifyWith(key()).build()
+                .parseSignedClaims(token).getPayload();
+        return TOKEN_TYPE_REFRESH.equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
     }
 
     private SecretKey key() {

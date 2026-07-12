@@ -5,6 +5,7 @@
 // JWT Response from backend after email verification
 export interface EmailVerificationJwtResponse {
   token: string;
+  refreshToken?: string;
   type: string;
   id: number;
   username: string;
@@ -34,6 +35,7 @@ export interface TempAuthUser {
 // Auto-login API request payload
 export interface AutoLoginRequest {
   token: string;
+  refreshToken?: string;
   user: TempAuthUser;
 }
 

@@ -51,6 +51,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                     // jwtUtils.validateJwtToken now throws CustomJwtException or its subclasses on failure
                     jwtUtils.validateJwtToken(jwt);
 
+                    // Refresh tokens are only valid at /api/v1/auth/refresh — never as access tokens.
+                    // Tokens without a type claim (all pre-existing access tokens) pass through unchanged.
+                    if (jwtUtils.isRefreshToken(jwt)) {
+                        log.warn("AuthTokenFilter: refresh token presented as access token, ignoring");
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
                     // If validateJwtToken does not throw, the token is valid. Proceed to authenticate.
                     String username = jwtUtils.getUserNameFromJwtToken(jwt);
 

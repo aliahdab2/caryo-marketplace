@@ -19,17 +19,74 @@ interface AugmentedUser {
   email?: string | null;
   image?: string | null;
   token?: string;
+  refreshToken?: string;
 }
 
 interface AugmentedJWT extends NextAuthJWT {
   id: string;
   roles: string[];
   accessToken: string;
+  refreshToken?: string;
+  /** Epoch ms when the backend access token expires */
+  accessTokenExpires?: number;
   provider?: string;
   error?: string;
   name?: string | null;
   email?: string | null;
   picture?: string | null;
+}
+
+// Refresh the backend access token this long before it actually expires
+const TOKEN_REFRESH_BUFFER_MS = 60 * 1000;
+// Fallback when the access token's exp claim can't be read (backend default is 30 min)
+const DEFAULT_ACCESS_TOKEN_TTL_MS = 25 * 60 * 1000;
+
+/** Read the exp claim (as epoch ms) from a backend JWT without verifying it */
+function getJwtExpiryMs(token: string): number | null {
+  try {
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return null;
+    const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8'));
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Exchange the stored refresh token for a new backend access/refresh token pair.
+ * On failure the token is marked with error: "RefreshAccessTokenError" so the
+ * client can force a re-login.
+ */
+async function refreshAccessToken(token: AugmentedJWT): Promise<AugmentedJWT> {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const response = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: token.refreshToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Refresh failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      ...token,
+      accessToken: data.token,
+      refreshToken: data.refreshToken ?? token.refreshToken,
+      accessTokenExpires: getJwtExpiryMs(data.token) ?? Date.now() + DEFAULT_ACCESS_TOKEN_TTL_MS,
+      error: undefined,
+    };
+  } catch (error) {
+    console.error(
+      'Failed to refresh access token:',
+      error instanceof Error ? error.message : 'unknown error'
+    );
+    return { ...token, error: 'RefreshAccessTokenError' };
+  }
 }
 
 interface AugmentedSession extends NextAuthSession {
@@ -101,6 +158,7 @@ export const authOptions: NextAuthOptions = {
               roles: data.roles || [],
               provider: "credentials",
               token: tokenOrAccessToken,
+              refreshToken: data.refreshToken,
             } as AugmentedUser;
           }
           
@@ -144,6 +202,8 @@ export const authOptions: NextAuthOptions = {
             // Backend returns roles directly, not nested under user
             (user as AugmentedUser).roles = (response as unknown as { roles?: string[] }).roles || [];
             (user as AugmentedUser).token = respToken;
+            (user as AugmentedUser).refreshToken =
+              (response as unknown as { refreshToken?: string }).refreshToken;
             (user as AugmentedUser).provider = "google";
             return true;
           }
@@ -164,19 +224,33 @@ export const authOptions: NextAuthOptions = {
       account?: NextAuthAccount | null 
     }): Promise<NextAuthJWT> {
       const extendedToken = token as AugmentedJWT;
-      
+
       if (user) {
         const augmentedUser = user as AugmentedUser;
         extendedToken.id = augmentedUser.id;
         extendedToken.roles = augmentedUser.roles || [];
         extendedToken.accessToken = augmentedUser.token || "";
+        extendedToken.refreshToken = augmentedUser.refreshToken;
+        extendedToken.accessTokenExpires = augmentedUser.token
+          ? getJwtExpiryMs(augmentedUser.token) ?? Date.now() + DEFAULT_ACCESS_TOKEN_TTL_MS
+          : undefined;
         extendedToken.provider = augmentedUser.provider;
         extendedToken.name = augmentedUser.name;
         extendedToken.email = augmentedUser.email;
         extendedToken.picture = augmentedUser.image;
+        return extendedToken;
       }
 
-      return extendedToken;
+      // No refresh token (pre-refresh sessions) or still-valid access token: leave unchanged
+      if (
+        !extendedToken.refreshToken ||
+        !extendedToken.accessTokenExpires ||
+        Date.now() < extendedToken.accessTokenExpires - TOKEN_REFRESH_BUFFER_MS
+      ) {
+        return extendedToken;
+      }
+
+      return refreshAccessToken(extendedToken);
     },
     
     async session({ session, token }: { 

@@ -61,6 +61,22 @@ public class AuthTokenFilterTest {
     }
 
     @Test
+    void doFilterInternal_WithRefreshToken_ShouldNotSetAuthentication() throws Exception {
+        // Refresh tokens must never authenticate API requests
+        String token = "valid.refresh.token";
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(jwtUtils.validateJwtToken(token)).thenReturn(true);
+        when(jwtUtils.isRefreshToken(token)).thenReturn(true);
+
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain).doFilter(request, response);
+        verify(userDetailsService, never()).loadUserByUsername(anyString());
+    }
+
+    @Test
     void doFilterInternal_WithValidJwtToken_ShouldSetAuthentication() throws Exception {
         // Arrange
         String token = "valid.jwt.token";
