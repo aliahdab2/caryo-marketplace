@@ -17,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.validation.ConstraintViolationException;
 import java.util.HashMap;
@@ -158,6 +159,22 @@ public class GlobalExceptionHandler {
         log.warn("Storage error: {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(message));
+    }
+
+    /**
+     * Handle uploads exceeding the servlet multipart size limit (413 instead of a generic 500)
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, WebRequest request) {
+
+        Locale locale = getUserLocale(request);
+        String message = getMessage("error.file.too.large", locale);
+
+        log.warn("Upload rejected, exceeds multipart size limit: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(ApiResponse.error(message));
     }
 

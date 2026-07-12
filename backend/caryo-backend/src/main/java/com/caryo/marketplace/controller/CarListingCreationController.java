@@ -2,6 +2,8 @@ package com.caryo.marketplace.controller;
 
 import com.caryo.marketplace.payload.request.CreateListingRequest;
 import com.caryo.marketplace.payload.response.CarListingResponse;
+import com.caryo.marketplace.security.ratelimit.RateLimit;
+import com.caryo.marketplace.security.ratelimit.RateLimitKeyType;
 import com.caryo.marketplace.service.CarListingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +43,8 @@ public class CarListingCreationController {
 
     @PostMapping(consumes = "application/json")
     @PreAuthorize("isAuthenticated()")
+    @RateLimit(maxRequests = 10, windowSeconds = 3600, keyType = RateLimitKeyType.USER,
+        message = "Too many listings created. Please try again later.")
     @Operation(
         summary = "Create a new car listing (no image)",
         description = "Creates a new car listing with the provided details. Authentication and email verification required. The response will include an empty 'media' array initially.",
@@ -72,6 +76,8 @@ public class CarListingCreationController {
 
     @PostMapping(value = "/with-image", consumes = "multipart/form-data")
     @PreAuthorize("isAuthenticated()")
+    @RateLimit(maxRequests = 10, windowSeconds = 3600, keyType = RateLimitKeyType.USER,
+        message = "Too many listings created. Please try again later.")
     @Operation(
         summary = "Create a new car listing with image",
         description = "Creates a new car listing with the provided details and an initial image. Authentication and email verification required. The response includes the uploaded image in the 'media' array.",

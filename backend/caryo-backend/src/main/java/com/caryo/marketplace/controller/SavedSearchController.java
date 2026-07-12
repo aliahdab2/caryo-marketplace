@@ -4,6 +4,8 @@ import com.caryo.marketplace.payload.request.SavedSearchRequest;
 import com.caryo.marketplace.payload.response.SavedSearchResponse;
 import com.caryo.marketplace.model.User;
 import com.caryo.marketplace.repository.UserRepository;
+import com.caryo.marketplace.security.ratelimit.RateLimit;
+import com.caryo.marketplace.security.ratelimit.RateLimitKeyType;
 import com.caryo.marketplace.security.services.UserDetailsImpl;
 import com.caryo.marketplace.service.SavedSearchService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,6 +50,8 @@ public class SavedSearchController {
     })
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @RateLimit(maxRequests = 20, windowSeconds = 3600, keyType = RateLimitKeyType.USER,
+        message = "Too many saved searches created. Please try again later.")
     public ResponseEntity<SavedSearchResponse> createSavedSearch(
             @Valid @RequestBody SavedSearchRequest request,
             Authentication authentication) {

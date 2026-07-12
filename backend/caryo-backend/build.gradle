@@ -43,6 +43,9 @@ dependencies {
     // Resilience4j for circuit breakers
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
     implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.3.0'
+
+    // Sentry error reporting (no-op when SENTRY_DSN is unset)
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.16.0'
     implementation 'org.springframework.boot:spring-boot-starter-mail'   // Added for email functionality
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // Added for email templates
     implementation 'com.sun.mail:jakarta.mail:2.0.2' // Jakarta Mail implementation
