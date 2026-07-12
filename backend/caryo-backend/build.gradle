@@ -80,10 +80,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // File type detection
-    implementation 'org.apache.tika:tika-core:3.2.3'
+    implementation 'org.apache.tika:tika-core:3.3.0'
 
     // AWS SDK (S3-compatible storage - works with MinIO)
-    implementation platform('software.amazon.awssdk:bom:2.41.20')
+    implementation platform('software.amazon.awssdk:bom:2.42.37')
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:url-connection-client'
 
@@ -101,7 +101,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
     testImplementation 'org.testcontainers:postgresql:1.21.4'
     testImplementation 'org.testcontainers:minio:1.21.4'
-    testImplementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
+    testImplementation 'org.apache.httpcomponents.client5:httpclient5:5.6.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
