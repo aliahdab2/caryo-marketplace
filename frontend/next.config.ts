@@ -50,8 +50,33 @@ const nextConfig: NextConfig = {
   compress: true,
 
   // Security headers for all rendered pages (API responses get theirs from the backend).
-  // No CSP yet: it needs runtime testing against imgproxy/MinIO/OAuth/YouTube origins first.
+  // CSP ships in Report-Only mode: violations surface in the browser console (and Sentry)
+  // without breaking anything. Promote to Content-Security-Policy once it runs clean.
   async headers() {
+    const apiOrigin = process.env.NEXT_PUBLIC_API_URL ? new URL(process.env.NEXT_PUBLIC_API_URL).origin : '';
+    const imgproxyOrigin = process.env.NEXT_PUBLIC_IMGPROXY_URL
+      ? new URL(process.env.NEXT_PUBLIC_IMGPROXY_URL).origin
+      : 'http://localhost:8081';
+    const minioOrigin = minioUrl ? minioUrl.origin : '';
+
+    const cspReportOnly = [
+      `default-src 'self'`,
+      // Next.js emits inline bootstrap scripts; dev mode additionally needs eval
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src 'self' data: blob: ${imgproxyOrigin} ${minioOrigin} https://lh3.googleusercontent.com https://img.youtube.com https://placehold.co https://images.unsplash.com https://picsum.photos`,
+      `media-src 'self' blob: ${minioOrigin}`,
+      `connect-src 'self' ${apiOrigin} ${minioOrigin} https://*.sentry.io https://*.ingest.sentry.io`,
+      `frame-src https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com`,
+      `font-src 'self' data:`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+      `form-action 'self' https://accounts.google.com`,
+      `frame-ancestors 'self'`,
+    ]
+      .join('; ')
+      .replace(/\s{2,}/g, ' ');
+
     return [
       {
         source: '/:path*',
@@ -60,6 +85,7 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Content-Security-Policy-Report-Only', value: cspReportOnly },
           ...(process.env.NODE_ENV === 'production'
             ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' }]
             : []),

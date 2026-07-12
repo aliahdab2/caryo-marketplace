@@ -46,6 +46,9 @@ dependencies {
 
     // Sentry error reporting (no-op when SENTRY_DSN is unset)
     implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.16.0'
+
+    // Prometheus metrics export via /actuator/prometheus (authenticated)
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-mail'   // Added for email functionality
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // Added for email templates
     implementation 'com.sun.mail:jakarta.mail:2.0.2' // Jakarta Mail implementation
