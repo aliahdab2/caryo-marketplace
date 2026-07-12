@@ -27,6 +27,19 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children, _session }: { children: React.ReactNode; _session?: unknown }) => <div data-testid="session-provider">{children}</div>,
 }));
 
+// Mock the human-verification widget so it immediately verifies
+// (deferred to avoid state updates during render)
+jest.mock('@/components/auth/SimpleVerification', () => {
+  const MockSimpleVerification = ({ onVerified }: { onVerified?: (verified: boolean) => void }) => {
+    if (onVerified) {
+      setTimeout(() => onVerified(true), 0);
+    }
+    return <div data-testid="simple-verification" />;
+  };
+  MockSimpleVerification.displayName = 'MockSimpleVerification';
+  return MockSimpleVerification;
+});
+
 // Mock global fetch
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -56,7 +69,7 @@ describe('Authentication Integration Tests', () => {
     });
   });
 
-  test.skip('complete authentication flow with NextAuth signIn', async () => {
+  test('complete authentication flow with NextAuth signIn', async () => {
     // Mock successful NextAuth signIn response
     mockSignIn.mockResolvedValue({
       ok: true,
@@ -73,11 +86,11 @@ describe('Authentication Integration Tests', () => {
       </QueryClientProvider>
     );
 
-    // Fill form and submit
-    await userEvent.type(screen.getByLabelText(/username/i), 'testuser');
-    await userEvent.type(screen.getByLabelText(/password/i), 'password123');
+    // Fill form and submit (anchored so the "Show password" toggle doesn't match)
+    await userEvent.type(screen.getByLabelText(/username or email/i), 'testuser');
+    await userEvent.type(screen.getByLabelText(/^password$/i), 'password123');
 
-    const submitButton = screen.getByRole('button', { name: /sign_in/i });
+    const submitButton = screen.getByRole('button', { name: /^sign_in$/i });
     await userEvent.click(submitButton);
 
     // Verify NextAuth signIn was called with correct parameters

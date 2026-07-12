@@ -52,14 +52,17 @@ describe('handleLogout', () => {
     });
   });
 
-  it.skip('should successfully logout and redirect - skipped due to mock complexity', () => {
-    // This test is skipped due to complex mocking requirements
-    // The functionality is verified by integration tests
-  });
+  it('should redirect to a custom path after logout', async () => {
+    mockSignOut.mockResolvedValue(undefined);
+    mockClearSessionCache.mockImplementation(() => {});
 
-  it.skip('should handle logout errors gracefully - skipped due to mock complexity', () => {
-    // This test is skipped due to complex mocking requirements
-    // Error handling is verified by integration tests
+    await handleLogout('/dashboard');
+
+    expect(mockSignOut).toHaveBeenCalledWith({
+      redirect: false,
+      callbackUrl: '/dashboard'
+    });
+    expect(window.location.href).toBe('/dashboard');
   });
 
   it('should clear all storage data', async () => {
@@ -73,16 +76,6 @@ describe('handleLogout', () => {
     expect(window.localStorage.removeItem).toHaveBeenCalledWith('username');
     expect(window.localStorage.removeItem).toHaveBeenCalledWith('auth-redirect');
     expect(window.sessionStorage.removeItem).toHaveBeenCalledWith('user-preferences');
-  });
-
-  it.skip('should handle logout with delay - skipped due to mock complexity', () => {
-    // This test is skipped due to complex mocking requirements
-    // The delay functionality is verified by integration tests
-  });
-
-  it.skip('should handle logout gracefully - skipped due to mock complexity', () => {
-    // This test is skipped due to complex mocking requirements
-    // The functionality is verified by integration tests
   });
 
   it('should use default redirect path when none provided', async () => {
