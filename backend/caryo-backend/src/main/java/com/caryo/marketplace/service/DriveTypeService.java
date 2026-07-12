@@ -5,6 +5,8 @@ import com.caryo.marketplace.model.DriveType;
 import com.caryo.marketplace.repository.DriveTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class DriveTypeService {
      * Get all drive types
      * @return List of all drive types
      */
+    @Cacheable(value = "driveTypes", key = "'all'")
     public List<DriveType> getAllDriveTypes() {
         return driveTypeRepository.findAll();
     }
@@ -34,6 +37,7 @@ public class DriveTypeService {
      * @return Drive type
      * @throws ResourceNotFoundException if drive type not found
      */
+    @Cacheable(value = "driveTypes", key = "#id")
     public DriveType getDriveTypeById(Long id) {
         return driveTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DriveType", "id", id));
@@ -45,6 +49,7 @@ public class DriveTypeService {
      * @return Drive type
      * @throws ResourceNotFoundException if drive type not found
      */
+    @Cacheable(value = "driveTypes", key = "'name:' + #name.toLowerCase()")
     public DriveType getDriveTypeByName(String name) {
         return driveTypeRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("DriveType", "name", name));
@@ -68,6 +73,7 @@ public class DriveTypeService {
      * @return Created drive type
      */
     @Transactional
+    @CacheEvict(value = "driveTypes", allEntries = true)
     public DriveType createDriveType(DriveType driveType) {
         log.info("Creating new drive type: {}", driveType.getName());
         return driveTypeRepository.save(driveType);
@@ -81,6 +87,7 @@ public class DriveTypeService {
      * @throws ResourceNotFoundException if drive type not found
      */
     @Transactional
+    @CacheEvict(value = "driveTypes", allEntries = true)
     public DriveType updateDriveType(Long id, DriveType driveTypeDetails) {
         DriveType driveType = getDriveTypeById(id);
 
@@ -97,6 +104,7 @@ public class DriveTypeService {
      * @param id Drive type ID
      */
     @Transactional
+    @CacheEvict(value = "driveTypes", allEntries = true)
     public void deleteDriveType(Long id) {
         DriveType driveType = getDriveTypeById(id);
         log.info("Deleting drive type with id: {}", id);

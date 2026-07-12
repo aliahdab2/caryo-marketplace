@@ -5,6 +5,8 @@ import com.caryo.marketplace.model.Transmission;
 import com.caryo.marketplace.repository.TransmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class TransmissionService {
      * Get all transmissions
      * @return List of all transmissions
      */
+    @Cacheable(value = "transmissionTypes", key = "'all'")
     public List<Transmission> getAllTransmissions() {
         return transmissionRepository.findAll();
     }
@@ -34,6 +37,7 @@ public class TransmissionService {
      * @return Transmission
      * @throws ResourceNotFoundException if transmission not found
      */
+    @Cacheable(value = "transmissionTypes", key = "#id")
     public Transmission getTransmissionById(Long id) {
         return transmissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transmission", "id", id));
@@ -45,6 +49,7 @@ public class TransmissionService {
      * @return Transmission
      * @throws ResourceNotFoundException if transmission not found
      */
+    @Cacheable(value = "transmissionTypes", key = "'name:' + #name.toLowerCase()")
     public Transmission getTransmissionByName(String name) {
         return transmissionRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("Transmission", "name", name));
@@ -68,6 +73,7 @@ public class TransmissionService {
      * @return Created transmission
      */
     @Transactional
+    @CacheEvict(value = "transmissionTypes", allEntries = true)
     public Transmission createTransmission(Transmission transmission) {
         log.info("Creating new transmission: {}", transmission.getName());
         return transmissionRepository.save(transmission);
@@ -81,6 +87,7 @@ public class TransmissionService {
      * @throws ResourceNotFoundException if transmission not found
      */
     @Transactional
+    @CacheEvict(value = "transmissionTypes", allEntries = true)
     public Transmission updateTransmission(Long id, Transmission transmissionDetails) {
         Transmission transmission = getTransmissionById(id);
 
@@ -97,6 +104,7 @@ public class TransmissionService {
      * @param id Transmission ID
      */
     @Transactional
+    @CacheEvict(value = "transmissionTypes", allEntries = true)
     public void deleteTransmission(Long id) {
         Transmission transmission = getTransmissionById(id);
         log.info("Deleting transmission with id: {}", id);

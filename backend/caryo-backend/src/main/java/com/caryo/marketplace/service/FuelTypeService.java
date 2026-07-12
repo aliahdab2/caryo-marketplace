@@ -5,6 +5,8 @@ import com.caryo.marketplace.model.FuelType;
 import com.caryo.marketplace.repository.FuelTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class FuelTypeService {
      * Get all fuel types
      * @return List of all fuel types
      */
+    @Cacheable(value = "fuelTypes", key = "'all'")
     public List<FuelType> getAllFuelTypes() {
         return fuelTypeRepository.findAll();
     }
@@ -34,6 +37,7 @@ public class FuelTypeService {
      * @return Fuel type
      * @throws ResourceNotFoundException if fuel type not found
      */
+    @Cacheable(value = "fuelTypes", key = "#id")
     public FuelType getFuelTypeById(Long id) {
         return fuelTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("FuelType", "id", id));
@@ -45,6 +49,7 @@ public class FuelTypeService {
      * @return Fuel type
      * @throws ResourceNotFoundException if fuel type not found
      */
+    @Cacheable(value = "fuelTypes", key = "'name:' + #name.toLowerCase()")
     public FuelType getFuelTypeByName(String name) {
         return fuelTypeRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("FuelType", "name", name));
@@ -68,6 +73,7 @@ public class FuelTypeService {
      * @return Created fuel type
      */
     @Transactional
+    @CacheEvict(value = "fuelTypes", allEntries = true)
     public FuelType createFuelType(FuelType fuelType) {
         log.info("Creating new fuel type: {}", fuelType.getName());
         return fuelTypeRepository.save(fuelType);
@@ -81,6 +87,7 @@ public class FuelTypeService {
      * @throws ResourceNotFoundException if fuel type not found
      */
     @Transactional
+    @CacheEvict(value = "fuelTypes", allEntries = true)
     public FuelType updateFuelType(Long id, FuelType fuelTypeDetails) {
         FuelType fuelType = getFuelTypeById(id);
 
@@ -97,6 +104,7 @@ public class FuelTypeService {
      * @param id Fuel type ID
      */
     @Transactional
+    @CacheEvict(value = "fuelTypes", allEntries = true)
     public void deleteFuelType(Long id) {
         FuelType fuelType = getFuelTypeById(id);
         log.info("Deleting fuel type with id: {}", id);

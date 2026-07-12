@@ -5,6 +5,8 @@ import com.caryo.marketplace.model.CarCondition;
 import com.caryo.marketplace.repository.CarConditionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class CarConditionService {
      * Get all car conditions
      * @return List of all car conditions
      */
+    @Cacheable(value = "carConditions", key = "'all'")
     public List<CarCondition> getAllConditions() {
         return carConditionRepository.findAll();
     }
@@ -34,6 +37,7 @@ public class CarConditionService {
      * @return Car condition
      * @throws ResourceNotFoundException if condition not found
      */
+    @Cacheable(value = "carConditions", key = "#id")
     public CarCondition getConditionById(Long id) {
         return carConditionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CarCondition", "id", id));
@@ -45,6 +49,7 @@ public class CarConditionService {
      * @return Car condition
      * @throws ResourceNotFoundException if condition not found
      */
+    @Cacheable(value = "carConditions", key = "'name:' + #name.toLowerCase()")
     public CarCondition getConditionByName(String name) {
         return carConditionRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("CarCondition", "name", name));
@@ -68,6 +73,7 @@ public class CarConditionService {
      * @return Created condition
      */
     @Transactional
+    @CacheEvict(value = "carConditions", allEntries = true)
     public CarCondition createCondition(CarCondition condition) {
         log.info("Creating new car condition: {}", condition.getName());
         return carConditionRepository.save(condition);
@@ -81,6 +87,7 @@ public class CarConditionService {
      * @throws ResourceNotFoundException if condition not found
      */
     @Transactional
+    @CacheEvict(value = "carConditions", allEntries = true)
     public CarCondition updateCondition(Long id, CarCondition conditionDetails) {
         CarCondition condition = getConditionById(id);
 
@@ -97,6 +104,7 @@ public class CarConditionService {
      * @param id Condition ID
      */
     @Transactional
+    @CacheEvict(value = "carConditions", allEntries = true)
     public void deleteCondition(Long id) {
         CarCondition condition = getConditionById(id);
         log.info("Deleting car condition with id: {}", id);

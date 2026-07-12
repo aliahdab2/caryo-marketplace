@@ -5,6 +5,8 @@ import com.caryo.marketplace.model.BodyStyle;
 import com.caryo.marketplace.repository.BodyStyleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class BodyStyleService {
      * Get all body styles
      * @return List of all body styles
      */
+    @Cacheable(value = "bodyStyles", key = "'all'")
     public List<BodyStyle> getAllBodyStyles() {
         return bodyStyleRepository.findAll();
     }
@@ -34,6 +37,7 @@ public class BodyStyleService {
      * @return Body style
      * @throws ResourceNotFoundException if body style not found
      */
+    @Cacheable(value = "bodyStyles", key = "#id")
     public BodyStyle getBodyStyleById(Long id) {
         return bodyStyleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "id", id));
@@ -45,6 +49,7 @@ public class BodyStyleService {
      * @return Body style
      * @throws ResourceNotFoundException if body style not found
      */
+    @Cacheable(value = "bodyStyles", key = "'name:' + #name.toLowerCase()")
     public BodyStyle getBodyStyleByName(String name) {
         return bodyStyleRepository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "name", name));
@@ -56,6 +61,7 @@ public class BodyStyleService {
      * @return Body style
      * @throws ResourceNotFoundException if body style not found
      */
+    @Cacheable(value = "bodyStyles", key = "'slug:' + #slug.toLowerCase()")
     public BodyStyle getBodyStyleBySlug(String slug) {
         return bodyStyleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("BodyStyle", "slug", slug));
@@ -79,6 +85,7 @@ public class BodyStyleService {
      * @return Created body style
      */
     @Transactional
+    @CacheEvict(value = "bodyStyles", allEntries = true)
     public BodyStyle createBodyStyle(BodyStyle bodyStyle) {
         log.info("Creating new body style: {}", bodyStyle.getName());
         return bodyStyleRepository.save(bodyStyle);
@@ -92,6 +99,7 @@ public class BodyStyleService {
      * @throws ResourceNotFoundException if body style not found
      */
     @Transactional
+    @CacheEvict(value = "bodyStyles", allEntries = true)
     public BodyStyle updateBodyStyle(Long id, BodyStyle bodyStyleDetails) {
         BodyStyle bodyStyle = getBodyStyleById(id);
 
@@ -109,6 +117,7 @@ public class BodyStyleService {
      * @param id Body style ID
      */
     @Transactional
+    @CacheEvict(value = "bodyStyles", allEntries = true)
     public void deleteBodyStyle(Long id) {
         BodyStyle bodyStyle = getBodyStyleById(id);
         log.info("Deleting body style with id: {}", id);

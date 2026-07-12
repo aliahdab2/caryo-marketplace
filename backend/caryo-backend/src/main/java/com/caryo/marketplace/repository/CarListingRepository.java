@@ -4,6 +4,8 @@ import com.caryo.marketplace.model.CarListing;
 import com.caryo.marketplace.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,6 +19,14 @@ import java.util.Optional;
 
 @Repository
 public interface CarListingRepository extends JpaRepository<CarListing, Long>, JpaSpecificationExecutor<CarListing> {
+
+       // Eagerly load the to-one associations that CarListingMapper dereferences,
+       // so a page of results is fetched in a single query instead of N+1
+       // (media is a collection and is batch-loaded via hibernate.default_batch_fetch_size)
+       @Override
+       @EntityGraph(attributePaths = { "model", "model.brand", "seller", "seller.sellerType",
+                     "fuelType", "transmissionType", "governorate", "location" })
+       Page<CarListing> findAll(Specification<CarListing> spec, Pageable pageable);
 
        // Find all approved listings with pagination
        Page<CarListing> findByApprovedTrue(Pageable pageable);
