@@ -18,6 +18,7 @@ export interface CarListing {
   governorateDetails: GovernorateResponse;
   modelYear: number;
   price: number;
+  currency?: string;
   mileage: number;
   transmission: string;
   fuelType: string;
@@ -82,6 +83,7 @@ export interface ListingMediaResponse {
   id: number;
   url: string;
   type: string;
+  mediaType?: string;
 }
 
 export interface CarListingFilterParams {

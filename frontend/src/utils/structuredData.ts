@@ -1,4 +1,26 @@
-import { CarListing } from '@/services/api';
+// Minimal structural view of a listing accepted by generateVehicleSchema.
+// Compatible with both the authenticated (services/api) and public
+// (services/publicApi) CarListing shapes.
+export interface VehicleSchemaListing {
+  title: string;
+  description?: string;
+  brandNameEn?: string;
+  modelNameEn?: string;
+  modelYear?: number;
+  price?: number;
+  mileage?: number;
+  createdAt?: string;
+  isSold?: boolean;
+  sellerUsername?: string;
+  fuelType?: { displayNameEn: string } | string;
+  transmission?: { displayNameEn: string } | string;
+  media?: Array<{ url: string }>;
+  locationDetails?: {
+    displayNameEn: string;
+    countryCode?: string;
+  };
+  governorateNameEn?: string;
+}
 
 // Base schema interface
 interface BaseSchema {
@@ -125,7 +147,7 @@ const SCHEMA_CONSTANTS = {
  * Generate Vehicle structured data for car listings with comprehensive Schema.org compliance
  */
 export function generateVehicleSchema(
-  listing: CarListing, 
+  listing: VehicleSchemaListing,
   listingUrl: string,
   options: {
     includeLocation?: boolean;

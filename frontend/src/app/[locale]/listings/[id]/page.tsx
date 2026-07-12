@@ -1,12 +1,24 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchCarListingPublic } from '@/services/publicApi';
+import { generateVehicleSchema } from '@/utils/structuredData';
+import { getResizedImageUrl } from '@/utils/imgproxy';
 import ListingDetailClient from './ListingDetailClient';
 
 interface PageProps {
   params: Promise<{
+    locale: string;
     id: string;
   }>;
+}
+
+const SCHEMA_CURRENCIES = ['SYP', 'USD', 'EUR'] as const;
+type SchemaCurrency = (typeof SCHEMA_CURRENCIES)[number];
+
+function toSchemaCurrency(value?: string): SchemaCurrency | undefined {
+  return SCHEMA_CURRENCIES.includes(value as SchemaCurrency)
+    ? (value as SchemaCurrency)
+    : undefined;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -52,15 +64,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ListingDetailPage({ params }: PageProps) {
   try {
-    const { id } = await params;
+    const { locale, id } = await params;
     const listing = await fetchCarListingPublic(Number(id));
 
     if (!listing) {
       notFound();
     }
 
+    const vehicleSchema = generateVehicleSchema(listing, `/${locale}/listings/${id}`, {
+      currency: toSchemaCurrency(listing.currency),
+    });
+
+    // Media URLs from the API are storage file keys; resolve them through
+    // imgproxy so the schema carries real, crawlable image URLs
+    const schemaImages = (listing.media ?? [])
+      .filter((media) => media.mediaType !== 'video' && media.url)
+      .map((media) => getResizedImageUrl(media.url, 1200))
+      .filter((url) => url.startsWith('http'));
+    vehicleSchema.image = schemaImages.length > 0 ? schemaImages : undefined;
+
     return (
-      <ListingDetailClient initialListing={listing} />
+      <>
+        {/* JSON-LD Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleSchema) }}
+        />
+        <ListingDetailClient initialListing={listing} />
+      </>
     );
   } catch (error) {
     console.error('Error fetching listing:', error);

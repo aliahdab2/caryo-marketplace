@@ -119,6 +119,7 @@ export interface CarListing {
   
   modelYear: number;
   price: number;
+  currency?: string;
   mileage: number;
   description: string;
   media: ListingMediaResponse[];
