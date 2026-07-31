@@ -34,8 +34,16 @@ export function proxy(request: NextRequest) {
       (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
     );
 
-    const response = NextResponse.next();
-    
+    // Forward the locale to server components: the root layout (which owns
+    // <html>) sits above the [locale] segment and cannot read its params, so
+    // it reads this header to set lang/dir server-side (no RTL flash).
+    const requestHeaders = new Headers(request.headers);
+    if (localeInPath) {
+      requestHeaders.set('x-locale', localeInPath);
+    }
+
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+
     // Sync cookie with the URL locale so subsequent requests respect the switch
     if (localeInPath) {
       const currentCookie = request.cookies.get('NEXT_LOCALE')?.value;
