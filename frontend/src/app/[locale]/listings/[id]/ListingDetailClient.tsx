@@ -26,7 +26,7 @@ interface ListingDetailClientProps {
 }
 
 export default function ListingDetailClient({ initialListing }: ListingDetailClientProps) {
-  const { t } = useTranslation(['listings', 'messages']);
+  const { t, i18n } = useTranslation(['listings', 'messages']);
   const { locale } = useLanguageSwitching();
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
@@ -102,7 +102,10 @@ export default function ListingDetailClient({ initialListing }: ListingDetailCli
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span>
-                      {listing.governorateDetails?.displayNameEn || listing.locationDetails?.displayNameEn || t('locationNotSpecified')}
+                      {(i18n.language === 'ar'
+                        ? listing.governorateDetails?.displayNameAr || listing.locationDetails?.displayNameAr
+                        : listing.governorateDetails?.displayNameEn || listing.locationDetails?.displayNameEn)
+                        || t('locationNotSpecified')}
                     </span>
                   </div>
                 </div>

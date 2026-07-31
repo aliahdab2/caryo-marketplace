@@ -121,7 +121,9 @@ const SellerInfo: React.FC<SellerInfoProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <span>
-                {listing.governorate?.nameEn || listing.location?.city || t('locationNotSpecified')}
+                {(locale === 'ar' ? listing.governorate?.nameAr : listing.governorate?.nameEn)
+                  || listing.location?.city
+                  || t('locationNotSpecified')}
               </span>
             </div>
           </div>
