@@ -11,20 +11,16 @@ exercised in a real browser.** This is the project's default way of working.
 ## One command
 
 ```bash
-./scripts/verify.sh              # DEFAULT GATE: frontend + backend + smoke e2e
+./scripts/verify.sh              # DEFAULT GATE: frontend + backend + ALL e2e
 ./scripts/verify.sh --frontend   # type-check + lint + translations + jest
 ./scripts/verify.sh --backend    # gradle test
-./scripts/verify.sh --smoke      # e2e: seo-smoke + auth specs (guaranteed green)
-./scripts/verify.sh --full       # everything incl. ALL e2e specs (see debt below)
+./scripts/verify.sh --smoke      # e2e: seo-smoke + auth specs (fast subset)
 ```
 
-**Known e2e debt (as of 2026-07-31):** 17 legacy tests fail from staleness, not
-product bugs — listing-wizard (9, old routes/selectors for the create-listing
-wizard), messaging (4), search (2), favorites (1), subscription (2). Triage
-them spec-by-spec; every fixed file graduates into the default gate, and once
-all are green make `--full` the no-arg default. Run the touched area's spec
-even if it is on the debt list — a new failure of an already-failing test still
-needs reading.
+The full e2e suite is green as of 2026-07-31 (legacy debt triaged: wizard walks
+all 4 steps for real, messaging targets the leads route as dealer, favorites
+uses the per-card toggle, subscription mocks the v1 API path). Keep it green —
+a red default gate gets ignored, which is worse than no gate.
 
 Scope to what changed: backend-only change → `--backend --smoke`; frontend
 change → `--frontend --e2e` (or `--smoke` for small changes); anything touching

@@ -8,5 +8,14 @@
   "removeAll": "إزالة الكل",
   "removingAll": "جاري الإزالة...",
   "removeAllTitle": "إزالة جميع المفضلة؟",
-  "removeAllMessage": "هل أنت متأكد من أنك تريد إزالة جميع السيارات المفضلة لديك؟"
+  "removeAllMessage": "هل أنت متأكد من أنك تريد إزالة جميع السيارات المفضلة لديك؟",
+  "tabAll": "الكل",
+  "tabAvailable": "متاح",
+  "tabRemoved": "محذوف",
+  "itemCount_zero": "لا عناصر",
+  "itemCount_one": "عنصر واحد",
+  "itemCount_two": "عنصران",
+  "itemCount_few": "{{count}} عناصر",
+  "itemCount_many": "{{count}} عنصراً",
+  "itemCount_other": "{{count}} عنصر"
 }

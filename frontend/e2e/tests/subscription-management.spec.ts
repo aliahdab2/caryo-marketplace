@@ -24,7 +24,7 @@ test.describe('Subscription Management', () => {
     };
 
     // 1. Set up API mocks BEFORE navigation
-    await page.route('**/api/dealer/trial-status', async route => {
+    await page.route('**/api/v1/dealer/trial-status', async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

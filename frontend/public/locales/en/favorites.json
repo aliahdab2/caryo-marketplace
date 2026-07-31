@@ -8,5 +8,14 @@
   "removeAll": "Remove All",
   "removingAll": "Removing All...",
   "removeAllTitle": "Remove All Favorites?",
-  "removeAllMessage": "Are you sure you want to remove all your favorite cars?"
+  "removeAllMessage": "Are you sure you want to remove all your favorite cars?",
+  "tabAll": "All",
+  "tabAvailable": "Available",
+  "tabRemoved": "Removed",
+  "itemCount_one": "{{count}} item",
+  "itemCount_other": "{{count}} items",
+  "itemCount_zero": "No items",
+  "itemCount_two": "{{count}} items",
+  "itemCount_few": "{{count}} items",
+  "itemCount_many": "{{count}} items"
 }

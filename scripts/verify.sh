@@ -6,13 +6,12 @@
 #   unit/integration tests + static checks + REAL-BROWSER click testing.
 #
 # Usage:
-#   ./scripts/verify.sh              # default gate: frontend + backend + smoke e2e
+#   ./scripts/verify.sh              # default gate: frontend + backend + ALL e2e
 #   ./scripts/verify.sh --frontend   # type-check, lint, translations, jest
 #   ./scripts/verify.sh --backend    # gradle test
 #   ./scripts/verify.sh --smoke     # e2e: seo-smoke + auth specs (always green)
-#   ./scripts/verify.sh --e2e        # ALL Playwright specs — 17 legacy tests are
-#                                    # still being triaged (see .claude/skills/verify)
-#   ./scripts/verify.sh --full       # frontend + backend + ALL e2e specs
+#   ./scripts/verify.sh --e2e        # ALL Playwright specs
+#   ./scripts/verify.sh --full       # same as no-arg (kept for compatibility)
 #
 # The e2e step manages its own servers:
 #   - backend: uses :8080 if healthy, otherwise starts the dev stack
@@ -39,9 +38,9 @@ API_URL="http://localhost:8080"
 
 RUN_FRONTEND=0; RUN_BACKEND=0; RUN_E2E=0; SMOKE_ONLY=0
 if [ $# -eq 0 ]; then
-    # Default gate: everything that is guaranteed-green. The full e2e suite
-    # graduates into the default once the legacy spec triage lands.
-    RUN_FRONTEND=1; RUN_BACKEND=1; RUN_E2E=1; SMOKE_ONLY=1
+    # Default gate = the FULL loop. The legacy spec triage landed 2026-07-31;
+    # the entire e2e suite is green and stays that way.
+    RUN_FRONTEND=1; RUN_BACKEND=1; RUN_E2E=1; SMOKE_ONLY=0
 fi
 for arg in "$@"; do
     case "$arg" in

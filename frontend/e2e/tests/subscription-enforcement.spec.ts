@@ -9,7 +9,7 @@ test.describe('Subscription Enforcement', () => {
 
   test('should disable "Create Listing" and show upgrade modal in dashboard when limit is reached', async ({ page }) => {
     // 1. Mock the trial status
-    await page.route('**/api/dealer/trial-status', async route => {
+    await page.route('**/api/v1/dealer/trial-status', async route => {
       const json = {
         active: true,
         canCreateListings: false, // FORCE LIMIT REACHED
@@ -41,7 +41,7 @@ test.describe('Subscription Enforcement', () => {
 
   test('should redirect from new listing page when limit is reached', async ({ page }) => {
     // 1. Mock the trial status
-    await page.route('**/api/dealer/trial-status', async route => {
+    await page.route('**/api/v1/dealer/trial-status', async route => {
       const json = {
         active: true,
         canCreateListings: false,

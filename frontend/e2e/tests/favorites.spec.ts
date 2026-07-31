@@ -1,60 +1,47 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, ensureLoggedOut } from '../helpers';
+import { loginAsTestUser, ensureLoggedOut, gotoSeededListing } from '../helpers';
 import { urls } from '../fixtures/test-data';
 
+/**
+ * The add-to-favorites tests used to swallow a missing button with
+ * `try { expect(...) } catch { test.skip() }`, and confirmed the click with
+ * `expect(wasAdded || true).toBe(true)` — a tautology. Both are now real
+ * assertions, so a broken favourites button fails the suite.
+ */
 test.describe('Favorites', () => {
   test.beforeEach(async ({ page }) => {
     await ensureLoggedOut(page);
   });
 
+  const favoriteButtonFor = (page: import('@playwright/test').Page) =>
+    page
+      .getByRole('button', { name: /add to favorites|favorite|save/i })
+      .first()
+      .or(page.locator('[data-testid*="favorite"]').first());
+
   test.describe('FAV-001: Add to Favorites', () => {
     test('favorite button visible on listing', async ({ page }) => {
       await loginAsTestUser(page);
-      
-      // Navigate directly to a known listing for reliability
-      await page.goto(urls.listing || '/listings/6');
-      await page.waitForLoadState('networkidle');
+      await gotoSeededListing(page);
 
-      // Look for favorite button on the listing page
-      const favoriteButton = page.getByRole('button', { name: /add to favorites|favorite|save/i }).first()
-        .or(page.locator('[data-testid*="favorite"]').first());
-      
-      try {
-        await expect(favoriteButton).toBeVisible({ timeout: 10000 });
-      } catch {
-        test.skip();
-        return;
-      }
+      await expect(favoriteButtonFor(page)).toBeVisible({ timeout: 10000 });
     });
 
     test('can add listing to favorites', async ({ page }) => {
       await loginAsTestUser(page);
-      
-      // Navigate directly to a listing
-      await page.goto(urls.listing || '/listings/6');
-      await page.waitForLoadState('networkidle');
+      await gotoSeededListing(page);
 
-      // Find favorite button
-      const favoriteButton = page.getByRole('button', { name: /add to favorites|favorite|save/i }).first()
-        .or(page.locator('[data-testid*="favorite"]').first());
-      
-      try {
-        await expect(favoriteButton).toBeVisible({ timeout: 10000 });
-      } catch {
-        test.skip();
-        return;
-      }
+      const favoriteButton = favoriteButtonFor(page);
+      await expect(favoriteButton).toBeVisible({ timeout: 10000 });
 
-      // Click to add to favorites
       await favoriteButton.click();
-      await page.waitForTimeout(1000);
 
-      // Verify action happened (button changed state, toast appeared, or no error)
-      const wasAdded = await page.getByText(/added|saved|favorite/i).isVisible().catch(() => false) ||
-        await page.getByRole('button', { name: /remove|unfavorite/i }).first().isVisible().catch(() => false);
+      // The click must produce a visible result: a confirmation, or the button
+      // flipping to its "remove" state.
+      const confirmation = page.getByText(/added|saved to favorites/i).first();
+      const removeAffordance = page.getByRole('button', { name: /remove|unfavorite/i }).first();
 
-      // Success if no error occurred
-      expect(wasAdded || true).toBe(true);
+      await expect(confirmation.or(removeAffordance)).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -70,7 +57,8 @@ test.describe('Favorites', () => {
     test('favorites page shows saved listings or empty state', async ({ page }) => {
       await loginAsTestUser(page);
       await page.goto(urls.favorites);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
+      await page.waitForTimeout(2000);
 
       // Wait for content to load
       await page.waitForTimeout(2000);
@@ -81,12 +69,11 @@ test.describe('Favorites', () => {
         .or(page.locator('[class*="favorite"]'))
         .or(page.locator('article'));
 
-      const hasListings = await listingCard.first().isVisible().catch(() => false);
-      const hasEmptyState = await page.getByText(/no favorites|no saved|empty|haven't saved/i).isVisible().catch(() => false);
-      const hasPageTitle = await page.getByRole('heading').first().isVisible().catch(() => false);
+      // Either saved listings or an explicit empty state. A bare heading no
+      // longer counts — that passed even when the page body failed to render.
+      const emptyState = page.getByText(/no favorites|no saved|empty|haven't saved/i).first();
 
-      // Page should show listings, empty state, or at least a heading
-      expect(hasListings || hasEmptyState || hasPageTitle).toBe(true);
+      await expect(listingCard.first().or(emptyState)).toBeVisible({ timeout: 15000 });
     });
   });
 
@@ -96,29 +83,35 @@ test.describe('Favorites', () => {
       await page.goto(urls.favorites);
 
       // Find remove button
-      const removeButton = page.getByRole('button', { name: /remove|unfavorite|delete/i }).or(
-        page.getByTestId('remove-favorite-button')
-      );
+      // Match the per-card favorite toggle only — a "Remove All" button also
+      // exists and its confirm dialog swallowed the old test's click.
+      const removeButton = page.getByRole('button', { name: /remove from favorites/i });
 
-      if (await removeButton.first().isVisible().catch(() => false)) {
-        const initialCount = await page.getByTestId('listing-card').count();
-        
-        await removeButton.first().click();
-        
-        // Wait for removal
-        await page.waitForTimeout(500);
+      // Nothing saved means nothing to remove — genuinely inapplicable, so an
+      // explicit skip is honest here.
+      const hasSomethingToRemove = await removeButton.first().isVisible().catch(() => false);
+      test.skip(!hasSomethingToRemove, 'Test account has no favorites to remove');
 
-        // Count should decrease or show confirmation
-        const newCount = await page.getByTestId('listing-card').count();
-        expect(newCount <= initialCount).toBe(true);
-      }
+      // Removing flips the toggle to "Add to Favorites", so the count of
+      // remove-labeled toggles must shrink even though the card stays visible.
+      const initialCount = await removeButton.count();
+
+      await removeButton.first().click();
+
+      await expect
+        .poll(() => removeButton.count(), {
+          timeout: 10000,
+          message: 'Removing a favorite did not flip its toggle state',
+        })
+        .toBeLessThan(initialCount);
     });
   });
 
   test.describe('FAV-004: Unauthenticated User', () => {
     test('redirects to login when not authenticated', async ({ page }) => {
       await page.goto(urls.favorites);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
+      await page.waitForTimeout(2000);
 
       // Wait for redirect or page load
       await page.waitForTimeout(2000);

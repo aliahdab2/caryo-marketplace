@@ -1,6 +1,77 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { loginAsTestUser, ensureLoggedOut } from '../helpers';
-import { urls, testListing } from '../fixtures/test-data';
+import { urls } from '../fixtures/test-data';
+
+/**
+ * Listing wizard E2E — walks the real 4-step wizard sequentially
+ * (Vehicle Identity → Vehicle Details → Content & Media → Pricing & Contact).
+ * Steps cannot be jumped to: each requires the previous one to be completed,
+ * so every test walks up to the step it asserts on.
+ */
+
+/** Wait for a native select's options to load from the API, then pick the first real one */
+async function selectFirstRealOption(page: Page, selector: string) {
+  const el = page.locator(selector);
+  await expect(el).toBeVisible({ timeout: 15000 });
+  await expect
+    .poll(async () => el.locator('option').count(), { timeout: 20000 })
+    .toBeGreaterThan(1);
+  await el.selectOption({ index: 1 });
+}
+
+async function clickNext(page: Page) {
+  await page.getByRole('button', { name: /^next$/i }).first().click();
+  await page.waitForTimeout(800);
+}
+
+async function openWizard(page: Page) {
+  await page.goto(urls.createListing);
+  await page.waitForLoadState('load');
+  await expect(page.locator('#make')).toBeVisible({ timeout: 20000 });
+}
+
+async function completeStep1(page: Page) {
+  await selectFirstRealOption(page, '#make');
+  await selectFirstRealOption(page, '#model');
+  await selectFirstRealOption(page, '#year');
+  await clickNext(page);
+  await expect(page.locator('#mileage')).toBeVisible({ timeout: 15000 });
+}
+
+async function completeStep2(page: Page) {
+  await page.locator('#mileage').fill('50000');
+  // Optional selects on this step — pick a value when present
+  for (const sel of ['#transmission', '#fuelType', '#condition']) {
+    const el = page.locator(sel);
+    if (await el.isVisible().catch(() => false)) {
+      const options = await el.locator('option').count();
+      if (options > 1) await el.selectOption({ index: 1 });
+    }
+  }
+  await clickNext(page);
+  await expect(page.locator('input[name="title"]')).toBeVisible({ timeout: 15000 });
+}
+
+async function completeStep3(page: Page) {
+  await page.locator('input[name="title"]').fill('E2E Test Car Listing');
+  await page
+    .locator('textarea[name="description"]')
+    .fill('Automated end-to-end test listing description with enough detail to satisfy validation rules.');
+  // Step 3 requires at least one image (step3Schema refine) — target the
+  // image input specifically; a separate video input also exists
+  await page
+    .locator('input[type="file"][accept="image/*"]')
+    .setInputFiles('e2e/fixtures/test-car.png');
+  // the preview grid renders a per-image remove button once the file registers
+  await expect(page.getByRole('button', { name: /remove image 1/i })).toBeVisible({ timeout: 15000 });
+  await clickNext(page);
+  // UX quirk worth a product look: the first Next click right after image
+  // processing is sometimes swallowed even though validation passes
+  if (!(await page.locator('#price').isVisible().catch(() => false))) {
+    await clickNext(page);
+  }
+  await expect(page.locator('#price')).toBeVisible({ timeout: 15000 });
+}
 
 test.describe('Listing Wizard', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,19 +81,14 @@ test.describe('Listing Wizard', () => {
   test.describe('LISTING-001: Access Create Listing', () => {
     test('can access create listing page when logged in', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
 
-      // Should show wizard step 1
       await expect(page).toHaveURL(/new|create/);
-      await expect(
-        page.getByText(/step 1|vehicle|make|brand/i).first()
-      ).toBeVisible();
+      await expect(page.getByText(/vehicle identity/i).first()).toBeVisible();
     });
 
     test('redirects to login when not authenticated', async ({ page }) => {
       await page.goto(urls.createListing);
-
-      // Should redirect to login
       await expect(page).toHaveURL(/signin|login/);
     });
   });
@@ -30,260 +96,118 @@ test.describe('Listing Wizard', () => {
   test.describe('LISTING-002: Step 1 - Vehicle Identity', () => {
     test('shows make, model, year fields', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
 
-      // Verify Step 1 fields
-      await expect(
-        page.getByLabel(/make|brand/i).or(page.getByTestId('make-select'))
-      ).toBeVisible();
-
-      await expect(
-        page.getByLabel(/model/i).or(page.getByTestId('model-select'))
-      ).toBeVisible();
-
-      await expect(
-        page.getByLabel(/year/i).or(page.getByTestId('year-select'))
-      ).toBeVisible();
+      await expect(page.locator('#make')).toBeVisible();
+      await expect(page.locator('#model')).toBeVisible();
+      await expect(page.locator('#year')).toBeVisible();
     });
 
-    test('can select make and model populates', async ({ page }) => {
-      test.setTimeout(60000); // Increase timeout for this test
-      
+    test('selecting a make populates models', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000); // Wait for API to load makes
+      await openWizard(page);
 
-      const makeSelect = page.getByLabel(/make|brand/i).or(page.getByTestId('make-select'));
-      
-      // Check if make field is interactive
-      const isVisible = await makeSelect.isVisible().catch(() => false);
-      
-      if (isVisible) {
-        // Try different selection methods
-        try {
-          await makeSelect.selectOption({ label: 'toyota' });
-        } catch {
-          try {
-            await makeSelect.click();
-            await page.waitForTimeout(500);
-            await page.getByRole('option', { name: /toyota/i }).click();
-          } catch {
-            // Selection failed but that's okay - field is visible
-          }
-        }
-      }
-
-      // Test passes if make field is visible and interactable
-      expect(isVisible).toBe(true);
+      await selectFirstRealOption(page, '#make');
+      // model options load after the make is chosen
+      await expect
+        .poll(async () => page.locator('#model option').count(), { timeout: 20000 })
+        .toBeGreaterThan(1);
     });
 
-    test('can proceed to step 2', async ({ page }) => {
-      test.setTimeout(60000); // Increase timeout for this test
-      
+    test('completing step 1 advances to vehicle details', async ({ page }) => {
+      test.setTimeout(60000);
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000); // Wait for API to load
+      await openWizard(page);
 
-      // Fill Step 1 (best effort)
-      const makeSelect = page.getByLabel(/make|brand/i).or(page.getByTestId('make-select'));
-      const modelSelect = page.getByLabel(/model/i).or(page.getByTestId('model-select'));
-      const yearSelect = page.getByLabel(/year/i).or(page.getByTestId('year-select'));
-
-      // Try to fill (graceful failure if selects work differently)
-      try {
-        await makeSelect.selectOption(testListing.make);
-        await page.waitForTimeout(1000);
-        await modelSelect.selectOption(testListing.model);
-        await yearSelect.selectOption(testListing.year);
-      } catch {
-        // Fields might use different UI patterns, continue anyway
-      }
-
-      // Click next button
-      const nextButton = page.getByRole('button', { name: /next|continue/i });
-      
-      if (await nextButton.isVisible().catch(() => false)) {
-        await nextButton.click();
-        await page.waitForTimeout(1000);
-      }
-
-      // Test passes if we got this far (navigation attempted)
-      expect(true).toBe(true);
+      await completeStep1(page);
+      await expect(page.getByText(/step 2 of 4/i).first()).toBeVisible();
     });
   });
 
   test.describe('LISTING-003: Step 2 - Vehicle Details', () => {
     test('step 2 shows vehicle details fields', async ({ page }) => {
+      test.setTimeout(60000);
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
+      await completeStep1(page);
 
-      // Navigate to step 2 by clicking step indicator or filling step 1
-      const step2Indicator = page.getByRole('button', { name: /step 2|details/i }).or(
-        page.getByText(/step 2/i)
-      );
-
-      if (await step2Indicator.isVisible().catch(() => false)) {
-        await step2Indicator.click();
-      }
-
-      // Look for Step 2 fields
-      const hasMileage = await page.getByLabel(/mileage|kilometer/i).isVisible().catch(() => false);
-      const hasCondition = await page.getByLabel(/condition/i).isVisible().catch(() => false);
-      const hasTransmission = await page.getByLabel(/transmission|gearbox/i).isVisible().catch(() => false);
-
-      // At least one should be visible (either on page or after navigation)
-      expect(hasMileage || hasCondition || hasTransmission || true).toBe(true);
+      await expect(page.locator('#mileage')).toBeVisible();
+      await expect(page.locator('#transmission').or(page.locator('#fuelType')).first()).toBeVisible();
     });
   });
 
   test.describe('LISTING-004: Step 3 - Description & Media', () => {
-    test('step 3 shows title and description fields', async ({ page }) => {
+    test('step 3 shows title, description, and image upload', async ({ page }) => {
+      test.setTimeout(90000);
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
+      await completeStep1(page);
+      await completeStep2(page);
 
-      // Try to navigate to step 3
-      const step3Indicator = page.getByRole('button', { name: /step 3|description|media/i }).or(
-        page.getByText(/step 3/i)
-      );
-
-      if (await step3Indicator.isVisible().catch(() => false)) {
-        await step3Indicator.click();
-        await page.waitForTimeout(500);
-      }
-
-      // Look for title field
-      const hasTitle = await page.getByLabel(/title/i).isVisible().catch(() => false);
-      const hasDescription = await page.getByLabel(/description/i).isVisible().catch(() => false);
-
-      expect(hasTitle || hasDescription || true).toBe(true);
-    });
-
-    test('image upload section is visible', async ({ page }) => {
-      await loginAsTestUser(page);
-      await page.goto(urls.createListing);
-
-      // Navigate to media step
-      const step3 = page.getByRole('button', { name: /step 3|media|photo/i });
-      if (await step3.isVisible().catch(() => false)) {
-        await step3.click();
-      }
-
-      // Look for upload area
-      const hasUpload = await page.getByText(/upload|drag|drop|add photo/i).isVisible().catch(() => false);
-      const hasFileInput = await page.locator('input[type="file"]').isVisible().catch(() => false);
-
-      expect(hasUpload || hasFileInput || true).toBe(true);
+      await expect(page.locator('input[name="title"]')).toBeVisible();
+      await expect(page.locator('textarea[name="description"]')).toBeVisible();
+      // The file input hides behind a styled dropzone — DOM presence is the check
+      expect(await page.locator('input[type="file"]').count()).toBeGreaterThan(0);
     });
   });
 
   test.describe('LISTING-005: Step 4 - Pricing & Contact', () => {
-    test('step 4 shows price field', async ({ page }) => {
+    test('step 4 shows price field and submit button', async ({ page }) => {
+      test.setTimeout(120000);
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
+      await completeStep1(page);
+      await completeStep2(page);
+      await completeStep3(page);
 
-      // Navigate to step 4
-      const step4 = page.getByRole('button', { name: /step 4|price|contact/i });
-      if (await step4.isVisible().catch(() => false)) {
-        await step4.click();
-        await page.waitForTimeout(500);
-      }
-
-      const hasPrice = await page.getByLabel(/price/i).isVisible().catch(() => false);
-      expect(hasPrice || true).toBe(true);
-    });
-
-    test('submit button is visible on final step', async ({ page }) => {
-      await loginAsTestUser(page);
-      await page.goto(urls.createListing);
-
-      // Navigate to last step
-      const step4 = page.getByRole('button', { name: /step 4|price/i });
-      if (await step4.isVisible().catch(() => false)) {
-        await step4.click();
-      }
-
-      // Look for submit button
-      const submitButton = page.getByRole('button', { name: /submit|publish|create|save/i });
-      const isVisible = await submitButton.isVisible().catch(() => false);
-
-      expect(isVisible || true).toBe(true);
+      await expect(page.locator('#price')).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: /submit|publish|create listing/i }).first()
+      ).toBeVisible();
     });
   });
 
   test.describe('LISTING-006: Navigation', () => {
     test('can navigate back to previous step', async ({ page }) => {
+      test.setTimeout(60000);
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
+      await completeStep1(page);
 
-      // Try to go to step 2
-      const step2 = page.getByRole('button', { name: /step 2/i });
-      if (await step2.isVisible().catch(() => false)) {
-        await step2.click();
-        await page.waitForTimeout(300);
-
-        // Go back to step 1
-        const backButton = page.getByRole('button', { name: /back|previous/i });
-        if (await backButton.isVisible().catch(() => false)) {
-          await backButton.click();
-          
-          // Should be on step 1
-          await expect(page.getByText(/step 1|make|brand/i).first()).toBeVisible();
-        }
-      }
+      const backButton = page.getByRole('button', { name: /back|previous/i }).first();
+      await expect(backButton).toBeVisible();
+      await backButton.click();
+      await expect(page.locator('#make')).toBeVisible({ timeout: 10000 });
     });
 
     test('step indicators show progress', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
 
-      // Look for step indicators
-      const hasStepIndicators = await page.getByText(/step 1/i).isVisible().catch(() => false) ||
-        await page.getByRole('progressbar').isVisible().catch(() => false) ||
-        await page.locator('[class*="step"]').first().isVisible().catch(() => false);
-
-      expect(hasStepIndicators || true).toBe(true);
+      await expect(page.getByText(/step 1 of 4/i).first()).toBeVisible();
     });
   });
 
   test.describe('LISTING-007: Validation', () => {
-    test('shows validation errors for empty required fields', async ({ page }) => {
+    test('empty step 1 does not advance', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      await openWizard(page);
 
-      // Find the Next/Continue button within the main content area (not dev tools)
-      const mainContent = page.locator('main, [role="main"], .wizard, .form, form').first();
-      const nextButton = mainContent.getByRole('button', { name: /^next$|^continue$/i })
-        .or(page.getByTestId('next-step-button'))
-        .or(page.locator('button:has-text("Next")').filter({ hasNot: page.locator('[data-nextjs-dev-tools-button]') }));
-      
-      if (await nextButton.isVisible().catch(() => false)) {
-        await nextButton.click();
-
-        // Should show validation errors
-        await page.waitForTimeout(500);
-        const hasErrors = await page.getByText(/required|please|select|enter/i).isVisible().catch(() => false);
-        expect(hasErrors || true).toBe(true);
-      } else {
-        // Skip if wizard not available
-        test.skip();
-      }
+      await clickNext(page);
+      // Still on step 1: make select remains, step 2's mileage does not appear
+      await expect(page.locator('#make')).toBeVisible();
+      await expect(page.locator('#mileage')).not.toBeVisible();
     });
   });
 
   test.describe('LISTING-008: Auto-save (Draft)', () => {
     test('shows auto-save indicator', async ({ page }) => {
       await loginAsTestUser(page);
-      await page.goto(urls.createListing);
+      await openWizard(page);
 
-      // Look for auto-save indicator
-      const hasAutoSave = await page.getByText(/saving|saved|draft/i).isVisible().catch(() => false);
-      
-      // Auto-save is optional feature
-      expect(hasAutoSave || true).toBe(true);
+      // ListingWizard renders the indicator on the create route (autoSave
+      // defaults to true) — its disappearance is a regression
+      await expect(page.getByText(/saving|saved|draft/i).first()).toBeVisible({ timeout: 15000 });
     });
   });
 });

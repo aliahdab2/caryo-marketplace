@@ -60,5 +60,5 @@ export const urls = {
   savedAlerts: '/saved/alerts',
   // Direct listing URL for faster tests (ID 6 is the first listing from DataInitializer)
   listing: '/listings/6',
-  messages: '/messages',
+  messages: '/dashboard/dealer/leads',
 };

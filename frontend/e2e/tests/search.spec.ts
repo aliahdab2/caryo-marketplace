@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { expectSearchHasResults } from '../helpers';
 import { urls } from '../fixtures/test-data';
 
 test.describe('Search & Browse', () => {
@@ -12,7 +13,8 @@ test.describe('Search & Browse', () => {
 
     test('displays listing cards', async ({ page }) => {
       await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
+      await page.waitForTimeout(2000);
 
       // Wait for page content to load
       await page.waitForTimeout(2000);
@@ -34,50 +36,32 @@ test.describe('Search & Browse', () => {
 
     test('can click on a listing card to view details', async ({ page }) => {
       await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
       await page.waitForTimeout(2000);
 
-      // Find listing links (look for links containing year + make info)
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
-      
-      // Skip if no listings
-      if (!(await listingLink.isVisible().catch(() => false))) {
-        test.skip();
-        return;
-      }
+      // Was `if (!visible) test.skip()` — an empty results page passed silently
+      const listingLink = await expectSearchHasResults(page);
 
-      // Click the listing
       await listingLink.click();
 
-      // Should navigate to listing details
       await expect(page).toHaveURL(/listing|car|vehicle/);
     });
 
     test('listing details page shows key information', async ({ page }) => {
       await page.goto(urls.search);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
       await page.waitForTimeout(2000);
 
-      // Find listing links
-      const listingLink = page.locator('a[href*="listing"]').first()
-        .or(page.getByRole('link', { name: /toyota|honda|nissan|hyundai/i }).first());
-      
-      if (!(await listingLink.isVisible().catch(() => false))) {
-        test.skip();
-        return;
-      }
+      const listingLink = await expectSearchHasResults(page);
 
       await listingLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
       await page.waitForTimeout(2000);
 
-      // Verify key elements are visible (title, heading, or main content)
-      const hasHeading = await page.locator('h1').first().isVisible().catch(() => false);
-      const hasMain = await page.locator('main').isVisible().catch(() => false);
-      const hasContent = await page.getByText(/toyota|honda|nissan|hyundai/i).first().isVisible().catch(() => false);
-
-      expect(hasHeading || hasMain || hasContent).toBe(true);
+      // A detail page must have a title heading. The old version accepted a
+      // visible <main> as sufficient, which every page has — so an empty
+      // detail page passed.
+      await expect(page.locator('h1').first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -98,11 +82,7 @@ test.describe('Search & Browse', () => {
     test('can type in search bar', async ({ page }) => {
       await page.goto(urls.search);
 
-      const searchInput = page.getByRole('searchbox').or(
-        page.getByPlaceholder(/search|find|looking/i)
-      ).or(
-        page.getByTestId('search-input')
-      );
+      const searchInput = page.getByPlaceholder(/search|find|looking/i).first();
 
       await searchInput.fill('Toyota');
       await expect(searchInput).toHaveValue('Toyota');
@@ -134,9 +114,10 @@ test.describe('Search & Browse', () => {
     test('filter section is visible', async ({ page }) => {
       await page.goto(urls.search);
 
-      // Look for filter elements
-      const hasFilters = await page.getByText(/filter|make|brand|price|year/i).first().isVisible().catch(() => false);
-      expect(hasFilters).toBe(true);
+      // Filter UI renders client-side — use a retrying assertion
+      await expect(
+        page.getByText(/filter|make|brand|price|year/i).first()
+      ).toBeVisible({ timeout: 15000 });
     });
 
     test('can select make filter', async ({ page }) => {
@@ -213,15 +194,22 @@ test.describe('Search & Browse', () => {
   test.describe('SEARCH-005: Pagination', () => {
     test('pagination controls visible when many results', async ({ page }) => {
       await page.goto(urls.search);
+      await page.waitForLoadState('load');
+      await page.waitForTimeout(2000);
+      await expectSearchHasResults(page);
 
-      // Check for pagination or load more
-      const hasPagination = await page.getByRole('navigation', { name: /pagination/i }).isVisible().catch(() => false);
-      const hasLoadMore = await page.getByRole('button', { name: /load more|show more/i }).isVisible().catch(() => false);
-      const hasPageNumbers = await page.getByRole('button', { name: /^[0-9]+$/ }).first().isVisible().catch(() => false);
+      // The search page renders Pagination only when totalPages > 1, so a
+      // single page of seed data is genuinely inapplicable rather than a
+      // failure. The old `|| true` made the whole assertion unfailable either
+      // way, so a broken pagination bar also passed.
+      const pagination = page.getByRole('navigation', { name: /pagination/i });
+      const loadMore = page.getByRole('button', { name: /load more|show more/i }).first();
+      const control = pagination.or(loadMore);
 
-      // Any pagination mechanism is acceptable
-      // (or no pagination if few results)
-      expect(hasPagination || hasLoadMore || hasPageNumbers || true).toBe(true);
+      const hasMultiplePages = await control.isVisible({ timeout: 5000 }).catch(() => false);
+      test.skip(!hasMultiplePages, 'Seed data fits on a single page — no pagination rendered');
+
+      await expect(control).toBeVisible();
     });
   });
 
@@ -238,10 +226,9 @@ test.describe('Search & Browse', () => {
         page.getByText(/sort by|newest|price/i)
       );
 
-      const isVisible = await sortControl.first().isVisible().catch(() => false);
-      
-      // Sort is optional, test passes either way
-      expect(isVisible || true).toBe(true);
+      // Sort is a shipped feature of the search page, not an optional extra —
+      // the previous `|| true` meant its removal would never be noticed.
+      await expect(sortControl.first()).toBeVisible({ timeout: 10000 });
     });
   });
 });
