@@ -32,13 +32,15 @@ react-i18next for other reasons.
 
 ## Phases
 
-### Phase 0 — RTL/lang flash fix (independent quick win, ~half day)
+### Phase 0 — RTL/lang flash fix — ✅ DONE
 
-- Set `lang={locale}` and `dir={locale === 'ar' ? 'rtl' : 'ltr'}` on `<html>`
-  **server-side** in the locale layout (today only `suppressHydrationWarning`
-  is set; I18nProvider mutates `document.documentElement` in an effect).
-- Remove the now-redundant client mutation.
-- **Gate:** `curl /ar` shows `<html lang="ar" dir="rtl">` in raw HTML.
+Shipped in `fix(i18n): server-render html lang and dir attributes`.
+proxy.ts forwards `x-locale` as a request header; the root layout (owner of
+`<html>`, above the `[locale]` segment) reads it and renders `lang`/`dir`
+server-side. The client-side updater remains for SPA locale switches.
+Gate verified on a production standalone build: `/ar` serves
+`<html lang="ar" dir="rtl">`, `/en` serves `lang="en" dir="ltr"`, listing
+JSON-LD/content unaffected, full Jest suite green.
 
 ### Phase 1 — Server-side resource loading + synchronous client hydration (~1–2 days)
 
