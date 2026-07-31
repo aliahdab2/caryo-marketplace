@@ -69,13 +69,16 @@ export default function I18nProvider({ children }: I18nProviderProps) {
     initializeI18n();
   }, [pathname, mounted]); // Added mounted dependency for optimization
 
-  if (!mounted || isLoading) {
-    // Return a lightweight loading indicator that doesn't block rendering
-    return <div data-testid="loading-bar" className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>;
-  }
-
+  // Children must render during SSR and first paint: replacing them with a
+  // loader here suppressed server-side rendering for the entire app (crawlers
+  // saw an empty shell). useSuspense is false and every t() call carries a
+  // fallback value, so rendering before i18n finishes loading is safe — the
+  // loading bar overlays the page instead of replacing it.
   return (
     <I18nextProvider i18n={i18n}>
+      {(!mounted || isLoading) && (
+        <div data-testid="loading-bar" className="fixed top-0 left-0 right-0 z-50 h-1 bg-blue-600 animate-pulse"></div>
+      )}
       {children}
     </I18nextProvider>
   );

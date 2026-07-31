@@ -101,6 +101,7 @@ export const config = {
     // - favicon.ico (favicon file)
     // - api (API routes)
     // - locales (i18n translation files)
-    '/((?!api|_next/static|_next/image|favicon.ico|locales).*)',
+    // - sitemaps/robots (crawler files must not be locale-redirected)
+    '/((?!api|_next/static|_next/image|favicon.ico|locales|server-sitemap.xml|sitemap.xml|robots.txt).*)',
   ],
 };

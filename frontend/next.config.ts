@@ -33,6 +33,9 @@ if (!minioUrl && showWarnings) {
 const nextConfig: NextConfig = {
   // Self-contained server bundle for Docker deployment (scripts/deploy)
   output: 'standalone',
+  // Pin the tracing root to this app so standalone output lands at
+  // .next/standalone/server.js even when a parent directory has a lockfile
+  outputFileTracingRoot: __dirname,
 
   // Performance optimizations
   experimental: {
@@ -46,7 +49,7 @@ const nextConfig: NextConfig = {
   
   // Turbopack optimizations
   turbopack: {
-    // Add turbopack-specific options here if needed in the future
+    root: __dirname,
   },
   
   // Compression
