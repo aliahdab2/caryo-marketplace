@@ -72,7 +72,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   showText = false,
   user
 }) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['common', 'listings']);
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
@@ -474,8 +474,8 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         ${isAnimating ? 'scale-110' : 'scale-100'}
         transition-all duration-200 ease-in-out
         hover:scale-105 active:scale-95`}
-      aria-label={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
-      title={isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
+      aria-label={isFavorite ? t('listings:removeFromFavorites', 'Remove from Favorites') : t('listings:addToFavorites', 'Add to Favorites')}
+      title={isFavorite ? t('listings:removeFromFavorites', 'Remove from Favorites') : t('listings:addToFavorites', 'Add to Favorites')}
     >
       {isLoading ? (
         <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -500,7 +500,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
           </svg>
           {showText && (
             <span className="ml-2 text-sm">
-              {isFavorite ? t('listings.removeFromFavorites') : t('listings.addToFavorites')}
+              {isFavorite ? t('listings:removeFromFavorites', 'Remove from Favorites') : t('listings:addToFavorites', 'Add to Favorites')}
             </span>
           )}
         </>

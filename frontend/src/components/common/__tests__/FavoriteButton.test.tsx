@@ -13,12 +13,12 @@ jest.mock('next-auth/react', () => ({
 jest.mock('react-i18next', () => ({
   ...jest.requireActual('@/tests/mocks/i18n-mock'),
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, fallback?: string) => {
       const translations: Record<string, string> = {
-        'listings.addToFavorites': 'Add to favorites',
-        'listings.removeFromFavorites': 'Remove from favorites',
+        'listings:addToFavorites': 'Add to favorites',
+        'listings:removeFromFavorites': 'Remove from favorites',
       };
-      return translations[key] || key;
+      return translations[key] || fallback || key;
     },
     i18n: {
       changeLanguage: jest.fn(),

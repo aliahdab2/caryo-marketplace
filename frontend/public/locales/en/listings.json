@@ -101,6 +101,7 @@
   "sortBy": "Sort by",
   "tryAgain": "Try again",
   "used": "Used",
+  "addToFavorites": "Add to Favorites",
   "removeFromFavorites": "Remove from Favorites",
   "expiresIn": "Expires in {{days}} days",
   "confirmDelete": "Delete Item?",
