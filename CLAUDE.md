@@ -31,11 +31,16 @@ frontend/public/locales/{en,ar}/   ← translation JSON files
 ## Quick Commands
 
 ```bash
+make verify            # THE default loop after any change: tests + real-browser click testing
 make ci                # full CI pipeline
 make test-backend      # backend unit tests
 make test-frontend     # frontend lint + build + tests
 make translation       # translation validation
 ```
+
+**Every code change must go through the verification loop (`/verify` skill /
+`make verify`) before it is considered done** — unit tests alone are not
+enough; the affected flows get click-tested in a real browser via Playwright.
 
 ## Essential Rules
 

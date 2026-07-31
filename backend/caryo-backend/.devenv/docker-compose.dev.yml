@@ -31,6 +31,9 @@ services:
       # 3210/3220: caryo frontend dev/prod-parity ports on this machine
       # (3000-3005 are taken by jawab24)
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3210,http://localhost:3220}
+      # Off by default in dev: per-IP limits throttle the E2E suite, which
+      # signs in dozens of times from one IP. Re-enable to test limits manually.
+      APP_RATELIMIT_ENABLED: ${APP_RATELIMIT_ENABLED:-false}
       # Development settings
       SPRING_PROFILES_ACTIVE: dev
       SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"

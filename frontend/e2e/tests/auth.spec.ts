@@ -155,19 +155,15 @@ test.describe('Authentication', () => {
       await page.goto(urls.signUp);
       await page.waitForLoadState('networkidle');
 
-      // Find and click sign in link - wait for it to appear
-      const signInLink = page.locator('a[href*="signin"]').or(
-        page.getByRole('link', { name: /sign in/i })
-      );
-      
-      try {
-        await expect(signInLink).toBeVisible({ timeout: 10000 });
-        await signInLink.click();
-        await expect(page).toHaveURL(/signin/);
-      } catch {
-        // Skip if link not found (maybe different UI or page not loaded)
-        test.skip();
-      }
+      // Was wrapped in try/catch with test.skip() — a missing "sign in" link on
+      // the sign-up page is a real regression, so it now fails.
+      // Must match by accessible name: several links (e.g. the anonymous
+      // "Post Ad" button) also point at /auth/signin.
+      const signInLink = page.getByRole('link', { name: /^sign in$/i }).first();
+
+      await expect(signInLink).toBeVisible({ timeout: 10000 });
+      await signInLink.click();
+      await expect(page).toHaveURL(/signin/);
     });
   });
 

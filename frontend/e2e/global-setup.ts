@@ -155,7 +155,7 @@ async function seedTestData(apiUrl: string) {
   // 1. Login as test user to get token
   let token: string | null = null;
   try {
-    const loginResponse = await fetch(`${apiUrl}/api/auth/signin`, {
+    const loginResponse = await fetch(`${apiUrl}/api/v1/auth/signin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

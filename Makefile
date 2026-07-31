@@ -14,6 +14,9 @@ FRONTEND_DIR := frontend
 
 ci: test-backend test-frontend translation seo ## Run the full CI pipeline (backend + frontend + translation + seo)
 
+verify: ## Full verification loop: tests + real-browser click testing (see scripts/verify.sh for scoped flags)
+	./scripts/verify.sh
+
 # ──────────────────────────────────────────────
 # Backend
 # ──────────────────────────────────────────────
