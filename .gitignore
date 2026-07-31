@@ -116,3 +116,6 @@ replay_pid*
 **/secrets.properties
 **/*-secrets.yml
 **/*-secrets.yaml
+
+# Deploy artifacts
+backups/

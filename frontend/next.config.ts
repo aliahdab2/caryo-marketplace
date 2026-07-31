@@ -31,6 +31,9 @@ if (!minioUrl && showWarnings) {
 }
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for Docker deployment (scripts/deploy)
+  output: 'standalone',
+
   // Performance optimizations
   experimental: {
     // Enable optimizePackageImports for better tree shaking
@@ -105,8 +108,9 @@ const nextConfig: NextConfig = {
     return config;
   },
   
+  // NEXTAUTH_SECRET is deliberately NOT listed here: it is a server-side
+  // runtime secret and must never be inlined into the build output.
   env: {
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     // For development simplicity, we provide a default MinIO URL if not set

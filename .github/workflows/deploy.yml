@@ -1,0 +1,36 @@
+# Production deployment — SSHes to the server and runs the SAME script you
+# run manually (scripts/deploy/deploy.sh): one entrypoint, two callers.
+#
+# Required repository secrets:
+#   DEPLOY_HOST     server IP or hostname
+#   DEPLOY_USER     ssh user (must be able to run docker)
+#   DEPLOY_SSH_KEY  private key for that user
+#
+# The server needs a checkout at /var/www/caryo with env/production.env filled in.
+
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            cd /var/www/caryo
+            git fetch origin main
+            git reset --hard origin/main
+            bash scripts/deploy/deploy.sh --no-pull
