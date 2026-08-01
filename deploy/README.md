@@ -45,6 +45,8 @@ Everything else stays inside the `caryo-network` Docker network:
 | minio    | minio:9000       | `/storage/`  |
 | imgproxy | imgproxy:8080    | `/img/`      |
 | postgres | db:5432          | —            |
+| redis    | redis:6379       | —            |
+| db-backup| —                | —            |
 
 Internal ports deliberately avoid jawab24's 3000–3002 range. To co-host both
 stacks on one server, set `HTTP_PORT`/`HTTPS_PORT` in `env/production.env` and
@@ -52,12 +54,65 @@ route from the front proxy or Cloudflare.
 
 ## TLS
 
-Two options:
+nginx picks its server config at container start, based on whether a
+certificate exists (`deploy/nginx/entrypoint.d/10-caryo-tls.sh`):
 
-- **Cloudflare in front (recommended to start)**: point DNS through Cloudflare
-  with "Full" SSL; keep nginx on port 80.
-- **Certbot on the server**: obtain certs, place `fullchain.pem`/`privkey.pem`
-  in `deploy/nginx/ssl/`, uncomment the 443 block in `deploy/nginx/caryo.conf`.
+| `deploy/nginx/ssl/` | Config used | Behaviour |
+|---------------------|-------------|-----------|
+| has `fullchain.pem` + `privkey.pem` | `conf/tls.conf.template` | 443 serves the site; 80 serves only the healthcheck and ACME challenges, everything else 301s to HTTPS. HSTS on. |
+| empty | `conf/http-only.conf` | Plain HTTP on 80, with a startup warning. |
+
+Routing lives in `conf/locations.conf` and is shared by both variants — edit
+it once and both stay in sync.
+
+### Getting a certificate
+
+```bash
+# in env/production.env
+CERT_DOMAIN=caryo.sy
+CERT_EMAIL=you@example.com
+
+bash scripts/deploy/deploy.sh       # stack up on plain HTTP
+bash scripts/deploy/issue-cert.sh   # certbot -> deploy/nginx/ssl/ -> restart nginx
+# then set PUBLIC_URL=https://caryo.sy and redeploy
+```
+
+Renewal is the same command; add it to cron:
+
+```
+17 3 * * 1 cd /var/www/caryo && bash scripts/deploy/issue-cert.sh >> /var/log/caryo-cert.log 2>&1
+```
+
+Use `--staging` first if you're iterating — Let's Encrypt rate-limits real
+issuance aggressively.
+
+### Or terminate TLS upstream
+
+Point DNS through Cloudflare with "Full" SSL and leave nginx on port 80. Set
+`PUBLIC_URL` to the `https://` address Cloudflare serves. The plain-HTTP
+warning at startup is expected in this setup.
+
+**Never** expose the plain-HTTP variant directly to the internet: JWTs and
+passwords would travel in cleartext. `check-env.sh` fails the deploy if
+`PUBLIC_URL` is `http://` on a non-local host.
+
+## Backups
+
+Two independent paths:
+
+- **Pre-deploy**: `deploy.sh` snapshots to `backups/pre-deploy-*.sql.gz`,
+  keeps the last 10, and aborts the deploy if the dump fails.
+- **Scheduled**: the `db-backup` service dumps to `backups/scheduled-*.sql.gz`
+  every `BACKUP_INTERVAL_SECONDS` (default 24h), keeping `BACKUP_KEEP`
+  (default 14).
+
+Both write to `backups/` on the host. That is the *same disk* as the database
+— copy it off-box (rsync/S3) for it to count as a real backup, and test a
+restore before you need one:
+
+```bash
+gunzip -c backups/scheduled-<...>.sql.gz | docker exec -i caryo-db psql -U $DB_USER $DB_NAME
+```
 
 ## GitHub deploys
 

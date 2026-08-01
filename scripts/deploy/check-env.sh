@@ -64,14 +64,25 @@ require JWT_SECRET
 require NEXTAUTH_SECRET
 require MINIO_ACCESS_KEY
 require MINIO_SECRET_KEY
-require OPENAI_API_KEY
 
 case "$PUBLIC_URL" in
     */)
         echo -e "${RED}❌ PUBLIC_URL must not end with a slash${NC}"
         ERRORS=1
         ;;
-    http://*|https://*) ;;
+    https://*) ;;
+    http://localhost*|http://127.0.0.1*)
+        echo -e "${YELLOW}⚠️  PUBLIC_URL is plain HTTP on localhost (local prod-parity run)${NC}"
+        WARNINGS=$((WARNINGS + 1))
+        ;;
+    http://*)
+        echo -e "${RED}❌ PUBLIC_URL uses plain http:// on a non-local host.${NC}"
+        echo "   Credentials and JWTs would cross the network in cleartext."
+        echo "   Issue a certificate (scripts/deploy/issue-cert.sh) and switch"
+        echo "   PUBLIC_URL to https://, or terminate TLS upstream (Cloudflare)"
+        echo "   and set PUBLIC_URL to the https:// address it serves."
+        ERRORS=1
+        ;;
     *)
         echo -e "${RED}❌ PUBLIC_URL must start with http:// or https://${NC}"
         ERRORS=1
@@ -83,6 +94,22 @@ echo "Recommended:"
 recommend EMAIL_USERNAME
 recommend SENTRY_DSN
 recommend GOOGLE_CLIENT_ID
+# Only needed to issue a Let's Encrypt cert from this box; unset is fine when
+# TLS terminates upstream.
+recommend CERT_DOMAIN
+recommend CERT_EMAIL
+# Machine-translates car reference data into Arabic during seeding; unset
+# simply disables that one feature.
+recommend OPENAI_API_KEY
+
+# TLS material is what nginx keys off to serve HTTPS at all
+if [ -s "$REPO_ROOT/deploy/nginx/ssl/fullchain.pem" ] && [ -s "$REPO_ROOT/deploy/nginx/ssl/privkey.pem" ]; then
+    echo -e "${GREEN}✅ TLS certificate present (nginx will serve HTTPS)${NC}"
+else
+    echo -e "${YELLOW}⚠️  No TLS certificate in deploy/nginx/ssl/ — nginx will serve plain HTTP${NC}"
+    echo "   Run scripts/deploy/issue-cert.sh after the stack is up."
+    WARNINGS=$((WARNINGS + 1))
+fi
 
 echo ""
 if [ "$ERRORS" -ne 0 ]; then

@@ -115,10 +115,10 @@ EMAIL_PASSWORD=your-app-password
 EMAIL_FROM=noreply@caryo.sy
 EMAIL_SUPPORT=support@caryo.sy
 
-# Application URLs (development)
+# Application URL (development)
+# Every link in outbound email — verification, password reset, newsletter
+# confirm/unsubscribe — is derived from this single value.
 WEBSITE_URL=http://localhost:3000
-PASSWORD_RESET_BASE_URL=http://localhost:3000/reset-password
-NEWSLETTER_CONFIRMATION_URL=http://localhost:3000/newsletter/confirm
 ```
 
 ### Step 4: Verify Configuration
@@ -204,10 +204,8 @@ EMAIL_PASSWORD=<PRODUCTION_SMTP_PASSWORD>
 EMAIL_FROM=noreply@caryo.sy
 EMAIL_SUPPORT=support@caryo.sy
 
-# Application URLs (HTTPS ONLY!)
+# Application URL (HTTPS ONLY!) — all email links derive from this
 WEBSITE_URL=https://caryo.sy
-PASSWORD_RESET_BASE_URL=https://caryo.sy/reset-password
-NEWSLETTER_CONFIRMATION_URL=https://caryo.sy/newsletter/confirm
 
 # Monitoring (highly recommended)
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id

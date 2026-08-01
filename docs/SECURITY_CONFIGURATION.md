@@ -97,10 +97,8 @@ EMAIL_PASSWORD=<your-smtp-password>
 EMAIL_FROM=noreply@caryo.sy
 EMAIL_SUPPORT=support@caryo.sy
 
-# Application URLs
+# Application URL — all outbound email links derive from this
 WEBSITE_URL=https://caryo.sy
-PASSWORD_RESET_BASE_URL=https://caryo.sy/reset-password
-NEWSLETTER_CONFIRMATION_URL=https://caryo.sy/newsletter/confirm
 ```
 
 ### Setting Environment Variables

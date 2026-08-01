@@ -1,0 +1,58 @@
+# TLS variant — selected by 10-caryo-tls.sh when both fullchain.pem and
+# privkey.pem exist in deploy/nginx/ssl/. ${SERVER_NAME} is substituted from
+# the SERVER_NAME environment variable at container start.
+#
+# Port 80 keeps serving only the health check and ACME challenges; everything
+# else is redirected to HTTPS.
+
+include /etc/nginx/caryo/shared-http.conf;
+
+server {
+    listen 80;
+    server_name ${SERVER_NAME};
+
+    # Used by the container healthcheck — must not be redirected
+    location = /nginx-health {
+        access_log off;
+        return 200 "ok";
+    }
+
+    # ACME http-01 challenges for issuance and renewal
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        access_log off;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${SERVER_NAME};
+
+    ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Uploads: multipart cap is 110MB on the backend
+    client_max_body_size 110m;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+    gzip_min_length 1024;
+
+    location = /nginx-health {
+        access_log off;
+        return 200 "ok";
+    }
+
+    include /etc/nginx/caryo/locations.conf;
+}
