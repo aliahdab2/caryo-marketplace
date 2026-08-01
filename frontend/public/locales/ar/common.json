@@ -115,5 +115,21 @@
   "saveChanges": "حفظ التغييرات",
   "saveFailed": "فشل حفظ التغييرات",
   "saveSuccess": "تم حفظ التغييرات بنجاح!",
-  "closed": "مغلق"
+  "closed": "مغلق",
+  "footerTagline": "منصتك الموثوقة لبيع السيارات وشرائها في سوريا. اعثر على السيارة المناسبة، أو انشر إعلان سيارتك اليوم.",
+  "footerCompanyHeading": "الشركة",
+  "footerLegalHeading": "قانوني",
+  "footerAbout": "عن كاريو",
+  "footerContact": "اتصل بنا",
+  "footerPrivacyPolicy": "سياسة الخصوصية",
+  "footerTermsOfService": "شروط الخدمة",
+  "footerCookiePolicy": "سياسة ملفات تعريف الارتباط",
+  "footerSiteLabel": "تذييل الموقع",
+  "footerFacebookLabel": "زوروا صفحتنا على فيسبوك",
+  "footerInstagramLabel": "تابعونا على إنستغرام",
+  "footerTwitterLabel": "تابعونا على إكس",
+  "notFoundHeading": "الصفحة غير موجودة",
+  "notFoundMessage": "تعذّر العثور على الصفحة التي تبحث عنها.",
+  "notFoundGoHome": "الذهاب إلى الرئيسية",
+  "notFoundSearchListings": "ابحث في الإعلانات"
 }

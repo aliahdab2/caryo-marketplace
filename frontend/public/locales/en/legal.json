@@ -1,0 +1,145 @@
+{
+  "lastUpdatedLabel": "Last updated",
+  "lastUpdated": "31 July 2026",
+  "pendingReviewNotice": "This policy describes how Caryo Marketplace works today and is written in plain language. It has not yet been reviewed by a qualified lawyer. If anything here conflicts with applicable law, the law takes precedence.",
+  "backToHome": "Back to home",
+
+  "privacyTitle": "Privacy Policy",
+  "privacyDescription": "How Caryo Marketplace collects, uses, and protects your personal information.",
+  "privacyIntro": "This policy explains what personal information Caryo Marketplace collects, why we collect it, who we share it with, and what control you have over it. It applies to the Caryo website and to every account created on it.",
+
+  "privacyWhoWeAreHeading": "Who we are",
+  "privacyWhoWeAreBody": "Caryo Marketplace is an online classifieds platform for buying and selling vehicles in Syria. We connect buyers with private sellers and with car dealerships.\n\nWe are the party responsible for the personal information described in this policy. To reach us about anything on this page, use the contact form on this site.",
+
+  "privacyDataYouGiveHeading": "Information you give us",
+  "privacyDataYouGiveBody": "When you create an account we collect your email address, a username, and a password. Passwords are stored only as a salted hash — we never see or store the password itself. You may optionally add a phone number and choose a preferred language.\n\nIf you sign in with Google, we receive your name, email address, and profile picture from Google. We do not receive your Google password.\n\nIf you register as a dealer we also collect your business name, business email and phone, trading address, tax or VAT number, opening hours, business description, social media links, and any logo or banner image you upload.\n\nWhen you publish a listing we collect everything you enter about the vehicle — make, model, year, mileage, price and currency, condition, location, description, photos and video, and the vehicle identification number if you choose to provide one.\n\nWhen you contact another user through the site we store the messages you send and any files you attach to them, so that both sides can read the conversation later.\n\nWe also store the things you save: favourites, saved searches and their alert settings, users you have blocked, reports you have submitted, and your notification and privacy preferences.\n\nIf you subscribe to our newsletter or send us a message through the contact form, we store the email address and message you provide.",
+
+  "privacyDataFromUseHeading": "Information we collect automatically",
+  "privacyDataFromUseBody": "We record your IP address when you submit forms, upload files, or sign in. We use it to enforce rate limits and to detect abuse — it is not used to build a profile of you.\n\nWe keep server logs of requests made to the site, including the time, the path requested, and the response status.\n\nWhen something goes wrong we send diagnostic information about the error to our error-tracking provider. This can include the page you were on and the technical details of the failure.\n\nWe use a small number of cookies, described in our Cookie Policy.",
+
+  "privacyWhyWeUseHeading": "Why we use your information",
+  "privacyWhyWeUseBody": "To operate your account and let you sign in.\n\nTo publish your listings and show them to buyers, including in search results and on public listing and dealer profile pages.\n\nTo let buyers and sellers message each other.\n\nTo send you service email: address verification, password resets, alerts for your saved searches, and notices about your listings. You control alert and notification email in your account settings.\n\nTo review listings and uploaded images before they go live, and to act on reports of misuse.\n\nTo protect the platform — rate limiting, blocking abuse, and investigating fraud.\n\nTo keep the site working and to fix faults.\n\nWe do not sell your personal information, and we do not share it with advertisers.",
+
+  "privacyPublicHeading": "What other people can see",
+  "privacyPublicBody": "Your listings are public. Anyone, including people without an account, can see the vehicle details, photos, price, and the general location you selected.\n\nYour email address and phone number are not shown on your listings unless you turn them on in your privacy settings. Both are off by default.\n\nIf you register as a dealer, your business name, description, opening hours, logo, banner, and social links appear on your public dealer profile alongside your listings.\n\nMessages you send to another user are visible to that user only.",
+
+  "privacySharingHeading": "Who we share information with",
+  "privacySharingBody": "Other users of the platform, to the extent described in the section above.\n\nOur hosting and infrastructure providers, who store the site's database and the images and videos you upload on our behalf.\n\nOur email delivery provider, for the service email we send you.\n\nOur error-tracking provider, for diagnostic information when something fails.\n\nGoogle, if you choose to sign in with a Google account.\n\nAuthorities, where we are legally required to disclose information, or where disclosure is necessary to protect someone's safety.\n\nWe do not send your personal information to any artificial-intelligence service. We use a machine translation service for our own vehicle reference data — brand and model names — which contains no personal information.",
+
+  "privacyRetentionHeading": "How long we keep it",
+  "privacyRetentionBody": "We keep your account information for as long as your account exists.\n\nListings and their images are kept while they are live and for a period afterwards, so that buyers who saved or messaged about a listing keep their history.\n\nMessages are kept so both sides retain the conversation.\n\nServer logs and error reports are kept for a limited period and then discarded.\n\nWe keep records of payments and reports for as long as needed to resolve disputes and to meet any legal obligation.",
+
+  "privacySecurityHeading": "How we protect it",
+  "privacySecurityBody": "Passwords are hashed. Sessions use signed tokens that expire, and signing out invalidates them.\n\nThe site is served over an encrypted connection, and the database is not reachable from the public internet.\n\nUploaded images are checked before a listing goes live.\n\nNo system is perfectly secure. If we become aware of a breach affecting your personal information, we will tell you.",
+
+  "privacyYourRightsHeading": "Your choices and rights",
+  "privacyYourRightsBody": "You can view and change most of your information from your account settings, including your name, phone number, language, and whether your contact details appear on your listings.\n\nYou can turn off notification and marketing email in your settings, and unsubscribe from the newsletter using the link in any newsletter email. We will still send you essential service email, such as password resets.\n\nYou can delete your listings at any time.\n\nYou can ask us for a copy of the personal information we hold about you, ask us to correct it, or ask us to delete your account. Contact us through the contact form and we will respond.\n\nYou can block another user, which stops them messaging you.",
+
+  "privacyChildrenHeading": "Children",
+  "privacyChildrenBody": "Caryo Marketplace is not intended for people under 18. We do not knowingly collect information from children. If you believe a child has created an account, please contact us and we will remove it.",
+
+  "privacyChangesHeading": "Changes to this policy",
+  "privacyChangesBody": "We may update this policy as the platform changes. The date at the top of this page shows when it was last revised. If we make a change that materially affects how we use your information, we will tell you before it takes effect.",
+
+  "privacyContactHeading": "Contact us",
+  "privacyContactBody": "For any question about this policy, or to exercise any of the rights described above, use the contact form on this site.",
+
+  "termsTitle": "Terms of Service",
+  "termsDescription": "The rules for using Caryo Marketplace to buy and sell vehicles.",
+  "termsIntro": "These terms are the agreement between you and Caryo Marketplace. They cover what you may do on the platform, what we are responsible for, and what we are not. By creating an account or using the site, you accept them.",
+
+  "termsAcceptanceHeading": "Accepting these terms",
+  "termsAcceptanceBody": "By using Caryo Marketplace you agree to these terms and to our Privacy Policy. If you do not agree with them, please do not use the site.\n\nIf you are using the platform on behalf of a business, you confirm that you are authorised to accept these terms for that business.",
+
+  "termsEligibilityHeading": "Who may use the platform",
+  "termsEligibilityBody": "You must be at least 18 years old to create an account.\n\nYou must give accurate information when you register, and keep it up to date.\n\nOne person or business may not operate multiple accounts to get around listing limits or a suspension.",
+
+  "termsAccountHeading": "Your account",
+  "termsAccountBody": "You are responsible for keeping your password secret and for everything done through your account.\n\nTell us promptly if you believe someone else has access to your account.\n\nYou must verify your email address before you can publish listings.",
+
+  "termsListingRulesHeading": "Listing a vehicle",
+  "termsListingRulesBody": "Only list a vehicle you own or are authorised to sell.\n\nDescribe the vehicle honestly. The mileage, year, condition, and history you state must be accurate to the best of your knowledge, and the price must be a genuine asking price.\n\nUse your own photographs of the actual vehicle. Do not use stock images or photographs taken from another listing.\n\nOne listing per vehicle. Do not republish the same vehicle to move it up the results.\n\nMark a vehicle as sold once it is sold.\n\nFree accounts and dealer plans have limits on how many listings can be active. The limit that applies to your account is shown in your dashboard.",
+
+  "termsProhibitedHeading": "What you may not do",
+  "termsProhibitedBody": "Post anything false, misleading, or fraudulent, including fake listings and fake contact details.\n\nList anything that is not a vehicle or a directly vehicle-related item.\n\nList a stolen vehicle, or one you cannot lawfully sell.\n\nHarass, threaten, or abuse another user, or send unsolicited commercial messages.\n\nPost content that is unlawful, obscene, or that infringes someone else's rights.\n\nAttempt to gain unauthorised access to the platform, disrupt it, or scrape it in bulk by automated means.\n\nUse the platform to move a transaction off-site in order to defraud the other party.",
+
+  "termsOurRoleHeading": "Our role — we are not party to your sale",
+  "termsOurRoleBody": "Caryo Marketplace is a venue where buyers and sellers find each other. We are not the seller, the buyer, or an agent for either, and we are not party to any sale agreed through the platform.\n\nWe do not inspect vehicles, verify their condition or history, or guarantee that a listing is accurate.\n\nWe do not hold funds, process the payment between a buyer and a seller, or provide escrow.\n\nThe contract for the sale of a vehicle is between the buyer and the seller alone. Satisfying yourself about the vehicle, the other party, and the payment method is your responsibility. Inspect the vehicle in person, verify the documents, and be cautious of anyone who refuses to meet or who pressures you to pay in advance.",
+
+  "termsFeesHeading": "Fees and paid plans",
+  "termsFeesBody": "Browsing the platform and contacting sellers is free.\n\nPrivate sellers can publish a limited number of listings at no cost. Dealers can subscribe to a plan with a higher listing allowance. Current prices and allowances are shown on the subscription page.\n\nWe may change prices. If a change affects a plan you already hold, we will tell you before it applies to you.\n\nPayment arrangements are described at the point of purchase.",
+
+  "termsContentHeading": "Content you post",
+  "termsContentBody": "You keep ownership of the text, photographs, and video you upload.\n\nBy uploading them you give us permission to host, resize, and display them on the platform, and to show them in search results and in previews on other sites, for as long as your listing is published. This permission exists only so that we can operate the service.\n\nYou confirm that you have the right to upload what you post and that it does not infringe anyone else's rights.",
+
+  "termsModerationHeading": "Moderation and enforcement",
+  "termsModerationBody": "We review listings and uploaded images, and we act on reports from users.\n\nWe may decline to publish a listing, remove one that is already live, or edit an obviously incorrect field, where a listing breaks these terms.\n\nWe may suspend or close an account that repeatedly breaks these terms, or where we reasonably suspect fraud.\n\nWhere we can, we will tell you why. Where an account is closed for suspected fraud or for the safety of other users, we may act without notice.",
+
+  "termsDisclaimerHeading": "The platform is provided as it is",
+  "termsDisclaimerBody": "We work to keep the platform available and accurate, but we do not promise that it will be uninterrupted, error-free, or that every listing is genuine.\n\nListing content is written by users, not by us. We do not endorse any listing, seller, or buyer.\n\nWe may change, suspend, or discontinue any part of the platform.",
+
+  "termsLiabilityHeading": "Limits on our liability",
+  "termsLiabilityBody": "We are not liable for the condition, legality, or ownership of any vehicle listed on the platform.\n\nWe are not liable for what happens between a buyer and a seller, including any loss arising from a transaction, a failed payment, or a dispute over a vehicle.\n\nWe are not liable for indirect or consequential loss, or for lost profits or lost opportunity.\n\nNothing in these terms limits liability that cannot be limited under applicable law.",
+
+  "termsTerminationHeading": "Ending your use of the platform",
+  "termsTerminationBody": "You can stop using the platform at any time, and you can ask us to delete your account.\n\nWe may suspend or close your account as described under moderation and enforcement.\n\nIf your account is closed, your listings are removed. Sections of these terms that are meant to survive — including the limits on our liability — continue to apply.",
+
+  "termsGoverningLawHeading": "Governing law",
+  "termsGoverningLawBody": "These terms are governed by the laws of the Syrian Arab Republic, and disputes arising from them fall to the competent courts there.\n\nIf any part of these terms is found unenforceable, the rest continues to apply.",
+
+  "termsChangesHeading": "Changes to these terms",
+  "termsChangesBody": "We may revise these terms. The date at the top of this page shows when they were last revised. Continuing to use the platform after a change means you accept the revised terms. For material changes we will give notice before they take effect.",
+
+  "termsContactHeading": "Contact us",
+  "termsContactBody": "For any question about these terms, use the contact form on this site.",
+
+  "cookiesTitle": "Cookie Policy",
+  "cookiesDescription": "The cookies Caryo Marketplace uses and how to control them.",
+  "cookiesIntro": "This page lists the cookies Caryo Marketplace stores in your browser, what each is for, and how you can control them.",
+
+  "cookiesWhatHeading": "What cookies are",
+  "cookiesWhatBody": "A cookie is a small file a website stores in your browser so it can remember something between page loads — that you are signed in, for example, or which language you chose.\n\nWe use as few as the site can work with.",
+
+  "cookiesEssentialHeading": "Essential cookies",
+  "cookiesEssentialBody": "These are required for the site to function and cannot be turned off.\n\nA session cookie identifies you after you sign in, so you stay signed in as you move between pages. It is removed when you sign out.\n\nA security token cookie protects sign-in and form submissions against cross-site request forgery.",
+
+  "cookiesPreferenceHeading": "Preference cookies",
+  "cookiesPreferenceBody": "A language cookie remembers whether you chose English or Arabic, so the site opens in your language next time. It lasts one year.\n\nYou can change it at any time with the language switcher, or clear it in your browser.",
+
+  "cookiesAnalyticsHeading": "Analytics and advertising cookies",
+  "cookiesAnalyticsBody": "We do not currently use analytics or advertising cookies, and we do not run third-party trackers on the site.\n\nIf that changes, we will update this page and ask for your consent first where the law requires it.",
+
+  "cookiesThirdPartyHeading": "Third-party cookies",
+  "cookiesThirdPartyBody": "If you sign in with Google, Google may set its own cookies as part of that sign-in. Those cookies are governed by Google's privacy policy, not ours.\n\nListing pages can embed video hosted by YouTube. Where they do, we use YouTube's privacy-enhanced mode, which does not set tracking cookies unless you play the video.",
+
+  "cookiesManagingHeading": "Managing cookies",
+  "cookiesManagingBody": "Every major browser lets you view, delete, and block cookies from its settings.\n\nBlocking essential cookies will stop you from signing in. Blocking the language cookie only means the site will not remember your language between visits.",
+
+  "cookiesChangesHeading": "Changes to this policy",
+  "cookiesChangesBody": "We will update this page if the cookies we use change. The date at the top shows when it was last revised.",
+
+  "cookiesContactHeading": "Contact us",
+  "cookiesContactBody": "For any question about cookies on this site, use the contact form.",
+
+  "aboutTitle": "About Caryo",
+  "aboutDescription": "Caryo Marketplace is a bilingual platform for buying and selling cars in Syria.",
+  "aboutIntro": "Caryo Marketplace is an online marketplace for buying and selling cars in Syria, built for both private sellers and dealerships, and available in Arabic and English.",
+
+  "aboutWhatWeDoHeading": "What we do",
+  "aboutWhatWeDoBody": "We give sellers a place to reach buyers across the country instead of only their own neighbourhood, and we give buyers a way to search the whole market by make, model, year, price, mileage, and governorate.\n\nBrowsing is open to everyone. You only need an account to publish a listing, save a search, or message a seller.",
+
+  "aboutWhyHeading": "Why we built it",
+  "aboutWhyBody": "Buying a used car in Syria usually means asking around, driving between lots, and trusting word of mouth. Good cars are hard to find and honest sellers are hard to tell apart from the rest.\n\nWe wanted one place where the whole market is visible, where listings carry real photographs and real detail, and where a seller in one city can reach a buyer in another.",
+
+  "aboutHowItWorksHeading": "How it works",
+  "aboutHowItWorksBody": "Search or browse listings — no account needed. Filter by make, model, year, price, mileage, body style, fuel type, transmission, and governorate.\n\nSave the searches that matter to you and get an alert when a matching car is listed.\n\nMessage a seller directly through the site. Your email address and phone number stay private unless you choose to show them.\n\nTo sell, create an account, verify your email, and publish your listing with photographs and the vehicle's details. Dealers get a public storefront profile and a dashboard for managing stock.",
+
+  "aboutTrustHeading": "Trust and safety",
+  "aboutTrustBody": "Listings and uploaded images are reviewed before they go live, and users can report a listing or block another user.\n\nWe are a marketplace, not a party to any sale, and we do not inspect vehicles. Always view a car in person, check its documents, and be wary of anyone who will not meet you or who wants payment before you have seen the car.",
+
+  "aboutBilingualHeading": "Arabic and English",
+  "aboutBilingualBody": "The whole platform works in both Arabic and English, with a proper right-to-left layout in Arabic rather than a translated afterthought. Switch language at any time from the header.",
+
+  "aboutContactHeading": "Get in touch",
+  "aboutContactBody": "Questions, problems, or something you would like to see on the platform — use the contact form and we will get back to you."
+}

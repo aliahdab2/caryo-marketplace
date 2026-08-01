@@ -115,5 +115,21 @@
   "saveChanges": "Save Changes",
   "saveFailed": "Failed to save changes",
   "saveSuccess": "Changes saved successfully!",
-  "closed": "Closed"
+  "closed": "Closed",
+  "footerTagline": "Your trusted platform for buying and selling vehicles in Syria. Find the right car, or list yours today.",
+  "footerCompanyHeading": "Company",
+  "footerLegalHeading": "Legal",
+  "footerAbout": "About",
+  "footerContact": "Contact",
+  "footerPrivacyPolicy": "Privacy Policy",
+  "footerTermsOfService": "Terms of Service",
+  "footerCookiePolicy": "Cookie Policy",
+  "footerSiteLabel": "Site footer",
+  "footerFacebookLabel": "Visit our Facebook page",
+  "footerInstagramLabel": "Follow us on Instagram",
+  "footerTwitterLabel": "Follow us on X",
+  "notFoundHeading": "Page Not Found",
+  "notFoundMessage": "The page you are looking for could not be found.",
+  "notFoundGoHome": "Go Home",
+  "notFoundSearchListings": "Search Listings"
 }
