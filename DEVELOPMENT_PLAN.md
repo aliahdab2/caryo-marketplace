@@ -2,30 +2,44 @@
 
 This repository contains the development plan for the Caryo Marketplace project, a full-stack application for buying and selling cars.
 
-## 🎯 PROJECT STATUS: ALL CORE PHASES COMPLETED! ✅
+## 🎯 PROJECT STATUS: MARKETPLACE COMPLETE — MONETIZATION INCOMPLETE
 
-### **MAJOR MILESTONE ACHIEVED** 🎉
-**All 9 core development phases have been successfully completed!** The Caryo Marketplace is now a fully functional, production-ready car marketplace platform with:
-
-- ✅ **Complete Public Marketplace** - Anonymous browsing with public API endpoints
-- ✅ **Advanced SEO Implementation** - Structured data, sitemaps, and optimized metadata
-- ✅ **Full CRUD Operations** - Car listings, user management, and admin controls
-- ✅ **Complete Messaging System** - Real-time messaging with file attachments and RTL support
-- ✅ **Advanced Testing Suite** - 25+ test files covering authentication, messaging, and accessibility
-- ✅ **Real-time Features** - Messaging, notifications, and live updates
-- ✅ **Production Infrastructure** - Docker deployment, database migrations, and monitoring
-- ✅ **CarMediaGallery Component** - Advanced media gallery with video support and touch gestures
+The 9 core marketplace phases are done. The platform is **not launch-ready**: the
+revenue loop is not closed and several launch prerequisites remain open. Treat the
+"Blocking before launch" list below as the real definition of done.
 
 ### **What's Working Right Now** 🚀
 1. **Public Users** can browse, search, and view car listings without registration
-2. **SEO Optimized** with rich snippets, sitemaps, and social media integration
-3. **Registered Users** can list cars, manage favorites, and communicate with sellers
-4. **Complete Messaging System** with real-time chat, file attachments, and RTL support
-5. **Admin Panel** provides complete marketplace management and oversight
-6. **Mobile Responsive** design works perfectly across all devices
-7. **Bilingual Support** for English and Arabic with RTL layout
-8. **Advanced Testing Suite** with 25+ test files covering all major features
-9. **CarMediaGallery** with video support, touch gestures, and accessibility features
+2. **SEO Optimized** with rich snippets, sitemaps, server-side rendering, and social cards
+3. **Registered Users** can list cars, manage favorites, save searches, and message sellers
+4. **Messaging** with file attachments and RTL support — delivered by HTTP polling
+5. **Admin Panel** provides listing approval, media moderation, reports, and data management
+6. **Dealer Portal** with public storefront, stock management, leads, and trial tracking
+7. **Mobile Responsive** design across all devices
+8. **Bilingual Support** for English and Arabic with RTL layout, 100% key parity in CI
+9. **Test Suite** — 1,922 backend unit tests, 139 frontend Jest suites, 9 Playwright specs
+
+### 🚫 **Blocking before launch**
+
+| Gap | Detail |
+|-----|--------|
+| **Payment gateway undecided** | Only `ManualTransferProvider` is real. `BemoBankProvider`, `ChamBankProvider`, and `PayPalProvider` return `PROVIDER_NOT_IMPLEMENTED`, and both bank webhook verifiers reject all webhooks. |
+| **Subscription activation missing** | `PaymentService.verifyPaymentManually` marks the transaction complete and stops there. `setSubscriptionTier` has no production caller, so a paying dealer stays on `trial` forever. |
+| **No billing lifecycle** | `SchedulingConfig` runs only token and temp-file cleanup. `DealerTrialService.expireTrial` has no production caller. Nothing expires trials, advances `subscription_next_billing_date`, or handles dunning. |
+| **Private-seller monetization not built** | `docs/PRICING.md` prices extra listings ($2), highlights ($3), and bump-ups ($2). None exist in code. The free limit is also `user.regular.listing_limit:5` total, not the documented 3/month. |
+| **No private-seller sell flow** | The navbar routes every seller — including individuals — to `/dashboard/dealer/stock/new`. |
+
+### ⚠️ **Known gaps (not blocking, but worth knowing)**
+
+- **Messaging is polling-based.** No WebSocket, SSE, or STOMP anywhere in the codebase.
+  Earlier revisions of this document described it as "real-time"; it is not.
+- **No web analytics.** No GA, Plausible, or PostHog. Sentry covers errors only.
+- **No phone/OTP authentication.** Sign-up is email or Google, which fits the target
+  market poorly.
+- **No PWA or mobile app.** No manifest, no service worker, no push notifications.
+- **No WhatsApp contact path**, despite it being the dominant channel in the region.
+- **No competitive or go-to-market analysis.** `docs/comparison/` and `docs/marketing/`
+  are empty.
 
 ## 🎯 Current Status & Next Priorities
 
@@ -39,8 +53,8 @@ This repository contains the development plan for the Caryo Marketplace project,
 - **Development Environment**: Docker Compose with all services (PostgreSQL, Redis, MinIO, MailDev)
 - **Email Functionality**: Complete email service implementation with templates ✅
 - **Enhanced SEO URLs**: Advanced URL patterns with year, condition, and price filtering ✅
-- **Complete Messaging System**: Real-time messaging with file attachments, RTL support, and internationalization ✅
-- **Advanced Testing Suite**: 25+ test files covering authentication, messaging, RTL, and accessibility ✅
+- **Messaging System**: Buyer/seller messaging with file attachments, RTL support, and internationalization (HTTP polling — no push transport) ✅
+- **Testing Suite**: 1,922 backend unit tests, 139 frontend Jest suites, 9 Playwright specs ✅
 - **CarMediaGallery Component**: Advanced media gallery with video support and touch gestures ✅
 
 ### 🚀 **Next Major Initiative: Dealer Portal & B2B Features**
@@ -55,7 +69,7 @@ This repository contains the development plan for the Caryo Marketplace project,
    - Fix Java 21 compatibility ✅ (DONE)
    - Resolve NewsletterSubscriptionRequest compilation errors ✅ (DONE)
    - Clean up remaining linter errors ✅ (DONE)
-   - Test current features ✅ (DONE - All 1704+ tests passing)
+   - Test current features ✅ (DONE - 1,922 backend unit tests passing, 0 failures)
    - **Java 21 Auto-Configuration** ✅ (DONE - .sdkmanrc files created)
 
 2. **Dealer Portal Foundation** (Leverage existing systems!)
@@ -478,7 +492,7 @@ This section outlines the development plan for the Caryo Marketplace backend.
   - [x] **CarMediaGallery**: Advanced media gallery with video support and touch gestures
   - [x] **Error Boundaries**: Comprehensive error boundary system with i18n support
   - [x] **Auto-Language Detection**: Automatic language detection based on browser preferences
-  - [x] **Enhanced Testing Suite**: 25+ test files covering all major features
+  - [x] **Testing Suite**: 1,922 backend unit tests + 139 frontend Jest suites
   - [x] **Performance Optimization**: Bundle analysis, lazy loading, and caching
 
 ### Phase 8.1: Frontend Configuration ✅
@@ -514,7 +528,7 @@ This section outlines the development plan for the Caryo Marketplace backend.
   - Tailwind CSS for styling
   - NextAuth.js for authentication
   - next-i18next for internationalization (English/Arabic)
-  - Jest and React Testing Library for testing (25+ test files)
+  - Jest and React Testing Library for testing (139 suites)
   - MinIO integration for image storage
   - Real backend API integration (no more mock data)
   - **Complete Messaging System**: Real-time messaging with file attachments and RTL support

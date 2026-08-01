@@ -4,20 +4,37 @@ A modern full-stack application for buying and selling cars, featuring authentic
 
 ## Project Status
 
-The project is currently in active development with these key features implemented:
-- User authentication with JWT and social login
-- Car listing management (create, read, update, delete)
-- Admin approval workflow for listings
-- Location-based filtering system
-- Multiple media uploads with S3-compatible storage
-- **Hover Image Navigation** - autotrader.co.uk style image browsing
-- **Internationalization (i18n)** - Full Arabic/English support with RTL
-- **Advanced Messaging System** - File uploads with validation and translations
-- **CarMediaGallery** - Responsive gallery with RTL support
-- Development environment with Docker Compose
-- **Caryo CLI** - Unified script for development and deployment
-- CI/CD workflows with GitHub Actions
-- Secrets management with HashiCorp Vault
+Active development. **Not yet launched.**
+
+### Implemented
+
+- User authentication with JWT (refresh + rotation) and Google social login
+- Car listing management (create, read, update, delete) with an admin approval workflow
+- Full-text and faceted search, location-based filtering, saved searches with alerts
+- Multiple media uploads with S3-compatible storage, imgproxy resizing, image moderation
+- **Messaging** between buyers and sellers, with file attachments — HTTP polling, not push
+- **Internationalization** — Arabic/English with RTL, 100% key parity enforced in CI
+- **CarMediaGallery** — responsive gallery with video support and touch gestures
+- Dealer accounts: public storefront profile, stock dashboard, leads, trial tracking
+- Trust & safety: user reports, user blocking, image moderation queue
+- SEO: server-rendered pages, Vehicle JSON-LD, dynamic sitemaps
+- Development environment with Docker Compose; production stack with nginx, TLS, Redis, scheduled backups
+- **Caryo CLI** — unified script for development and deployment
+- CI/CD workflows with GitHub Actions; secrets management with HashiCorp Vault
+
+### Not yet implemented
+
+These are known gaps, not oversights — see [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md):
+
+- **Payment gateway** — provider not yet chosen. Only manual bank transfer is implemented;
+  the Bemo Bank, Cham Bank, and PayPal providers are placeholders that return
+  `PROVIDER_NOT_IMPLEMENTED`.
+- **Subscription activation** — verifying a payment marks the transaction complete but does
+  not yet upgrade the dealer's tier, and no scheduled job expires trials or advances billing.
+- **Real-time messaging** — there is no WebSocket or SSE layer; the client polls.
+- **Private-seller monetization** — extra listings, highlights, and bump-ups are priced in
+  `docs/PRICING.md` but not built.
+- **Phone/OTP authentication**, **PWA/mobile app**, and **web analytics**.
 
 ## 📚 Documentation
 
