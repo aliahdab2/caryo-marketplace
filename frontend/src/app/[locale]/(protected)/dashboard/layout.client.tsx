@@ -128,7 +128,11 @@ const UserProfile = memo(function UserProfile({
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const { user, status } = useOptimizedSession();
-  const { data: trialStatus } = useDealerTrialStatus();
+  // Private sellers share the dealer routes but must not see dealer branding:
+  // storefront is dealer-only, and "Stock"/"Leads" read as "My Listings"/
+  // "Messages" for a regular user.
+  const isDealer = !!user?.roles?.includes('ROLE_DEALER');
+  const { data: trialStatus } = useDealerTrialStatus({ enabled: isDealer });
   const router = useRouter();
   const { t } = useTranslation(['dashboard', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
@@ -171,30 +175,33 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
 
   const sidebarItems: NavItem[] = [
-    // Dealer Section
     {
       name: t('overview'),
       href: `/${currentLang}/dashboard/dealer`,
       icon: <MdDashboard className="text-xl" />,
-      tooltip: t('overviewTooltip') || 'Dealer dashboard overview'
+      tooltip: t('overviewTooltip') || 'Dashboard overview'
     },
     {
-      name: t('stock', { defaultValue: 'My Stock' }),
+      name: isDealer ? t('stock', { defaultValue: 'My Stock' }) : t('myListings', { defaultValue: 'My Listings' }),
       href: `/${currentLang}/dashboard/dealer/stock`,
       icon: <MdDirectionsCar className="text-xl" />,
-      tooltip: t('stockTooltip', { defaultValue: 'Manage your vehicle inventory' })
+      tooltip: isDealer
+        ? t('stockTooltip', { defaultValue: 'Manage your vehicle inventory' })
+        : t('myListingsTooltip', { defaultValue: 'Manage your listings' })
     },
-    {
+    ...(isDealer ? [{
       name: t('storefront', { defaultValue: 'Storefront' }),
       href: `/${currentLang}/dashboard/dealer/storefront`,
       icon: <MdStorefront className="text-xl" />,
       tooltip: t('storefrontTooltip', { defaultValue: 'Edit your public business profile' })
-    },
+    }] : []),
     {
-      name: t('leads', { defaultValue: 'Leads' }),
+      name: isDealer ? t('leads', { defaultValue: 'Leads' }) : t('messages', { defaultValue: 'Messages' }),
       href: `/${currentLang}/dashboard/dealer/leads`,
       icon: <MdEmail className="text-xl" />,
-      tooltip: t('leadsTooltip', { defaultValue: 'Customer inquiries and messages' })
+      tooltip: isDealer
+        ? t('leadsTooltip', { defaultValue: 'Customer inquiries and messages' })
+        : t('messagesTooltip', { defaultValue: 'Your conversations with sellers and buyers' })
     },
     // Buyer Section
     {

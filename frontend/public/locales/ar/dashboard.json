@@ -148,5 +148,8 @@
   "businessPhone": "هاتف العمل",
   "description": "الوصف",
   "specialties": "التخصصات",
-  "viewPublicProfile": "عرض الملف العام"
+  "viewPublicProfile": "عرض الملف العام",
+  "messages": "الرسائل",
+  "messagesTooltip": "محادثاتك مع البائعين والمشترين",
+  "myListingsTooltip": "إدارة إعلاناتك"
 }

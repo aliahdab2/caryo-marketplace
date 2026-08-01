@@ -84,8 +84,12 @@ test.describe('Search & Browse', () => {
 
       const searchInput = page.getByPlaceholder(/search|find|looking/i).first();
 
-      await searchInput.fill('Toyota');
-      await expect(searchInput).toHaveValue('Toyota');
+      // Under load, a fill() that lands before React hydrates is reset by the
+      // controlled input — retry until the value actually sticks.
+      await expect(async () => {
+        await searchInput.fill('Toyota');
+        await expect(searchInput).toHaveValue('Toyota', { timeout: 1000 });
+      }).toPass({ timeout: 15000 });
     });
 
     test('search updates results', async ({ page }) => {

@@ -127,11 +127,11 @@ const VideoSection = memo(function VideoSection({
                       <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'} text-xs text-gray-500 dark:text-gray-500 mt-3`}>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
+                          <span>{t('listings:videoMaxSize', 'Max size: {{size}}MB', { size: 100 })}</span>
                         </div>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
+                          <span>{t('listings:videoMaxDuration', 'Max duration: {{duration}} seconds', { duration: 180 })}</span>
                         </div>
                         <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'}`}>
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>

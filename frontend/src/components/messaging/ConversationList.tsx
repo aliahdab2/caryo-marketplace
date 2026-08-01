@@ -99,6 +99,7 @@ function ConversationItem({ conversation, isSelected, onClick, isRTL: _isRTL }: 
   return (
     <button
       onClick={onClick}
+      data-testid="conversation-item"
       className={`w-full p-3 rounded-lg transition-all duration-200 ${
         isSelected
           ? 'bg-blue-50 dark:bg-blue-900/20 border-s-4 border-blue-500'

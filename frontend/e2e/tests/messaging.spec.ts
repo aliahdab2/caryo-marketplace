@@ -190,8 +190,12 @@ test.describe('Messaging', () => {
 
       // The modal prefills a default message; clear it so the empty case is
       // actually exercised. An empty message must disable the send button.
-      await modal.locator('textarea').clear();
-      await expect(sendButton).toBeDisabled({ timeout: 5000 });
+      // Under load, a clear() that lands before React hydrates never reaches
+      // component state — retry until the disabled state actually follows.
+      await expect(async () => {
+        await modal.locator('textarea').clear();
+        await expect(sendButton).toBeDisabled({ timeout: 1000 });
+      }).toPass({ timeout: 15000 });
     });
   });
 });

@@ -41,12 +41,14 @@ export default function DealerDashboard() {
   const { t } = useTranslation(['dashboard', 'common', 'listings', 'search', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
   const { user: session } = useOptimizedSession();
+  const isDealer = !!session?.roles?.includes('ROLE_DEALER');
 
   // UI State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // React Query hooks for data fetching
-  const { data: trialStatus } = useDealerTrialStatus();
+  // React Query hooks for data fetching (trial status is dealer-only — a
+  // regular user would just get a 403)
+  const { data: trialStatus } = useDealerTrialStatus({ enabled: isDealer });
   const { data: favoritesData = [] } = useFavorites();
   const { data: savedSearchesData = [] } = useSavedSearches();
   const { data: conversationStats } = useConversationStats();

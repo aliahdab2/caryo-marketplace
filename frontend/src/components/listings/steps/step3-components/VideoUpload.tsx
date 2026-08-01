@@ -75,11 +75,11 @@ const VideoUpload = memo(function VideoUpload({
                 <div className="flex items-center justify-center space-x-6 text-xs text-blue-500 dark:text-blue-400 mt-4">
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{t('listings:videoMaxSize', 'Max 100MB')}</span>
+                    <span>{t('listings:videoMaxSize', 'Max size: {{size}}MB', { size: 100 })}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{t('listings:videoMaxDuration', '3 min duration')}</span>
+                    <span>{t('listings:videoMaxDuration', 'Max duration: {{duration}} seconds', { duration: 180 })}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>

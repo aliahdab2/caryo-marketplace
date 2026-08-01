@@ -116,11 +116,11 @@ const ImageUpload = memo(function ImageUpload({
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>{t('listings:newListingImageMaxSize', 'Max 5MB each')}</span>
+                      <span>{t('listings:newListingImageMaxSize', 'Max size: {{size}}MB per image', { size: 5 })}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>{t('listings:newListingImageMaxCount', 'Up to 10 images')}</span>
+                      <span>{t('listings:newListingImageMaxCount', 'Maximum {{max}} images', { max: 10 })}</span>
                     </div>
                   </div>
                 </div>
