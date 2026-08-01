@@ -49,6 +49,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     long countUnreadMessagesForUser(@Param("conversationId") Long conversationId, @Param("user") User user);
 
     /**
+     * Count all unread messages addressed to the user across all conversations
+     */
+    @Query("SELECT COUNT(m) FROM Message m WHERE (m.conversation.buyer = :user OR m.conversation.seller = :user) AND m.sender != :user AND m.isRead = false")
+    long countAllUnreadMessagesForUser(@Param("user") User user);
+
+    /**
      * Find messages by sender
      */
     Page<Message> findBySenderOrderByCreatedAtDesc(User sender, Pageable pageable);

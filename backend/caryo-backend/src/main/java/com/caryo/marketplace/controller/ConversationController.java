@@ -5,6 +5,7 @@ import com.caryo.marketplace.payload.request.CreateConversationRequest;
 import com.caryo.marketplace.payload.request.SendMessageRequest;
 import com.caryo.marketplace.payload.response.ApiResponse;
 import com.caryo.marketplace.payload.response.ConversationResponse;
+import com.caryo.marketplace.payload.response.ConversationStatsResponse;
 import com.caryo.marketplace.payload.response.MessageResponse;
 import com.caryo.marketplace.payload.response.PageResponse;
 import com.caryo.marketplace.service.ConversationService;
@@ -113,10 +114,20 @@ public class ConversationController {
     }
 
     /**
+     * Aggregate messaging counters for the authenticated user
+     */
+    @Operation(summary = "Get conversation stats", description = "Aggregate counters (total/active/unread/archived) for the authenticated user's conversations")
+    @GetMapping("/stats")
+    public ResponseEntity<ConversationStatsResponse> getConversationStats(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(conversationService.getConversationStats(userDetails.getId()));
+    }
+
+    /**
      * Get a specific conversation by ID
      */
     @Operation(summary = "Get conversation", description = "Retrieve a specific conversation by ID")
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<ConversationResponse> getConversation(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -131,7 +142,7 @@ public class ConversationController {
      * Get messages in a conversation with pagination
      */
     @Operation(summary = "Get messages", description = "Retrieve messages in a conversation with pagination")
-    @GetMapping("/{id}/messages")
+    @GetMapping("/{id:[0-9]+}/messages")
     public ResponseEntity<PageResponse<MessageResponse>> getConversationMessages(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
@@ -166,7 +177,7 @@ public class ConversationController {
     @Operation(summary = "Send message", description = "Send a text message in a conversation (rate limited: 20/min)")
     @RateLimit(maxRequests = 20, windowSeconds = 60, keyType = RateLimitKeyType.USER,
         message = "Too many messages sent. Please wait a moment before sending more.")
-    @PostMapping("/{id}/messages")
+    @PostMapping("/{id:[0-9]+}/messages")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessage(
             @PathVariable Long id,
             @Valid @RequestBody SendMessageRequest request,
@@ -206,7 +217,7 @@ public class ConversationController {
      * Mark all messages in a conversation as read
      */
     @Operation(summary = "Mark all as read", description = "Mark all messages in a conversation as read")
-    @PatchMapping("/{id}/messages/read-all")
+    @PatchMapping("/{id:[0-9]+}/messages/read-all")
     public ResponseEntity<ApiResponse<Void>> markAllMessagesAsRead(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -225,7 +236,7 @@ public class ConversationController {
      * Archive a conversation
      */
     @Operation(summary = "Archive conversation", description = "Archive a conversation to hide it from the main list")
-    @PatchMapping("/{id}/archive")
+    @PatchMapping("/{id:[0-9]+}/archive")
     public ResponseEntity<ApiResponse<Void>> archiveConversation(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -244,7 +255,7 @@ public class ConversationController {
      * Block a user in a conversation
      */
     @Operation(summary = "Block user", description = "Block the other user in a conversation to prevent further messages")
-    @PatchMapping("/{id}/block")
+    @PatchMapping("/{id:[0-9]+}/block")
     public ResponseEntity<ApiResponse<Void>> blockUser(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -263,7 +274,7 @@ public class ConversationController {
      * Update conversation status
      */
     @Operation(summary = "Update status", description = "Update conversation status (active, archived, closed)")
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id:[0-9]+}/status")
     public ResponseEntity<ApiResponse<Void>> updateConversationStatus(
             @PathVariable Long id,
             @RequestParam String status,
@@ -283,7 +294,7 @@ public class ConversationController {
      * Upload file attachment for a message
      */
     @Operation(summary = "Upload attachment", description = "Upload a file attachment to use in a message")
-    @PostMapping("/{id}/messages/attachments")
+    @PostMapping("/{id:[0-9]+}/messages/attachments")
     public ResponseEntity<ApiResponse<Map<String, Object>>> uploadMessageAttachment(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
@@ -304,7 +315,7 @@ public class ConversationController {
      * Send message with attachments
      */
     @Operation(summary = "Send message with attachments", description = "Send a message with one or more file attachments")
-    @PostMapping("/{id}/messages/with-attachments")
+    @PostMapping("/{id:[0-9]+}/messages/with-attachments")
     public ResponseEntity<ApiResponse<MessageResponse>> sendMessageWithAttachments(
             @PathVariable Long id,
             @RequestParam("content") String content,

@@ -4,6 +4,7 @@ import com.caryo.marketplace.model.*;
 import com.caryo.marketplace.payload.request.CreateConversationRequest;
 import com.caryo.marketplace.payload.request.SendMessageRequest;
 import com.caryo.marketplace.payload.response.ConversationResponse;
+import com.caryo.marketplace.payload.response.ConversationStatsResponse;
 import com.caryo.marketplace.payload.response.MessageResponse;
 import com.caryo.marketplace.repository.ConversationRepository;
 import com.caryo.marketplace.repository.MessageRepository;
@@ -119,6 +120,22 @@ public class ConversationService {
 
         log.info("Conversation created successfully with ID: {}", conversation.getId());
         return mapToConversationResponse(conversation, buyer);
+    }
+
+    /**
+     * Aggregate messaging counters for the user's dashboard.
+     */
+    @Transactional(readOnly = true)
+    public ConversationStatsResponse getConversationStats(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        long total = conversationRepository.countByUser(user);
+        long active = conversationRepository.countByUserAndStatus(user, ConversationStatus.ACTIVE);
+        long archived = conversationRepository.countByUserAndStatus(user, ConversationStatus.ARCHIVED);
+        long unread = messageRepository.countAllUnreadMessagesForUser(user);
+
+        return new ConversationStatsResponse(total, active, unread, archived);
     }
 
     /**

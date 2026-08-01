@@ -5,6 +5,7 @@ import com.caryo.marketplace.payload.request.CreateConversationRequest;
 import com.caryo.marketplace.payload.request.SendMessageRequest;
 import com.caryo.marketplace.payload.response.ApiResponse;
 import com.caryo.marketplace.payload.response.ConversationResponse;
+import com.caryo.marketplace.payload.response.ConversationStatsResponse;
 import com.caryo.marketplace.payload.response.MessageResponse;
 import com.caryo.marketplace.payload.response.PageResponse;
 import com.caryo.marketplace.security.services.UserDetailsImpl;
@@ -20,9 +21,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.MethodParameter;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -31,6 +39,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class ConversationControllerTest {
@@ -131,6 +142,77 @@ class ConversationControllerTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody().getContent().isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/conversations/stats")
+    class GetConversationStats {
+
+        private MockMvc mockMvc;
+
+        @BeforeEach
+        void setUpMockMvc() {
+            // Standalone MockMvc exercises the real request mappings, so these
+            // tests guard the routing contract: /stats must never be captured
+            // by the numeric /{id} handler (the original bug returned 500).
+            HandlerMethodArgumentResolver principalResolver = new HandlerMethodArgumentResolver() {
+                @Override
+                public boolean supportsParameter(MethodParameter parameter) {
+                    return UserDetailsImpl.class.isAssignableFrom(parameter.getParameterType());
+                }
+
+                @Override
+                public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                              NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+                    return userDetails;
+                }
+            };
+            mockMvc = MockMvcBuilders.standaloneSetup(conversationController)
+                    .setCustomArgumentResolvers(principalResolver)
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should return aggregated stats and not be swallowed by /{id}")
+        void getStats_RoutesToStatsHandler() throws Exception {
+            ConversationStatsResponse stats = new ConversationStatsResponse(7L, 4L, 5L, 2L);
+            when(conversationService.getConversationStats(TEST_USER_ID)).thenReturn(stats);
+
+            mockMvc.perform(get("/api/v1/conversations/stats"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalConversations").value(7))
+                    .andExpect(jsonPath("$.activeConversations").value(4))
+                    .andExpect(jsonPath("$.unreadMessages").value(5))
+                    .andExpect(jsonPath("$.archivedConversations").value(2));
+
+            verify(conversationService).getConversationStats(TEST_USER_ID);
+            verify(conversationService, never()).getConversation(anyLong(), anyLong());
+        }
+
+        @Test
+        @DisplayName("Numeric IDs should still route to the /{id} handler")
+        void getConversationById_StillRoutes() throws Exception {
+            ConversationResponse conv = ConversationResponse.builder()
+                    .id(TEST_CONVERSATION_ID)
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+            when(conversationService.getConversation(TEST_CONVERSATION_ID, TEST_USER_ID)).thenReturn(conv);
+
+            mockMvc.perform(get("/api/v1/conversations/" + TEST_CONVERSATION_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(TEST_CONVERSATION_ID));
+
+            verify(conversationService).getConversation(TEST_CONVERSATION_ID, TEST_USER_ID);
+        }
+
+        @Test
+        @DisplayName("Non-numeric path segments other than known literals should 404, not 500")
+        void getConversation_NonNumericPath_NotFound() throws Exception {
+            mockMvc.perform(get("/api/v1/conversations/not-a-number"))
+                    .andExpect(status().isNotFound());
+
+            verify(conversationService, never()).getConversation(anyLong(), anyLong());
         }
     }
 

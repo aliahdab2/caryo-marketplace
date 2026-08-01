@@ -27,6 +27,18 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     Page<Conversation> findByUser(@Param("user") User user, Pageable pageable);
 
     /**
+     * Count all conversations where the user participates
+     */
+    @Query("SELECT COUNT(c) FROM Conversation c WHERE c.buyer = :user OR c.seller = :user")
+    long countByUser(@Param("user") User user);
+
+    /**
+     * Count the user's conversations in a given status
+     */
+    @Query("SELECT COUNT(c) FROM Conversation c WHERE (c.buyer = :user OR c.seller = :user) AND c.status = :status")
+    long countByUserAndStatus(@Param("user") User user, @Param("status") ConversationStatus status);
+
+    /**
      * Find conversations where the user is the buyer
      */
     Page<Conversation> findByBuyerOrderByLastMessageAtDesc(User buyer, Pageable pageable);
