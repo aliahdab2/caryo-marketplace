@@ -1,6 +1,8 @@
 package com.caryo.marketplace.payload.request;
 
+import com.caryo.marketplace.util.CurrencyUtil;
 import com.caryo.marketplace.validation.CurrentYearOrEarlier;
+import com.caryo.marketplace.validation.ValidCurrency;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Digits;
@@ -61,15 +63,59 @@ public class ListingFilterRequest {
 
     /**
      * Minimum price for filtering. Optional. Must be positive or zero.
+     * Interpreted in {@link #currency} — see that field.
      */
     @PositiveOrZero(message = "Minimum price must be positive or zero")
     private BigDecimal minPrice;
 
     /**
      * Maximum price for filtering. Optional. Must be positive or zero.
+     * Interpreted in {@link #currency} — see that field.
      */
     @PositiveOrZero(message = "Maximum price must be positive or zero")
     private BigDecimal maxPrice;
+
+    /**
+     * Currency the price bounds are expressed in, and the currency of the
+     * listings to return.
+     *
+     * <p>Listings are stored with their own currency (USD or SYP) and prices
+     * are <em>not</em> normalised across them, so an unscoped numeric range is
+     * meaningless: "5000–15000" would match both a $12,000 car and a 12,000 SYP
+     * car, which differ by four orders of magnitude.</p>
+     *
+     * <p>Therefore, whenever {@code minPrice} or {@code maxPrice} is supplied,
+     * the range is scoped to a single currency — this one if given, otherwise
+     * {@link com.caryo.marketplace.util.CurrencyUtil#DEFAULT_CURRENCY}. Supplied
+     * on its own (no price bounds) it simply filters by listing currency.</p>
+     */
+    @ValidCurrency
+    @Schema(description = "Currency for the price range and for the listings returned (USD or SYP). "
+            + "Defaults to USD when a price bound is supplied without it.", example = "USD")
+    private String currency;
+
+    /**
+     * The currency the price range should actually be evaluated in: the
+     * explicit value when provided, otherwise the platform default.
+     *
+     * <p>Only meaningful when at least one price bound is set; callers should
+     * check that first.</p>
+     */
+    @JsonIgnore
+    public String getEffectivePriceCurrency() {
+        return (currency == null || currency.isBlank())
+                ? CurrencyUtil.DEFAULT_CURRENCY
+                : currency.trim().toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * True when this filter constrains listings to a single currency — either
+     * because a currency was named, or because a price bound implies one.
+     */
+    @JsonIgnore
+    public boolean hasCurrencyConstraint() {
+        return (currency != null && !currency.isBlank()) || minPrice != null || maxPrice != null;
+    }
 
     /**
      * Minimum mileage for filtering. Optional. Must be positive or zero.

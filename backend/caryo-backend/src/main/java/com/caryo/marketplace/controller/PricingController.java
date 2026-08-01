@@ -79,28 +79,28 @@ public class PricingController {
         // Keys should NOT include namespace prefix - frontend adds it
         return switch (tierId) {
             case "basic" -> List.of(
-                "feature.listings100",
-                "feature.basicAnalytics", 
-                "feature.emailSupport",
-                "feature.mobileResponsive",
-                "feature.photoUploads"
+                "featureListings100",
+                "featureBasicAnalytics", 
+                "featureEmailSupport",
+                "featureMobileResponsive",
+                "featurePhotoUploads"
             );
             case "advanced" -> List.of(
-                "feature.listings250",
-                "feature.advancedAnalytics",
-                "feature.prioritySupport", 
-                "feature.featuredListings",
-                "feature.videoUploads",
-                "feature.customBranding"
+                "featureListings250",
+                "featureAdvancedAnalytics",
+                "featurePrioritySupport", 
+                "featureFeaturedListings",
+                "featureVideoUploads",
+                "featureCustomBranding"
             );
             case "professional" -> List.of(
-                "feature.unlimitedListings",
-                "feature.premiumAnalytics",
-                "feature.dedicatedSupport",
-                "feature.apiAccess",
-                "feature.whiteLabelOptions", 
-                "feature.customIntegrations",
-                "feature.priorityPlacement"
+                "featureUnlimitedListings",
+                "featurePremiumAnalytics",
+                "featureDedicatedSupport",
+                "featureApiAccess",
+                "featureWhiteLabelOptions", 
+                "featureCustomIntegrations",
+                "featurePriorityPlacement"
             );
             default -> List.of();
         };

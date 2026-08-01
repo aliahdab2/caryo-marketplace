@@ -1,5 +1,17 @@
 # 💰 **Caryo Marketplace - Pricing Documentation**
 
+> ⚠️ **This document describes the intended pricing model, not what is built.**
+>
+> | Item | Status |
+> |------|--------|
+> | Dealer tier prices and listing limits | Configured and served by `PricingController` ✅ |
+> | Trial (2 months / 15 listings) | Implemented in `DealerTrialService` ✅ |
+> | Paying dealer → tier upgrade | **Not implemented.** `setSubscriptionTier` has no production caller; verifying a payment does not change the dealer's plan. |
+> | Recurring billing / trial expiry job | **Not implemented.** No scheduled job exists. |
+> | Private seller "3 listings/month" | **Differs from code.** `user.regular.listing_limit` defaults to **5 total**, with no monthly reset. |
+> | Extra listings ($2), Highlight ($3), Bump-Up ($2) | **Not implemented.** No code exists for any of these. |
+> | Payment gateway | **Undecided.** Only manual bank transfer works; bank and PayPal providers are placeholders. |
+
 ## 📊 **Subscription Tiers**
 
 ### **Dealer Subscription Plans**
@@ -79,9 +91,8 @@ Prices are configured in:
 
 ### **Frontend**
 
-Prices are currently hardcoded in:
-- `frontend/src/components/dealer/UpgradeModal.tsx`
-- Lines 48-96 (SUBSCRIPTION_TIERS constant)
+Prices are fetched from the backend at runtime via `frontend/src/services/pricing.ts`
+— they are not hardcoded in the frontend.
 
 ### **Price Management** ✅ **Industry Standard Implementation**
 
@@ -157,11 +168,13 @@ That's it! One file, one restart. Simple! ✅
 
 ## ⚠️ **Important Notes**
 
-- **Prices are in USD** - No local currency support yet
-- **Prices are hardcoded** - Frontend must match backend config
+- **Prices are in USD** - Subscription pricing has no local currency support yet.
+  (Listing prices separately support USD and SYP; see `CurrencyUtil`.)
+- **Single source of truth** - Prices live in backend config only; the frontend reads them
+  from `/api/v1/pricing`. There is no second copy to keep in sync.
 - **Trial is always free** - 2 months with 15 listings
 - **Manual bank transfer** has 0% processing fees
-- **Syrian bank gateways** will have ~0.5% processing fees
+- **Syrian bank gateways** are not integrated yet; fees to be confirmed once a provider is chosen
 
 ---
 

@@ -506,6 +506,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());
@@ -530,6 +532,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());
@@ -553,6 +557,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());
@@ -577,6 +583,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setFuelTypeSlugs(original.getFuelTypeSlugs());
@@ -601,6 +609,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());
@@ -625,6 +635,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());
@@ -649,6 +661,8 @@ public class CarListingAnalyticsService {
         modified.setLocationId(original.getLocationId());
         modified.setMinPrice(original.getMinPrice());
         modified.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        modified.setCurrency(original.getCurrency());
         modified.setMinMileage(original.getMinMileage());
         modified.setMaxMileage(original.getMaxMileage());
         modified.setSellerTypeIds(original.getSellerTypeIds());

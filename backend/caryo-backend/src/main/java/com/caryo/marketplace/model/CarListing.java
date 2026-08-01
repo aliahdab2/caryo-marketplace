@@ -44,7 +44,12 @@ public class CarListing {
     @Column(name = "mileage", nullable = false)
     private Integer mileage;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    /**
+     * Price in the currency named by {@link #currency}. Precision 18 (see V62)
+     * so Syrian Pound amounts fit — SYP prices run to hundreds of millions,
+     * which would overflow the original precision of 10.
+     */
+    @Column(name = "price", nullable = false, precision = 18, scale = 2)
     private BigDecimal price;
 
     /**

@@ -220,11 +220,23 @@ public class CarListingSpecification {
 
     /**
      * Adds price range filtering predicates (validation already done).
+     *
+     * <p>Prices are stored in the listing's own currency and are not normalised
+     * across currencies, so a bare numeric range would compare USD against SYP
+     * — four orders of magnitude apart. Any price bound is therefore scoped to
+     * a single currency: the one the caller named, or the platform default.
+     * A currency supplied without price bounds filters on its own.</p>
      */
     private static void addPriceRangePredicates(ListingFilterRequest filter,
                                               jakarta.persistence.criteria.Root<CarListing> root,
                                               jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
                                               List<Predicate> predicates) {
+        if (filter.hasCurrencyConstraint()) {
+            predicates.add(criteriaBuilder.equal(
+                    criteriaBuilder.upper(root.get("currency")),
+                    filter.getEffectivePriceCurrency()));
+        }
+
         if (filter.getMinPrice() != null) {
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), filter.getMinPrice()));
         }

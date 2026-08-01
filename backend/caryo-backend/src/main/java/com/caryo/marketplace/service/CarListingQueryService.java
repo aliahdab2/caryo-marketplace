@@ -358,6 +358,8 @@ public class CarListingQueryService {
         copy.setLocationId(original.getLocationId());
         copy.setMinPrice(original.getMinPrice());
         copy.setMaxPrice(original.getMaxPrice());
+        // Must travel with the price bounds — they are meaningless unscoped
+        copy.setCurrency(original.getCurrency());
         copy.setMinMileage(original.getMinMileage());
         copy.setMaxMileage(original.getMaxMileage());
         copy.setIsSold(original.getIsSold());

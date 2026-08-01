@@ -6,6 +6,13 @@ import { Lang } from './i18n';
 export interface ListingFilters {
   minPrice?: string;
   maxPrice?: string;
+  /**
+   * Currency the price bounds are expressed in, and the currency of the
+   * listings returned. Listing prices are stored per-listing in USD or SYP and
+   * are not normalised between them, so the backend scopes any price range to
+   * one currency — this one, or USD when omitted.
+   */
+  currency?: string;
   minYear?: string;
   maxYear?: string;
   location?: string;

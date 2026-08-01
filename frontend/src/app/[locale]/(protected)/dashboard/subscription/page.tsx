@@ -31,7 +31,7 @@ export default function SubscriptionPage() {
         setPlans(tiers);
       } catch (error) {
         console.error('Failed to load subscription data:', error);
-        showError(t('errors.loadFailed', 'Failed to load subscription data'));
+        showError(t('loadFailed', 'Failed to load subscription data'));
       } finally {
         setLoading(false);
       }
@@ -119,7 +119,7 @@ export default function SubscriptionPage() {
               tierKey={plan.id}
               name={plan.name} // Backend returns "Basic", "Advanced", etc.
               price={`${plan.price.toLocaleString()} ${plan.currency}`}
-              period={t('plans.period', 'mo')}
+              period={t('perMonth', 'mo')}
               features={plan.features.map(f => t(f, f))} // Translate backend feature keys
               isCurrentPlan={trialStatus?.subscriptionTier?.toLowerCase() === plan.id.toLowerCase()}
               recommended={plan.recommended}

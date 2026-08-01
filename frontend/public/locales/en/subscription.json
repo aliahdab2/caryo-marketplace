@@ -1,51 +1,39 @@
 {
   "pageTitle": "Subscription Management",
-  "pageSubtitle": "Manage your plan and viewing limits",
+  "pageSubtitle": "Manage your plan and listing limits",
+  "availablePlans": "Available Plans",
   "recommended": "Recommended",
   "currentPlan": "Current Plan",
   "upgrade": "Upgrade",
+  "perMonth": "mo",
   "subscriptionStatus": "Subscription Status",
   "trial": "Trial",
   "trialExpiring": "Trial expires in {{days}} days",
   "listingsUsage": "Listings Usage",
   "unlimitedListings": "You have unlimited listings",
   "listingsRemaining": "{{count}} listings remaining",
-  "plans": {
-    "basic": {
-      "name": "Basic",
-      "period": "mo",
-      "features": [
-        "100 Active Listings",
-        "Basic Analytics",
-        "Standard Support",
-        "5 Featured Listings"
-      ]
-    },
-    "advanced": {
-      "name": "Advanced",
-      "period": "mo",
-      "features": [
-        "250 Active Listings",
-        "Advanced Analytics",
-        "Priority Support",
-        "15 Featured Listings",
-        "Verified Badge"
-      ]
-    },
-    "professional": {
-      "name": "Professional",
-      "period": "mo",
-      "features": [
-        "Unlimited Listings",
-        "Premium Analytics Suite",
-        "Dedicated Account Manager",
-        "Unlimited Featured Listings",
-        "API Access"
-      ]
-    }
-  },
+  "loadFailed": "Failed to load subscription data",
   "upgradeSuccess": "Subscription upgraded successfully!",
   "upgradeError": "Failed to upgrade subscription. Please try again.",
   "confirmUpgradeTitle": "Confirm Upgrade",
-  "confirmUpgradeMessage": "Are you sure you want to upgrade to the {{plan}} plan? You will be charged {{price}}."
+  "confirmUpgradeMessage": "Are you sure you want to upgrade to the {{plan}} plan? You will be charged {{price}}.",
+
+  "featureListings100": "100 active listings",
+  "featureListings250": "250 active listings",
+  "featureUnlimitedListings": "Unlimited listings",
+  "featureBasicAnalytics": "Basic analytics",
+  "featureAdvancedAnalytics": "Advanced analytics",
+  "featurePremiumAnalytics": "Premium analytics suite",
+  "featureEmailSupport": "Email support",
+  "featurePrioritySupport": "Priority support",
+  "featureDedicatedSupport": "Dedicated account manager",
+  "featureMobileResponsive": "Mobile-friendly storefront",
+  "featurePhotoUploads": "Photo uploads",
+  "featureVideoUploads": "Video uploads",
+  "featureFeaturedListings": "Featured listings",
+  "featureCustomBranding": "Custom branding",
+  "featureApiAccess": "API access",
+  "featureWhiteLabelOptions": "White-label options",
+  "featureCustomIntegrations": "Custom integrations",
+  "featurePriorityPlacement": "Priority placement in search"
 }

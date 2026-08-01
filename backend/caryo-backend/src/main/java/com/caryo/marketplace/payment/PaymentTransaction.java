@@ -62,7 +62,8 @@ public class PaymentTransaction {
     /**
      * Payment amount
      */
-    @Column(nullable = false, precision = 10, scale = 2)
+    // Precision 18 (see V62) so Syrian Pound amounts fit
+    @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 
     /**
