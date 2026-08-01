@@ -51,10 +51,21 @@ export function useLazyTranslation(
           }
         }
         
-        // Ensure i18next is initialized before loading namespaces
+        // Ensure i18next is initialized before loading namespaces.
+        // Re-check after subscribing: initialization can complete between the
+        // isInitialized check and the listener registration, and the
+        // 'initialized' event never fires again — awaiting it then would hang
+        // forever and leave every consumer stuck on its loading state.
         if (!i18nInstance.isInitialized) {
           await new Promise<void>((resolve) => {
-            i18nInstance.on('initialized', () => resolve());
+            const onInitialized = () => {
+              i18nInstance.off('initialized', onInitialized);
+              resolve();
+            };
+            i18nInstance.on('initialized', onInitialized);
+            if (i18nInstance.isInitialized) {
+              onInitialized();
+            }
           });
         }
 

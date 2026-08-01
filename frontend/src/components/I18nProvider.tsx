@@ -41,10 +41,20 @@ export default function I18nProvider({ children }: I18nProviderProps) {
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
 
-        // Make sure i18next is initialized
+        // Make sure i18next is initialized. Re-check after subscribing:
+        // initialization can complete between the isInitialized check and the
+        // listener registration, and the 'initialized' event never fires
+        // again — awaiting it then would hang this effect forever.
         if (!i18n.isInitialized) {
-          await new Promise((resolve) => {
-            i18n.on('initialized', resolve);
+          await new Promise<void>((resolve) => {
+            const onInitialized = () => {
+              i18n.off('initialized', onInitialized);
+              resolve();
+            };
+            i18n.on('initialized', onInitialized);
+            if (i18n.isInitialized) {
+              onInitialized();
+            }
           });
         }
 
