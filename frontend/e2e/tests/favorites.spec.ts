@@ -63,17 +63,13 @@ test.describe('Favorites', () => {
       // Wait for content to load
       await page.waitForTimeout(2000);
 
-      // Look for listings with multiple selector patterns
-      const listingCard = page.getByTestId('listing-card')
-        .or(page.locator('[class*="listing"]'))
-        .or(page.locator('[class*="favorite"]'))
-        .or(page.locator('article'));
+      // Either a saved-listing card (a link to a listing) or the explicit
+      // empty state. Generous timeout: first query after a backend restart
+      // is slow, and this test is often the first authenticated data fetch.
+      const listingCard = page.locator('a[href*="/listings/"]').first();
+      const emptyState = page.getByText(/no favorites|no saved|haven't saved/i).first();
 
-      // Either saved listings or an explicit empty state. A bare heading no
-      // longer counts — that passed even when the page body failed to render.
-      const emptyState = page.getByText(/no favorites|no saved|empty|haven't saved/i).first();
-
-      await expect(listingCard.first().or(emptyState)).toBeVisible({ timeout: 15000 });
+      await expect(listingCard.or(emptyState).first()).toBeVisible({ timeout: 30000 });
     });
   });
 

@@ -20,3 +20,5 @@ export {
   ADMIN_USER,
   DEALER_USER,
 } from './auth';
+
+export { gotoSeededListing, expectSearchHasResults } from './preconditions';

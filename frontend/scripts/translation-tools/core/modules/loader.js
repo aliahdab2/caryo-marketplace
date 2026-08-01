@@ -9,11 +9,36 @@ const path = require('path');
 // Configuration
 const LOCALES_DIR = path.resolve(__dirname, '..', '..', '..', '..', 'public', 'locales');
 const LANGUAGES = ['en', 'ar'];
-const NAMESPACES = [
-  'auth', 'common', 'contact', 'dashboard', 'errors',
-  'favorites', 'home', 'listings', 'mediaGallery',
-  'messages', 'search', 'translation'
-];
+
+/**
+ * Discover namespaces from disk rather than a hardcoded list.
+ *
+ * The list used to be hardcoded and had gone stale: it named 12 namespaces
+ * while public/locales held 24, so more than half the translation files —
+ * admin, dealer, payment, settings, subscription and others — were never
+ * checked for missing keys or duplicates by CI. Reading the directory keeps
+ * coverage complete and stops it drifting again when a namespace is added.
+ *
+ * The union across languages is used deliberately: a namespace present in one
+ * language but not the other must be reported as missing keys, not silently
+ * skipped.
+ */
+function discoverNamespaces() {
+  const found = new Set();
+
+  LANGUAGES.forEach(language => {
+    const dir = path.join(LOCALES_DIR, language);
+    if (!fs.existsSync(dir)) return;
+
+    fs.readdirSync(dir)
+      .filter(file => file.endsWith('.json'))
+      .forEach(file => found.add(path.basename(file, '.json')));
+  });
+
+  return [...found].sort();
+}
+
+const NAMESPACES = discoverNamespaces();
 
 /**
  * Load translation file with enhanced error handling
