@@ -13,6 +13,13 @@
 #   ./scripts/verify.sh --e2e        # ALL Playwright specs
 #   ./scripts/verify.sh --full       # same as no-arg (kept for compatibility)
 #
+# The backend boot smoke test needs Testcontainers -> Docker. On this machine
+# (OrbStack) that requires two user-level files, already in place:
+#   ~/.testcontainers.properties  -> docker.host=unix:///var/run/docker.sock
+#   ~/.docker-java.properties     -> api.version=1.44
+#     (OrbStack rejects docker-java's unversioned API calls as "client
+#      version 1.32 is too old")
+#
 # The e2e step manages its own servers:
 #   - backend: uses :8080 if healthy, otherwise starts the dev stack
 #   - frontend: builds a PRODUCTION standalone bundle and serves it on :3220.
@@ -86,6 +93,13 @@ if [ "$RUN_BACKEND" -eq 1 ]; then
     cd "$BACKEND_DIR"
     step "Backend: unit tests"
     SPRING_PROFILES_ACTIVE=test ./gradlew test --no-daemon 2>&1 | tail -5
+
+    # Boot smoke: full application context on real Postgres+Redis+MinIO
+    # (Testcontainers) with Flyway migrations and ddl-auto=validate — the
+    # production boot path. Catches wiring breakage and entity/migration
+    # schema drift that unit tests (H2, simple cache) can never see.
+    step "Backend: boot smoke test (full context, real infra)"
+    ./gradlew integrationTest --tests 'com.caryo.marketplace.integration.ApplicationBootSmokeIntegrationTest' --no-daemon 2>&1 | tail -5
     echo -e "${GREEN}✅ Backend tests passed${NC}"
 fi
 
