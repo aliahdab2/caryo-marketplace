@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, loginAsDealer, ensureLoggedOut, gotoSeededListing } from '../helpers';
+import { loginAsTestUser, loginAsDealer, ensureLoggedOut, gotoSeededListing, expectMessagesPageRendered } from '../helpers';
 import { urls, testMessage } from '../fixtures/test-data';
 
 /**
@@ -96,12 +96,7 @@ test.describe('Messaging', () => {
 
       // Either state is legitimate, but the page must render one of them —
       // a blank page is a failure.
-      const conversations = page.getByTestId('conversation-item').first();
-      const emptyState = page
-        .getByText(/no messages|no conversations( yet)?|inbox empty|start a conversation/i)
-        .first();
-
-      await expect(conversations.or(emptyState)).toBeVisible({ timeout: 15000 });
+      await expectMessagesPageRendered(page);
     });
 
     test('opening a conversation shows the message thread', async ({ page }) => {
@@ -110,11 +105,7 @@ test.describe('Messaging', () => {
       await page.waitForLoadState('load');
       await page.waitForTimeout(2000);
 
-      const conversation = page.getByTestId('conversation-item').first();
-      const emptyState = page
-        .getByText(/no messages|no conversations( yet)?|inbox empty|start a conversation/i)
-        .first();
-      await expect(conversation.or(emptyState)).toBeVisible({ timeout: 15000 });
+      const conversation = await expectMessagesPageRendered(page);
 
       // A test account with no conversations cannot exercise this flow. That is
       // a genuinely inapplicable scenario, so skipping is honest here — unlike

@@ -3,20 +3,22 @@
 // Re-export all the values we need from i18n.ts to ensure they're available
 // to the rest of the application
 
-import i18nInstance, { 
-  LANGUAGES, 
-  SupportedLanguage, 
+import i18nInstance, {
+  LANGUAGES,
+  SupportedLanguage,
   changeLanguage as i18nChangeLanguage,
   getCurrentLanguage,
-  reloadNamespace
+  reloadNamespace,
+  waitForI18nInitialized
 } from './i18n';
 
 // Re-export all values
-export { 
-  LANGUAGES, 
+export {
+  LANGUAGES,
   i18nChangeLanguage as changeLanguage,
   getCurrentLanguage,
-  reloadNamespace
+  reloadNamespace,
+  waitForI18nInitialized
 };
 
 // Re-export types

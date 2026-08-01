@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { urls } from '../fixtures/test-data';
 
 /**
@@ -39,6 +39,23 @@ export async function gotoSeededListing(page: Page): Promise<void> {
   ).toBe(false);
 
   await expect(page.locator('main')).toBeVisible({ timeout: 10000 });
+}
+
+/**
+ * Assert the messages page rendered real content: either a conversation item
+ * or the empty state. A blank page is a failure, whichever role is logged in.
+ *
+ * Returns the first conversation-item locator so callers can branch on
+ * whether the account actually has conversations to open.
+ */
+export async function expectMessagesPageRendered(page: Page): Promise<Locator> {
+  const conversation = page.getByTestId('conversation-item').first();
+  const emptyState = page
+    .getByText(/no messages|no conversations( yet)?|inbox empty|start a conversation/i)
+    .first();
+
+  await expect(conversation.or(emptyState)).toBeVisible({ timeout: 15000 });
+  return conversation;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, loginAsDealer, ensureLoggedOut } from '../helpers';
+import { loginAsTestUser, loginAsDealer, ensureLoggedOut, expectMessagesPageRendered } from '../helpers';
 import { urls } from '../fixtures/test-data';
 
 /**
@@ -64,11 +64,7 @@ test.describe('Dashboard roles', () => {
       await page.waitForTimeout(2000);
 
       // A blank page is the regression this guards against.
-      const conversations = page.getByTestId('conversation-item').first();
-      const emptyState = page
-        .getByText(/no messages|no conversations( yet)?|inbox empty|start a conversation/i)
-        .first();
-      await expect(conversations.or(emptyState)).toBeVisible({ timeout: 15000 });
+      await expectMessagesPageRendered(page);
     });
   });
 

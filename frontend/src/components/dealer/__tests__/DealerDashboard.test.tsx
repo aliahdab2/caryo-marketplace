@@ -88,7 +88,8 @@ describe('DealerDashboard', () => {
     name: 'Test Dealer',
     email: 'dealer@test.com',
     roles: ['ROLE_DEALER'],
-    isAdmin: false
+    isAdmin: false,
+    isDealer: true
   };
 
   const mockTrialStatus = {

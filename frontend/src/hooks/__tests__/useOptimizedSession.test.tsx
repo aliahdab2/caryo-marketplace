@@ -107,6 +107,7 @@ describe('useOptimizedSession', () => {
         image: 'https://example.com/avatar.jpg',
         roles: ['ROLE_USER'],
         isAdmin: false,
+        isDealer: false,
         accessToken: 'mock-token',
       });
     });
@@ -183,7 +184,7 @@ describe('useOptimizedSession', () => {
       });
 
       await waitFor(() => {
-        expect(result.current).toEqual(mockUser);
+        expect(result.current).toEqual({ ...mockUser, isDealer: false, accessToken: undefined });
       });
     });
 

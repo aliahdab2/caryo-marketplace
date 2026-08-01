@@ -40,6 +40,7 @@ export function useOptimizedSession() {
       image: sessionData.user.image,
       roles,
       isAdmin: roles.includes('ROLE_ADMIN'),
+      isDealer: roles.includes('ROLE_DEALER'),
       accessToken: (sessionData as { accessToken?: string })?.accessToken,
     };
   }, [sessionData]);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslation, UseTranslationResponse } from 'react-i18next';
+import { waitForI18nInitialized } from '@/utils/i18nExports';
 import { translationDebug } from '@/utils/translationDebug';
 
 /**
@@ -51,23 +52,8 @@ export function useLazyTranslation(
           }
         }
         
-        // Ensure i18next is initialized before loading namespaces.
-        // Re-check after subscribing: initialization can complete between the
-        // isInitialized check and the listener registration, and the
-        // 'initialized' event never fires again — awaiting it then would hang
-        // forever and leave every consumer stuck on its loading state.
-        if (!i18nInstance.isInitialized) {
-          await new Promise<void>((resolve) => {
-            const onInitialized = () => {
-              i18nInstance.off('initialized', onInitialized);
-              resolve();
-            };
-            i18nInstance.on('initialized', onInitialized);
-            if (i18nInstance.isInitialized) {
-              onInitialized();
-            }
-          });
-        }
+        // Ensure i18next is initialized before loading namespaces
+        await waitForI18nInitialized(i18nInstance);
 
         await i18nInstance.loadNamespaces(normalizedNamespaces);
         if (isMounted) {

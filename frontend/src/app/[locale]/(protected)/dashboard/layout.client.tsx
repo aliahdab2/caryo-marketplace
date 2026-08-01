@@ -131,7 +131,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   // Private sellers share the dealer routes but must not see dealer branding:
   // storefront is dealer-only, and "Stock"/"Leads" read as "My Listings"/
   // "Messages" for a regular user.
-  const isDealer = !!user?.roles?.includes('ROLE_DEALER');
+  const isDealer = !!user?.isDealer;
   const { data: trialStatus } = useDealerTrialStatus({ enabled: isDealer });
   const router = useRouter();
   const { t } = useTranslation(['dashboard', 'upgradeModal']);

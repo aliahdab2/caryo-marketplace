@@ -21,4 +21,4 @@ export {
   DEALER_USER,
 } from './auth';
 
-export { gotoSeededListing, expectSearchHasResults } from './preconditions';
+export { gotoSeededListing, expectSearchHasResults, expectMessagesPageRendered } from './preconditions';

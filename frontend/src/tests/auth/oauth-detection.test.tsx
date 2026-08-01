@@ -80,6 +80,7 @@ describe('OAuth User Detection in Profile Page', () => {
         image: 'https://lh3.googleusercontent.com/a/xyz',
         roles: ['USER'],
         isAdmin: false,
+        isDealer: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',
@@ -108,6 +109,7 @@ describe('OAuth User Detection in Profile Page', () => {
         image: 'https://lh3.googleusercontent.com/a/xyz',
         roles: ['USER'],
         isAdmin: false,
+        isDealer: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',
@@ -135,6 +137,7 @@ describe('OAuth User Detection in Profile Page', () => {
         image: null,
         roles: ['USER'],
         isAdmin: false,
+        isDealer: false,
         accessToken: 'mock-token'
       },
       status: 'authenticated',

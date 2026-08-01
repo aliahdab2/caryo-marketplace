@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import i18n from '@/utils/i18nExports';
+import i18n, { waitForI18nInitialized } from '@/utils/i18nExports';
 import { I18nextProvider } from 'react-i18next';
 import { isValidLocale } from '@/app/i18n/config';
 
@@ -41,22 +41,8 @@ export default function I18nProvider({ children }: I18nProviderProps) {
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
 
-        // Make sure i18next is initialized. Re-check after subscribing:
-        // initialization can complete between the isInitialized check and the
-        // listener registration, and the 'initialized' event never fires
-        // again — awaiting it then would hang this effect forever.
-        if (!i18n.isInitialized) {
-          await new Promise<void>((resolve) => {
-            const onInitialized = () => {
-              i18n.off('initialized', onInitialized);
-              resolve();
-            };
-            i18n.on('initialized', onInitialized);
-            if (i18n.isInitialized) {
-              onInitialized();
-            }
-          });
-        }
+        // Make sure i18next is initialized before touching language state
+        await waitForI18nInitialized(i18n);
 
         // Change language and load resources only if needed
         if (i18n.language !== currentLocale) {

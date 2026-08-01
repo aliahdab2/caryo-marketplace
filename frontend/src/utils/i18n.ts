@@ -1,6 +1,7 @@
 "use client";
 
 import i18n from "i18next";
+import type { i18n as I18nInstance } from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
@@ -107,6 +108,29 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || '';
 }
 */
+
+/**
+ * Resolves once the given i18next instance has finished initializing.
+ *
+ * Re-checks isInitialized after subscribing: initialization can complete
+ * between the check and the listener registration, and the 'initialized'
+ * event never fires again — awaiting it then would hang forever.
+ *
+ * @param instance The i18next instance to wait for (defaults to the app instance)
+ */
+export const waitForI18nInitialized = (instance: I18nInstance = i18n): Promise<void> => {
+  if (instance.isInitialized) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const onInitialized = () => {
+      instance.off('initialized', onInitialized);
+      resolve();
+    };
+    instance.on('initialized', onInitialized);
+    if (instance.isInitialized) {
+      onInitialized();
+    }
+  });
+};
 
 /**
  * Manual reload of a namespace - useful for debugging

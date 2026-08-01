@@ -41,7 +41,7 @@ export default function DealerDashboard() {
   const { t } = useTranslation(['dashboard', 'common', 'listings', 'search', 'upgradeModal']);
   const { currentLang } = useLanguageSwitching();
   const { user: session } = useOptimizedSession();
-  const isDealer = !!session?.roles?.includes('ROLE_DEALER');
+  const isDealer = !!session?.isDealer;
 
   // UI State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
