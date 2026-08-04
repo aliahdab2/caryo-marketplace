@@ -69,7 +69,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
     // Web scraping for SyrianCars.net data
-    implementation 'org.jsoup:jsoup:1.22.1'
+    implementation 'org.jsoup:jsoup:1.23.1'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'
