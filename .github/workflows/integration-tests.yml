@@ -204,7 +204,7 @@ jobs:
 
     - name: Upload test coverage
       if: success() || failure()
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         files: |
           ./backend/caryo-backend/build/reports/jacoco/test/jacocoTestReport.xml
